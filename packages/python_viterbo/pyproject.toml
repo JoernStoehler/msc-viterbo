@@ -1,0 +1,17 @@
+[project]
+name = "viterbo"
+version = "0.1.0"
+description = "Python orchestration and data/ML code for the Probing Viterbo's Conjecture project."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+

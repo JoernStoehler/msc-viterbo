@@ -1,0 +1,27 @@
+{
+  "name": "msc-viterbo",
+  "dockerFile": "Dockerfile",
+  "workspaceFolder": "/workspaces/msc-viterbo",
+  "updateRemoteUserUID": true,
+  "features": {},
+  "postCreateCommand": "bash scripts/devcontainer-post-create.sh",
+  "containerEnv": {
+    "LOCAL_DEVCONTAINER": "true",
+    "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history"
+  },
+  "mounts": [
+    "source=/srv/devhome/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
+    "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
+    "source=/srv/devhome/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
+    "source=/srv/devhome/.bash_history_dir,target=/home/vscode/.bash_history_dir,type=bind,consistency=cached",
+    "source=/srv/devhome/.agentx,target=/home/vscode/.agentx,type=bind,consistency=cached",
+    "source=/srv/devworktrees/msc-viterbo/worktrees,target=/var/tmp/msc-viterbo/worktrees,type=bind,consistency=cached"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
