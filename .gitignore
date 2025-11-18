@@ -1,8 +1,60 @@
-/.devcontainer/.env
+# Root-level ignores that apply across packages. Package-local build outputs stay in packages/*/.gitignore files.
+# When adding a new toolchain, prefer updating the relevant package-level ignore file unless artifacts appear repo-wide.
+
+# Devcontainer + developer-local secrets
+.devcontainer/.env
+.env
+.env.*
+!.env.example
+
+# Editor/IDE state that should never be shared
+.vscode/
+!.vscode/settings.json
+.idea/
+*.code-workspace
+
+# OS-level metadata
+.DS_Store
+Thumbs.db
+
+# Python: caches, envs, coverage, packaging detritus (python_viterbo + notebooks in thesis)
 **/__pycache__/
 **/.pytest_cache/
 **/.mypy_cache/
 **/.ruff_cache/
+**/.ipynb_checkpoints/
 **/.venv/
+.venv/
+*.py[cod]
+*.pyo
+.coverage
+.coverage.*
+htmlcov/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Rust/Cargo artefacts (rust_viterbo and any helper crates)
 target/
+**/target/
+
+# Node/Astro/Vite/etc. build outputs that can show up in docs-site or future packages
+**/node_modules/
+**/.astro/
+**/dist/
+**/.turbo/
+**/.parcel-cache/
+**/.next/
+**/coverage/
+
+# Lean4 Lake build outputs (lean_viterbo) and generated binaries
+**/.lake/
 *.olean
+*.olean.trace
+
+# Generic backups + temp files created during editing/docs builds
+*.log
+*.tmp
+*.bak.*
+*.swp
+*.swo

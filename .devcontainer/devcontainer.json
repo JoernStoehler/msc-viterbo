@@ -42,7 +42,8 @@
         "charliermarsh.ruff",
         "usernamehw.errorlens",
         "onecrayon.theme-quietlight-vsc",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "github.vscode-github-actions"
       ]
     }
   }

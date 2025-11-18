@@ -1,0 +1,29 @@
+---
+import Layout from '../../layouts/SiteLayout.astro';
+import FigureShowcase from '../../components/FigureShowcase.astro';
+import { getAllThesisEntries } from '../../lib/thesis';
+
+export function getStaticPaths() {
+  const entries = getAllThesisEntries();
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = entry;
+---
+<Layout title={entry.title} description={entry.summary ?? undefined}>
+  <article>
+    <Content />
+  </article>
+  {entry.figures.length > 0 && (
+    <section>
+      <h2>Interactive Figures</h2>
+      {entry.figures.map((figure) => (
+        <FigureShowcase figure={figure} />
+      ))}
+    </section>
+  )}
+</Layout>

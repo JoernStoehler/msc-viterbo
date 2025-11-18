@@ -17,6 +17,7 @@ The project is **agents-first**: almost all work is done by AI agents running in
 - `packages/python_viterbo/` – Python `viterbo` package for orchestration, data pipelines, and ML.
 - `packages/lean_viterbo/` – Lean4 project for formalizing the key parts of the argument and building certificate verifiers.
 - `packages/thesis/` – thesis sources and build pipeline.
+- `packages/docs-site/` – Astro-based GitHub Pages site that renders the thesis MDX plus aggregated API docs.
 - `packages/agentx/` – Rust CLI tooling for agents and the project owner.
 
 For more detail, see `SPEC.md` and the package-level `AGENTS.md` files.
