@@ -34,16 +34,22 @@
         "terminal.integrated.defaultProfile.linux": "bash"
       },
       "extensions": [
+        // python
         "ms-python.python",
+        "charliermarsh.ruff",
+        // rust
         "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        // lean4
         "leanprover.lean4",
+        // other file formats
         "tamasfe.even-better-toml",
         "redhat.vscode-yaml",
-        "charliermarsh.ruff",
-        "usernamehw.errorlens",
-        "onecrayon.theme-quietlight-vsc",
+        // ai
         "openai.chatgpt",
-        "github.vscode-github-actions"
+        // github
+        "github.vscode-github-actions",
+        "GitHub.vscode-pull-request-github"
       ]
     }
   }
