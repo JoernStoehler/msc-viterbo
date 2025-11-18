@@ -8,6 +8,12 @@ You are in `packages/python_viterbo/`, which contains the Python orchestration, 
 - `src/viterbo/` – main Python package namespace (currently holds placeholder helpers for smoke tests).
 - `tests/` – lightweight pytest suite to ensure the toolchain stays green.
 
+## Architecture context
+
+- Treat this package as the orchestration layer: it glues together Rust implementations (via the `ffi` crate) and data/experiment pipelines.
+- Any heavy computation should migrate into `packages/rust_viterbo` once stabilized; keep Python code thin so that experiments can be reproduced across worktrees.
+- The package is also the integration test harness: end-to-end experiments should live here and call Rust/Lean components as needed.
+
 ## Tooling and commands
 
 - Use `uv` for dependency management and running commands.

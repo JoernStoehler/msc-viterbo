@@ -10,6 +10,8 @@ set -euo pipefail
 #   - Creates a new branch "agentx/<worktree-name>" from origin/main (or main).
 #   - Adds a git worktree under /var/tmp/msc-viterbo/worktrees/<worktree-name>.
 #   - Ensures the /workspaces/worktrees symlink exists inside the devcontainer.
+#   - Invokes scripts/worktree-post-add.sh so every new worktree gets the same
+#     bootstrap steps (uv sync, future package hooks, etc.).
 
 if [[ $# -ne 1 ]]; then
   echo "Usage: $0 <worktree-name>" >&2
@@ -45,6 +47,14 @@ fi
 
 if [[ ! -L "/workspaces/worktrees" ]]; then
   ln -s "${WORKTREES_DIR}" "/workspaces/worktrees"
+fi
+
+# Run shared post-add hook (best-effort, but fail if it exists and errors).
+POST_ADD="${REPO_ROOT}/scripts/worktree-post-add.sh"
+if [[ -x "${POST_ADD}" ]]; then
+  "${POST_ADD}" "${WORKTREE_PATH}"
+else
+  echo "Skipping post-add hook; ${POST_ADD} not executable."
 fi
 
 echo "Provisioned worktree ${WORKTREE_NAME} at ${WORKTREE_PATH} on branch ${BRANCH_NAME}."

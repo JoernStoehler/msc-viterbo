@@ -14,8 +14,13 @@ You are in `packages/lean_viterbo/`, which contains Lean4 code for formalizing k
 - `lean-toolchain` – Lean version pin.
 - `ProbingViterbo` namespace under `ProbingViterbo/` (to be refined as the project evolves).
 
+## Architecture context
+
+- Lean proofs justify algorithmic steps implemented in `packages/rust_viterbo`. Keep theorem/lemma names aligned with the Rust modules they certify.
+- The future certificate verifier will ingest artifacts emitted by `packages/python_viterbo` experiments; design data formats in collaboration with that package.
+- When Lean code depends on external libraries, document the rationale in comments so the Dockerfile/elan pins remain coherent.
+
 ## Tooling and commands
 
 - Use `lake build` to build the project.
 - Use `lake env lean` (or your editor integration) for interactive development.
-

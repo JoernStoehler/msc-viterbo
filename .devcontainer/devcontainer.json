@@ -1,4 +1,13 @@
 {
+  // Devcontainer definition for msc-viterbo.
+  // Maintenance notes:
+  // - Keep this file aligned with .devcontainer/Dockerfile; any new toolchain
+  //   should first be baked into the image, then referenced here.
+  // - Bind mounts are the canonical way to persist caches (uv, gh auth, agentx
+  //   DB, worktrees). When you extend the environment, describe new mounts in
+  //   this block so agents know what host paths they manipulate.
+  // - postCreateCommand only wires scripts/devcontainer-post-create.sh; edit
+  //   that script (with comments) when adding multi-step setup.
   "name": "msc-viterbo",
   "dockerFile": "Dockerfile",
   "workspaceFolder": "/workspaces/msc-viterbo",
@@ -9,6 +18,8 @@
     "LOCAL_DEVCONTAINER": "true",
     "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history"
   },
+  // Bind mounts: host paths -> container paths. Adjust host prefixes in
+  // scripts/devcontainer-post-create.sh if your machine differs.
   "mounts": [
     "source=/srv/devhome/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
@@ -21,7 +32,18 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash"
-      }
+      },
+      "extensions": [
+        "ms-python.python",
+        "rust-lang.rust-analyzer",
+        "leanprover.lean4",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "charliermarsh.ruff",
+        "usernamehw.errorlens",
+        "onecrayon.theme-quietlight-vsc",
+        "openai.chatgpt"
+      ]
     }
   }
 }
