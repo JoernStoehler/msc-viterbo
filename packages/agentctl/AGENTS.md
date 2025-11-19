@@ -98,7 +98,7 @@ Sends SIGTERM to the `_exec` PID recorded for the handle. After the process exit
 
 ### `agentctl await <handle> [--timeout <seconds>]`
 
-Polls the `_exec` PID until it disappears. When `--timeout` is set and the PID is still alive after that duration, exits `124`. If no running turn exists, exits `65`.
+Blocks until the handle’s current turn finishes or the timeout elapses. A clean finish prints `Agent <handle> completed.` and exits `0`. If the turn is still running after `--timeout`, exits `124` so the caller can decide whether to stop or inspect the agent. Invoking `await` does **not** change the stored turn status; the turn remains `running` until it stops naturally or via `agentctl stop`. If no running turn exists, exits `65`.
 
 ### `agentctl print <handle> [--last N] [--json]`
 
