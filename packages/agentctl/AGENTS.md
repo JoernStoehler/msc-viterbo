@@ -106,10 +106,10 @@ Reads the last `N` (default 1) turn directories. Text mode prints the turn id, s
 
 ### `agentctl self [--json]`
 
-Echoes the current handle/worktree metadata. Resolution order:
+Echoes the current handle/worktree metadata.
 
 1. Use `AGENTCTL_HANDLE` if set (the start command exports this env var before launching `_exec` so the Codex process can call `agentctl self` immediately).
-2. Otherwise, resolve the current directory to a worktree and ensure exactly one handle is defined there. If zero or multiple handles exist, exit `64` with guidance.
+2. Otherwise, print an "unbound" record with the canonical current directory plus `none`/`undefined` placeholders (JSON mode emits `null` for those fields). This makes it obvious that the caller is not running inside an agent turn, even when the worktree hosts other handles.
 
 Outputs (text mode):
 
@@ -121,6 +121,30 @@ model: gpt-5-codex
 budget: high
 defined_at: 2025-11-19T12:30:00Z
 ```
+
+When no handle is active:
+
+```
+handle: undefined
+worktree: /workspaces/msc-viterbo
+parent: none
+model: none
+budget: none
+defined_at: none
+```
+
+### `agentctl interactive <handle> [--allocate --worktree <path>]`
+
+Launches the Codex TUI for the given handle. Behavior:
+
+1. If `--allocate --worktree <path>` is provided, the command first bootstraps the handle (same defaults as `agentctl define`—parent inferred from `AGENTCTL_HANDLE`, model defaults to `gpt-5-codex`, reasoning budget defaults to `high`). Pass `--model` / `--reasoning-budget` alongside `--allocate` to override those defaults.
+2. Fails with `65` when the handle does not exist (and `--allocate` is missing) or when another turn is already running.
+3. Prepares a fresh turn directory (prompt/log/final files) and inserts a `turns` row with status `launching`.
+4. Spawns `codex resume <uuid>` when a previous session exists, otherwise `codex` for a fresh session. The child inherits STDIN/STDOUT/STDERR so the user controls the session manually. All environment variables (`AGENTCTL_*`) match the automatic `_exec` workflow.
+5. Updates SQLite to mark the turn as `interactive` plus the Codex PID so that `agentctl stop/await` can supervise the TUI just like automated turns.
+6. Once the user exits the TUI, `agentctl interactive` stores the latest session UUID (parsed from `~/.codex/history.jsonl`), marks the turn `stopped` (or `failed` if Codex returned a non-zero status), and prints a short summary.
+
+Use this command whenever the project owner wants to take over a handle interactively without losing track of the turn history.
 
 ### `agentctl _exec ...` (internal)
 
