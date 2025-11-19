@@ -1,11 +1,10 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use chrono::Utc;
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Serialize;
 
-use crate::error::CliError;
+use crate::{error::CliError, util};
 
 const DB_FILE: &str = "state.db";
 
@@ -15,14 +14,8 @@ pub struct Database {
 
 impl Database {
     pub fn open(repo_root: &Path) -> Result<Self, CliError> {
-        let agent_dir = repo_root.join(".agentctl");
-        fs::create_dir_all(&agent_dir).map_err(|err| {
-            CliError::new(
-                70,
-                format!("Failed to create {}: {err}", agent_dir.display()),
-            )
-        })?;
-        let db_path = agent_dir.join(DB_FILE);
+        let storage_root = util::sessions_root(repo_root)?;
+        let db_path = storage_root.join(DB_FILE);
         let conn = Connection::open(db_path)
             .map_err(|err| CliError::new(70, format!("Failed to open agent DB: {err}")))?;
         conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;")

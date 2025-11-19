@@ -13,11 +13,11 @@ sudo chown -R $USER:$USER \
   "${HOME}/.local" \
   "${HOME}/.cache"
 
-# Ensure worktrees directory exists (bind-mounted) and is easy to find
-WORKTREES_DIR="/var/tmp/msc-viterbo/worktrees"
-mkdir -p "${WORKTREES_DIR}"
-if [[ ! -L "/workspaces/worktrees" ]]; then
-  ln -s "${WORKTREES_DIR}" "/workspaces/worktrees"
+# Ensure the /workspaces/worktrees mount exists; fail fast if not
+WORKTREES_DIR="/workspaces/worktrees"
+if ! mountpoint -q "${WORKTREES_DIR}"; then
+  echo "Expected ${WORKTREES_DIR} to be a host bind mount. Check devcontainer mounts." >&2
+  exit 1
 fi
 
 # Ensure agentx namespace for this project exists
@@ -31,6 +31,11 @@ if command -v npm >/dev/null 2>&1; then
   npm config set prefix "${HOME}/.local"
   npm config set cache "${HOME}/.cache/npm"
   npm i -g @openai/codex || true
+fi
+
+# Ensure agentctl binary is installed
+if command -v cargo >/dev/null 2>&1 && ! command -v agentctl >/dev/null 2>&1; then
+  (cd "${REPO_ROOT}/packages/agentctl" && cargo install --locked --path . --root "${HOME}/.local")
 fi
 
 echo "Devcontainer post-create setup complete."

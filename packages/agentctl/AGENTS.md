@@ -25,7 +25,7 @@ Drop into this file when you modify the CLI, touch the SQLite schema, or need to
 
 ### State Store
 
-- Path: `<repo>/.agentctl/state.db` (gitignored). Created on demand.
+ - Path: `~/.agentctl/repos/<slug>/state.db` (shared across all worktrees for that repo slug). Created on demand.
 - Selected pragmas: WAL journaling + `foreign_keys = ON`.
 - Tables (simplified):
 
@@ -65,7 +65,7 @@ Shows every defined handle plus the latest turn status. Text mode output uses a 
 
 ### `agentctl bootstrap <worktree-path>`
 
-Registers an existing git worktree. The command canonicalizes `<worktree-path>`, ensures it lives inside the repo root, records the branch name in SQLite, and ensures the repo-scoped `.agentctl/state.db` exists. If the environment variable `AGENTCTL_BOOTSTRAP_HOOK` is set (for example `export AGENTCTL_BOOTSTRAP_HOOK="bash scripts/agentctl-bootstrap-hook.sh"`), the referenced command is executed after registration with these env vars: `AGENTCTL_REPO_ROOT`, `AGENTCTL_WORKTREE`, `AGENTCTL_WORKTREE_BRANCH`. The hook runs in the repo root and can handle toolchain-specific setup (e.g., `uv sync`). Exit codes: `65` invalid path, `70` filesystem/git error or hook failure.
+Registers an existing git worktree. The command canonicalizes `<worktree-path>`, ensures it lives inside the repo root, records the branch name in SQLite, and ensures the repo-scoped `~/.agentctl/repos/<slug>/state.db` exists (slug derived from the repo root). If the environment variable `AGENTCTL_BOOTSTRAP_HOOK` is set (for example `export AGENTCTL_BOOTSTRAP_HOOK="bash scripts/agentctl-bootstrap-hook.sh"`), the referenced command is executed after registration with these env vars: `AGENTCTL_REPO_ROOT`, `AGENTCTL_WORKTREE`, `AGENTCTL_WORKTREE_BRANCH`. The hook runs in the repo root and can handle toolchain-specific setup (e.g., `uv sync`). Exit codes: `65` invalid path, `70` filesystem/git error or hook failure.
 
 ### `agentctl define <handle> --worktree <path> [--parent <handle>] [--model <gpt-5|gpt-5-codex>] [--reasoning-budget <high|medium|low>]`
 
