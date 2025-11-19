@@ -24,7 +24,7 @@ pub fn run(db: &mut Database, args: PrintArgs) -> Result<(), CliError> {
         return Ok(());
     }
     for turn in turns {
-        println!("Turn {} ({})", turn.id, turn.status.as_str());
+        println!("Turn #{} ({})", turn.turn_number, turn.status.as_str());
         println!("started: {}", turn.started_at);
         if let Some(stopped) = &turn.stopped_at {
             println!("stopped: {}", stopped);

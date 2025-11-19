@@ -102,7 +102,7 @@ Polls the `_exec` PID until it disappears. When `--timeout` is set and the PID i
 
 ### `agentctl print <handle> [--last N] [--json]`
 
-Reads the last `N` (default 1) turn directories. Text mode prints the turn id, status, timestamps, session UUID, prompt content, and the final message (or `[no final message yet]`). JSON mode emits the raw turn records from SQLite.
+Reads the last `N` (default 1) turn directories. Text mode prints the per-handle turn number (e.g. `Turn #3`), status, timestamps, session UUID, prompt content, and the final message (or `[no final message yet]`). JSON mode emits the raw turn records from SQLite.
 
 ### `agentctl self [--json]`
 

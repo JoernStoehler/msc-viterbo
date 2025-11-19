@@ -136,9 +136,15 @@ impl Database {
         self.conn
             .query_row(
                 "
+                WITH ordered AS (
+                    SELECT id, handle, status, prompt_path, log_path, final_path, turn_dir, session_uuid,
+                           child_pid, started_at, last_active_at, stopped_at, failure_reason,
+                           ROW_NUMBER() OVER (PARTITION BY handle ORDER BY id) AS turn_number
+                    FROM turns
+                )
                 SELECT id, handle, status, prompt_path, log_path, final_path, turn_dir, session_uuid,
-                       child_pid, started_at, last_active_at, stopped_at, failure_reason
-                FROM turns
+                       child_pid, started_at, last_active_at, stopped_at, failure_reason, turn_number
+                FROM ordered
                 WHERE handle = ?1 AND status IN ('launching', 'running', 'interactive')
                 ORDER BY id DESC
                 LIMIT 1
@@ -155,10 +161,16 @@ impl Database {
             .conn
             .prepare(
                 "
+                WITH ordered AS (
+                    SELECT id, handle, status, prompt_path, log_path, final_path, turn_dir, session_uuid,
+                           child_pid, started_at, last_active_at, stopped_at, failure_reason,
+                           ROW_NUMBER() OVER (PARTITION BY handle ORDER BY id) AS turn_number
+                    FROM turns
+                    WHERE handle = ?1
+                )
                 SELECT id, handle, status, prompt_path, log_path, final_path, turn_dir, session_uuid,
-                       child_pid, started_at, last_active_at, stopped_at, failure_reason
-                FROM turns
-                WHERE handle = ?1
+                       child_pid, started_at, last_active_at, stopped_at, failure_reason, turn_number
+                FROM ordered
                 ORDER BY id DESC
                 LIMIT ?2
             ",
@@ -194,6 +206,7 @@ fn row_to_turn(row: &rusqlite::Row<'_>) -> rusqlite::Result<TurnRecord> {
     Ok(TurnRecord {
         id: row.get(0)?,
         handle: row.get(1)?,
+        turn_number: row.get(13)?,
         status: TurnStatus::from_str(&row.get::<_, String>(2)?),
         prompt_path: Path::new(&row.get::<_, String>(3)?).into(),
         log_path: Path::new(&row.get::<_, String>(4)?).into(),

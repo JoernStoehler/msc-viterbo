@@ -31,6 +31,7 @@ pub struct AgentWithStatus {
 pub struct TurnRecord {
     pub id: i64,
     pub handle: String,
+    pub turn_number: i64,
     pub status: TurnStatus,
     pub prompt_path: PathBuf,
     pub log_path: PathBuf,
