@@ -25,6 +25,8 @@ Then use CLI commands:
 ```bash
 node dist/src/cli.js list
 node dist/src/cli.js start "Hello" --workdir /workspaces/some-dir
+# Interactive TUI, registered as external:
+node dist/src/cli.js codex-tui -- --search "do X"
 ```
 
 ### Build
@@ -54,8 +56,8 @@ npm run build
 - For quicker local iterations without touching the global bin: `npm link` (undo with `npm unlink -g agentctl`).
 
 ### Output formats
-- Default output is plain, grep-friendly text.
-- Add `--json` to `start`, `status`, `await`, `stop`, or `list` to get machine-readable JSON on stdout. `list --json` returns a JSON array; add `--jsonl` to get newline-delimited JSON (one thread per line) for streaming use.
+- Default output is plain, grep-friendly text (`id status managed pid exit_code workdir`).
+- Add `--json` to `start`, `status`, `await`, `stop`, or `list` to get machine-readable JSON. `list --json` returns a JSON array; add `--jsonl` to get NDJSON.
 
 ### Self-identification
 - `agentctl self` prints `project_owner` when not running inside a Codex shell, otherwise the detected agent UUID. With `--json` it returns a structured object `{ identity, agent_uuid?, source }`. Uses PID-based ancestry matching to identify the agent by tracing the process tree and matching against the daemon's thread state. Exits non-zero if `CODEX_SHELL_ENV=1` and no UUID is found.
@@ -64,12 +66,10 @@ npm run build
 - `agentctl start` returns immediately by default (`--detach=true`). Use `--await` or `--detach=false` to block until the turn finishes.
 
 ### Testing
-We use a self-contained integration test suite that mocks the Codex agent.
-```bash
-npm test
-```
+- Integration tests use the mock Codex, writing session files to a temp `AGENTCTL_CODEX_SESSIONS_DIR`. Run `npm test`.
+- Set `AGENTCTL_MOCK_SESSION_DELAY_MS` to simulate slow session creation for timeout paths.
 
 ### Troubleshooting
--   **Daemon fails to start**: Check if the port (default 3000) is in use. Check `~/.agentctl/state/daemon.pid` (if implemented) or just `ps aux | grep daemon`.
--   **Codex not spawning**: Ensure `codex` is in your PATH, or set `AGENTCTL_CODEX_BIN` to the absolute path.
--   **Handshake timeout**: The daemon waits 10s for the first JSON event from Codex (override with `AGENTCTL_HANDSHAKE_TIMEOUT_MS`). If Codex is slow or silent, this will fail. Check `~/.agentctl/state/threads/<id>/stderr.log`.
+- **Daemon fails to start**: Check port (default 3000) and `~/.agentctl/state/daemon.pid` (if present).
+- **Session file not found**: Ensure `AGENTCTL_CODEX_SESSIONS_DIR` points to the actual Codex sessions root (default `~/.codex/sessions`), the process can write there, and increase `AGENTCTL_DISCOVERY_TIMEOUT_MS` if Codex is slow to emit `session_meta`.
+- **Stop fails**: `agentctl stop` only works for `managed=daemon`; external threads must be exited in their owning terminal.

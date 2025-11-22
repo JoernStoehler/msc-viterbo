@@ -1,23 +1,32 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { setTimeout } from 'timers/promises';
 
-async function main() {
-    // Parse args minimally to find --output-last-message and the instruction file
-    const args = process.argv.slice(2);
-    const outputLastMessageIndex = args.indexOf('--output-last-message');
-    let finalMessagePath: string | null = null;
+function getArgValue(flag: string, args: string[]): string | undefined {
+    const idx = args.indexOf(flag);
+    if (idx !== -1 && idx + 1 < args.length) return args[idx + 1];
+    return undefined;
+}
 
-    if (outputLastMessageIndex !== -1 && args.length > outputLastMessageIndex + 1) {
-        finalMessagePath = args[outputLastMessageIndex + 1];
-    }
+function sessionRoot(): string {
+    return process.env.AGENTCTL_CODEX_SESSIONS_DIR || path.join(os.homedir(), '.codex', 'sessions');
+}
+
+function ensureDir(p: string) {
+    if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+}
+
+async function main() {
+    const args = process.argv.slice(2);
+    const outputLastMessage = getArgValue('--output-last-message', args);
+    const cd = getArgValue('--cd', args) || process.cwd();
 
     const instructionFile = process.env.AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE;
     if (!instructionFile) {
         console.error('Error: AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE not set');
         process.exit(1);
     }
-
     if (!fs.existsSync(instructionFile)) {
         console.error(`Error: Instruction file not found: ${instructionFile}`);
         process.exit(1);
@@ -25,34 +34,53 @@ async function main() {
 
     const content = fs.readFileSync(instructionFile, 'utf-8');
     const lines = content.split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) {
+        console.error('Instruction file empty');
+        process.exit(1);
+    }
 
-    for (const line of lines) {
-        try {
-            const event = JSON.parse(line);
+    const events = lines.map(line => JSON.parse(line));
+    const first = events[0];
+    const threadId = first.thread_id || first.id || 'mock-thread-id';
 
-            // Simulate delay if specified in the mock event (custom field)
-            if (event._mock_delay_ms) {
-                await setTimeout(event._mock_delay_ms);
-                delete event._mock_delay_ms; // Remove before printing
-            }
+    const now = new Date();
+    const dateDir = path.join(sessionRoot(), now.getUTCFullYear().toString(), String(now.getUTCMonth() + 1).padStart(2, '0'), String(now.getUTCDate()).padStart(2, '0'));
+    ensureDir(dateDir);
+    const iso = now.toISOString().replace(/:/g, '-');
+    const sessionPath = path.join(dateDir, `rollout-${iso}-${threadId}.jsonl`);
 
-            // Simulate crash/exit
-            if (event._mock_exit_code !== undefined) {
-                process.exit(event._mock_exit_code);
-            }
+    const meta = {
+        timestamp: now.toISOString(),
+        type: 'session_meta',
+        payload: {
+            id: threadId,
+            timestamp: now.toISOString(),
+            cwd: cd,
+            originator: 'codex_exec',
+            source: 'exec',
+            model_provider: 'mock'
+        }
+    };
 
-            console.log(JSON.stringify(event));
+    const sessionDelayMs = Number(process.env.AGENTCTL_MOCK_SESSION_DELAY_MS || 0);
+    if (sessionDelayMs > 0) {
+        await setTimeout(sessionDelayMs);
+    }
 
-            // If this is a final message event, write to file if requested
-            // Assuming the event structure has 'finalMessage' or similar. 
-            // For the mock, we'll assume the last event might contain the final message text
-            // or we explicitly look for a 'final_message' field in the event.
-            if (finalMessagePath && event.type === 'turn_end' && event.final_message) {
-                fs.writeFileSync(finalMessagePath, event.final_message);
-            }
+    fs.writeFileSync(sessionPath, JSON.stringify(meta) + '\n');
 
-        } catch (e) {
-            console.error('Failed to parse mock line:', line);
+    for (const ev of events) {
+        if (ev._mock_delay_ms) {
+            await setTimeout(ev._mock_delay_ms);
+            delete ev._mock_delay_ms;
+        }
+        if (ev._mock_exit_code !== undefined) {
+            process.exit(ev._mock_exit_code);
+        }
+        fs.appendFileSync(sessionPath, JSON.stringify(ev) + '\n');
+
+        if (outputLastMessage && ev.type === 'turn_end' && ev.final_message) {
+            fs.writeFileSync(outputLastMessage, ev.final_message);
         }
     }
 }

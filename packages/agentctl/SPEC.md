@@ -47,10 +47,7 @@ All state is stored in `~/.agentctl/state/` (configurable via `AGENTCTL_STATE_DI
 ├── daemon.port         # Port the daemon is listening on
 └── threads/
     └── <thread_id>/
-        ├── status.json # Current state (Running, Done, Failed)
-        ├── log.jsonl   # Append-only event log
-        ├── stdout.log  # Raw stdout from codex
-        └── stderr.log  # Raw stderr from codex
+        └── status.json # Current state (Running, Done, Failed)
 ```
 
 ### `status.json`
@@ -61,69 +58,67 @@ All state is stored in `~/.agentctl/state/` (configurable via `AGENTCTL_STATE_DI
   "status": "running", // running, done, failed, aborted
   "exit_code": null,
   "workdir": "/path/to/workdir",
+  "managed": "daemon",
+  "session_file": "/home/user/.codex/sessions/2025/11/22/rollout-...jsonl",
+  "originator": "codex_exec",
+  "source": "exec",
+  "codex_cwd": "/path/to/workdir",
   "created_at": "2023-10-27T10:00:00Z",
   "updated_at": "2023-10-27T10:00:05Z"
 }
 ```
 
-### `log.jsonl`
-Events: `turn_start`, `turn_end`, `process_spawn`, `process_exit`.
-
-> **Design Note**: We maintain our own `log.jsonl` by piping `codex` stdout rather than reading `~/.codex/sessions`. This ensures:
-> 1.  **Decoupling**: We are not affected by internal `codex` path changes.
-> 2.  **Immediacy**: We receive events instantly via the pipe.
-> 3.  **Ownership**: The `agentctl` state directory remains the self-contained source of truth.
+### Session file pointer
+We no longer pipe/duplicate Codex stdout. Instead we store a pointer to the Codex transcript (`session_file`) and pull metadata from its first `session_meta` line. For portability you may copy/link that file into the thread dir if desired.
 
 ## 5. Codex Integration
 
-### Real Codex
-The daemon spawns `codex` using the `exec` subcommand (non-interactive, JSON output).
+### Real Codex (daemon-managed exec)
+The daemon spawns `codex exec` and discovers the session via the Codex session file rather than parsing stdout.
 
--   **Command**: `codex exec [resume <thread_id>] --yolo --json --output-final-message <FINAL_MSG_PATH> --cd <WORKDIR> <PROMPT>`
-    -   `resume <thread_id>`: Used if continuing an existing thread.
-    -   `--yolo`: Bypasses confirmation prompts (required for daemon mode).
-    -   `--json`: Outputs newline-delimited JSON events to stdout.
-    -   `--output-final-message`: Writes the final agent message to a specific file (avoids parsing it from logs).
-
-**Lifecycle & Handshake**:
-1.  **Spawn**: Daemon spawns the process.
-2.  **Handshake**: Daemon reads `stdout` line-by-line. The *first* JSON event contains the `thread_id` (if new).
-3.  **Init**: Daemon creates `~/.agentctl/state/threads/<thread_id>/` if it doesn't exist.
-4.  **Response**: Daemon responds to the HTTP `POST /turn/start` request with the `thread_id`.
-5.  **Stream**: Daemon continues to pipe `stdout` (JSONL events) to `log.jsonl` and `stderr` to `stderr.log` until the process exits.
+- **Command**: `codex exec [resume <thread_id>] --yolo --json --output-last-message <TMP> --cd <WORKDIR> <PROMPT>`
+- **Discovery**: After spawn, the daemon looks in `AGENTCTL_CODEX_SESSIONS_DIR` (default `~/.codex/sessions`) for the newest `rollout-*.jsonl` modified after spawn, reads its first `session_meta` line, and uses `id/cwd/originator/source`.
+- **Timeout**: `AGENTCTL_DISCOVERY_TIMEOUT_MS` / `AGENTCTL_HANDSHAKE_TIMEOUT_MS` (default 1000 ms). On timeout it kills the process and returns an error.
+- **Status init**: Writes `status.json` with `managed=daemon`, `session_file`, metadata; returns `thread_id` to the HTTP caller. The Codex process keeps running in the background.
+- **Exit**: On child exit, status becomes `done`/`failed` unless already `aborted`; the temp `--output-last-message` file is moved to `threads/<id>/final_message.txt`.
 
 ### Mock Codex (for testing)
-To allow fast feedback loops (<1s) and deterministic tests.
-
--   **Behavior**: The mock script mimics the `codex exec` CLI arguments but ignores most of them.
--   **Replay**: It reads a JSONL file specified by `AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE` and prints the events to `stdout` with optional delays.
--   **Configuration**:
-    -   `AGENTCTL_CODEX_BIN`: Path to the mock script.
-    -   `AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE`: Path to the JSONL recording to replay.
+- Writes realistic session files to `AGENTCTL_CODEX_SESSIONS_DIR` (set to a temp dir in tests), first line is `session_meta`.
+- Reads instructions from `AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE` JSONL (supports `_mock_delay_ms`, `_mock_exit_code`).
+- Optional `AGENTCTL_MOCK_SESSION_DELAY_MS` delays session-file creation to simulate slow startup.
 
 ## 6. Daemon API Contract
 
 The daemon exposes a JSON HTTP API.
 
 ### `POST /turn/start`
-Starts a new turn.
+Starts a new daemon-managed exec turn.
 -   **Body**: `{ "prompt": "...", "workdir": "...", "thread_id": "(optional)" }`
 -   **Behavior**:
     1.  **Spawn**: Spawns `codex exec ...` detached.
-    2.  **Handshake**: Reads `stdout` stream. The first JSON event contains the `thread_id`.
-        -   *Note*: If `thread_id` was not provided in the request, this is where we discover the new ID generated by `codex`.
-    3.  **Init**: Creates `~/.agentctl/state/threads/<thread_id>/` if it doesn't exist.
+    2.  **Discover**: Within the discovery timeout, finds the newest `rollout-*.jsonl` under the Codex sessions dir with mtime after spawn and matching optional `thread_id`/`cwd`; reads `session_meta` for `id`/`cwd`/`originator`/`source`.
+    3.  **Init**: Writes `status.json` (`managed=daemon`, `session_file`, metadata) under `threads/<id>/`.
     4.  **Response**: Returns `{ "thread_id": "...", "status": "running" }` to the client.
-    5.  **Continue**: The `codex` process **continues running** in the background. The daemon pipes its output to `log.jsonl` until the process exits.
+    5.  **Continue**: The Codex process continues in the background; exit handler sets `done|failed` unless already `aborted`.
 
 ### `GET /turn/:id`
 Gets the status of a turn (by `thread_id`).
 -   **Response**: Returns the content of `status.json`.
 
 ### `POST /turn/stop`
-Stops a running turn.
+Stops a running daemon-managed turn.
 -   **Body**: `{ "thread_id": "..." }`
--   **Behavior**: Sends SIGTERM (then SIGKILL after timeout) to the process associated with this `thread_id`. Updates status to `aborted`.
+-   **Behavior**: Rejects if `managed=external`; otherwise SIGTERM and mark `aborted`.
+
+### `POST /external/start`
+Register an externally managed Codex session (e.g., TUI via `agentctl codex-tui`).
+-   **Body**: `{ "thread_id": "...", "workdir": "...", "pid"?, "session_file"?, "originator"?, "source"?, "codex_cwd"?, "notes"?, "managed": "external" }`
+-   **Behavior**: Writes `status.json` with `managed=external`, `status=running`.
+
+### `POST /external/finish`
+Finalize an externally managed session.
+-   **Body**: `{ "thread_id": "...", "exit_code"?, "status"? }`
+-   **Behavior**: Sets status to provided value or `done|failed` based on `exit_code`.
 
 ### `GET /list`
 Lists all threads.
@@ -135,7 +130,10 @@ Simple readiness/liveness probe for orchestration.
 -   **Response**: `{ "status": "ok", "pid": <number>, "port": <number>, "uptime_s": <seconds> }`
 
 ### Configurable timeouts (daemon)
-- `AGENTCTL_HANDSHAKE_TIMEOUT_MS` (default `10000`): Maximum time to wait for the first JSON event (thread_id) from the spawned Codex process before aborting the start.
+- `AGENTCTL_DISCOVERY_TIMEOUT_MS` / `AGENTCTL_HANDSHAKE_TIMEOUT_MS` (default `1000`): Maximum time to discover the session file after spawn.
+- `AGENTCTL_CODEX_SESSIONS_DIR`: Override Codex session root (default `~/.codex/sessions`).
+- `AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE`: JSONL for mock codex.
+- `AGENTCTL_MOCK_SESSION_DELAY_MS`: Simulate slow session creation in mock codex.
 
 ## 7. CLI Syntax
 
@@ -200,13 +198,16 @@ Polls the daemon until the thread reaches a terminal state (done, failed, aborte
 #### `agentctl list`
 Lists all threads.
 -   **Options**:
-    - Default output: plain single-line entries (`id status pid exit_code workdir`) for easy grepping.
+    - Default output: plain single-line entries (`id status managed pid exit_code workdir`) for easy grepping.
     - `--json`: Output the list as a JSON array (pretty-printed).
     - `--jsonl`: Emit NDJSON (one thread per line) for streaming use.
     - `--status <filter>`: Filter by status.
 
 #### `agentctl stop <ID>`
-Stops the specified thread.
+Stops a daemon-managed thread. Rejects external threads with a clear error.
+
+#### `agentctl codex-tui [thread_id] -- <args>`
+Runs Codex interactively (TUI) in the foreground, discovers the session file, and registers it as `managed=external`. Fails fast if registration fails. Positional `thread_id` (or `--resume`) is forwarded to `codex resume`; everything after `--` is passed verbatim to Codex.
 
 ## 8. Implementation Guidelines for Programmer Agent
 

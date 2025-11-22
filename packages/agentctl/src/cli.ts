@@ -6,6 +6,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import { discoverSessionFile } from './session-files';
 
 const PORT = process.env.AGENTCTL_PORT || 3000;
 const BASE_URL = `http://localhost:${PORT}`;
@@ -112,6 +113,7 @@ function findThreadByPid(pids: number[]): string | undefined {
 }
 
 yargs(hideBin(process.argv))
+    .parserConfiguration({ 'populate--': true })
     .version('1.1.0')
     .option('json', { type: 'boolean', description: 'Emit machine-readable JSON to stdout' })
     .command('daemon', 'Start the daemon', (yargs) => {
@@ -151,17 +153,19 @@ yargs(hideBin(process.argv))
     .command('start [prompt]', 'Start a turn', (yargs) => {
         return yargs
             .positional('prompt', { type: 'string' })
-            .option('workdir', { type: 'string', demandOption: true })
+            .option('workdir', { type: 'string', demandOption: false, description: 'Working directory; if omitted with --thread, the stored workdir is used' })
             .option('thread', { type: 'string' })
             .option('detach', { type: 'boolean', default: true, description: 'Return immediately (default). Set to false to wait for completion.' })
             .option('await', { type: 'boolean', default: false, description: 'Block until the turn completes.' });
     }, async (argv) => {
-        // Validate workdir is safe (within workspace)
-        const workdir = argv.workdir as string;
-        if (!workdir.startsWith('/workspaces/') && !workdir.startsWith('/tmp/')) {
-            console.error('Error: --workdir must be inside /workspaces/ or /tmp/ for safety');
-            console.error(`Got: ${workdir}`);
-            process.exit(1);
+        // Validate workdir is safe (within workspace) when provided
+        const workdir = argv.workdir as string | undefined;
+        if (workdir) {
+            if (!workdir.startsWith('/workspaces/') && !workdir.startsWith('/tmp/')) {
+                console.error('Error: --workdir must be inside /workspaces/ or /tmp/ for safety');
+                console.error(`Got: ${workdir}`);
+                process.exit(1);
+            }
         }
 
         try {
@@ -237,8 +241,8 @@ yargs(hideBin(process.argv))
             } else {
                 res.data.forEach((t: any) => {
                     // Plain, grep-friendly single-line format
-                    // id status pid exit_code workdir
-                    console.log(`${t.id} ${t.status} ${t.pid ?? ''} ${t.exit_code ?? ''} ${t.workdir}`);
+                    // id status managed pid exit_code workdir
+                    console.log(`${t.id} ${t.status} ${t.managed ?? ''} ${t.pid ?? ''} ${t.exit_code ?? ''} ${t.workdir}`);
                 });
             }
         } catch (e: any) {
@@ -258,6 +262,120 @@ yargs(hideBin(process.argv))
         } catch (e: any) {
             handleDaemonError(e, 'stop');
         }
+    })
+    .command('codex-tui [thread_id]', 'Run codex (TUI) and register as externally managed', (yargs) => {
+        return yargs
+            .positional('thread_id', { type: 'string', description: 'Optional session id to resume (same as first positional to `codex resume`)' })
+            .option('resume', { type: 'string', description: 'Deprecated: use positional thread_id instead' })
+            .option('workdir', { type: 'string', description: 'Working directory to run codex in' })
+            .option('timeout', { type: 'number', default: 1000, description: 'Timeout (ms) to discover new session file' })
+            .option('codex-bin', { type: 'string', description: 'Override codex binary', default: process.env.AGENTCTL_CODEX_BIN || 'codex' });
+    }, async (argv) => {
+        let workdir = argv.workdir as string | undefined;
+        const resume = (argv.thread_id as string | undefined) || (argv.resume as string | undefined);
+        const extraArgs = (argv['--'] as string[] | undefined) ?? [];
+
+        // If resuming a known thread, fetch its recorded workdir and enforce match.
+        if (resume) {
+            try {
+                const resp = await axios.get(`${BASE_URL}/turn/${resume}`);
+                const recorded = resp.data;
+                if (recorded && recorded.workdir) {
+                    if (workdir && path.resolve(workdir) !== path.resolve(recorded.workdir)) {
+                        console.error('Workdir mismatch with existing thread');
+                        process.exit(1);
+                    }
+                    workdir = recorded.workdir;
+                }
+            } catch (e: any) {
+                console.error(`Failed to load thread ${resume}:`, e.response?.data || e.message);
+                process.exit(1);
+            }
+        }
+
+        if (!workdir) {
+            workdir = process.cwd();
+        }
+
+        const codexArgs: string[] = [];
+        if (resume) {
+            codexArgs.push('resume', '--cd', workdir);
+            codexArgs.push(resume);
+            codexArgs.push(...extraArgs);
+        } else {
+            codexArgs.push('--cd', workdir);
+            codexArgs.push(...extraArgs);
+        }
+
+        const codexBin = argv['codex-bin'] as string;
+        let cmd = codexBin;
+        let spawnArgs = codexArgs;
+        let spawnCwd = workdir;
+
+        if (codexBin.endsWith('.js')) {
+            cmd = 'node';
+            spawnArgs = [codexBin, ...codexArgs];
+            spawnCwd = path.dirname(codexBin);
+        } else if (codexBin.endsWith('.ts')) {
+            cmd = path.resolve(__dirname, '..', 'node_modules', '.bin', 'ts-node');
+            spawnArgs = [codexBin, ...codexArgs];
+            spawnCwd = path.dirname(codexBin);
+        }
+
+        const startTime = Date.now();
+        const child = spawn(cmd, spawnArgs, {
+            cwd: spawnCwd,
+            env: { ...process.env, CODEX_SHELL_ENV: '1' },
+            stdio: 'inherit'
+        });
+
+        let sessionId: string | undefined;
+        let sessionPath: string | undefined;
+        try {
+            const { file, meta } = await discoverSessionFile({
+                sinceMs: startTime,
+                expectedUuid: resume,
+                expectedCwd: workdir,
+                timeoutMs: argv.timeout as number
+            });
+            sessionId = meta.id;
+            sessionPath = file.path;
+            await axios.post(`${BASE_URL}/external/start`, {
+                thread_id: sessionId,
+                workdir: meta.cwd || workdir,
+                pid: child.pid,
+                session_file: file.path,
+                originator: meta.originator,
+                source: meta.source,
+                codex_cwd: meta.cwd,
+                managed: 'external'
+            });
+            console.log(`Registered external session ${sessionId}`);
+        } catch (e: any) {
+            console.error('Failed to register codex session:', e.message);
+            try {
+                process.kill(child.pid ?? 0, 'SIGTERM');
+            } catch {
+                // ignore
+            }
+            process.exit(1);
+        }
+
+        const exitCode: number | null = await new Promise(resolve => {
+            child.on('exit', (code) => resolve(code));
+        });
+
+        if (sessionId) {
+            try {
+                await axios.post(`${BASE_URL}/external/finish`, {
+                    thread_id: sessionId,
+                    exit_code: exitCode
+                });
+            } catch (e: any) {
+                console.error('Failed to finalize external session:', e.message);
+            }
+        }
+        process.exit(exitCode === null ? 1 : exitCode);
     })
     .parse();
 

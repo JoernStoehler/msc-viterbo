@@ -10,6 +10,12 @@ export interface ThreadStatus {
     status: 'running' | 'done' | 'failed' | 'aborted';
     exit_code: number | null;
     workdir: string;
+    managed?: 'daemon' | 'external';
+    session_file?: string;
+    originator?: string;
+    source?: string;
+    codex_cwd?: string;
+    notes?: string;
     created_at: string;
     updated_at: string;
 }
