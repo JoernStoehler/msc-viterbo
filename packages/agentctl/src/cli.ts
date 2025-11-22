@@ -17,6 +17,21 @@ type Identity = {
     message?: string;
 };
 
+/**
+ * Handles errors from daemon HTTP requests.
+ * Provides helpful error messages when daemon is not running.
+ */
+function handleDaemonError(e: any, command: string): never {
+    if (e.code === 'ECONNREFUSED' || e.message?.includes('ECONNREFUSED')) {
+        console.error(`Error: agentctl daemon not running on port ${PORT}.`);
+        console.error(`Start the daemon with: agentctl daemon`);
+        process.exit(1);
+    }
+    console.error('Error:', e.response?.data || e.message);
+    process.exit(1);
+}
+
+
 function detectIdentity(): Identity {
     // Not running under codex shell → assume project owner
     if (!process.env.CODEX_SHELL_ENV) {
@@ -97,6 +112,7 @@ function findThreadByPid(pids: number[]): string | undefined {
 }
 
 yargs(hideBin(process.argv))
+    .version('1.1.0')
     .option('json', { type: 'boolean', description: 'Emit machine-readable JSON to stdout' })
     .command('daemon', 'Start the daemon', (yargs) => {
         return yargs.option('background', { type: 'boolean', default: false });
@@ -137,9 +153,17 @@ yargs(hideBin(process.argv))
             .positional('prompt', { type: 'string' })
             .option('workdir', { type: 'string', demandOption: true })
             .option('thread', { type: 'string' })
-            .option('detach', { type: 'boolean', default: true })
-            .option('await', { type: 'boolean', default: false });
+            .option('detach', { type: 'boolean', default: true, description: 'Return immediately (default). Set to false to wait for completion.' })
+            .option('await', { type: 'boolean', default: false, description: 'Block until the turn completes.' });
     }, async (argv) => {
+        // Validate workdir is safe (within workspace)
+        const workdir = argv.workdir as string;
+        if (!workdir.startsWith('/workspaces/') && !workdir.startsWith('/tmp/')) {
+            console.error('Error: --workdir must be inside /workspaces/ or /tmp/ for safety');
+            console.error(`Got: ${workdir}`);
+            process.exit(1);
+        }
+
         try {
             const res = await axios.post(`${BASE_URL}/turn/start`, {
                 prompt: argv.prompt,
@@ -147,9 +171,10 @@ yargs(hideBin(process.argv))
                 thread_id: argv.thread
             });
             const { thread_id, status } = res.data;
+            const shouldAwait = argv.await || argv.detach === false;
 
             if (argv.json) {
-                if (argv.await) {
+                if (shouldAwait) {
                     const finalStatus = await poll(thread_id);
                     console.log(JSON.stringify({ thread_id, status: finalStatus?.status ?? status, final_status: finalStatus?.status, data: finalStatus ?? null }));
                 } else {
@@ -157,13 +182,12 @@ yargs(hideBin(process.argv))
                 }
             } else {
                 console.log(thread_id);
-                if (argv.await) {
+                if (shouldAwait) {
                     await poll(thread_id);
                 }
             }
         } catch (e: any) {
-            console.error('Error:', e.response?.data || e.message);
-            process.exit(1);
+            handleDaemonError(e, 'start');
         }
     })
     .command('status <id>', 'Get status', (yargs) => {
@@ -177,8 +201,7 @@ yargs(hideBin(process.argv))
                 console.log(JSON.stringify(res.data, null, 2));
             }
         } catch (e: any) {
-            console.error('Error:', e.response?.data || e.message);
-            process.exit(1);
+            handleDaemonError(e, 'status');
         }
     })
     .command('await <id>', 'Wait for completion', (yargs) => {
@@ -201,18 +224,25 @@ yargs(hideBin(process.argv))
         }
     })
     .command('list', 'List threads', (yargs) => {
-        return yargs.option('status', { type: 'string' });
+        return yargs
+            .option('status', { type: 'string' })
+            .option('jsonl', { type: 'boolean', default: false, description: 'Emit newline-delimited JSON instead of a single array (requires --json).' });
     }, async (argv) => {
         try {
             const res = await axios.get(`${BASE_URL}/list`, { params: { status: argv.status } });
-            if (argv.json) {
+            if (argv.jsonl) {
                 res.data.forEach((t: any) => console.log(JSON.stringify(t)));
+            } else if (argv.json) {
+                console.log(JSON.stringify(res.data, null, 2));
             } else {
-                console.table(res.data);
+                res.data.forEach((t: any) => {
+                    // Plain, grep-friendly single-line format
+                    // id status pid exit_code workdir
+                    console.log(`${t.id} ${t.status} ${t.pid ?? ''} ${t.exit_code ?? ''} ${t.workdir}`);
+                });
             }
         } catch (e: any) {
-            console.error('Error:', e.response?.data || e.message);
-            process.exit(1);
+            handleDaemonError(e, 'list');
         }
     })
     .command('stop <id>', 'Stop thread', (yargs) => {
@@ -226,8 +256,7 @@ yargs(hideBin(process.argv))
                 console.log('Stopped');
             }
         } catch (e: any) {
-            console.error('Error:', e.response?.data || e.message);
-            process.exit(1);
+            handleDaemonError(e, 'stop');
         }
     })
     .parse();

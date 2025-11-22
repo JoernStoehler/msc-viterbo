@@ -7,9 +7,12 @@ import { EventEmitter } from 'events';
 
 export class ProcessManager {
     private stateManager: StateManager;
+    private handshakeTimeoutMs: number;
 
     constructor(stateManager: StateManager) {
         this.stateManager = stateManager;
+        const envTimeout = Number(process.env.AGENTCTL_HANDSHAKE_TIMEOUT_MS);
+        this.handshakeTimeoutMs = Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : 10_000;
     }
 
     async startTurn(
@@ -49,16 +52,49 @@ export class ProcessManager {
         // If mock, we might need to run it with ts-node if it's a .ts file
         let cmd = codexBin;
         let finalArgs = args;
+        let spawnCwd = workdir;
+
+        if (process.env.AGENTCTL_DEBUG_SPAWN === '1') {
+            console.log('AGENTCTL spawn debug', { codexBin, isJs: codexBin.endsWith('.js'), isTs: codexBin.endsWith('.ts') });
+        }
+
+        if (codexBin.endsWith('.js')) {
+            cmd = 'node';
+            finalArgs = [codexBin, ...args];
+            spawnCwd = path.dirname(codexBin);
+        }
 
         if (codexBin.endsWith('.ts')) {
-            cmd = 'npx';
-            finalArgs = ['ts-node', codexBin, ...args];
+            // Use local ts-node to avoid npx overhead; run from repo root so resolution works.
+            cmd = path.resolve(__dirname, '..', 'node_modules', '.bin', 'ts-node');
+            finalArgs = [codexBin, ...args];
+            spawnCwd = path.dirname(codexBin);
+        }
+
+        // Fallback: if the codex bin is a non-executable file, run it via node
+        try {
+            const stat = fs.statSync(codexBin);
+            const isExecutable = !!(stat.mode & 0o111);
+            if (!isExecutable && stat.isFile()) {
+                cmd = 'node';
+                finalArgs = [codexBin, ...args];
+                spawnCwd = path.dirname(codexBin);
+            }
+        } catch {
+            // ignore stat errors; let spawn surface issues
+        }
+
+        // Last-resort guard: if we're still about to exec a .js file directly, run it with node.
+        if (cmd === codexBin && codexBin.endsWith('.js')) {
+            cmd = 'node';
+            finalArgs = [codexBin, ...args];
+            spawnCwd = path.dirname(codexBin);
         }
 
         console.log(`Spawning: ${cmd} ${finalArgs.join(' ')}`);
 
         const child = spawn(cmd, finalArgs, {
-            cwd: workdir,
+            cwd: spawnCwd,
             env: { ...process.env },
             stdio: ['ignore', 'pipe', 'pipe'] // stdin ignore, stdout/err pipe
         });
@@ -69,6 +105,19 @@ export class ProcessManager {
             let stdoutBuffer: Buffer[] = [];
             let stderrBuffer: Buffer[] = [];
 
+            /**
+             * Initialize state for this thread once we've discovered its ID.
+             * This is called after the handshake completes (i.e., we've extracted thread_id from Codex output).
+             * 
+             * Flow:
+             * 1. Create state directory for thread
+             * 2. Write initial status.json
+             * 3. Open file streams for logs
+             * 4. Flush any buffered output collected during handshake
+             * 5. Pipe remaining stdout/stderr to files
+             * 6. Set up exit handler
+             * 7. Resolve promise to return thread_id to caller
+             */
             const init = (id: string) => {
                 if (initialized) return;
                 initialized = true;
@@ -133,9 +182,17 @@ export class ProcessManager {
                 resolve(id);
             };
 
-            // Handshake listener
+            /**
+             * Handshake protocol:
+             * Codex prints JSONL events to stdout. The first JSON event contains the thread_id.
+             * We buffer stdout until we find a valid JSON object with thread_id/id/threadId.
+             * Once found, we call init() which sets up logging and resolves the promise.
+             * 
+             * Note: We parse line-by-line because Codex outputs newline-delimited JSON.
+             * Partial lines are handled by buffering until we see a complete JSON object.
+             */
             child.stdout?.on('data', (chunk: Buffer) => {
-                if (initialized) return; // Already piped
+                if (initialized) return; // Already piped, no need to buffer
                 stdoutBuffer.push(chunk);
 
                 // Try to parse lines
@@ -146,7 +203,8 @@ export class ProcessManager {
                     if (!line.trim()) continue;
                     try {
                         const event = JSON.parse(line);
-                        // Look for thread_id in the event
+                        // Codex event format varies: might be event.thread_id, event.id, or event.threadId
+                        // We check all three to be compatible with different Codex versions
                         // Spec says: "first JSON event contains the thread_id"
                         // We assume event.thread_id or event.id exists.
                         // Adjust based on real codex output if known. 
@@ -171,21 +229,25 @@ export class ProcessManager {
                 if (!initialized) reject(err);
             });
 
+            // Handle case where Codex exits before we complete the handshake
+            // This indicates a failure (missing binary, invalid args, immediate crash, etc.)
             child.on('exit', (code) => {
                 if (!initialized) {
-                    // Exited before handshake!
+                    // Process died before printing thread_id → reject the promise
                     const stderr = Buffer.concat(stderrBuffer).toString('utf-8');
                     reject(new Error(`Process exited early with code ${code}. Stderr: ${stderr}`));
                 }
             });
 
-            // Timeout for handshake
+            // Handshake timeout: Give Codex 10 seconds to print the first JSON event.
+            // If it's silent or prints non-JSON output for 10s, assume something is wrong.
+            // This prevents hanging forever if Codex is stuck or prints unexpected output.
             setTimeout(() => {
                 if (!initialized) {
                     child.kill();
                     reject(new Error('Timeout waiting for handshake (thread_id)'));
                 }
-            }, 10000); // 10s timeout
+            }, this.handshakeTimeoutMs);
         });
     }
 
@@ -206,5 +268,3 @@ export class ProcessManager {
         }
     }
 }
-
-

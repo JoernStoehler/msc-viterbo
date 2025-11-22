@@ -3,13 +3,13 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 
 async function main() {
-    // Parse args minimally to find --output-final-message and the instruction file
+    // Parse args minimally to find --output-last-message and the instruction file
     const args = process.argv.slice(2);
-    const outputFinalMessageIndex = args.indexOf('--output-final-message');
+    const outputLastMessageIndex = args.indexOf('--output-last-message');
     let finalMessagePath: string | null = null;
 
-    if (outputFinalMessageIndex !== -1 && args.length > outputFinalMessageIndex + 1) {
-        finalMessagePath = args[outputFinalMessageIndex + 1];
+    if (outputLastMessageIndex !== -1 && args.length > outputLastMessageIndex + 1) {
+        finalMessagePath = args[outputLastMessageIndex + 1];
     }
 
     const instructionFile = process.env.AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE;

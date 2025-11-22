@@ -1,10 +1,9 @@
 import express from 'express';
 import { StateManager } from './state';
 import { ProcessManager } from './process-manager';
-import bodyParser from 'body-parser';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 const stateManager = new StateManager();
 const processManager = new ProcessManager(stateManager);
@@ -50,6 +49,15 @@ app.get('/list', (req, res) => {
         threads = threads.filter(t => t.status === statusFilter);
     }
     res.json(threads);
+});
+
+app.get('/health', (_req, res) => {
+    res.json({
+        status: 'ok',
+        pid: process.pid,
+        port: Number(PORT),
+        uptime_s: Math.round(process.uptime())
+    });
 });
 
 app.listen(PORT, () => {

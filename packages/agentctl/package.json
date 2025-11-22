@@ -1,6 +1,6 @@
 {
   "name": "agentctl",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "dist/src/daemon.js",
   "bin": {
@@ -9,14 +9,13 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/src/daemon.js",
-    "test": "ts-node test/integration.test.ts",
+    "test": "npm run build && node dist/test/integration.test.js",
     "prepare": "npm run build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@openai/codex-sdk": "^0.63.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",

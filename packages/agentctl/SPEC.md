@@ -130,12 +130,19 @@ Lists all threads.
 -   **Query**: `?status=running` (optional filter)
 -   **Response**: `[ { "id": "...", "status": "..." }, ... ]`
 
+### `GET /health`
+Simple readiness/liveness probe for orchestration.
+-   **Response**: `{ "status": "ok", "pid": <number>, "port": <number>, "uptime_s": <seconds> }`
+
+### Configurable timeouts (daemon)
+- `AGENTCTL_HANDSHAKE_TIMEOUT_MS` (default `10000`): Maximum time to wait for the first JSON event (thread_id) from the spawned Codex process before aborting the start.
+
 ## 7. CLI Syntax
 
 The CLI is the primary interface for users and agents.
 
 **Global options**
-- `--json`: emit machine-readable JSON to stdout. For `list` this remains JSONL (one thread per line); other commands emit a single JSON object.
+- `--json`: emit machine-readable JSON to stdout. For `list` this returns a JSON array; combine with `--jsonl` for NDJSON.
 
 ### Commands
 
@@ -158,7 +165,9 @@ Goal: a CLI command that tells the caller who they are.
         4. If no match found → return `unknown` (exit code 1)
     - Deterministic, concurrency-safe, works for both new and resumed threads
     - Requires no modifications to Codex binary
-    - Linux-specific (relies on `/proc` filesystem)
+    - **Platform-specific**: Linux-only (uses `/proc` filesystem)
+        - macOS/Windows: Daemon and other commands work fine, but `agentctl self` will fail
+        - Alternative: Could use `ps` on macOS or WMIC on Windows (future work)
 
 - **Exit codes:**
     - `0`: Successfully identified (project_owner or agent UUID)
@@ -174,8 +183,8 @@ Starts a new turn.
 -   **Options**:
     -   `--workdir <path>`: Working directory for the agent.
     -   `--thread <id>`: Continue existing thread (if supported by codex) or reuse ID.
-    -   `--detach`: Return immediately (default).
-    -   `--await`: Wait for completion (blocks).
+    -   `--detach`: Return immediately (default = true).
+    -   `--await`: Wait for completion (blocks). Equivalent to `--detach=false`.
 -   **Output**: Prints the `thread_id` (or a JSON object with the `thread_id` and status when `--json` is set). When combined with `--await --json`, the final status JSON is printed.
 
 #### `agentctl status <ID>`
@@ -190,7 +199,11 @@ Polls the daemon until the thread reaches a terminal state (done, failed, aborte
 
 #### `agentctl list`
 Lists all threads.
--   **Options**: `--json` (JSONL output), `--status <filter>`.
+-   **Options**:
+    - Default output: plain single-line entries (`id status pid exit_code workdir`) for easy grepping.
+    - `--json`: Output the list as a JSON array (pretty-printed).
+    - `--jsonl`: Emit NDJSON (one thread per line) for streaming use.
+    - `--status <filter>`: Filter by status.
 
 #### `agentctl stop <ID>`
 Stops the specified thread.
