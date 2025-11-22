@@ -17,7 +17,7 @@
   "containerEnv": {
     "LOCAL_DEVCONTAINER": "true",
     "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
-    "AGENTCTL_BOOTSTRAP_HOOK": "bash scripts/agentctl-bootstrap-hook.sh"
+    "AGENTCTL_PORT": "3000"
   },
   // Bind mounts: host paths -> container paths. Adjust host prefixes in
   // scripts/devcontainer-post-create.sh if your machine differs.

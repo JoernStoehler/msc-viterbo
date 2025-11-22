@@ -1,0 +1,159 @@
+---
+title: Capacity Algorithm
+slug: capacity-algorithm
+summary: Full specification of our novel algorithm to compute symplectic capacities in four dimensions.
+order: 1
+figures:
+---
+
+# Probing Viterbo's Conjecture – Capacity Algorithm (Draft)
+
+This chapter details our novel algorithm to compute symplectic capacities in
+four dimensions. The algorithm is based on algorithms and theorems from 
+- [Chaidez, Hutchings 2021](https://arxiv.org/abs/2008.10111)
+- [Haim-Kislev 2019](https://arxiv.org/abs/1712.03494)
+- [Haim-Kislev 2024](https://arxiv.org/abs/2405.16513)
+
+We implemented our algorithm in Lean4 to formally verify its correctness, based on various theorems without proof about symplectic geometry on four dimensional polytopes.
+Lean4+mathlib does not currently offer enough smooth differential geometry, or any symplectic geometry to prove these basic theorems from first principles, so we simply assume them as axioms.
+
+While the Lean4 algorithm is runnable, we also provide a high performance implementation in Rust that is closely similar to the Lean4 code, but without a dependent type system.
+
+Our algorithm is applicable to all non-degenerate convex star-shaped polytopes in four dimensions. We make no assumption on e.g. 3-faces being non-lagrangian, or on the polytope being generic. 
+
+This chapter is focused on the exact idealized algorithm with real or rational numbers. To go to the practical floating point number implementation with rounding errors, we generally follow the strategy outlined in section [](#floating-point-implementation) below.
+The Lean4 implementation uses reals, while the Rust implementation uses `f64` i.e. floating point numbers with double precision.
+
+## Notation, Definitions, and Preliminaries
+
+$\mathbb{R}^4$: our ambient space.  
+$\omega = \sum_{i=1}^2 dq_i \wedge dp_i$: the standard symplectic form.  
+$\alpha = \frac{1}{2} \sum_{i=1}^2 (p_i dq_i - q_i dp_i)$: the standard Liouville form.  
+$J = \begin{pmatrix} 0 & -I \\ I & 0 \end{pmatrix}$: the standard complex structure.  
+$K \subset \mathbb{R}^4$: a non-degenerate convex star-shaped polytope.  
+
+$\partial K$: the boundary of $K$.  
+$F_i$: a 3-face of $K$.  
+$F$ a $3$-face, $2$-face, $1$-face, or $0$-face of $K$, usually with $F = \bigcap_{i \in I} F_i$ for some index set $I$.  
+$n_i$: the outward normal vector of the 3-face $F_i$.  
+$N_F = \mathrm{conv}(\{0, n_i : F \subset F_i\})$: the normal cone of the face $F$.  
+$g_K(x) = \inf \{\lambda \geq 0 : x \in \lambda K\}$: the gauge function of $K$.  
+$H(x) = g_K(x)^2$: the Hamiltonian function associated to $K$. It is convex, but not everywhere smooth.  
+$\partial K = \{x \in \mathbb{R}^4 : H(x) = 1\}$: the energy surface $H=1$.  
+$K = \{x \in \mathbb{R}^4 : H(x) \leq 1\}$: the sublevel set $H \leq 1$.
+
+$h_i = \langle x, n_i \rangle$ for $x \in F_i$: the offset of the 3-face $F_i$.
+
+$\gamma \in W^{1,2}(S^1, \partial K)$: a periodic orbit on the energy surface $\partial K$. We normalize to period length $1$, to better discuss convergence of sequences of orbits.
+
+$A(\gamma) = \int_\gamma \alpha$: the action of the periodic orbit $\gamma$. Note that this is well-defined for $W^{1,2}$ curves.
+If $\gamma$ encloses the disk $D \subset \mathbb{R}^4$, then by Stokes' theorem $A(\gamma) = \int_D \omega$.
+
+Note: usually one defines the action with $A(\gamma) = \int_0^1 \alpha(\dot{\gamma}(t)) + H(\gamma(t)) dt$, but since we are on the energy surface $H=1$, we can drop the constant $+1$ term.
+
+The Hamiltonian dynamics are not just pointwise defined, since $\gamma$ may flow along lower dimensional $\leq 2$-faces where $H$ is not differentiable. Instead, we introduce the differential inclusion $\dot{\gamma}(t) \in J \partial H(\gamma(t))$, where $\partial H(x)$ is the convex subdifferential of $H$ at $x$.
+
+We can for our choice of $H$ explicitly compute the subdifferential at $x \in \partial K$. We need the $3$-faces $I = \{ i : x \in F_i \}$ containing $x$. Then we have
+$\partial H(x) = 2 \mathrm{conv}(\{ n_i / h_i : i \in I \})$.
+
+Theorem: Periodic orbits and critical points of the action functional and closed characteristics on $\partial K$ are all the same objects, up to reparametrization.
+Proof: variational calculus.
+
+Theorem: The positive minimum of the action functional is attained.
+Proof: the proof I've seen sketched shows this for smooth strictly convex bodies, and considers the limit to the polytope case. Not sure if I misremember though.
+
+Theorem: For any critical value of the action functional, we can find a closed characteristic $\gamma$ that has finitely many linear segments, up to reparametrization.
+Proof: Consider the entering and exiting times of $\gamma$ on a face $F$. We can simultaneously straighten all segments. It remains to show that there are no accumulation points where $\gamma$ moves in finite time infinitely often over two or more faces. By continuity, this must happen at an accumulation point $\gamma(t)$ that lies on the intersection face of the visited faces. The argument is then roughly that $\gamma$ cannot both move faster and faster towards the point, and away from it, i.e. there is no time symmetry that would allow it to change convergence behavior before $t$ and after $t$. Probably can be formalized better, and I suspect convexity of the polytope matters here.
+
+We are from now on only considering closed characteristics with finitely many linear segments.
+
+Theorem (Heim-Kislev 2019): There is at least one closed characteristic with minimal action that only visits every $3$-face at most once.
+Proof: see [Haim-Kislev 2019](https://arxiv.org/abs/1712.03494).
+We also wrote up the proof in more detail, and focused on this theorem instead of additional claims, in [](#appendix-proofs). The central idea is to use Clarke's dual principle to get a minimization problem for $I_K(z) = \frac{1}{8} \int_0^1 h_K^2(\dot{z}(t)) dt$ with constraint $\int_0^1 \langle -J \dot{z}(t), z(t) \rangle dt = 1$. Then one can show that if a minimizer visits some face $F_i$ more than once, we can rearrange the linear segments of $z(t)$ to get a new path with same $I_K$ value, but larger-or-equal constraint value. After dividing by the constraint value (rather: it's square root), we get a new minimizer that visits $F_i$ less often. Repeating this, we get a minimizer that visits every face at most once. We also learn that each division was by $1$, i.e. that the rearrangement did actually not change the constraint value, which is some geometric statement about what minimizers can look like. For non-minimal critical orbits, this argument does not work, since we may obtain a new orbit with lower action after rearrangement.
+
+Theorem (Chadez Hutchings 2021): No minimum action closed characteristic can have a segment along a $1$-face.
+Proof: again only a sketch here, and a longer writeup in the appendix, though the paper is quite explicit and probably better. The idea is to look at the Zehnder index of the minimum action orbit, show that it is $=3$, which implies that the rotation number $\rho(\gamma) \in (1,2)$. We further show that any closed characteristic on the polytope is the limit of closed characteristics on smoothings of the polytope, and that the combinatorical case rotation number equals the limit of the smooth case rotation numbers. Finally, we show that on a $1$-face, the smooth rotation numbers must diverge to $+\infty$, which contradicts the limit being in $(1,2)$ for the minimum action orbit.
+
+Note: we have not yet ruled out that the minimum action orbit has a segment along a $2$-face. In fact, this is for example the case for all minimum action orbits of the standard counterexample to Viterbo's conjecture in four dimensions (Heim-Kislev 2024).
+
+Lemma: A segment on a $2$-face implies that the $2$-face is Lagrangian.
+Proof: direct computation from variational principle.
+
+Conjecture: The condition that the minimum action orbit has no segment on a $2$-face and no segment on a $1$-face and does not hit any $0$-faces is generic in the usual sense.
+Proof: N/A, speculation from Chaidez-Hutchings 2021. It's easy to see that Lagrangian $2$-faces is generic, so we only have to think through the $1$-face and $0$-face cases. We didn't think through that though.
+
+## Algorithm Specification
+
+We now know that the minimum action closed characteristic $\gamma$ can be mapped to the sequence of faces whose interior it visits in order. Each closed face is visited at most once, and no $1$-face interiors are visited. In the generic case we could also exclude the interior of $2$-faces and $0$-faces, but we don't need to right now.
+Alternatively, we can track the sequence of closed $2$-faces visited, where each again only is entered and exited at most once, and passing from one $2$-face to the next happens over a closed $3$-face (that contains a potential $1$-face or $0$-face intersection used).
+Moving within a $2$-face can only happen for Lagrangian $2$-faces, and all exit points within a cone are possible, so we cannot recover locally what entrance and exit points were used. Let's for now ignore the Lagrangian $2$-face case, and only track the sequence of closed $2$-faces visited, with closed $3$-faces in between.
+
+Our algorithm will enumerate above combinatorical structure, but skip various cases early, using dynamic bounding and pruning, to avoid the combinatorial explosion of possibilities.
+
+For a given sequence we still have to find the minimum action closed characteristic that realizes this combinatorical structure, or determine that no such closed characteristic exists.
+
+We can do this by defining flow maps between closed $2$-faces along closed $3$-faces. In the non-Lagrangian case, the flow map is an invertible affine map between the two $2$-dimensional subspaces of the $2$-faces. We can define the domain of the flow map as all points in the closed source $2$-face that flow through the closed $3$-face into the closed target $2$-face. This set may be empty, e.g. if the $3$-face's Reeb vector fields points into the source $2$-face instead of out of it.
+
+Lemma: for any non-Lagrangian $2$-face $F = F_1 \cap F_2$, the Reeb vector fields $R_1$, $R_2$ are not tangent to $F$, and one points into $F$, while the other points out of $F$.
+Proof: use convexity of $K$ to derive $\langle n_1, J n_2 \rangle > 0$ iff $R_2$ points into $F$. The equality case directly leads to $\langle n_1, J n_2 \rangle = 0$, which implies that $F$ is Lagrangian.
+
+Notation: $\psi_{F \to F'}^{F_k}$: the flow map from closed $2$-face $F$ to closed $2$-face $F'$ over closed $3$-face $F_k$. Its domain is $\mathrm{dom}(\psi)$ and its image is $\mathrm{im}(\psi)$. The map is affine and invertible in the non-Lagrangian case.
+
+Lemma: $\psi$ is a symplectic affine map of positive orientation between the two $2$-dimensional subspaces, if we equip them with the symplectic form induced by $\omega$. Again we need the non-Lagrangian assumption.
+Proof: direct computation from definition of Reeb flow.
+
+We can now compose the flow maps along the given combinatorical sequence, and obtain a map $\Psi: \mathrm{dom}(\Psi) \subset F_{start} \to \mathrm{im}(\Psi) \subset F_{start}$. If the domain and image are empty, then no trajectory exists for this combinatorical sequence. If they are non-empty, we can look for fixed points of $\Psi$, i.e. points $x \in \mathrm{dom}(\Psi)$ with $\Psi(x) = x$. Potentially the fixed points of the affine map $\Psi$ extended to the full $2$-dimensional subspace spanned by $F_{start}$ do not lie in the domain, so we have to check that.
+
+Note: the rotation part of $\Psi$ is the sum of the rotation parts of the individual flow maps. The rotation increments are easily calculated since no multiple rotations happen inside a single $3$-face. Also, the rotation part is non-negative, so the summed rotation is non-decreasing as we compose more flow maps along a growing combinatorical sequence. This will be useful for pruning later.
+
+Lemma: Since $\Psi$ is a positively oriented symplectic affine map, either it has exactly one fixed point, or is the identity map, or it is the translation by a non-zero vector.
+Proof: direct from symplectic linear algebra in two dimensions, e.g. look at determinant=1.
+
+So we now can take a combinatorical structure, and find no, one, or compact but infinitely many closed characteristics that realize it. We can take one with minimal action as our candidate, so it's either zero or one candidate per combinatorical structure.
+
+Our combinatorial enumeration should now follow these principles:
+- depth first search by growing combinatorical sequences, and skipping search subtrees early if the summed non-negative rotation increments exceed the upper bound $<2$, or if the summed non-negative action increments exceed the current best known upper bound on the minimum action.
+- we prioritize search branches that are more likely to yield low action or low rotation closed characteristics first, to get good upper bounds early for pruning.
+- we start with an easy-to-compute upper bound, e.g. from an enclosing symplectic ellipsoid, to get initial pruning ability.
+- we avoid duplicated effort, i.e. if we exhaust a $2$-face as starting node, we don't even visit it in later branches that have a different starting $2$-face.
+
+Lastly, we need to discuss Lagrangian $2$-faces again, since they do appear in (non-generic) polytopes and their minimum action orbits, especially the standard counterexample to Viterbo's conjecture in four dimensions (Haim-Kislev 2024) that we are interested in.
+
+In the Lagrangian $2$-face case, the Reeb vectors of both adjacent $3$-faces are tangent to the $2$-face. So no direct transition from the interior of a $3$-face to the closed $2$-face can happen. Instead, the linear segment in the $2$-face points in a direction in the Reeb cone $J N_F$, and starts and ends at some points on the boundary of the $2$-face, i.e. the interior of a $1$-face or $0$-face.
+In the case of a $1$-face interior as entrypoint, the only way to enter the $1$-face is from the interior of the third $3$-face adjacent to it, or the interior of one of the two other $2$-faces adjacent to it. Similarly for the $0$-face case. Not all these cases may be locally realizable, depending on the Reeb vector directions.
+
+In the case of the standard counterexample to Viterbo's conjecture, the segments go along the lagrangian $2$-faces, and transition through $0$-faces.
+
+First we lay out how to handle Lagrangian $2$-faces in the combinatorical enumeration, and then how to find the minimum action closed characteristic for a given combinatorical structure that includes Lagrangian $2$-faces.
+
+We now know that Lagrangian $2$-faces are only entered and exited via $1$-faces or $0$-faces. Wlog we start our sequence on a Lagrangian $2$-face, i.e. we handle these start cases first, and then after that only consider sequences among non-Lagrangian $2$-faces.
+
+As a first modification for the search that allows to visit Lagrangian $2$-faces, we switch to a new graph with $0$, $1$, and non-Lagrangian $2$-faces as nodes, and $1$, $2$, $3$ faces as edges. We interpret visits as passing through the interior only, and not the boundary of the face. Both for nodes and edges. We also start only on a $1$-face or $0$-face, since we by assumption will need to always visit a Lagrangian $2$-face in our combinatorical search, and os we do it at the start.
+
+Unlike before, our candidate trajectory sets no longer are described by the convex non-degenerate subset of the start $2$-face, but instead by an interval of a start $1$-face, or equivalently an open/closed/clopen line (which includes the case of a single point) in the current last $0$, $1$, or non-Lagrangian $2$-face.
+
+We still have flow maps along the interior of $3$-faces between non-Lagrangian $2$-faces, $1$-faces, and $0$-faces, that are affine symplectic maps as before. Our intervals are sent to intervals again.
+
+For flow maps along the interior of $1$-faces we simply have the point-to-point map, or the empty map if the direction isn't permitted.
+Our intervals (here: a point) are sent to intervals (a point) again.
+
+For flow maps along the interior of Lagrangian $2$-faces, we now get a cone of possible exit directions. We realize this as two maps $\psi,\psi'$ from the entry $1$-dim space to the exit $1$-dim space, that correspond to the two extremal rays of the Reeb cone. If a shared $0$-face exists, the two maps both take the value of that $0$-face point there. Otherwise, the two maps are strictly distinct, which also defines an orientation (that we don't have a use for).
+Mapping an open/closed/clopen interval through the cone map then yields again an interval, potentially with different open/closed/clopen properties. Points in particular can map to non-point intervals.
+
+After we found a closed combinatorical sequence with non-empty candidate trajectory set, we now have to find a fixed point with minimal action again.
+It is not a 1:1 map that we have, instead we have a bunch of composable 1:1 maps, and the cone maps.
+The cone map on a $2$-face $F$ can be represented as a free parameter $s_F(x) \in [0,1]$ that interpolates between the two extremal rays of the Reeb cone, i.e. $x \mapsto (1-s_F(x)) \psi(x) + s_F(x) \psi'(x)$.
+The action increment is again affine in $x$ for each cone direction, and mixing mixes them linearly, so the total action is again affine in $x$ and the $s_F(x)$ parameters.
+
+So we get an optimization problem over the initial starting point $x$ in the remaining candidate trajectory set (which is an interval, potentially a point), and the $s_F$ parameters for each Lagrangian $2$-face $F$ visited. We get another linear equation constraint that the endpoint must be the same as the starting point $x$.
+The whole problem may be satisfiable or not.
+
+TODO: actually above can be simplified a lot: Per Heim-Kislev 2019, we can always get a minimum action orbit that visits every 3-face at most once, and furthermore, only follows 3-face Reeb directions, never a mixture. So instead of the cones, we can just pick one of the two extremal rays per Lagrangian 2-face we transition through. This reduces to picking one of the two 3-faces to transition through. So in fact, we can just normally enumerate the combinatorics of a graph with 2-face nodes and 3-face edges. If we are on a Lagrangian 2-face, we will then follow a tangential 3-face Reeb direction, and hit another 1-face that lies on both plus a third 3-face. If we go into said 3-face next, then we can define the 1-face as part of the 2-face formed by the third 3-face and the followed 3-face. So the combinatorics checks out. If we go into another Lagrangian 2-face next, then ??. If we go along the 1-face, we aren't minimal. If we don't hit the interior of a 1-face but a 0-face, that's just a subcase of the same, and works out.
+
+So it's still enough to enumerate the 3-face sequence with 2-faces that one passes through, with flow maps that map entry to exit. The flow maps may however now degenerate to have a 1d domain and a 1d image. I.e. if we go from a Lagrangian 2-face $F$ along a 3-face $F_k$ into a (non-/)Lagrangian 2-face $F'$, then the flow map $\psi$ is onto (a subset of) the $1$-face $F \cap F_k$. After we go through such a flow, we continue onwards with a $1$-dim trajectory candidate set. The rotation increment is still annoying, since *iiuc* we cannot calculate it for an affine map that's not full rank. Maybe we just ignore it in that case as a cutoff rule, e.g. set it to $-\infty$ so that adding never exeeds $<2$. Action increments work as before.
+
+TODO: Hmm actually it's not quite as simple. On a lagrangian $2$-face the orbit can switch directions from one $3$-face Reeb vector the other, so we don't know that the whole segment has the same vector. I think, we just have to introduce a degree of freedom here. Basically: going from a (maybe lagrangian) $2$-face $F$ to the Lagrangian $2$-face $F'$ via the direction $R_1$ of the shared $3$-face $F_1$ gives us a relation $\psi$ with domain being the shared $1$-face (note: only the adjacent $2$-faces can enter/exit a lagrangian $2$-face, or at least we can skip direct jumps from afar onto the $1$-face via a third, non-adjacent $3$-face interior), and the image being a whole $2$-dim convex area on the Lagrangian $2$-face, namely everything reachable via $R_1$ flow. Similarly if we go from the lagrangian $2$-face to an adjacent $2$-face, the domain is a $2$-dim convex area, and the image is the shared $1$-face. The composition is then line-to-line with only a cone constraint again.
+My suspicion is that the new parameter we get is basically equivalent to an infinitesimal rotation/perturbation that makes the $2$-face non-lagrangian. In that case we get a highly numerically unstable map between $2$-dim convex areas instead of degenerate $1$-dim lines.
+And while the perturbation may drastically shift what action orbit is minimal, the action is continuous. Interestengly this suggests that if we have multiple degrees of freedom added like that, we should be able to collapse them; we loose our ability to track the exact orbits for the non-generic case, and our ability to track which orbits are minimal under what perturbations, but we do still get one orbit with the shared minimal action value.
+So my guess is that we can pick independently arbitrary infinitesimal perturbations for each lagrangian $2$-face visited, resulting in numerically unstable but well-defined $1:1$ flow maps, and then proceed as before. We symmetry break the minimal orbits, but not the minimal action value.
+

@@ -2,6 +2,20 @@
 
 This is the root-level onboarding entry point for AI agents working on the **"Probing Viterbo's Conjecture"** MSc thesis project of Jörn Stöhler.
 
+We employ a hybrid workforce of:
+- **AntiGravity Agents**: Built-in agents in the AntiGravity VS Code fork, powered by **Gemini 3 Pro** or **Claude Sonnet 4.5**.
+- **Codex Agents**: CLI-based agents managed via `agentctl`, powered by **GPT-5** series models.
+- **Project Owner**: Jörn Stöhler (Human).
+
+## Agent-Specific Documentation
+
+Each agent type has access to different tools and capabilities. After reading this file, consult your agent-specific documentation:
+- **Claude agents**: [`packages/agentctl/docs/antigravity-claude-agents.md`](packages/agentctl/docs/antigravity-claude-agents.md)
+- **Gemini agents**: [`packages/agentctl/docs/antigravity-gemini-agents.md`](packages/agentctl/docs/antigravity-gemini-agents.md)
+- **Codex agents**: [`packages/agentctl/docs/codex-gpt-agents.md`](packages/agentctl/docs/codex-gpt-agents.md)
+
+These files document the specific tools available to each agent type and how to use them effectively.
+
 ## Project Overview
 
 The project is a master thesis in mathematics. This repository contains all materials, including data, code, formal proofs, documentation, the written thesis, project management, and custom AI agent tooling.
@@ -44,41 +58,43 @@ All development happens in a single VS Code devcontainer that owns the lone git 
 - **Devcontainer basics.** `.devcontainer/{Dockerfile,devcontainer.json}` plus `scripts/devcontainer-post-create.sh` describe the image, bind mounts, and lifecycle hooks. The container starts from `mcr.microsoft.com/devcontainers/base:ubuntu`, already has all toolchains installed, and persists caches via volumes/binds. Assume everything works; read the docs only when debugging or evolving the environment.
 - **Toolchains baked on 2025-11-17.** Rust (rustup 1.91.1 + sccache, clippy, rustfmt, cargo-chef), Python 3.12.3 with uv 0.9.9 (ruff, pyright, pytest via `uv run`), Node.js 22.21.0 + npm 10.9.4, Lean 4.25.0 + Lake 5.0.0, GitHub CLI 2.45.0, git 2.51.1. Everything is authenticated under the project owner’s account.
 - **Standard commands.** `cargo`, `uv run`, `lake`, `npm`, `git`, `gh`, `jq`, `rg`, `fd`, `tree`, `ctags`, `bash -lc`. Use `gh issue ...` / `gh pr ...` for GitHub management. Run every command from inside your assigned worktree.
-- **Custom commands.** `scripts/devcontainer-post-create.sh` (lifecycle hook) and `packages/docs-site/scripts/docs-publish.sh` (docs deployment). The only lifecycle interface for agents and worktrees is `agentctl`. Start every turn with `bash -lc 'pwd && agentctl self && git status -sb'` to learn your handle and the current git status before touching files. The core subcommands you will use are:
-  - `agentctl list`: enumerate every defined handle plus its status.
-  - `agentctl bootstrap <worktree>`: register an existing git worktree so `agentctl` can use it. In this repo we set `AGENTCTL_BOOTSTRAP_HOOK="bash scripts/agentctl-bootstrap-hook.sh"` so the shared hook runs after each bootstrap; it receives `AGENTCTL_REPO_ROOT`, `AGENTCTL_WORKTREE`, and `AGENTCTL_WORKTREE_BRANCH`, and currently runs `uv sync --locked --extra dev` inside `packages/python_viterbo`. Update that script whenever the setup workflow changes.
-  - `agentctl define <handle> --worktree <path>` (plus optional `--parent`, `--model`, `--reasoning-budget`): bind a handle to a bootstrapped worktree.
-  - `agentctl start <handle> --prompt "..."|--prompt-file <path>`: launch or resume a Codex turn for that handle.
-  - `agentctl stop <handle>` / `agentctl await <handle>`: end or wait for a running turn.
-  - `agentctl print <handle> [--last N]`: inspect the most recent prompts/final messages.
-  - `agentctl self`: print your current handle, parent, and worktree metadata.
-  Escalate to the project owner if any `agentctl` command fails or lacks the behavior you need.
+- **Custom commands.** `scripts/devcontainer-post-create.sh` (lifecycle hook) and `packages/docs-site/scripts/docs-publish.sh` (docs deployment).
+- **Agent Control (`agentctl`).** While AntiGravity agents are native to the IDE, we also use `agentctl` to manage Codex (GPT-5) agents. AntiGravity agents can also use `agentctl` to spawn sub-agents. The `agentctl` binary handles:
+  - `agentctl daemon`: starts the HTTP server and process supervisor. It reads `AGENTCTL_PORT` (default `3000`) plus `AGENTCTL_CODEX_BIN` for the Codex binary path.
+  - `agentctl start --workdir <path> --prompt "..."`: starts a new turn. Returns the thread ID.
+  - `agentctl status <id>`: checks the status of a thread.
+  - `agentctl await <id>`: waits for a thread to complete.
+  - `agentctl list`: lists all threads.
+  - `agentctl stop <id>`: stops a thread.
+  Escalate to the project owner if the daemon or CLI subcommands behave unexpectedly.
 
-- **Worktree ownership.** The main worktree/branch belongs to Jörn, only he can accept PRs or merge into main. Other worktrees have to be registered with `agentctl`, and are owned by the agent(s) running in them, who can commit & merge into their worktrees as they see fit.
+- **Worktree ownership.** The main worktree/branch belongs to Jörn, only he can accept PRs or merge into main. Other worktrees are just normal git worktrees created via `git worktree add …` plus `scripts/worktree-prepare.sh`. Coordinate with Jörn before pushing or rebasing shared worktrees. Keep every auxiliary worktree under `/workspaces/worktrees/` (mounted by the devcontainer) instead of creating a `worktrees/` directory inside the repo.
 - **Project-management artifacts.** Issues and PRs live on GitHub. Use the authenticated `gh` CLI to inspect or update them, and append the provenance footer whenever an agent authors GitHub text. All agents share one GitHub identity, and we do not run GitHub Actions/CI, so you must run the relevant checks locally before pushing:
     ```
     ---
     🤖 Author: codex agent on branch `agent/issue-123`
     🤖 Edited by: codex agent on branch `agent/issue-128`
     ```
-- **Delegation hooks.** For large sub-issues you own, you can provision another worktree + agent and drive it like the project owner would (issue, provision, start, review, merge). For tiny helper tasks that only need to run inside your worktree (file triage, tedious refactors, log-diving), run another `agentctl start <your-worktree> --prompt "..."` and keep the deliverable short.
+- **Delegation hooks.** For large sub-issues you own, create another git worktree, run `scripts/worktree-prepare.sh`, and spin up a new `agentctl start --workdir <that-dir> …` turn dedicated to the subtask. For tiny helper tasks inside the same worktree, it is fine to run an additional `agentctl start --workdir <current-dir> --prompt "helper task"` turn and keep the deliverable short.
 
 ## The Most Frequent Workflows
 
+**Note for AntiGravity Agents:** You are typically started via the IDE. The workflows below describe the rigorous process often used for Codex agents, but the principles (Worktree + Agent → PR) apply to you as well. You can also use `agentctl` to spawn Codex sub-agents if you need to parallelize work.
+
 ### Project Owner → Issue → Worktree + Agent → PR
 1. Jörn files or references a GitHub issue (or gives you a prompt describing the target).
-2. Jörn prepares a worktree (via `git worktree add …`, `agentctl bootstrap`, `agentctl define`, and `agentctl start ... --prompt "issue ###"`), then hands you that worktree and handle.
+2. Jörn prepares a worktree (via `git worktree add …`, `scripts/worktree-prepare.sh`, and `agentctl start --workdir <path> --prompt "issue ###"`), then hands you that worktree and the initial instructions.
 3. You execute the entire issue inside that worktree, produce the deliverable, and open a PR against `main` (or the branch named in the issue). Use a draft PR if anything is incomplete or blocked.
 4. Jörn reviews, may request follow-ups, and merges or declines the PR. Assume you own the full lifecycle (planning, implementation, tests, docs) unless told otherwise.
 
 ### Project Owner → Agent on `main` → Chatting
-Sometimes Jörn runs `agentctl start /workspaces/msc-viterbo --prompt "..."`, i.e. points an agent directly at the main worktree for rapid back-and-forth. The main worktree is still owned by Jörn, so keep edits minimal, gate risky changes behind confirmation, and be careful around uncommitted changes that other agents may be working on. The back-and-forth is driven by Jörn's prompt and your final message each turn, don't assume Jörn will read all the changes you made and all the action preambles you wrote while you worked.
+Sometimes Jörn runs `agentctl start --workdir /workspaces/msc-viterbo --prompt "..."`, i.e. points an agent directly at the main worktree for rapid back-and-forth. The main worktree is still owned by Jörn, so keep edits minimal, gate risky changes behind confirmation, and be careful around uncommitted changes that other agents may be working on. The back-and-forth is driven by Jörn's prompt and your final message each turn, don't assume Jörn will read all the changes you made and all the action preambles you wrote while you worked.
 
-### Agent → Sub-Issue → Worktree + Agent → `agentctl merge`
-If your issue spawns a substantial, independent task, create a new worktree and handle (via `git worktree add …`, `agentctl bootstrap`, and `agentctl define`) tied back to your branch, start a helper agent there, and integrate the results once it finishes (`agentctl stop/await` followed by normal git workflows). Continue your main assignment with the sub-results integrated.
+### Agent → Sub-Issue → Worktree + Agent → Merge
+If your issue spawns a substantial, independent task, create a new worktree (via `git worktree add …` and `scripts/worktree-prepare.sh`) tied back to your branch, start a helper agent there (`agentctl start --workdir <that-dir> …`), and integrate the results once it finishes (`agentctl await` followed by normal git workflows). Continue your main assignment with the sub-results integrated.
 
 ### Agent → Sub-Agent on same worktree → Chatting
-For scoped helper tasks that do not deserve their own worktree (log triage, file reading, repetitive edits), start another turn bound to your current worktree: `agentctl start <your-worktree> --prompt "helper task"` (or `agentctl resume ... --prompt-file ...`). Keep helper prompts precise and short-lived, and integrate the result immediately so you do not overwrite each other.
+For scoped helper tasks that do not deserve their own worktree (log triage, file reading, repetitive edits), start another turn bound to your current worktree: `agentctl start --workdir <current-dir> --prompt "helper task"` (or `agentctl reply --uuid <uuid> --prompt-file ...`). Keep helper prompts precise and short-lived, and integrate the result immediately so you do not overwrite each other.
 
 ## Working Autonomously
 
@@ -88,7 +104,7 @@ For scoped helper tasks that do not deserve their own worktree (log triage, file
 - Escalate blockers with actionable detail: what you attempted, which logs you gathered, why progress stopped, and what you need concretely (decisions, clarification, ideas, commands/actions to be taken, etc). Minimize the time Jörn needs to get up to speed and help you. Provide reproduction steps so that other agents could, in principle at least, also take a look and troubleshoot.
 - Ensure every generated artifact (plots, datasets, binaries) are reproducible. Document command arguments or config values, so that future agents can regenerate them easily.
 - Prefer a draft PR when work is incomplete but you uncovered important blockers or partial results. Describe gaps explicitly instead of hoping reviewers infer them.
-- When delegating, specify success criteria clearly. You can reject work and retry with a new agent, if it's not worth trying a follow-up to build on a failed attempt. Use `agentctl merge` for cross-worktree integration. Use `agentctl resume` for follow-up actions or questions.
+- When delegating, specify success criteria clearly. You can reject work and retry with a new agent, if it's not worth trying a follow-up to build on a failed attempt. Use normal git workflows for cross-worktree integration. Use `agentctl reply` for follow-up actions or questions.
 
 ## Universal Conventions
 
@@ -101,6 +117,6 @@ The following conventions apply to all packages, and so they are mentioned once 
 - **Documentation**: Every package has its own documentation conventions, described in the package-level `AGENTS.md` files. Many packages keep a local `docs/` subdirectory for extra Markdown, alongside docstrings / comment blocks that tooling can extract into API docs. `packages/docs-site/scripts/docs-publish.sh` aggregates those package docs to GitHub Pages.
 
 ## Where to Go Next
-After reading this file, agents must run `bash -lc 'pwd && agentctl self && git status -sb'`. This confirms the worktree path, fetches your agent handle (the identifier used by`agentctl`), and exposes any uncommitted changes that cannot be restored via `git reset ...`. It is often sensible to backup uncommitted changes before overwriting them, e.g. via `cp path/to/file path/to/file.bak.$(date -Iseconds)` to a gitignored (`*.bak.*`) location.
+After reading this file, agents must run `bash -lc 'pwd && echo $AGENT_UUID && git status -sb'`. This confirms the worktree path, prints the UUID assigned by `agentctl`, and exposes any uncommitted changes that cannot be restored via `git reset ...`. It is often sensible to backup uncommitted changes before overwriting them, e.g. via `cp path/to/file path/to/file.bak.$(date -Iseconds)` to a gitignored (`*.bak.*`) location.
 
 After orienting wrt git, agents should identify which package(s) they will be working on, and read the respective package-level `packages/*/AGENTS.md` files next. The files will reference further readings of which some, or none, may be of interest depending on the agent's assigned issue(s).

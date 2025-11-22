@@ -20,11 +20,6 @@ if ! mountpoint -q "${WORKTREES_DIR}"; then
   exit 1
 fi
 
-# Ensure agentx namespace for this project exists
-AGENTX_ROOT="${HOME}/.agentx"
-AGENTX_PROJECT_DIR="${AGENTX_ROOT}/msc-viterbo"
-mkdir -p "${AGENTX_PROJECT_DIR}"
-
 # Install or update Codex CLI via npm (config and cache are volume-backed)
 if command -v npm >/dev/null 2>&1; then
   mkdir -p "${HOME}/.local/bin" "${HOME}/.cache/npm"
