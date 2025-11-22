@@ -38,19 +38,40 @@
         // python
         "ms-python.python",
         "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "ms-python.vscode-pylance",
         // rust
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
         // lean4
         "leanprover.lean4",
+        // javascript, typescript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "vitest.explorer",
         // other file formats
         "tamasfe.even-better-toml",
         "redhat.vscode-yaml",
         // ai
         "openai.chatgpt",
+        "Anthropic.claude-code",
+        "google.gemini-cli-vscode-ide-companion",
+        "google.geminicodeassist",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.vscode-websearchforcopilot",
         // github
         "github.vscode-github-actions",
-        "GitHub.vscode-pull-request-github"
+        "GitHub.vscode-pull-request-github",
+        // markdown
+        "bierner.github-markdown-preview",
+        "goessner.mdmath",
+        "artakase.katex-math",
+        // UI
+        "usernamehw.errorlens",
+        "GitHub.github-vscode-theme",
+        "miguelsolorio.symbols",
+        "tomoki1207.pdf"
       ]
     }
   }
