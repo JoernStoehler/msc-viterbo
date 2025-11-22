@@ -4,11 +4,100 @@ import { hideBin } from 'yargs/helpers';
 import axios from 'axios';
 import { spawn } from 'child_process';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 const PORT = process.env.AGENTCTL_PORT || 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
+type Identity = {
+    identity: 'project_owner' | 'agent' | 'unknown';
+    agent_uuid?: string;
+    source?: 'pid';
+    message?: string;
+};
+
+function detectIdentity(): Identity {
+    // Not running under codex shell → assume project owner
+    if (!process.env.CODEX_SHELL_ENV) {
+        return { identity: 'project_owner' };
+    }
+
+    // PID-based detection
+    try {
+        const ancestors = getAncestors(process.pid);
+        const threadId = findThreadByPid(ancestors);
+        if (threadId) {
+            return { identity: 'agent', agent_uuid: threadId, source: 'pid' };
+        }
+    } catch (e: any) {
+        // Check if this is a state dir issue
+        if (e.message && e.message.includes('state directory')) {
+            return { identity: 'unknown', message: e.message };
+        }
+        // Ignore other errors during PID lookup
+    }
+
+    return {
+        identity: 'unknown',
+        message: 'Running inside Codex shell but not managed by agentctl daemon. Either the daemon is not running, or this Codex process was not started via agentctl.'
+    };
+}
+
+function getAncestors(pid: number): number[] {
+    const ancestors: number[] = [];
+    let current = pid;
+    // Limit depth to avoid infinite loops or excessive work
+    for (let i = 0; i < 10; i++) {
+        ancestors.push(current);
+        try {
+            const stat = fs.readFileSync(`/proc/${current}/stat`, 'utf-8');
+            // Format: pid (comm) state ppid ...
+            // comm can contain spaces and parens, so find the last ')'
+            const lastParenIndex = stat.lastIndexOf(')');
+            if (lastParenIndex === -1) break;
+            const parts = stat.substring(lastParenIndex + 1).trim().split(/\s+/);
+            const ppid = parseInt(parts[1], 10); // ppid is the 2nd field after comm (state is 1st)
+            // Wait, parts[0] is state, parts[1] is ppid.
+            if (isNaN(ppid) || ppid === 0) break;
+            current = ppid;
+        } catch (e) {
+            break;
+        }
+    }
+    return ancestors;
+}
+
+function findThreadByPid(pids: number[]): string | undefined {
+    const stateDir = process.env.AGENTCTL_STATE_DIR || path.join(os.homedir(), '.agentctl', 'state');
+    const threadsDir = path.join(stateDir, 'threads');
+
+    if (!fs.existsSync(threadsDir)) {
+        throw new Error(
+            `agentctl state directory not found at ${stateDir}. ` +
+            `The agentctl daemon may not be running. Start it with: agentctl daemon`
+        );
+    }
+
+    const entries = fs.readdirSync(threadsDir);
+    for (const id of entries) {
+        try {
+            const statusPath = path.join(threadsDir, id, 'status.json');
+            if (!fs.existsSync(statusPath)) continue;
+
+            const status = JSON.parse(fs.readFileSync(statusPath, 'utf-8'));
+            if (status.pid && pids.includes(status.pid)) {
+                return id;
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+    return undefined;
+}
+
 yargs(hideBin(process.argv))
+    .option('json', { type: 'boolean', description: 'Emit machine-readable JSON to stdout' })
     .command('daemon', 'Start the daemon', (yargs) => {
         return yargs.option('background', { type: 'boolean', default: false });
     }, async (argv) => {
@@ -25,6 +114,24 @@ yargs(hideBin(process.argv))
             require('./daemon');
         }
     })
+    .command('self', 'Print whether we are inside an agent session', (yargs) => {
+        return yargs;
+    }, (argv) => {
+        const result = detectIdentity();
+        if (argv.json) {
+            console.log(JSON.stringify(result));
+        } else {
+            if (result.identity === 'agent' && result.agent_uuid) {
+                console.log(result.agent_uuid);
+            } else {
+                console.log(result.identity);
+            }
+        }
+
+        if (result.identity === 'unknown') {
+            process.exit(1);
+        }
+    })
     .command('start [prompt]', 'Start a turn', (yargs) => {
         return yargs
             .positional('prompt', { type: 'string' })
@@ -39,11 +146,20 @@ yargs(hideBin(process.argv))
                 workdir: argv.workdir,
                 thread_id: argv.thread
             });
-            const { thread_id } = res.data;
-            console.log(thread_id);
+            const { thread_id, status } = res.data;
 
-            if (argv.await) {
-                await poll(thread_id);
+            if (argv.json) {
+                if (argv.await) {
+                    const finalStatus = await poll(thread_id);
+                    console.log(JSON.stringify({ thread_id, status: finalStatus?.status ?? status, final_status: finalStatus?.status, data: finalStatus ?? null }));
+                } else {
+                    console.log(JSON.stringify(res.data));
+                }
+            } else {
+                console.log(thread_id);
+                if (argv.await) {
+                    await poll(thread_id);
+                }
             }
         } catch (e: any) {
             console.error('Error:', e.response?.data || e.message);
@@ -55,7 +171,11 @@ yargs(hideBin(process.argv))
     }, async (argv) => {
         try {
             const res = await axios.get(`${BASE_URL}/turn/${argv.id}`);
-            console.log(JSON.stringify(res.data, null, 2));
+            if (argv.json) {
+                console.log(JSON.stringify(res.data));
+            } else {
+                console.log(JSON.stringify(res.data, null, 2));
+            }
         } catch (e: any) {
             console.error('Error:', e.response?.data || e.message);
             process.exit(1);
@@ -67,7 +187,10 @@ yargs(hideBin(process.argv))
             .option('timeout', { type: 'number' });
     }, async (argv) => {
         try {
-            await poll(argv.id, argv.timeout);
+            const finalStatus = await poll(argv.id, argv.timeout);
+            if (argv.json && finalStatus) {
+                console.log(JSON.stringify(finalStatus));
+            }
         } catch (e: any) {
             if (e.message === 'Timeout') {
                 console.error('Timeout waiting for thread completion');
@@ -78,7 +201,7 @@ yargs(hideBin(process.argv))
         }
     })
     .command('list', 'List threads', (yargs) => {
-        return yargs.option('status', { type: 'string' }).option('json', { type: 'boolean' });
+        return yargs.option('status', { type: 'string' });
     }, async (argv) => {
         try {
             const res = await axios.get(`${BASE_URL}/list`, { params: { status: argv.status } });
@@ -96,8 +219,12 @@ yargs(hideBin(process.argv))
         return yargs.positional('id', { type: 'string', demandOption: true });
     }, async (argv) => {
         try {
-            await axios.post(`${BASE_URL}/turn/stop`, { thread_id: argv.id });
-            console.log('Stopped');
+            const res = await axios.post(`${BASE_URL}/turn/stop`, { thread_id: argv.id });
+            if (argv.json) {
+                console.log(JSON.stringify({ thread_id: argv.id, ...res.data }));
+            } else {
+                console.log('Stopped');
+            }
         } catch (e: any) {
             console.error('Error:', e.response?.data || e.message);
             process.exit(1);
@@ -115,7 +242,7 @@ async function poll(id: string, timeoutSec?: number) {
             const res = await axios.get(`${BASE_URL}/turn/${id}`);
             const status = res.data.status;
             if (status === 'done' || status === 'failed' || status === 'aborted') {
-                return;
+                return res.data;
             }
         } catch (e) {
             // ignore transient errors

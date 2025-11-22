@@ -34,6 +34,8 @@ graph TD
     Codex -->|Writes| State
 ```
 
+**Important**: The daemon must be running for all CLI commands (except `agentctl daemon` itself). Start it with `agentctl daemon` in a separate terminal or use `--background` to daemonize.
+
 ## 4. State & Data Model
 
 All state is stored in `~/.agentctl/state/` (configurable via `AGENTCTL_STATE_DIR`).
@@ -132,7 +134,36 @@ Lists all threads.
 
 The CLI is the primary interface for users and agents.
 
+**Global options**
+- `--json`: emit machine-readable JSON to stdout. For `list` this remains JSONL (one thread per line); other commands emit a single JSON object.
+
 ### Commands
+
+#### `agentctl self`
+Goal: a CLI command that tells the caller who they are.
+
+- **Must (per project owner):**
+    - When invoked inside a Codex/agent shell, print that agent's UUID.
+    - When invoked by the project owner (i.e., not inside a Codex shell), print `project_owner`.
+    - Agent-context detection should rely on the existing convention `CODEX_SHELL_ENV=1` (per `~/.codex/config.toml`).
+    - "unknown" output is acceptable **only** to signal: inside a Codex shell but **not** an agent managed by `agentctl`. It must not be emitted merely because a lookup failed for an agentctl-managed session.
+    - Therefore the implementation must attempt a best-effort lookup before resorting to `unknown`; always printing `project_owner` or `unknown` would violate the feature requirements.
+
+- **Implementation:**
+    - Uses PID-based ancestry matching: traces the calling process's parent chain via `/proc/<pid>/status` and matches against `~/.agentctl/state/threads/*/status.json`
+    - Detection order:
+        1. If `CODEX_SHELL_ENV` not set → return `project_owner`
+        2. Traverse process ancestry to find parent `codex` process PID
+        3. Match PID against daemon's thread state files
+        4. If no match found → return `unknown` (exit code 1)
+    - Deterministic, concurrency-safe, works for both new and resumed threads
+    - Requires no modifications to Codex binary
+    - Linux-specific (relies on `/proc` filesystem)
+
+- **Exit codes:**
+    - `0`: Successfully identified (project_owner or agent UUID)
+    - `1`: Inside Codex shell but identity unknown (not managed by agentctl)
+
 
 #### `agentctl daemon`
 Starts the daemon process.
@@ -145,16 +176,17 @@ Starts a new turn.
     -   `--thread <id>`: Continue existing thread (if supported by codex) or reuse ID.
     -   `--detach`: Return immediately (default).
     -   `--await`: Wait for completion (blocks).
--   **Output**: Prints the `thread_id`.
+-   **Output**: Prints the `thread_id` (or a JSON object with the `thread_id` and status when `--json` is set). When combined with `--await --json`, the final status JSON is printed.
 
 #### `agentctl status <ID>`
 Prints the status of a thread.
--   **Output**: JSON or human-readable summary.
+-   **Output**: Pretty-printed JSON by default; compact JSON when `--json` is set.
 
 #### `agentctl await <ID>`
 Polls the daemon until the thread reaches a terminal state (done, failed, aborted).
 -   **Options**: `--timeout <seconds>`
 -   **Exit Code**: 0 on success, 1 on failure, 124 on timeout.
+-   **Output**: Silent by default; when `--json` is set, prints the final status JSON.
 
 #### `agentctl list`
 Lists all threads.

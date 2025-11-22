@@ -26,11 +26,7 @@ if command -v npm >/dev/null 2>&1; then
   npm config set prefix "${HOME}/.local"
   npm config set cache "${HOME}/.cache/npm"
   npm i -g @openai/codex || true
-fi
-
-# Ensure agentctl binary is installed
-if command -v cargo >/dev/null 2>&1 && ! command -v agentctl >/dev/null 2>&1; then
-  (cd "${REPO_ROOT}/packages/agentctl" && cargo install --locked --path . --root "${HOME}/.local")
+  npm install -g "${REPO_ROOT}/packages/agentctl"
 fi
 
 echo "Devcontainer post-create setup complete."

@@ -2,14 +2,15 @@
   "name": "agentctl",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/daemon.js",
+  "main": "dist/src/daemon.js",
   "bin": {
-    "agentctl": "dist/cli.js"
+    "agentctl": "dist/src/cli.js"
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/daemon.js",
-    "test": "ts-node test/integration.test.ts"
+    "start": "node dist/src/daemon.js",
+    "test": "ts-node test/integration.test.ts",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "",

@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { StateManager, ThreadStatus } from './state';
 import { EventEmitter } from 'events';
 
@@ -206,4 +207,4 @@ export class ProcessManager {
     }
 }
 
-import os from 'os';
+

@@ -25,13 +25,13 @@ Comprehensive reference for **Codex agents powered by GPT-5 series models** that
 - `agentctl await <id> [--timeout <seconds>]`: Poll until terminal state; exit codes 0/1/124.
 - `agentctl list [--json] [--status <running|done|failed|aborted>]`: Enumerate threads.
 - `agentctl stop <id>`: SIGTERM (then SIGKILL) the Codex process; sets status `aborted`.
+- `agentctl self [--json]`: Print `project_owner` when outside a Codex shell; otherwise the detected agent UUID. Uses PID-based ancestry matching to identify the agent by tracing the process tree and matching against the daemon's thread state. Exits non-zero if `CODEX_SHELL_ENV=1` and no UUID is found.
 
 ### 1.4 Environment variables
 - `AGENTCTL_CODEX_BIN`: Path to the `codex` binary (or mock). Required if not on `$PATH`.
 - `AGENTCTL_CODEX_MOCK_INSTRUCTION_FILE`: JSONL replay file used when `AGENTCTL_CODEX_BIN` points to the mock implementation.
 - `AGENTCTL_PORT`: Port for daemon and CLI (default `3000`).
 - `AGENTCTL_STATE_DIR`: Override default state dir (`~/.agentctl/state`).
-- `AGENT_UUID`: Exported into the Codex process for provenance (printed by onboarding command).
 
 ### 1.5 Codex process invocation (what the daemon actually runs)
 - `codex exec [resume <thread_id>] --yolo --json --output-final-message <FILE> --cd <WORKDIR> <PROMPT>`
@@ -206,4 +206,3 @@ Each tool is exposed via the `functions.*` (CLI harness) or `web.run` namespace.
 - Agentctl design/API: `/workspaces/msc-viterbo/packages/agentctl/SPEC.md`
 - Agentctl package onboarding: `/workspaces/msc-viterbo/packages/agentctl/AGENTS.md`
 - Companion docs: `packages/agentctl/docs/antigravity-claude-agents.md`, `packages/agentctl/docs/antigravity-gemini-agents.md`
-

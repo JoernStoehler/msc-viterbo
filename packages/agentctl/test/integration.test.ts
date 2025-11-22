@@ -160,6 +160,47 @@ async function run() {
         } catch (e: any) {
             console.log('Caught expected crash error');
         }
+        // --- Test 7: JSON flag output ---
+        console.log('\n[Test 7] --json flag output');
+        writeInstructions([
+            { type: 'turn_start', thread_id: 'json-thread' },
+            { type: 'log', message: 'JSON run' },
+            { type: 'turn_end' }
+        ]);
+        const jsonOut = execSync(`npx ts-node ${CLI} start "json task" --workdir ${WORKDIR} --json`, { env }).toString().trim();
+        const jsonData = JSON.parse(jsonOut);
+        if (jsonData.thread_id !== 'json-thread') throw new Error(`Expected json-thread, got ${jsonData.thread_id}`);
+
+        const statusJsonData = JSON.parse(execSync(`npx ts-node ${CLI} status json-thread --json`, { env }).toString().trim());
+        if (statusJsonData.id !== 'json-thread') throw new Error('JSON status mismatch');
+
+        // --- Test 8: agentctl self ---
+        console.log('\n[Test 8] agentctl self');
+        const selfHome = path.join(os.tmpdir(), 'agentctl-self-home');
+        if (fs.existsSync(selfHome)) fs.rmSync(selfHome, { recursive: true, force: true });
+        fs.mkdirSync(path.join(selfHome, '.codex'), { recursive: true });
+
+        const selfEnv = { ...env, HOME: selfHome };
+
+        // 8a: project_owner (no CODEX_SHELL_ENV)
+        const cleanEnv: any = { ...process.env, HOME: selfHome, AGENTCTL_STATE_DIR: STATE_DIR };
+        delete cleanEnv.CODEX_SHELL_ENV;
+        const owner = execSync(`npx ts-node ${CLI} self`, { env: cleanEnv }).toString().trim();
+        if (owner !== 'project_owner') throw new Error(`Expected project_owner, got ${owner}`);
+
+        // 8b: unknown (when CODEX_SHELL_ENV=1 but no match)
+        // Note: agentctl self exits with code 1 when returning "unknown", so we need to catch the error
+        try {
+            const unknown = execSync(`npx ts-node ${CLI} self`, { env: { ...selfEnv, CODEX_SHELL_ENV: '1' }, stdio: 'pipe' }).toString().trim();
+            if (unknown !== 'unknown') throw new Error(`Expected unknown, got ${unknown}`);
+        } catch (e: any) {
+            // execSync throws on non-zero exit, check if stdout contains "unknown"
+            if (e.stdout && e.stdout.toString().trim() === 'unknown') {
+                // This is expected behavior
+            } else {
+                throw e;
+            }
+        }
 
         console.log('\nAll Tests Passed!');
     } catch (e: any) {
