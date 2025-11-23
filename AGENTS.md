@@ -59,13 +59,15 @@ All development happens in a single VS Code devcontainer that owns the lone git 
 - **Toolchains baked on 2025-11-17.** Rust (rustup 1.91.1 + sccache, clippy, rustfmt, cargo-chef), Python 3.12.3 with uv 0.9.9 (ruff, pyright, pytest via `uv run`), Node.js 22.21.0 + npm 10.9.4, Lean 4.25.0 + Lake 5.0.0, GitHub CLI 2.45.0, git 2.51.1. Everything is authenticated under the project owner’s account.
 - **Standard commands.** `cargo`, `uv run`, `lake`, `npm`, `git`, `gh`, `jq`, `rg`, `fd`, `tree`, `ctags`, `bash -lc`. Use `gh issue ...` / `gh pr ...` for GitHub management. Run every command from inside your assigned worktree.
 - **Custom commands.** `scripts/devcontainer-post-create.sh` (lifecycle hook) and `packages/docs-site/scripts/docs-publish.sh` (docs deployment).
-- **Agent Control (`agentctl`).** While AntiGravity agents are native to the IDE, we also use `agentctl` to manage Codex (GPT-5) agents. AntiGravity agents can also use `agentctl` to spawn sub-agents. The `agentctl` binary handles:
+- **Agent Control (`agentctl`).** Preinstalled in the devcontainer and already on `PATH`; never ask the project owner to install it. Verify with `agentctl --version`. AntiGravity agents can also use `agentctl` to spawn sub-agents. The `agentctl` binary handles:
   - `agentctl daemon`: starts the HTTP server and process supervisor. It reads `AGENTCTL_PORT` (default `3000`) plus `AGENTCTL_CODEX_BIN` for the Codex binary path.
   - `agentctl start --workdir <path> --prompt "..."`: starts a new turn. Returns the thread ID.
   - `agentctl status <id>`: checks the status of a thread.
   - `agentctl await <id>`: waits for a thread to complete.
   - `agentctl list`: lists all threads.
   - `agentctl stop <id>`: stops a thread.
+  - Duplicate `agentctl daemon` invocations fail fast with a clear “already running on port …” error.
+  - Agent shells are forced non-interactive for Git (`GIT_TERMINAL_PROMPT=0`, `GIT_SSH_COMMAND='ssh -oBatchMode=yes'`, etc.) via `~/.codex/config.toml`; project-owner shells stay interactive.
   Escalate to the project owner if the daemon or CLI subcommands behave unexpectedly.
 
 - **Worktree ownership.** The main worktree/branch belongs to Jörn, only he can accept PRs or merge into main. Other worktrees are just normal git worktrees created via `git worktree add …` plus `scripts/worktree-prepare.sh`. Coordinate with Jörn before pushing or rebasing shared worktrees. Keep every auxiliary worktree under `/workspaces/worktrees/` (mounted by the devcontainer) instead of creating a `worktrees/` directory inside the repo.

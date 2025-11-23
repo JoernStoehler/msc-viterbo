@@ -175,6 +175,7 @@ Goal: a CLI command that tells the caller who they are.
 #### `agentctl daemon`
 Starts the daemon process.
 -   **Options**: `--port <port>` (default 3000), `--background` (optional).
+-   **Error handling**: Exits non-zero with a clear message if the chosen port is already in use (e.g., when another daemon is running).
 
 #### `agentctl start [PROMPT]`
 Starts a new turn.

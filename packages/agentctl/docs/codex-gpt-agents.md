@@ -1,6 +1,6 @@
 # Codex GPT Agents Reference
 
-Comprehensive reference for **Codex agents powered by GPT-5 series models** that are managed via `agentctl`. This file assumes you already read `/workspaces/msc-viterbo/AGENTS.md` and need exact, low-level behavior and tooling for Codex turns.
+Comprehensive reference for **Codex agents powered by GPT-5 series models** that are managed via `agentctl`. The devcontainer already includes a built `agentctl`; verify with `agentctl --version` and never suggest installing it. Agent shells are non-interactive for Git via `~/.codex/config.toml`; project-owner shells remain interactive. This file assumes you already read `/workspaces/msc-viterbo/AGENTS.md` and need exact, low-level behavior and tooling for Codex turns.
 
 ---
 
@@ -10,6 +10,7 @@ Comprehensive reference for **Codex agents powered by GPT-5 series models** that
 - `agentctl daemon [--port <port>] [--background]`
   - Default port: `3000` (overridable via `AGENTCTL_PORT`).
   - Runs an HTTP server that owns all Codex processes.
+  - Exits fast with an “already running on port …” error if the port is in use.
 
 ### 1.2 Start a Codex turn
 - `agentctl start [PROMPT] --workdir <path> [--thread <id>] [--detach|--await]`

@@ -1,6 +1,6 @@
 # agentctl
 
-Manage Codex AI agent lifecycles in devcontainers.
+Manage Codex AI agent lifecycles in devcontainers. The devcontainer already ships a built `agentctl` on `PATH`; verify with `agentctl --version`. Only run the npm steps below when hacking on `agentctl` itself.
 
 ## Quick Start
 
@@ -58,7 +58,7 @@ npx agentctl await <thread-id>  # Wait for completion
 
 | Command | Description |
 |---------|-------------|
-| `agentctl daemon` | Start the daemon (required for all other commands) |
+| `agentctl daemon` | Start the daemon (required for all other commands). Exits with a clear error if the port is already in use. |
 | `agentctl start <prompt> --workdir <path>` | Start a new agent thread |
 | `agentctl list [--status <filter>]` | List all threads sorted by last activity (default: plain grep-friendly lines with header `workdir id status managed pid last_active_at`; `--no-header` to suppress; `--json` → JSON array; `--jsonl` → NDJSON) |
 | `agentctl status <id>` | Get thread status |

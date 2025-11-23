@@ -1,6 +1,6 @@
 # agentctl Onboarding
 
-This package contains the `agentctl` tool, which manages the lifecycle of Codex agents.
+This package contains the `agentctl` tool, which manages the lifecycle of Codex agents. The devcontainer already ships a built and linked `agentctl`; do not tell users to install it. Verify availability with `agentctl --version`.
 
 ## Architecture
 See [SPEC.md](./SPEC.md) for the detailed architecture and API contract.
@@ -11,9 +11,12 @@ See [SPEC.md](./SPEC.md) for the detailed architecture and API contract.
 -   Node.js (v18+)
 -   `npm`
 -   **Linux** (required for `agentctl self` — uses `/proc` filesystem for PID-based identity detection)
+ -   Only needed when developing `agentctl` itself; not needed for normal agents in this repo (they already have `agentctl` on PATH).
 
 
 ### Quick Start
+For local development of `agentctl` (not required inside the devcontainer):
+
 **Important**: Start the daemon first in a separate terminal:
 ```bash
 npm install
@@ -71,5 +74,7 @@ npm run build
 
 ### Troubleshooting
 - **Daemon fails to start**: Check port (default 3000) and `~/.agentctl/state/daemon.pid` (if present).
+- **Daemon already running**: A second `agentctl daemon` exits with a clear “already running on port …” message; stop the existing daemon or use `AGENTCTL_PORT` to pick another port.
 - **Session file not found**: Ensure `AGENTCTL_CODEX_SESSIONS_DIR` points to the actual Codex sessions root (default `~/.codex/sessions`), the process can write there, and increase `AGENTCTL_DISCOVERY_TIMEOUT_MS` if Codex is slow to emit `session_meta`.
 - **Stop fails**: `agentctl stop` only works for `managed=daemon`; external threads must be exited in their owning terminal.
+- **Git prompts inside agent shells**: Non-interactive Git is enforced for agents via `~/.codex/config.toml` (`GIT_TERMINAL_PROMPT=0`, `GIT_SSH_COMMAND='ssh -oBatchMode=yes'`, etc.). Project-owner shells remain interactive; adjust env only if you are deliberately debugging Git inside an agent shell.
