@@ -9,7 +9,7 @@ app.use(express.json());
 const stateManager = new StateManager();
 const processManager = new ProcessManager(stateManager);
 
-const PORT = process.env.AGENTCTL_PORT || 3000;
+const PORT = Number(process.env.AGENTCTL_PORT) || 3000;
 
 app.post('/turn/start', async (req, res) => {
     try {
@@ -117,6 +117,8 @@ app.get('/list', (req, res) => {
     if (statusFilter) {
         threads = threads.filter(t => t.status === statusFilter);
     }
+    // Sort by last activity (updated_at desc) for consistent, recent-first listings
+    threads = threads.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
     res.json(threads);
 });
 
@@ -129,8 +131,21 @@ app.get('/health', (_req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT);
+
+// Happy path: server bound successfully
+server.on('listening', () => {
     console.log(`Daemon listening on port ${PORT}`);
     stateManager.writeDaemonPid(process.pid);
-    stateManager.writeDaemonPort(Number(PORT));
+    stateManager.writeDaemonPort(PORT);
+});
+
+// Error path: port already in use or other listen failures
+server.on('error', (err: any) => {
+    if (err?.code === 'EADDRINUSE') {
+        console.error(`Failed to start agentctl daemon: port ${PORT} is already in use.`);
+    } else {
+        console.error(`Failed to start agentctl daemon on port ${PORT}: ${err?.message || err}`);
+    }
+    process.exit(1);
 });

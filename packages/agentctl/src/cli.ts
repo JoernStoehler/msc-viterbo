@@ -8,7 +8,7 @@ import fs from 'fs';
 import os from 'os';
 import { discoverSessionFile } from './session-files';
 
-const PORT = process.env.AGENTCTL_PORT || 3000;
+const PORT = Number(process.env.AGENTCTL_PORT) || 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
 type Identity = {
@@ -17,6 +17,18 @@ type Identity = {
     source?: 'pid';
     message?: string;
 };
+
+async function getExistingDaemon(): Promise<{ pid?: number; port?: number } | null> {
+    try {
+        const res = await axios.get(`${BASE_URL}/health`, { timeout: 500 });
+        if (res.data?.status === 'ok') {
+            return { pid: res.data.pid, port: res.data.port };
+        }
+    } catch {
+        // Ignore connection errors; treated as daemon not running.
+    }
+    return null;
+}
 
 /**
  * Handles errors from daemon HTTP requests.
@@ -114,11 +126,18 @@ function findThreadByPid(pids: number[]): string | undefined {
 
 yargs(hideBin(process.argv))
     .parserConfiguration({ 'populate--': true })
-    .version('1.1.0')
+    .version('1.1.2')
     .option('json', { type: 'boolean', description: 'Emit machine-readable JSON to stdout' })
     .command('daemon', 'Start the daemon', (yargs) => {
         return yargs.option('background', { type: 'boolean', default: false });
     }, async (argv) => {
+        const existing = await getExistingDaemon();
+        if (existing) {
+            const pidMsg = existing.pid ? ` (pid ${existing.pid})` : '';
+            console.error(`agentctl daemon already running on port ${existing.port ?? PORT}${pidMsg}.`);
+            process.exit(1);
+        }
+
         if (argv.background) {
             const subprocess = spawn(process.argv[0], [process.argv[1], 'daemon'], {
                 detached: true,
@@ -230,19 +249,34 @@ yargs(hideBin(process.argv))
     .command('list', 'List threads', (yargs) => {
         return yargs
             .option('status', { type: 'string' })
-            .option('jsonl', { type: 'boolean', default: false, description: 'Emit newline-delimited JSON instead of a single array (requires --json).' });
+            .option('jsonl', { type: 'boolean', default: false, description: 'Emit newline-delimited JSON instead of a single array (requires --json).' })
+            .option('header', { type: 'boolean', default: true, description: 'Include column header in plain output (use --no-header to suppress).' });
     }, async (argv) => {
         try {
             const res = await axios.get(`${BASE_URL}/list`, { params: { status: argv.status } });
+
+            const sortByLastActive = (threads: any[]) => {
+                return [...threads].sort((a, b) => {
+                    const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+                    const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+                    return tb - ta; // desc
+                });
+            };
+
+            const threads = sortByLastActive(res.data);
+
             if (argv.jsonl) {
-                res.data.forEach((t: any) => console.log(JSON.stringify(t)));
+                threads.forEach((t: any) => console.log(JSON.stringify(t)));
             } else if (argv.json) {
-                console.log(JSON.stringify(res.data, null, 2));
+                console.log(JSON.stringify(threads, null, 2));
             } else {
-                res.data.forEach((t: any) => {
-                    // Plain, grep-friendly single-line format
-                    // id status managed pid exit_code workdir
-                    console.log(`${t.id} ${t.status} ${t.managed ?? ''} ${t.pid ?? ''} ${t.exit_code ?? ''} ${t.workdir}`);
+                if (argv.header) {
+                    console.log('workdir id status managed pid last_active_at');
+                }
+                threads.forEach((t: any) => {
+                    const lastActive = t.updated_at || t.created_at || '';
+                    // Plain, grep-friendly single-line format (workdir first for scanability)
+                    console.log(`${t.workdir} ${t.id} ${t.status} ${t.managed ?? ''} ${t.pid ?? ''} ${lastActive}`);
                 });
             }
         } catch (e: any) {

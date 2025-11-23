@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import axios from 'axios';
+import { readSessionMeta } from '../src/session-files';
 
 const CLI = path.resolve(__dirname, '../src/cli.js');
 const MOCK_CODEX = path.resolve(__dirname, '../src/mock-codex.js');
@@ -16,6 +17,7 @@ if (fs.existsSync(WORKDIR)) fs.rmSync(WORKDIR, { recursive: true, force: true })
 if (fs.existsSync(STATE_DIR)) fs.rmSync(STATE_DIR, { recursive: true, force: true });
 if (fs.existsSync(SESS_DIR)) fs.rmSync(SESS_DIR, { recursive: true, force: true });
 fs.mkdirSync(WORKDIR);
+fs.mkdirSync(SESS_DIR, { recursive: true });
 
 // Best-effort cleanup of stray mock codex processes from previous runs
 try { execSync('pkill -f mock-codex.js'); } catch (_) { /* ignore */ }
@@ -67,6 +69,38 @@ async function run() {
         const health = await axios.get(`http://localhost:${PORT}/health`);
         if (health.data.status !== 'ok') {
             throw new Error('Health check failed');
+        }
+
+        // --- Test 0a: Duplicate daemon start is rejected ---
+        console.log('\n[Test 0a] Reject duplicate daemon start');
+        try {
+            execSync(`node ${CLI} daemon`, { env, stdio: 'pipe' });
+            throw new Error('Second daemon start should fail when port is already in use');
+        } catch (e: any) {
+            const out = (e.stdout?.toString() || '') + (e.stderr?.toString() || '') + (e.message || '');
+            if (!out.includes('already running') && !out.includes('port') && !out.includes('Failed to start agentctl daemon')) {
+                throw new Error(`Unexpected duplicate-daemon error output: ${out}`);
+            }
+        }
+
+        // --- Test 0: Session meta parser tolerates large first lines ---
+        console.log('\n[Test 0] Parse long session_meta line');
+        const longMeta = {
+            timestamp: new Date().toISOString(),
+            type: 'session_meta',
+            payload: {
+                id: 'long-line',
+                cwd: WORKDIR,
+                originator: 'codex_cli_rs',
+                source: 'exec',
+                instructions: 'x'.repeat(10_000)
+            }
+        };
+        const longSessionPath = path.join(SESS_DIR, 'rollout-long-line.jsonl');
+        fs.writeFileSync(longSessionPath, JSON.stringify(longMeta) + '\n{"type":"turn_start"}\n');
+        const parsedLong = readSessionMeta(longSessionPath);
+        if (!parsedLong || parsedLong.id !== 'long-line' || parsedLong.cwd !== WORKDIR) {
+            throw new Error('Failed to parse long session_meta line with big instructions block');
         }
 
         // Helper to write instructions
@@ -176,6 +210,18 @@ async function run() {
         const listThreads = JSON.parse(listOut);
         if (!listThreads.some((t: any) => t.id === startA) || !listThreads.some((t: any) => t.id === startB)) {
             throw new Error('List output missing threads after completion');
+        }
+        // Ensure JSON list is sorted by last activity descending
+        for (let i = 0; i < listThreads.length - 1; i++) {
+            const t1 = new Date(listThreads[i].updated_at || listThreads[i].created_at || 0).getTime();
+            const t2 = new Date(listThreads[i + 1].updated_at || listThreads[i + 1].created_at || 0).getTime();
+            if (t1 < t2) {
+                throw new Error('List JSON output not sorted by last_active_at desc');
+            }
+        }
+        const listPlain = execSync(`node ${CLI} list`, { env }).toString().trim().split('\n');
+        if (!listPlain[0] || listPlain[0].trim() !== 'workdir id status managed pid last_active_at') {
+            throw new Error('Plain list output should start with header row');
         }
         const listNdjson = execSync(`node ${CLI} list --json --jsonl`, { env }).toString().trim().split('\n');
         if (listNdjson.length < 2) {
