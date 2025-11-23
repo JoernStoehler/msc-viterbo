@@ -198,10 +198,11 @@ Polls the daemon until the thread reaches a terminal state (done, failed, aborte
 #### `agentctl list`
 Lists all threads.
 -   **Options**:
-    - Default output: plain single-line entries (`id status managed pid exit_code workdir`) for easy grepping.
+    - Default output: plain single-line entries with a header row (`workdir id status managed pid last_active_at`) for easy grepping, sorted by `updated_at` (last activity) descending.
     - `--json`: Output the list as a JSON array (pretty-printed).
     - `--jsonl`: Emit NDJSON (one thread per line) for streaming use.
     - `--status <filter>`: Filter by status.
+    - `--no-header`: Suppress the header row in plain output.
 
 #### `agentctl stop <ID>`
 Stops a daemon-managed thread. Rejects external threads with a clear error.

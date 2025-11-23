@@ -60,7 +60,7 @@ npx agentctl await <thread-id>  # Wait for completion
 |---------|-------------|
 | `agentctl daemon` | Start the daemon (required for all other commands) |
 | `agentctl start <prompt> --workdir <path>` | Start a new agent thread |
-| `agentctl list [--status <filter>]` | List all threads (default: plain grep-friendly lines; `--json` → JSON array; `--jsonl` → NDJSON) |
+| `agentctl list [--status <filter>]` | List all threads sorted by last activity (default: plain grep-friendly lines with header `workdir id status managed pid last_active_at`; `--no-header` to suppress; `--json` → JSON array; `--jsonl` → NDJSON) |
 | `agentctl status <id>` | Get thread status |
 | `agentctl await <id>` | Wait for thread completion |
 | `agentctl stop <id>` | Stop a running thread |

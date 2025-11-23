@@ -55,13 +55,33 @@ export function extractSessionIdFromFilename(filePath: string): string | null {
 }
 
 export function readSessionMeta(filePath: string): SessionMeta | null {
+    const READ_CHUNK_BYTES = 4096;
+    const MAX_FIRST_LINE_BYTES = 1024 * 1024; // defensive cap; session_meta lines can include full AGENTS.md
+
     try {
         const fd = fs.openSync(filePath, 'r');
-        const buffer = Buffer.alloc(4096);
-        const bytes = fs.readSync(fd, buffer, 0, buffer.length, 0);
-        fs.closeSync(fd);
-        const chunk = buffer.slice(0, bytes).toString('utf-8');
-        const firstLine = chunk.split('\n')[0];
+        let firstLine = '';
+        const buffer = Buffer.alloc(READ_CHUNK_BYTES);
+        let position = 0;
+
+        try {
+            while (firstLine.length < MAX_FIRST_LINE_BYTES) {
+                const bytes = fs.readSync(fd, buffer, 0, buffer.length, position);
+                if (bytes <= 0) break;
+                const chunk = buffer.toString('utf-8', 0, bytes);
+                const newlineIdx = chunk.indexOf('\n');
+                if (newlineIdx !== -1) {
+                    firstLine += chunk.slice(0, newlineIdx);
+                    break;
+                }
+                firstLine += chunk;
+                position += bytes;
+                if (bytes < READ_CHUNK_BYTES) break; // EOF without newline
+            }
+        } finally {
+            try { fs.closeSync(fd); } catch { /* ignore */ }
+        }
+
         if (!firstLine.trim()) return null;
         const parsed = JSON.parse(firstLine);
         if (parsed?.payload?.id) {

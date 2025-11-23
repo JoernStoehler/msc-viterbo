@@ -56,8 +56,8 @@ npm run build
 - For quicker local iterations without touching the global bin: `npm link` (undo with `npm unlink -g agentctl`).
 
 ### Output formats
-- Default output is plain, grep-friendly text (`id status managed pid exit_code workdir`).
-- Add `--json` to `start`, `status`, `await`, `stop`, or `list` to get machine-readable JSON. `list --json` returns a JSON array; add `--jsonl` to get NDJSON.
+- Default output is plain, grep-friendly text with a header row (`workdir id status managed pid last_active_at`), sorted by `last_active_at` (updated_at) descending. Suppress the header with `--no-header`.
+- Add `--json` to `start`, `status`, `await`, `stop`, or `list` to get machine-readable JSON (also sorted by last activity); `list --jsonl` emits NDJSON.
 
 ### Self-identification
 - `agentctl self` prints `project_owner` when not running inside a Codex shell, otherwise the detected agent UUID. With `--json` it returns a structured object `{ identity, agent_uuid?, source }`. Uses PID-based ancestry matching to identify the agent by tracing the process tree and matching against the daemon's thread state. Exits non-zero if `CODEX_SHELL_ENV=1` and no UUID is found.

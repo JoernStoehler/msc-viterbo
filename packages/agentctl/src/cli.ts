@@ -8,6 +8,8 @@ import fs from 'fs';
 import os from 'os';
 import { discoverSessionFile } from './session-files';
 
+import pkg from '../package.json';
+
 const PORT = Number(process.env.AGENTCTL_PORT) || 3000;
 const BASE_URL = `http://localhost:${PORT}`;
 
@@ -124,9 +126,11 @@ function findThreadByPid(pids: number[]): string | undefined {
     return undefined;
 }
 
+const VERSION = (pkg as any)?.version || 'dev';
+
 yargs(hideBin(process.argv))
     .parserConfiguration({ 'populate--': true })
-    .version('1.1.2')
+    .version(VERSION)
     .option('json', { type: 'boolean', description: 'Emit machine-readable JSON to stdout' })
     .command('daemon', 'Start the daemon', (yargs) => {
         return yargs.option('background', { type: 'boolean', default: false });
