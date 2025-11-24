@@ -1,0 +1,5 @@
+# Shared Cargo target dir across all worktrees to avoid rebuilding artifacts.
+# Absolute path so worktrees in /workspaces/worktrees/* and main /workspaces/msc-viterbo
+# both resolve identically.
+[build]
+target-dir = "/workspaces/worktrees/shared/target"

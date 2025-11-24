@@ -7,11 +7,13 @@ REPO_ROOT="/workspaces/msc-viterbo"
 mkdir -p \
   "${HOME}/.config" \
   "${HOME}/.local" \
-  "${HOME}/.cache"
+  "${HOME}/.cache" \
+  "${HOME}/.lake"
 sudo chown -R $USER:$USER \
   "${HOME}/.config" \
   "${HOME}/.local" \
-  "${HOME}/.cache"
+  "${HOME}/.cache" \
+  "${HOME}/.lake"
 
 # Ensure the /workspaces/worktrees mount exists; fail fast if not
 WORKTREES_DIR="/workspaces/worktrees"

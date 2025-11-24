@@ -59,6 +59,11 @@ All development happens in a single VS Code devcontainer that owns the lone git 
 - **Toolchains baked on 2025-11-17.** Rust (rustup 1.91.1 + sccache, clippy, rustfmt, cargo-chef), Python 3.12.3 with uv 0.9.9 (ruff, pyright, pytest via `uv run`), Node.js 22.21.0 + npm 10.9.4, Lean 4.25.0 + Lake 5.0.0, GitHub CLI 2.45.0, git 2.51.1. Everything is authenticated under the project owner’s account.
 - **Standard commands.** `cargo`, `uv run`, `lake`, `npm`, `git`, `gh`, `jq`, `rg`, `fd`, `tree`, `ctags`, `bash -lc`. Use `gh issue ...` / `gh pr ...` for GitHub management. Run every command from inside your assigned worktree.
 - **Custom commands.** `scripts/devcontainer-post-create.sh` (lifecycle hook) and `packages/docs-site/scripts/docs-publish.sh` (docs deployment).
+- **Prep scripts (pick what you need).** `scripts/worktree-prepare.sh /path/to/worktree` by default runs general + python + docs + lean cache + rust. Use `--minimal` to skip package prep, or flags (`--python`, `--docs`, `--lean`, `--rust`) to tailor. Package-local scripts live in `packages/*/scripts/worktree-prepare.sh` for direct use.
+- **Caching defaults.**
+  - Lean: `packages/lean_viterbo/scripts/worktree-prepare.sh` links `.lake/packages` to a shared cache under `/workspaces/worktrees/shared/lean/packages` and runs `lake exe cache get` (no build by default). Run `lake build` only when doing Lean work. Home-level `.lake` is bind-mounted to persist caches across container rebuilds.
+  - Rust: Cargo now uses a shared target dir `../worktrees/shared/target` (set in `.cargo/config.toml`) so worktrees reuse builds. Keep it if you can; override with `CARGO_TARGET_DIR` if you must.
+  - Python/Node: standard tool caches live in `$HOME` and persist across worktrees; nothing special to do.
 - **Agent Control (`agentctl`).** Preinstalled in the devcontainer and already on `PATH`; never ask the project owner to install it. Verify with `agentctl --version`. AntiGravity agents can also use `agentctl` to spawn sub-agents. The `agentctl` binary handles:
   - `agentctl daemon`: starts the HTTP server and process supervisor. It reads `AGENTCTL_PORT` (default `3000`) plus `AGENTCTL_CODEX_BIN` for the Codex binary path.
   - `agentctl start --workdir <path> --prompt "..."`: starts a new turn. Returns the thread ID.
@@ -122,3 +127,10 @@ The following conventions apply to all packages, and so they are mentioned once 
 After reading this file, agents must run `bash -lc 'pwd && agentctl self && git status -sb'`. This confirms the worktree path, prints the identity (`project_owner` or agent UUID), and exposes any uncommitted changes that cannot be restored via `git reset ...`. It is often sensible to backup uncommitted changes before overwriting them, e.g. via `cp path/to/file path/to/file.bak.$(date -Iseconds)` to a gitignored (`*.bak.*`) location.
 
 After orienting wrt git, agents should identify which package(s) they will be working on, and read the respective package-level `packages/*/AGENTS.md` files next. The files will reference further readings of which some, or none, may be of interest depending on the agent's assigned issue(s).
+
+Minimal prep matrix (opt-in; run only what you need):
+- Docs/thesis only: `scripts/worktree-prepare.sh --docs /path/to/worktree` or run `packages/docs-site/scripts/worktree-prepare.sh` directly.
+- Python experiments: `scripts/worktree-prepare.sh --python ...`.
+- Lean work: `scripts/worktree-prepare.sh --lean ...` (shared `.lake/packages`, `lake exe cache get`, no build by default). Run `lake build` when you touch Lean code.
+- Rust work: `scripts/worktree-prepare.sh --rust ...` (uses shared Cargo target dir `/workspaces/worktrees/shared/target`).
+- Everything: default `scripts/worktree-prepare.sh` (or `--all`) runs general + python + docs + rust + lean-cache-only.

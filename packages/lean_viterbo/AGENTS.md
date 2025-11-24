@@ -24,3 +24,4 @@ You are in `packages/lean_viterbo/`, which contains Lean4 code for formalizing k
 
 - Use `lake build` to build the project.
 - Use `lake env lean` (or your editor integration) for interactive development.
+- For fastest startup, run `scripts/worktree-prepare.sh --lean` (default root prep already includes it). It links `.lake/packages` to `/workspaces/worktrees/shared/lean/packages`, pulls mathlib via `lake exe cache get`, and stops (no build). Run `lake build` only when you actually work on Lean code.

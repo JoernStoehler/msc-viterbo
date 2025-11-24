@@ -25,6 +25,7 @@ Expect additional crates (e.g. algorithms, experiments) to be added later.
 
 - Use `cargo build`, `cargo test`, and `cargo fmt` directly; do not introduce custom wrappers unless an issue explicitly asks for it.
 - When working on FFI, keep in mind that maturin will be used from the Python side to build and distribute Python bindings.
+- Cargo caches are shared across worktrees via `.cargo/config.toml` (target-dir `../worktrees/shared/target`). Run `scripts/worktree-prepare.sh` here to create/fetch deps into that shared target once.
 
 ## Expectations
 

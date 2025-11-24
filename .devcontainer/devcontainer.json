@@ -27,6 +27,7 @@
     "source=/srv/devhome/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
     "source=/srv/devhome/.bash_history_dir,target=/home/vscode/.bash_history_dir,type=bind,consistency=cached",
     "source=/srv/devhome/.agentctl,target=/home/vscode/.agentctl,type=bind,consistency=cached",
+    "source=/srv/devhome/.lake,target=/home/vscode/.lake,type=bind,consistency=cached",
     "source=/srv/devworktrees/msc-viterbo/worktrees,target=/workspaces/worktrees,type=bind,consistency=cached"
   ],
   "customizations": {
