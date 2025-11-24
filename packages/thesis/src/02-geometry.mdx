@@ -104,3 +104,13 @@ We repeat various known facts about symplectic geometry on polytopes, interprete
   - 
 - **Note:** Chadez-Hutchings 2021 shows that any closed characteristic with a linear sigment on a $1$-face is obtained as the limit of smoothings where the Conley-Zehnder index goes to infinity. Consequently, a minimum action closed characteristic cannot have a segment on a $1$-face.
 - 
+
+
+(TODO: I just thought a bunch and realized that CH2021 explicitly assume the case where no faces are lagrangian; in the smooth convex case there never is a problem since the normal $n$ is smooth, and thus $n, Jn$ are a symplectic subspace with a symplectic complement. And the tubular neighborhood stays tubular since the second derivatives are smooth and thus the second difference is locally bounded. I suppose it's worth thinking about whether the CZ index is undefined in the limit if we have lagrangians; we know that there's polytopes with (exclusively) lagrangian 2-faces and they are interesting to look at; they also cannot be turned into non-lagrangian 2-faces via symplectic transformations, we can only wiggle infinitesimally and exploit that while the orbits can be degenerate/highly sensitive to perturbations, the capacity shouldn't be; not sure if the CZ index of orbits is highly sensitive or if a limit exists.)
+(The way forward I think is this:
+- note that HK2019 applies also to lagrangian 2-faces, while CH2021 assumes the case without lagrangian 2-faces; make clear in lemmas whether they assume non-lagrangian or not.
+- explore how the different quantities behave for different infinitesimal perturbations of lagrangian 2-faces; easiest here is to slightly tilt the adjacent 3-faces, i.e. change their normals but not their offsets; this gives us $3$ DOFs for each normal, some of which may not change lagrangianity; we likely get 2 different combinatorics, depending on what direction the Reeb flow now goes through the non-lagrangian 2-face. if we get huge rotation, in a way that doesn't cancel out always, we know that the limit isn't well-behaved. I already expect that the orbits with fixed combinatorics i.e. the fixed-points are sensitive, i.e. huge changes, the capacity isn't sensitive (bc capacity is continuous), the combinatorics of the orbit may be sensitive as well i.e. it changes which combinatorics has the lowest action fixed-point.
+)
+
+I'm also pretty unsure about the rotation/CZ definition I gave. Easy to get wrong. Probably worth looking how it's usually introduced, and what other common definitions are equivalent (or equivalent for the generalization to polytopes at least) and worth mentioning.
+
