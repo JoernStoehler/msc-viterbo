@@ -70,7 +70,7 @@ function detectIdentity(): Identity {
 
     return {
         identity: 'unknown',
-        message: 'Running inside Codex shell but not managed by agentctl daemon. Either the daemon is not running, or this Codex process was not started via agentctl.'
+        message: 'Identity unknown. This Codex shell is not registered with agentctl (e.g., launched directly) or the daemon is not running. This is normal for manual codex sessions.'
     };
 }
 
@@ -166,6 +166,9 @@ yargs(hideBin(process.argv))
                 console.log(result.agent_uuid);
             } else {
                 console.log(result.identity);
+            }
+            if (result.identity === 'unknown' && result.message) {
+                console.error(result.message);
             }
         }
 

@@ -65,6 +65,14 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
   3. Use Pandoc (`gfm+yaml_metadata_block` → LaTeX) followed by `tectonic` or `latexmk`.
   Keep the full workflow scripted so re-running it shortly before submission is <1 day of work.
 
+## ArXiv sources (offline access)
+
+- Canonical immutable store (persistent across worktrees/containers): `/workspaces/worktrees/shared/arxiv-store/<id>/vN/` containing `source.tar.gz`, optional PDF, and `.sha256` files. Downloads are chmod a-w after fetch.
+- Per-worktree read-only extracts (gitignored): `packages/thesis/build/arxiv/<id>/vN/`. These are re-created from the store; safe to delete/regenerate.
+- Fetch script: `ARXIV_STORE=/workspaces/worktrees/shared/arxiv-store packages/thesis/scripts/arxiv_fetch.sh -p <id>vN`. Requires explicit arXiv version (`v1`, `v2`, ...). PDF is optional (`-p`).
+- Integrity: script writes and checks SHA256; extraction is read-only to avoid accidental edits.
+- Text extraction helper (best-effort): `uv run --with pypdf packages/thesis/scripts/pdf_to_text.py packages/thesis/build/arxiv/<id>/vN/<id>.pdf > notes.txt` for quick grep/labels.
+
 ## Tooling and commands
 
 - Until the concrete Pandoc/LaTeX tooling lands, focus on writing MDX that adheres to the conventions above and includes references to reproducible artifacts (Rust, Python, Lean).
