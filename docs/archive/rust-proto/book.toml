@@ -1,0 +1,7 @@
+[book]
+title = "Probing Viterbo's Conjecture (working title)"
+language = "en"
+src = "src"
+
+[output.html]
+mathjax-support = true
