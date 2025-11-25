@@ -53,6 +53,15 @@ ENV UV_INSTALL_DIR=/usr/local/bin
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv --version
 
+# VS Code CLI (headless, includes `tunnel`) for remote access.
+RUN CLI_TMP="$(mktemp -d)" \
+    && pushd "$CLI_TMP" >/dev/null \
+    && curl -fsSL https://update.code.visualstudio.com/latest/cli-linux-x64/stable -o vscode-cli.tar.gz \
+    && tar -xzf vscode-cli.tar.gz \
+    && install -m 0755 code /usr/local/bin/code-tunnel \
+    && popd >/dev/null \
+    && rm -rf "$CLI_TMP"
+
 # Switch to dev user for language toolchains.
 # Toolchains live in the dev user's HOME so that cargo/elan behave normally.
 USER vscode

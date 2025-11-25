@@ -31,4 +31,30 @@ if command -v npm >/dev/null 2>&1; then
   npm install -g "${REPO_ROOT}/packages/agentctl"
 fi
 
+# Ensure VS Code tunnel CLI is present inside the container
+install_code_tunnel() {
+  if command -v code-tunnel >/dev/null 2>&1; then
+    echo "code-tunnel already installed ($(code-tunnel --version 2>/dev/null || true))"
+    return 0
+  fi
+
+  local url="https://update.code.visualstudio.com/latest/cli-linux-x64/stable"
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+
+  echo "Installing VS Code CLI (tunnel) from ${url}"
+  curl -fsSL "${url}" -o "${tmpdir}/vscode-cli.tar.gz"
+  tar -xzf "${tmpdir}/vscode-cli.tar.gz" -C "${tmpdir}"
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo install -m 0755 "${tmpdir}/code" /usr/local/bin/code-tunnel
+  else
+    install -m 0755 "${tmpdir}/code" /usr/local/bin/code-tunnel
+  fi
+
+  rm -rf "${tmpdir}"
+}
+
+install_code_tunnel
+
 echo "Devcontainer post-create setup complete."
