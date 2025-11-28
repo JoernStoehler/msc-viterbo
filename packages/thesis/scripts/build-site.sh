@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Placeholder thesis build: fails fast until a real static export is implemented.
-# Expected output directory: packages/thesis/build/site/
-# TODO: replace with actual MDX/Markdown → static HTML pipeline.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-echo "ERROR: thesis build-site.sh not yet implemented. Please add a static export to packages/thesis/build/site/." >&2
-exit 1
+cd "${PROJECT_ROOT}"
+
+# Build static HTML via MkDocs + Material. Dependencies are pulled on-the-fly via uv.
+# Output: build/site/
+
+echo "[thesis] mkdocs build --strict"
+uv run \
+  --with mkdocs \
+  --with mkdocs-material \
+  --with mkdocs-material-extensions \
+  --with pymdown-extensions \
+  mkdocs build --strict

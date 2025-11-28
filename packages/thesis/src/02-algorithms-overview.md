@@ -5,7 +5,7 @@ summary: Known and new algorithmic approaches to compute c_EHZ(K) for 4D convex 
 ---
 
 # Algorithms for EHZ capacity of convex polytopes
-{/* Style: literal, explicit, rigorous; mark assistant additions with <proposed>. */}
+<!-- Style: literal, explicit, rigorous; mark assistant additions with <proposed>. -->
 
 There are a few existing algorithms. They all require as input a compact convex polytope with origin in its interior. They compute as output the EHZ capacity c_EHZ(K), and all except Haim-Kislev 2019 also compute a minimum action closed characteristic.
 

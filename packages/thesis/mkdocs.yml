@@ -1,0 +1,60 @@
+site_name: Probing Viterbo's Conjecture – Thesis
+site_url: 
+repo_url: 
+use_directory_urls: true
+
+docs_dir: src
+site_dir: build/site
+
+nav:
+  - Research Question: 01-research-question.md
+  - Algorithms Overview: 02-algorithms-overview.md
+  - Capacity Algorithm: 01-algorithm.md
+  - Geometry Foundations: 02-geometry.md
+  - Data Science Experiments: 03-data-science-experiments.md
+  - Thesis and AI Agents: 04-thesis-and-ai-agents.md
+  - Literature Overview: 05-literature-overview.md
+  - Literature Digests:
+      - Haim-Kislev 2019: literature/haim-kislev-2019.md
+      - Haim-Kislev & Ostrover 2024: literature/haim-kislev-ostrover-2024-counterexample.md
+      - Rudolf 2022 Minkowski Billiard: literature/rudolf-2022-minkowski-billiard.md
+  - Internal (drafts):
+      - Math Introduction (draft): internal/math-introduction.md
+      - TODO scratchpad: internal/todo.md
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: blue
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - footnotes
+  - def_list
+  - meta
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
+  - https://cdn.plot.ly/plotly-2.33.0.min.js
+  - assets/js/plotly-hydrate.js
+extra_css:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
+  - assets/css/thesis.css
+
+extra:
+  plot_json_attr: data-plot-json

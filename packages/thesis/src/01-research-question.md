@@ -5,7 +5,7 @@ summary: Statement of the thesis problem, scope, and sub-questions for probing V
 ---
 
 # Research Question
-{/* Style: literal, explicit, rigorous; keep terminology consistent; mark assistant additions with <proposed>. */}
+<!-- Style: literal, explicit, rigorous; keep terminology consistent; mark assistant additions with <proposed>. -->
 
 The Viterbo Conjecture was long believed to be true by many, until Haim-Kislev 2024 gave a counterexample in $4$ dimensions. That's the lowest dimension where Viterbo's conjecture is not trivially true, and further counterexamples in higher dimensions can be constructed from the $4$-dimensional one.
 

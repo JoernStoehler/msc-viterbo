@@ -5,7 +5,7 @@ summary: Pipeline templates and idea backlog for probing Viterbo's conjecture wi
 ---
 
 # Data Science Experiments
-{/* Style: literal, explicit, rigorous; mark assistant additions with <proposed>. */}
+<!-- Style: literal, explicit, rigorous; mark assistant additions with <proposed>. -->
 
 We collect many ideas for experiments that use data science methods to probe Viterbo's conjecture.
 

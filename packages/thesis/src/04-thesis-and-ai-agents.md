@@ -5,7 +5,7 @@ summary: How the project uses AI agents alongside the written thesis and codebas
 ---
 
 # Thesis and AI Agents
-{/* Style: literal, explicit, rigorous; mark assistant additions with <proposed>. */}
+<!-- Style: literal, explicit, rigorous; mark assistant additions with <proposed>. -->
 
 ## Thesis
 

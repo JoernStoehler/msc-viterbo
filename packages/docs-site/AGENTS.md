@@ -11,14 +11,14 @@ You are in `packages/docs-site/`, a thin static host for all docs outputs. Packa
 ## Layout (initial)
 
 - `public/` – Served as-is by GitHub Pages. Contains `index.html` (landing) plus copied outputs under `public/thesis/` and `public/api/*`.
-- `scripts/docs-publish.sh` – Single entry point: wipes `public/thesis` and `public/api`, copies built artifacts from each package, leaves the landing page untouched. Does not run builds.
-- `package.json` – Placeholder with a `noop` script; no dependencies.
+- `scripts/docs-publish.sh` – Single entry point: builds all package docs, stages them into `public/`, and publishes to `gh-pages` (can skip via env flags).
+- `scripts/stage-hub.sh` / `scripts/publish-ghpages.sh` – internal helpers used by `docs-publish.sh`.
 
 ## Build Workflow
 
 1. One-shot pipeline: `packages/docs-site/scripts/docs-publish.sh` builds all package docs, stages them into `public/`, and publishes to `gh-pages` via a temporary worktree. It fails fast on errors. Optional SKIP flags: `SKIP_THESIS=1`, `SKIP_RUST=1`, `SKIP_PYTHON=1`, `SKIP_LEAN=1`, `SKIP_PUBLISH=1`.
 2. Internals of the one-shot pipeline (for troubleshooting):
-   - Thesis: `packages/thesis/scripts/build-site.sh` → `packages/thesis/build/site/` (currently a TODO stub; implement static export there).
+   - Thesis: `packages/thesis/scripts/build-site.sh` (MkDocs) → `packages/thesis/build/site/`.
    - Rust: `packages/rust_viterbo/scripts/build-docs.sh` (cargo doc) → `worktrees/shared/target/doc/`.
    - Python: `packages/python_viterbo/scripts/build-docs.sh` (pdoc) → `packages/python_viterbo/build/docs/`.
    - Lean: `packages/lean_viterbo/scripts/build-docs.sh` (lake exe doc) → `packages/lean_viterbo/build/doc/`.
@@ -27,7 +27,7 @@ You are in `packages/docs-site/`, a thin static host for all docs outputs. Packa
 
 ## Scripts
 
-`scripts/docs-publish.sh` is designed to be called from repo root CI or manually. It should be the only place that orchestrates documentation builds. Keep it POSIX-compatible and annotated, since other agents will extend it with concrete commands (`cargo doc`, `pdoc`, `lake`, `npm run build`, etc.).
+`scripts/docs-publish.sh` is designed to be called from repo root CI or manually. It orchestrates all builds and publish. Keep it POSIX-compatible and annotated if you extend it.
 
 ## Conventions
 
