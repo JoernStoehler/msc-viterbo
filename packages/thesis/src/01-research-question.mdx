@@ -1,5 +1,11 @@
+---
+title: Research Question
+slug: research-question
+summary: Statement of the thesis problem, scope, and sub-questions for probing Viterbo's conjecture on 4D convex polytopes.
+---
+
 # Research Question
-<!-- Style: literal, explicit, rigorous; keep terminology consistent; mark assistant additions with <proposed>. -->
+{/* Style: literal, explicit, rigorous; keep terminology consistent; mark assistant additions with <proposed>. */}
 
 The Viterbo Conjecture was long believed to be true by many, until Haim-Kislev 2024 gave a counterexample in $4$ dimensions. That's the lowest dimension where Viterbo's conjecture is not trivially true, and further counterexamples in higher dimensions can be constructed from the $4$-dimensional one.
 
@@ -46,18 +52,20 @@ Besides computational arguments that counterexamples to our conjectures must be 
 
 ## Viterbo's Conjecture
 
-**Conjecture (false): Viterbo's Conjecture**: For a convex body $K \subset \mathbb{R}^{2n}$, the minimum action $A_{\min}(K)$ and the volume $\mathrm{vol}(K)$ satisfy
-$$\mathrm{sys}(K) := \frac{\mathcal{A}_{\min}(K)^n}{n! \mathrm{vol}(K)} \leq 1.$$
-Where
-$$\mathcal{A}_{\min}(K) = c_{\mathrm{EHZ}}(K) = \inf \{ |\mathcal{A}(\gamma)| : \gamma \text{ closed characteristic on } \partial K \}$$
-$$\mathcal{A}(\gamma) = \int_{\gamma} \lambda_0$$
-is the action of a closed characteristic $\gamma$ on the boundary of $K$, with $\lambda_0$ the standard Liouville form on $\mathbb{R}^{2n}$.
-Instead of thinking through what closed characteristics are in the polytope case, we can also define equivalently
-$$\mathcal{A}: W^{1,2}(S^1, \mathbb{R}^{2n}) \to \mathbb{R}, \quad \mathcal{A}(\gamma) = \int_0^{2\pi} \lambda_0(\dot{\gamma}(t)) dt$$
-$$\mathcal{A}_{\min}(K) = \inf \{ |\mathcal{A}(\gamma)| : \gamma \text{ critical, non-stationary point of } \mathcal{A} \}.$$
+**Conjecture (false): Viterbo's Conjecture**: For a convex body K in R^{2n},
+
+```text
+Define sys(K) := A_min(K)^n / (n! * vol(K)). The conjecture claims sys(K) <= 1.
+A_min(K) = c_EHZ(K) = inf{ |A(gamma)| : gamma closed characteristic on dK }.
+A(gamma) = integral over gamma of lambda_0, the action of a closed characteristic on the boundary of K; lambda_0 is the standard Liouville form on R^{2n}.
+Equivalently, view A: W^{1,2}(S^1, R^{2n}) -> R, A(gamma) = integral_0^{2pi} lambda_0(gamma_dot(t)) dt, and minimize over non-stationary critical points.
+```
 This uses that the critical points are precisely the closed characteristics, plus the stationary curves with action $0$ which we exclude.
 
-**Theorem: Standard Counterexample (Haim-Kislev 2024)**: There exists a $4$-dimensional convex polytope $K \subset \mathbb{R}^4$ with $\mathrm{sys}(K) > 1$.
-The polytope is given by: $$ K = P_5 \times_L R_{90^\circ} P_5 $$
-where $\times_L$ is the Lagrangian product, $P_5$ is the regular pentagon centered at the origin with circumradius $1$, and $R_{90^\circ}$ is the CCW rotation by $90$ degrees in $\mathbb{R}^2$.
-The counterexample has $\mathrm{sys}(K) = \dfrac{\bigl(2 \cos(\tfrac{\pi}{10})(1+\cos(\tfrac{\pi}{5}))\bigr)^2}{2\bigl(\tfrac{5}{2}\sin(\tfrac{2\pi}{5})\bigr)^2} = 1.04721\ldots > 1$.
+**Theorem: Standard Counterexample (Haim-Kislev 2024)**: There exists a 4-dimensional convex polytope K with sys(K) > 1.
+
+```text
+K = P_5 ×_L R_{90deg} P_5
+×_L: Lagrangian product; P_5: regular pentagon (circumradius 1); R_{90deg}: CCW rotation by 90 degrees in R^2.
+sys(K) = ((2 cos(pi/10) (1 + cos(pi/5)))^2) / (2 * ( (5/2) sin(2pi/5) )^2 ) ≈ 1.04721 > 1.
+```

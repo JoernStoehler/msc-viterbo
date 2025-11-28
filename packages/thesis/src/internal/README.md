@@ -1,9 +1,9 @@
 # Drafts (2025-11-25)
 
-Purpose: parking lot for WIP writeups before promoting polished versions into `docs/`.
+Purpose: parking lot for WIP writeups before promoting polished versions into `packages/thesis/src/`.
 
 Current status
-- Drafts from 2025-11-25 were promoted to `docs/01-*`, `docs/02-*`, `docs/03-*`, and `docs/04-*`.
+- Drafts from 2025-11-25 were promoted to `packages/thesis/src/01-*`, `packages/thesis/src/02-*`, `packages/thesis/src/03-*`, and `packages/thesis/src/04-*`.
 - Use this folder for new WIP only; mark assistant additions with `<proposed>` and unresolved items with `TODO`.
 
 Notes

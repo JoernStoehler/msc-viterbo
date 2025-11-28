@@ -11,6 +11,19 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 
 - `src/` – Markdown sources, e.g. chapters and sections.
 - `build/` – generated artifacts (PDF, LaTeX), gitignored.
+- `src/internal/` – drafts or internal-only MDX, marked with `internal: true` in front matter.
+- `src/literature/` – per-paper digests (annotated, with TeX snippets from sources).
+- `archive/` – legacy docs from previous repos (`msc-proto`, `rust-proto`, `current`), read-only.
+- Package-specific guidance lives in `docs/` (see below).
+
+## Required reading & layout pointers
+
+- MDX is the canonical source. Every thesis page carries front matter (`title`, `slug`, `summary`, optional `internal: true`).
+- Drafts/internal material belongs in `src/internal/`; public chapters in `src/`; literature digests in `src/literature/`.
+- Thesis writing/conventions: `packages/thesis/docs/writing.md`, `packages/thesis/docs/components.md`, `packages/thesis/docs/workflows.md`.
+- Cross-package context rules: `docs/context-engineering.md` (root). Follow its placement/maintenance rules when adding new context.
+- Avoid PDFs for math verification; prefer TeX from the arXiv store (`packages/thesis/scripts/arxiv_fetch.sh` places sources under `build/arxiv/`).
+- Math input: MDX is configured with `remark-math` + `rehype-katex`, so write math normally with `$...$` and `$$...$$` (prefer TeX commands over Unicode symbols).
 
 ## Architecture context
 
@@ -75,5 +88,7 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 
 ## Tooling and commands
 
+- Build docs site: `cd packages/docs-site && npm run build` (telemetry disabled in scripts). Drafts under `src/internal/` are excluded.
+- Lint MDX fast: `cd packages/docs-site && npm run lint:mdx` (remark with gfm+math+mdx). Run this before commits or when chasing parse errors.
 - Until the concrete Pandoc/LaTeX tooling lands, focus on writing MDX that adheres to the conventions above and includes references to reproducible artifacts (Rust, Python, Lean).
 - Whenever you touch the export or docs-site integration, update this file so future agents inherit the workflow verbatim.

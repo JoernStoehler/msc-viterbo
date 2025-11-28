@@ -16,6 +16,7 @@ export interface ThesisFrontmatter {
   slug?: string;
   summary?: string;
   order?: number;
+  internal?: boolean;
   figures?: FigureMeta[];
 }
 
@@ -31,9 +32,10 @@ export interface ThesisEntry {
 
 type ThesisModule = MarkdownInstance<ThesisFrontmatter>;
 
-const thesisModules = import.meta.glob<ThesisModule>('../../../thesis/src/**/*.mdx', {
-  eager: true,
-});
+const thesisModules = {
+  ...import.meta.glob<ThesisModule>('../../../thesis/src/*.mdx', { eager: true }),
+  ...import.meta.glob<ThesisModule>('../../../thesis/src/literature/*.mdx', { eager: true }),
+};
 
 const thesisEntries: ThesisEntry[] = Object.entries(thesisModules).map(([filePath, module]) => {
   const frontmatter = module.frontmatter ?? ({} as ThesisFrontmatter);
@@ -47,6 +49,9 @@ const thesisEntries: ThesisEntry[] = Object.entries(thesisModules).map(([filePat
     Content: module.default,
     file: filePath,
   };
+}).filter((entry) => {
+  const fm = thesisModules[entry.file]?.frontmatter as ThesisFrontmatter | undefined;
+  return !(fm && fm.internal);
 });
 
 function deriveSlug(filePath: string): string {

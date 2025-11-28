@@ -7,7 +7,6 @@ figures:
 ---
 
 # Probing Viterbo's Conjecture – Capacity Algorithm (Draft)
-
 This chapter details our novel algorithm to compute symplectic capacities in
 four dimensions. The algorithm is based on algorithms and theorems from 
 - [Chaidez, Hutchings 2021](https://arxiv.org/abs/2008.10111)
@@ -29,29 +28,25 @@ The Lean4 implementation uses reals, while the Rust implementation uses `f64` i.
 $\mathbb{R}^4$: our ambient space.  
 $\omega = \sum_{i=1}^2 dq_i \wedge dp_i$: the standard symplectic form.  
 $\alpha = \frac{1}{2} \sum_{i=1}^2 (p_i dq_i - q_i dp_i)$: the standard Liouville form.  
-$J = \begin{pmatrix} 0 & -I \\ I & 0 \end{pmatrix}$: the standard complex structure.  
-$K \subset \mathbb{R}^4$: a non-degenerate convex star-shaped polytope.  
+$J = [[0, -I], [I, 0]]$: the standard complex structure.
+$K \subset R^4$: a non-degenerate convex star-shaped polytope.
 
-$\partial K$: the boundary of $K$.  
-$F_i$: a 3-face of $K$.  
-$F$ a $3$-face, $2$-face, $1$-face, or $0$-face of $K$, usually with $F = \bigcap_{i \in I} F_i$ for some index set $I$.  
-$n_i$: the outward normal vector of the 3-face $F_i$.  
-$N_F = \mathrm{conv}(\{0, n_i : F \subset F_i\})$: the normal cone of the face $F$.  
-$g_K(x) = \inf \{\lambda \geq 0 : x \in \lambda K\}$: the gauge function of $K$.  
-$H(x) = g_K(x)^2$: the Hamiltonian function associated to $K$. It is convex, but not everywhere smooth.  
-$\partial K = \{x \in \mathbb{R}^4 : H(x) = 1\}$: the energy surface $H=1$.  
-$K = \{x \in \mathbb{R}^4 : H(x) \leq 1\}$: the sublevel set $H \leq 1$.
+
+- $\partial K$: the boundary of $K$.
+- $F_i$: a 3-face of $K$.
+- $F$: any face of $K$, usually $F = \bigcap_{i \in I} F_i$ for some finite index set $I$.
+- $n_i$: the outward normal vector of the 3-face $F_i$.
+- $N_F = \operatorname{conv}\bigl(0, n_i \mid F \subset F_i\bigr)$: the normal cone of the face $F$.
+- $g_K(x) = \inf\{ \lambda \ge 0 \mid x \in \lambda K \}$: the gauge function of $K$.
+- $H(x) = g_K(x)^2$: the Hamiltonian function associated to $K$ (convex, not everywhere smooth).
+- $\partial K = \{ x \in \mathbb{R}^4 : H(x) = 1 \}$: the energy surface $H=1$.
+- $K = \{ x \in \mathbb{R}^4 : H(x) \le 1 \}$: the sublevel set $H \le 1$.
 
 $h_i = \langle x, n_i \rangle$ for $x \in F_i$: the offset of the 3-face $F_i$.
 
-$\gamma \in W^{1,2}(S^1, \partial K)$: a periodic orbit on the energy surface $\partial K$. We normalize to period length $1$, to better discuss convergence of sequences of orbits.
+$\gamma \in W^{1,2}(S^1, \partial K)$: a periodic orbit on the energy surface $\partial K$. We normalize to period length $1$ to discuss convergence of sequences of orbits.
 
-$A(\gamma) = \int_\gamma \alpha$: the action of the periodic orbit $\gamma$. Note that this is well-defined for $W^{1,2}$ curves.
-If $\gamma$ encloses the disk $D \subset \mathbb{R}^4$, then by Stokes' theorem $A(\gamma) = \int_D \omega$.
-
-Note: usually one defines the action with $A(\gamma) = \int_0^1 \alpha(\dot{\gamma}(t)) + H(\gamma(t)) dt$, but since we are on the energy surface $H=1$, we can drop the constant $+1$ term.
-
-The Hamiltonian dynamics are not just pointwise defined, since $\gamma$ may flow along lower dimensional $\leq 2$-faces where $H$ is not differentiable. Instead, we introduce the differential inclusion $\dot{\gamma}(t) \in J \partial H(\gamma(t))$, where $\partial H(x)$ is the convex subdifferential of $H$ at $x$.
+$A(\gamma) = \int_\gamma \alpha$: action of the periodic orbit $\gamma$, well-defined for $W^{1,2}$ curves. If $\gamma$ encloses a disk $D \subset \mathbb{R}^4$, then by Stokes $A(\gamma) = \int_D \omega$. Usually one defines $A(\gamma) = \int_0^1 \alpha(\dot\gamma(t)) + H(\gamma(t))\,dt$, but on the energy surface $H=1$ we drop the constant $+1$ term. When $\gamma$ runs along lower-dimensional faces, use the differential inclusion $\dot\gamma(t) \in J\,\partial H(\gamma(t))$, with $\partial H(x)$ the convex subdifferential of $H$.
 
 We can for our choice of $H$ explicitly compute the subdifferential at $x \in \partial K$. We need the $3$-faces $I = \{ i : x \in F_i \}$ containing $x$. Then we have
 $\partial H(x) = 2 \mathrm{conv}(\{ n_i / h_i : i \in I \})$.
@@ -118,6 +113,7 @@ Our combinatorial enumeration should now follow these principles:
 - we avoid duplicated effort, i.e. if we exhaust a $2$-face as starting node, we don't even visit it in later branches that have a different starting $2$-face.
 
 Lastly, we need to discuss Lagrangian $2$-faces again, since they do appear in (non-generic) polytopes and their minimum action orbits, especially the standard counterexample to Viterbo's conjecture in four dimensions (Haim-Kislev 2024) that we are interested in.
+```
 
 In the Lagrangian $2$-face case, the Reeb vectors of both adjacent $3$-faces are tangent to the $2$-face. So no direct transition from the interior of a $3$-face to the closed $2$-face can happen. Instead, the linear segment in the $2$-face points in a direction in the Reeb cone $J N_F$, and starts and ends at some points on the boundary of the $2$-face, i.e. the interior of a $1$-face or $0$-face.
 In the case of a $1$-face interior as entrypoint, the only way to enter the $1$-face is from the interior of the third $3$-face adjacent to it, or the interior of one of the two other $2$-faces adjacent to it. Similarly for the $0$-face case. Not all these cases may be locally realizable, depending on the Reeb vector directions.
@@ -156,4 +152,3 @@ TODO: Hmm actually it's not quite as simple. On a lagrangian $2$-face the orbit 
 My suspicion is that the new parameter we get is basically equivalent to an infinitesimal rotation/perturbation that makes the $2$-face non-lagrangian. In that case we get a highly numerically unstable map between $2$-dim convex areas instead of degenerate $1$-dim lines.
 And while the perturbation may drastically shift what action orbit is minimal, the action is continuous. Interestengly this suggests that if we have multiple degrees of freedom added like that, we should be able to collapse them; we loose our ability to track the exact orbits for the non-generic case, and our ability to track which orbits are minimal under what perturbations, but we do still get one orbit with the shared minimal action value.
 So my guess is that we can pick independently arbitrary infinitesimal perturbations for each lagrangian $2$-face visited, resulting in numerically unstable but well-defined $1:1$ flow maps, and then proceed as before. We symmetry break the minimal orbits, but not the minimal action value.
-

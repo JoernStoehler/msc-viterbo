@@ -1,6 +1,5 @@
-node_modules/
-.astro/
-dist/
-coverage/
-.DS_Store
+# Generated during docs aggregation; do not commit.
 src/content/thesis/
+public/api/
+# Astro build output (also ignored at root, kept here for clarity)
+dist/
