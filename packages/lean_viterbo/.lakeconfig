@@ -1,0 +1,2 @@
+# Redirect Lake build outputs to the shared cache (persist across worktrees/containers).
+buildDir = "/workspaces/worktrees/shared/lean/build"

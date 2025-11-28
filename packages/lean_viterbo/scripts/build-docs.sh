@@ -13,11 +13,11 @@ if [ ! -e "${DOCBUILD_ROOT}/lean-toolchain" ]; then
   ln -sf ../lean-toolchain "${DOCBUILD_ROOT}/lean-toolchain"
 fi
 
-echo "[lean] lake exe cache get (mathlib oleans)"
-lake exe cache get
+echo "[lean] lake -Kdoc=on exe cache get (mathlib oleans)"
+lake -Kdoc=on exe cache get
 
-echo "[lean] lake -Kdoc=on build lean_viterbo:docs"
-lake -Kdoc=on build lean_viterbo:docs
+echo "[lean] lake -Kdoc=on build docs"
+lake -Kdoc=on build docs
 
 rm -rf "${PROJECT_ROOT}/build/doc"
 if [ -d "${DOCBUILD_ROOT}/.lake/build/doc" ]; then
