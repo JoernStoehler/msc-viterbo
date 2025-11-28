@@ -1,6 +1,6 @@
 # AGENTS – Docs Site Package
 
-You are in `packages/docs-site/`, which is now a thin static host for all docs outputs. Packages build their own HTML; this package just copies them into `public/` for GitHub Pages.
+You are in `packages/docs-site/`, a thin static host for all docs outputs. Packages build their own HTML; this package just copies them into `public/` for GitHub Pages.
 
 ## Responsibilities
 
@@ -12,12 +12,12 @@ You are in `packages/docs-site/`, which is now a thin static host for all docs o
 
 - `public/` – Served as-is by GitHub Pages. Contains `index.html` (landing) plus copied outputs under `public/thesis/` and `public/api/*`.
 - `scripts/docs-publish.sh` – Single entry point: wipes `public/thesis` and `public/api`, copies built artifacts from each package, leaves the landing page untouched. Does not run builds.
-- `package.json` – Only a placeholder; no build tooling lives here now.
+- `package.json` – Placeholder with a `noop` script; no dependencies.
 
 ## Build Workflow
 
 1. Build docs inside each package:
-   - Thesis static site → `packages/thesis/build/site/` (choose your builder: Astro static/Pandoc/etc.).
+   - Thesis static site → `packages/thesis/build/site/` (Astro static / Pandoc / other static generator).
    - Rust API → `worktrees/shared/target/doc/` via `cargo doc`.
    - Python API → `packages/python_viterbo/build/docs/` via `pdoc` or Sphinx.
    - Lean docs → `packages/lean_viterbo/build/doc/` via `lake exe doc`.
