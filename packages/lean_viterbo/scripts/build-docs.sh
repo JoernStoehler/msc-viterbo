@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build Lean docs via lake.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# Lean docs build placeholder: fails fast until doc generation is configured.
+# Intentionally exits non-zero so the pipeline reminds us to wire doc-gen.
 
-cd "${PROJECT_ROOT}"
-echo "[lean] lake exe doc"
-lake exe doc
+echo "ERROR: Lean doc generation not configured. Add doc-gen (doc-gen4 / lake doc) and update this script." >&2
+exit 1
