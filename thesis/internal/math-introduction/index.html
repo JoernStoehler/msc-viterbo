@@ -1,0 +1,1177 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../../literature/rudolf-2022-minkowski-billiard/">
+      
+      
+        <link rel="next" href="../todo/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Symplectic Geometry on Polytopes (Introduction Draft) - Probing Viterbo's Conjecture – Thesis</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../assets/css/thesis.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#symplectic-geometry-on-polytopes-an-introduction" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-header__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Probing Viterbo's Conjecture – Thesis
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Symplectic Geometry on Polytopes (Introduction Draft)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-nav__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Probing Viterbo's Conjecture – Thesis
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-research-question/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Question
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-algorithms-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity Algorithm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Foundations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-data-science-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Science Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-thesis-and-ai-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thesis and AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-literature-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Digests
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Literature Digests
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../literature/haim-kislev-2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Haim-Kislev 2019
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../literature/haim-kislev-ostrover-2024-counterexample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Haim-Kislev & Ostrover 2024
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../literature/rudolf-2022-minkowski-billiard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rudolf 2022 Minkowski Billiard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal (drafts)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal (drafts)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Math Introduction (draft)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Math Introduction (draft)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standard-symplectic-setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard Symplectic Setting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#facets-ridges-edges-vertices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facets, Ridges, Edges, Vertices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combinatorical-hamiltonian-and-reeb-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combinatorical Hamiltonian and Reeb Dynamics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Action
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clarkes-dual-action-principle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clarke's Dual Action Principle
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TODO scratchpad
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standard-symplectic-setting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard Symplectic Setting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#facets-ridges-edges-vertices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facets, Ridges, Edges, Vertices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combinatorical-hamiltonian-and-reeb-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combinatorical Hamiltonian and Reeb Dynamics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimal-action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Action
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clarkes-dual-action-principle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clarke's Dual Action Principle
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="symplectic-geometry-on-polytopes-an-introduction">Symplectic Geometry on Polytopes: An Introduction<a class="headerlink" href="#symplectic-geometry-on-polytopes-an-introduction" title="Permanent link">&para;</a></h1>
+<!-- writing style: book / reference; quickly get a MSc student up to speed for the rest of the thesis; literal, correct, explicit, fast to read top to bottom, skimmable via sections and paragraphs and bullet lists, focus on definitions and theorems, some focus on motivation mostly wrt why we care about describing some facts more than others, cite where we take notations from -->
+
+<p>This document serves as an introduction to symplectic geometry on polytopes. We assume the reader is familiar with symplectic geometry and contact topology in the smooth setting, with functional analysis and partial differential equations, with the basics of polytope geometry, with the basics of combinatorics, and with the basics of optimization theory, roughly on the level of a master student in mathematics who heard master's lectures on these topics.</p>
+<p>The document focuses on theorems, definitions, notation, and aims that way to establish a productively useful framework to do symplectic geometry in the limiting case of polytopes. We only sketch a general motivation for why we picked definitions as we did, and why they are useful, but don't concretely argue for each definition on its own merits.</p>
+<h2 id="motivation">Motivation<a class="headerlink" href="#motivation" title="Permanent link">&para;</a></h2>
+<p>Given some smooth Hamiltonian <span class="arithmatex">\(H \in C^\infty(\mathbb{R}^{2n}, \mathbb{R})\)</span> with convex compact sublevel set <span class="arithmatex">\(K = \{H \leq 1\}\)</span>, and assuming that <span class="arithmatex">\(1\)</span> is a regular value of <span class="arithmatex">\(H\)</span>, we get that <span class="arithmatex">\(\partial K\)</span> is an immersed smooth hypersurface in <span class="arithmatex">\(\mathbb{R}^{2n}\)</span>. Also assume that <span class="arithmatex">\(0 \in \mathrm{int} K\)</span>. From the standard symplectic form <span class="arithmatex">\(\omega_0\)</span> and standard Liouville form <span class="arithmatex">\(\lambda_0\)</span> on <span class="arithmatex">\(\mathbb{R}^{2n}\)</span>, we get that the restriction <span class="arithmatex">\(\lambda_0|_{\partial K}\)</span> is a contact form on <span class="arithmatex">\(\partial K\)</span>.</p>
+<p>In this smooth setting we can study the Reeb dynamics of the contact manifold <span class="arithmatex">\((\partial K, \lambda_0|_{\partial K})\)</span>, and the symplectic 
+capacities of <span class="arithmatex">\(K\)</span>. In particular, we can state the Viterbo conjecture, which turned out to be false, but is still of interest to us:</p>
+<p><strong>Viterbo Conjecture (false).</strong> Define the action, and minimum action of closed Reeb orbits on <span class="arithmatex">\(\partial K\)</span> as
+<span class="arithmatex">\(<span class="arithmatex">\(A(\gamma) = \int_\gamma \lambda_0\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(A_{\min}(K) = \min \{A(\gamma): \gamma \text{ is a closed characteristic on } \partial K\}.\)</span>\)</span>
+Then the conjecture states that
+<span class="arithmatex">\(<span class="arithmatex">\(\frac{A_{\min}(K)^n}{n! \mathrm{vol}(K)} \leq 1.\)</span>\)</span></p>
+<p>Note that the Hamiltonian <span class="arithmatex">\(H\)</span> isn't relevant here, only the convex body <span class="arithmatex">\(K\)</span>.
+We are interested in algorithmically computing <span class="arithmatex">\(A_{\min}(K)\)</span>. The simplest scenario, from a computational perspective, are piecewise linear closed characteristics. They occur on flat parts of <span class="arithmatex">\(\partial K\)</span>. Thus, it is natural to consider how to define and study the Reeb dynamics on convex polytopes <span class="arithmatex">\(K \subset \mathbb{R}^{2n}\)</span>, instead of on smooth convex bodies.</p>
+<p>The general motivation that we use here is to consider polytopes as limits of smooth convex bodies, and ask what the smooth data converges to in the limit, and when the limit exists and if it is unique. 
+In this document here we skip the exact arguments for why the definitions we pick are the right ones, i.e. why they describe relevant/interesting/unique limits of smooth data. Instead we simply state them, and refer to a later to-be-written appendix. We did not write down the arguments from practical experience, i.e. that some definitions work better than others to formalize interesting results.</p>
+<p>None of the definitions are per-se novel, there's existing literature on polytopes in symplectic geometry, and we borrow notation mainly from \cite{Chaidez-Hutchings 2021}, \cite{Haim-Kislev 2017}, \cite{Haim-Kislev 2024}.</p>
+<p>We only consider the case <span class="arithmatex">\(2n=4\)</span>, which is the lowest non-trivial dimension. Lower dimensions lend themselves in our experience better to computations. There may be additional phenomena in higher dimensions, but they are out of scope for the whole thesis.</p>
+<h2 id="standard-symplectic-setting">Standard Symplectic Setting<a class="headerlink" href="#standard-symplectic-setting" title="Permanent link">&para;</a></h2>
+<p>We use the standard coordinates, symplectic form, Liouville form, complex structure on <span class="arithmatex">\(\mathbb{R}^4\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(z = (q, p) = (q_1, q_2, p_1, p_2) \in \mathbb{R}^4\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(\omega_0 = dq_1 \wedge dp_1 + dq_2 \wedge dp_2\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(\lambda_0 = \frac{1}{2} \sum_{i=1}^2 (q_i dp_i - p_i dq_i)\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(J = \begin{pmatrix} 0 &amp; -I \\ I &amp; 0 \end{pmatrix}\)</span>\)</span></p>
+<p>We consider compact, convex polytopes <span class="arithmatex">\(K \subset \mathbb{R}^4\)</span> with <span class="arithmatex">\(0 \in \mathrm{int} K\)</span>. We denote the boundary by <span class="arithmatex">\(\partial K\)</span>.</p>
+<p>We will later need the gauge function <span class="arithmatex">\(g_K\)</span> and the support function <span class="arithmatex">\(h_K\)</span> of <span class="arithmatex">\(K\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(g_K(z) = \inf \{r &gt; 0: z \in r K\}\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(h_K(z) = \sup_{w \in K} \langle z, w \rangle\)</span>\)</span></p>
+<p>We can use the gauge function to define a Hamiltonian whose <span class="arithmatex">\(1\)</span>-sublevel set is <span class="arithmatex">\(K\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(H(z) = g_K(z)^2.\)</span>\)</span>
+Note that <span class="arithmatex">\(H\)</span> is convex, quadratic homogeneous, continuous, but not smooth in general.
+We will denote the subdifferential of <span class="arithmatex">\(H\)</span>, i.e. the set of subgradients at a point <span class="arithmatex">\(z\)</span>, by
+<span class="arithmatex">\(<span class="arithmatex">\(\partial H(z) = \{v \in \mathbb{R}^4: H(\cdot) \geq H(z) + \langle v, \cdot - z \rangle\}.\)</span>\)</span></p>
+<p>We will study loops with period <span class="arithmatex">\(T\)</span>, i.e. maps <span class="arithmatex">\(\mathbb{T} \to \partial K\)</span>, where <span class="arithmatex">\(\mathbb{T} = \mathbb{R}/T\mathbb{Z}\)</span> is the circle of length <span class="arithmatex">\(T\)</span>.
+In the smooth setting, we would study smooth loops in <span class="arithmatex">\(C^\infty(\mathbb{T}, \partial K)\)</span>, but to work with polytopes we relax to the Sobolov space <span class="arithmatex">\(W^{1,2}(\mathbb{T}, \partial K)\)</span>.</p>
+<h2 id="facets-ridges-edges-vertices">Facets, Ridges, Edges, Vertices<a class="headerlink" href="#facets-ridges-edges-vertices" title="Permanent link">&para;</a></h2>
+<p>The polytope <span class="arithmatex">\(K\)</span> can be described as the intersection of finitely many half-spaces:
+<span class="arithmatex">\(<span class="arithmatex">\(K = \bigcap_{i=1}^m \{z \in \mathbb{R}^4: \langle z, n_i \rangle \leq h_i\}\)</span>\)</span>
+for some count <span class="arithmatex">\(m \in \mathbb{N}\)</span>, with <span class="arithmatex">\(n_i \in \mathbb{R}^4\)</span> the outward-pointing normal vector of the <span class="arithmatex">\(i\)</span>-th facet, and <span class="arithmatex">\(h_i = h_K(n_i) \in \mathbb{R}_{&gt;0}\)</span> the height of the <span class="arithmatex">\(i\)</span>-th facet.
+Without loss of generality we assume that the representation is irredundant, i.e. removing any of the half-spaces would strictly enlarge <span class="arithmatex">\(K\)</span> or make it unbounded.</p>
+<p>We name the closed intersection of <span class="arithmatex">\(\partial K\)</span> with any bounding hyperplane a <span class="arithmatex">\(3\)</span>-face, also called a facet:
+<span class="arithmatex">\(<span class="arithmatex">\(F_i = \partial K \cap \{z \in \mathbb{R}^4: \langle z, n_i \rangle = h_i\}.\)</span>\)</span>
+A facet is a compact, convex, non-degenerate and thus non-empty, <span class="arithmatex">\(3\)</span>-dimensional polytope in its hyperplane.</p>
+<p>We say two facets are neighbors if their closed intersection is a non-degenerate <span class="arithmatex">\(2\)</span>-dimensional polytope, called a ridge or <span class="arithmatex">\(2\)</span>-face:
+<span class="arithmatex">\(<span class="arithmatex">\(F_{ij} = F_i \cap F_j.\)</span>\)</span></p>
+<p><strong>Lemma:</strong> Three or more facets cannot share a common ridge. Thus, each ridge has a unique pair of neighboring facets.
+<strong>Proof:</strong> Follows from irredundancy and convexity. <span class="arithmatex">\(\square\)</span></p>
+<p>Similarly we name <span class="arithmatex">\(1\)</span>-faces edges, and <span class="arithmatex">\(0\)</span>-faces (which have themselves as interior) vertices. Unlike with ridges, we can have extra facets that share an edge or vertex, so there's no uniqueness statement here.</p>
+<h2 id="combinatorical-hamiltonian-and-reeb-dynamics">Combinatorical Hamiltonian and Reeb Dynamics<a class="headerlink" href="#combinatorical-hamiltonian-and-reeb-dynamics" title="Permanent link">&para;</a></h2>
+<p>On the interior of each facet <span class="arithmatex">\(F_i\)</span>, we get the usual smooth Reeb dynamics and Hamiltonian dynamics.
+The Reeb vector field is constant on <span class="arithmatex">\(F_i\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(\lambda_0(R_i) = 1, \quad \iota_{R_i} d\lambda_0 = 0 \implies R_i = TODO.\)</span>\)</span>
+The Hamiltonian vector field is also constant on <span class="arithmatex">\(F_i\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(\iota_{X_H} \omega_0 = dH \implies X_H = J \nabla H = \frac{2}{h_i} J n_i =: p_i.\)</span>\)</span>
+For Hamiltonian dynamics, we get linear flow lines with velocity <span class="arithmatex">\(p_i\)</span> on the interior of <span class="arithmatex">\(F_i\)</span>.</p>
+<p>We want to define dynamics now on the whole <span class="arithmatex">\(\partial K\)</span>. Skipping the motivation, we arrive at the following definition:</p>
+<p><strong>Definition:</strong> A combinatorical Hamiltonian orbit on <span class="arithmatex">\(\partial K\)</span> with period <span class="arithmatex">\(T\)</span> is a loop <span class="arithmatex">\(\gamma \in W^{1,2}(\mathbb{T}, \partial K)\)</span> with dynamics defined almost everywhere by
+<span class="arithmatex">\(<span class="arithmatex">\(\dot\gamma(t) \in J \partial H(\gamma(t)) = \mathrm{conv} \{p_i: \gamma(t) \in F_i\},\)</span>\)</span>
+where <span class="arithmatex">\(\mathrm{conv}\)</span> are the convex combinations of the given vectors.</p>
+<p><strong>Definition:</strong> A closed characteristic of <span class="arithmatex">\(K\)</span> is a loop <span class="arithmatex">\(\gamma \in W^{1,2}(S^1, \partial K)\)</span> that almost everywhere satisfies
+<span class="arithmatex">\(<span class="arithmatex">\(\dot\gamma(t) \in \mathrm{cone} \{R_i: \gamma(t) \in F_i\} \setminus \{0\},\)</span>\)</span>
+where <span class="arithmatex">\(\mathrm{cone}\)</span> is the non-negative cone, i.e. any non-negative linear combination of the given vectors.
+Note that any positively oriented reparametrization is again a closed characteristic.</p>
+<p><strong>Lemma:</strong> The combinatorical Hamiltonian orbits on <span class="arithmatex">\(\partial K\)</span> correspond, via positively oriented reparametrization and time-rescaling, to the combinatorical Reeb trajectories on <span class="arithmatex">\(\partial K\)</span>.
+<strong>Proof:</strong> Follows from the fact that <span class="arithmatex">\(R_i, p_i\)</span> differ by a positive scalar.</p>
+<p><strong>Lemma:</strong> For a ridge <span class="arithmatex">\(F_{ij}\)</span>, the local Hamiltonian dynamics, and equivalently the Reeb dynamics, of a loop <span class="arithmatex">\(\gamma\)</span> fall into the following cases:
+- doesn't touch the interior of <span class="arithmatex">\(F_{ij}\)</span>
+- if non-lagrangian: instantaneous crossing through an interior point of <span class="arithmatex">\(F_{ij}\)</span>, with predetermined direction <span class="arithmatex">\(F_i \to F_j\)</span> or <span class="arithmatex">\(F_j \to F_i\)</span>
+- if lagrangian: enters <span class="arithmatex">\(F_{ij}\)</span> on its boundary, continues on <span class="arithmatex">\(F_{ij}\)</span>, and leaves <span class="arithmatex">\(F_{ij}\)</span> on its boundary. The velocity of the Hamiltonian orbit is almost everywhere a convex combination of <span class="arithmatex">\(p_i\)</span> and <span class="arithmatex">\(p_j\)</span>, which are both tangent to <span class="arithmatex">\(F_{ij}\)</span>.
+<strong>Proof:</strong> Convexity and irredundancy of <span class="arithmatex">\(K\)</span> gives us that either the ridge is lagrangian with tangent and distinct <span class="arithmatex">\(p_i, p_j\)</span>, or there's a predetermined direction of crossing that both <span class="arithmatex">\(p_i\)</span>, <span class="arithmatex">\(p_j\)</span> obey. <span class="arithmatex">\(\square\)</span></p>
+<h2 id="minimal-action">Minimal Action<a class="headerlink" href="#minimal-action" title="Permanent link">&para;</a></h2>
+<p>We define the action of trajectories similarly to the smooth case:</p>
+<p><strong>Definition:</strong> For any closed loop <span class="arithmatex">\(\gamma \in W^{1,2}(\mathbb{T}, \partial K)\)</span>, we define its action as
+<span class="arithmatex">\(<span class="arithmatex">\({A}(\gamma) = \int_\gamma \lambda_0 = \int_0^T \lambda_0(\dot\gamma(t)) dt = \frac{1}{2} \int_0^T \langle -J \dot\gamma(t), \gamma(t) \rangle dt.\)</span>\)</span>
+The action is invariant under orientation-preserving reparametrizations and rescalings of <span class="arithmatex">\(\gamma\)</span>.</p>
+<p><strong>Definition:</strong> The minimal action of <span class="arithmatex">\(K\)</span> is defined as
+<span class="arithmatex">\(<span class="arithmatex">\({A}_{\min}(K) = \min \{{A}(\gamma): \gamma \text{ is a closed characteristic on } \partial K\}.\)</span>\)</span></p>
+<p><strong>Lemma:</strong> The critical points of the action functional <span class="arithmatex">\(A\)</span> on the space of arbitrary closed loops <span class="arithmatex">\(W^{1,2}(\mathbb{T}, \partial K)\)</span> are the closed characteristics, and their reversed counterparts. Note that constant loops are not critical points.
+<strong>Proof:</strong> Follows from variational calculus. <span class="arithmatex">\(\square\)</span></p>
+<p><strong>Lemma:</strong> The action of a Hamiltonian orbit <span class="arithmatex">\(\gamma\)</span> with period <span class="arithmatex">\(T\)</span> is
+<span class="arithmatex">\(<span class="arithmatex">\({A}(\gamma) = T.\)</span>\)</span>
+<strong>Proof:</strong> We can simply calculate.
+For a velocity <span class="arithmatex">\(p_i\)</span> at point <span class="arithmatex">\(z\)</span> on facet <span class="arithmatex">\(F_i\)</span>, we have
+<span class="arithmatex">\(<span class="arithmatex">\(\langle -J p_i, z \rangle = \langle -J \frac{2}{h_i} J n_i, z \rangle = \frac{2}{h_i} \langle n_i, z \rangle = 2,\)</span>\)</span>
+since <span class="arithmatex">\(z \in F_i\)</span>.
+Thus, for almost every <span class="arithmatex">\(t\)</span> we have <span class="arithmatex">\(\langle -J \dot\gamma(t), \gamma(t) \rangle = 2\)</span>, and integrating over <span class="arithmatex">\([0,T]\)</span> gives the result. <span class="arithmatex">\(\square\)</span></p>
+<h2 id="clarkes-dual-action-principle">Clarke's Dual Action Principle<a class="headerlink" href="#clarkes-dual-action-principle" title="Permanent link">&para;</a></h2>
+<p>We can apply the Clarke's dual action principle and find an equivalent optimization problem.
+See \cite{Haim-Kislev 2017} for this approach.</p>
+<p><strong>Problem (Action minimization):</strong> Find the minimum of the action functional
+<span class="arithmatex">\(<span class="arithmatex">\(A(\gamma) := \int_0^T \langle -J \dot\gamma(t), \gamma(t) \rangle dt,\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(\gamma \in W^{1,2}(\mathbb{T}, \partial K).\)</span>\)</span></p>
+<p><strong>Problem (Dual):</strong> Find the minimum of the dual action functional
+<span class="arithmatex">\(<span class="arithmatex">\(I_K(z) = \frac{1}{4} \int_0^1 h_K^2(-J \dot z(t)) dt,\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(z \in \mathcal E := W^{1,2}(S^1, \mathbb{R}^4), \quad \int_0^1 \langle -J \dot z(t), z(t) \rangle dt = 1.\)</span>\)</span></p>
+<p><strong>Fact</strong>: The tangent space <span class="arithmatex">\(T_z \mathcal E\)</span> is given by for <span class="arithmatex">\(\xi \in W^{1,2}(S^1, \mathbb{R}^4)\)</span>:
+<span class="arithmatex">\(<span class="arithmatex">\(\xi \in T_z \mathcal E \iff \int_0^1 \langle -J \dot \xi(t), z(t) \rangle = 0 \iff \int_0^1 \langle -J \dot z(t), \xi(t) \rangle = 0.\)</span>\)</span>
+<strong>Proof:</strong> Variation of the constraint of <span class="arithmatex">\(E\)</span>, and partial integration.</p>
+<p>To get from the action problem to the dual problem, we need the Fenchel dual of <span class="arithmatex">\(H(z) = g_K(z)^2\)</span>, which is
+<span class="arithmatex">\(<span class="arithmatex">\(H^*(w) = \max_{z \in \mathbb{R}^4} \{\langle w, z \rangle - H(z)\} = \max_{r &gt; 0} \max_{z \in r K} \{\langle w, z \rangle - r^2\} = \max_{r &gt; 0} \{r h_K(w) - r^2\}.\)</span>\)</span>
+The maximum is taken at <span class="arithmatex">\(h_H(w) = 2 r\)</span>, giving <span class="arithmatex">\(H^*(w) = h_K(w)^2/4\)</span>.
+The argmax <span class="arithmatex">\(z\)</span> in the first equation is taken at <span class="arithmatex">\(z\)</span> with <span class="arithmatex">\(w \in \partial H(z)\)</span>, which is the case for whole faces of some scaled body <span class="arithmatex">\(h_K(w)/2 \cdot K\)</span>, i.e. <span class="arithmatex">\(0\)</span>-faces if a single vertex is the argmax, <span class="arithmatex">\(1\)</span>-faces if an edge is the argmax, etc.
+We have <span class="arithmatex">\(H^*(w) + H(z) \geq \langle w, z \rangle\)</span> for all <span class="arithmatex">\(w, z\)</span>, with equality iff <span class="arithmatex">\(w \in \partial H(z)\)</span> iff <span class="arithmatex">\(z \in \partial H^*(w)\)</span>.</p>
+<p>We now want to show that the critical points of <span class="arithmatex">\(I_K\)</span> and <span class="arithmatex">\(A\)</span> correspond to each other.</p>
+<p><strong>Theorem:</strong> For any critical point of <span class="arithmatex">\(A\)</span> there is a corresponding loop 
+<span class="arithmatex">\(<span class="arithmatex">\(z \in \mathcal E^\dagger = \{z \in \mathcal E: \exists a \in \mathbb{R}^4, \quad 8 I_K(z) z + a \in \partial h_K^2(-J \dot z) \text{ a.e.}\}.\)</span>\)</span>
+<strong>Proof:</strong>
+First we note that any critical point <span class="arithmatex">\(\gamma\)</span> of <span class="arithmatex">\(A\)</span> can be reparameterized and time-scaled to become a Hamiltonian orbit with period <span class="arithmatex">\(T\)</span>. We then have
+<span class="arithmatex">\(<span class="arithmatex">\(-J \dot\gamma(t) \in \partial g_K^2(\gamma(t))\)</span>\)</span>
+Per Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(\gamma(t) \in \partial \frac{1}{4} h_K^2(-J \dot\gamma(t))\)</span>\)</span>
+We will define <span class="arithmatex">\(z\)</span> via <span class="arithmatex">\(\gamma(t) = a z(t/T) + b\)</span> for some <span class="arithmatex">\(a \in \mathbb{R}_{&gt;0}\)</span>, <span class="arithmatex">\(b \in \mathbb{R}^4\)</span> to be determined later.
+This gets us <span class="arithmatex">\(\dot\gamma (t) = a / T \dot z(t/T)\)</span>.
+We then have
+<span class="arithmatex">\(<span class="arithmatex">\(a z(t/T) + b \in \partial \frac{1}{4} h_K^2(-J a/T \dot z (t/T))\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(4 a^2 / T^2 (a z + b) \in \partial h_K^2(-J \dot z).\)</span>\)</span>
+We need to pick <span class="arithmatex">\(a,b\)</span> such that
+<span class="arithmatex">\(<span class="arithmatex">\(z \in \mathcal E, \quad \iff 2 A(z) = \int_0^1 \langle -J \dot z(t), z(t) \rangle dt = 1,\)</span>\)</span>
+and
+<span class="arithmatex">\(<span class="arithmatex">\(8 I_K(z) z + c = 4 a^2 / T^2 (a z + b)\)</span>\)</span>
+for some <span class="arithmatex">\(c \in \mathbb{R}^4\)</span>.
+First we note that <span class="arithmatex">\(A(\gamma)=a^2 A(z)\)</span> due to time-scaling and translation invariance and <span class="arithmatex">\(2\)</span>-homogenity of spatial scaling.
+Thus, we want <span class="arithmatex">\(a = \sqrt{A(\gamma)/2} = \sqrt{T/2}\)</span>.
+Next, we calculate <span class="arithmatex">\(I_K(z)\)</span>:
+From the Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(T + I_K(\gamma) = \int_0^T g_K^2(\gamma(t)) + \frac{1}{4} h_K^2(-J \dot\gamma(t)) dt \geq \int_0^T \langle -J \dot\gamma(t), \gamma(t) \rangle dt = 2 A(\gamma) = 2 T.\)</span>\)</span>
+We satisfy equality, since <span class="arithmatex">\(\gamma\)</span> and <span class="arithmatex">\(- J \dot\gamma\)</span> correspond to each other.
+We use the scaling of <span class="arithmatex">\(I_K\)</span> to get
+<span class="arithmatex">\(<span class="arithmatex">\(I_K(\gamma) = \int_0^T \frac{1}{4} h_K^2(-J \dot\gamma(t)) dt = T \int_0^1 \frac{1}{4} h_K^2(-J a / T \dot z(t)) dt = a^2 / T I_K(z).\)</span>\)</span>
+Thus, we have
+<span class="arithmatex">\(<span class="arithmatex">\(T + a^2 / T I_K(z) = 2 T \implies I_K(z) = T^2 / a^2 = 2 T.\)</span>\)</span>
+Finally, we need to pick <span class="arithmatex">\(b\)</span> such that
+<span class="arithmatex">\(<span class="arithmatex">\(8 I_K(z) z + c = 4 a^2 / T^2 (a z + b)\)</span>\)</span>
+for some <span class="arithmatex">\(c \in \mathbb{R}^4\)</span>.
+Plugging in <span class="arithmatex">\(I_K(z) = 2 T\)</span>, <span class="arithmatex">\(a = \sqrt{T/2}\)</span> gives
+<span class="arithmatex">\(<span class="arithmatex">\(16 T z + c = \frac{4 T}{2 T^2}(\sqrt{T/2} z + b) = \frac{2}{T} (\sqrt{T/2} z + b).\)</span>\)</span></p>
+<p>if we take
+<span class="arithmatex">\(<span class="arithmatex">\(z = \frac{1}{T} \gamma + b\)</span>\)</span>
+for some <span class="arithmatex">\(b \in \mathbb{R}^4\)</span> to be determined later, we have
+<span class="arithmatex">\(<span class="arithmatex">\(- J \dot z(t) \in \partial g_K^2(\gamma(t))\)</span>\)</span>
+$$ \gamma(t) \in \partial \frac{1}{4} h_K^2(-J \dot z(t))$$
+Or, plugging in <span class="arithmatex">\(\gamma\)</span>:
+$$ 4 T (z - b) \in \partial h_K^2(-J \dot z(t))$$
+almost everywhere.
+We also have that the action of <span class="arithmatex">\(\gamma\)</span> is <span class="arithmatex">\(A(\gamma) = T\)</span>.</p>
+<p>almost everywhere. And per an earlier lemma, we have
+<span class="arithmatex">\(<span class="arithmatex">\(A(\gamma) = T.\)</span>\)</span>
+For
+<span class="arithmatex">\(<span class="arithmatex">\(z = \frac{1}{T} \gamma + b\)</span>\)</span>
+we have
+<span class="arithmatex">\(<span class="arithmatex">\(\dot z(t) \in J \partial g_K^2(\gamma(t))\)</span>\)</span>
+and by Fenchel duality
+<span class="arithmatex">\(<span class="arithmatex">\(\gamma(t) \in \partial \frac{1}{4} h_K^2(-J \dot z(t))\)</span>\)</span>
+almost everywhere.
+Again by Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 g_K^2(\gamma(t)) + \frac{1}{4} h_K^2(-J \dot z(t)) dt = \int_0^1 \langle -J \dot z(t), \gamma(t) \rangle dt.\)</span>\)</span>
+Substituting <span class="arithmatex">\(\gamma\)</span> gives
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 \langle -J \dot z(t), T z(t) - T b \rangle dt = T \int_0^1 \langle -J \dot z(t), z(t) \rangle dt = 2 T A(z) = 2 T A(\gamma)/T^2 = 2.\)</span>\)</span>
+Thus <span class="arithmatex">\(I_K(z) = 1\)</span>.</p>
+<p>We define <span class="arithmatex">\(z = \frac{1}{T} \gamma + b\)</span> for some <span class="arithmatex">\(b \in \mathbb{R}^4\)</span> to be determined later.
+Equivalently, <span class="arithmatex">\(\gamma = T (z - b)\)</span>.
+By <span class="arithmatex">\(2\)</span>-homogenity and translation invariance of <span class="arithmatex">\(A\)</span> we get <span class="arithmatex">\(A(z) = 1/T\)</span>.
+We then have <span class="arithmatex">\(- J \dot z(t) \in \partial g_K^2(\gamma(t))\)</span> almost everywhere.
+By the Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(\gamma(t) \in \partial h_K^2(-J \dot z(t))\)</span>\)</span>
+almost everywhere.
+We also have that
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 g_K^2(\gamma(t)) + \frac{1}{4} h_K^2(-J \dot z(t)) dt = \int_0^1 \langle -J \dot z(t), \gamma(t) \rangle dt.\)</span>\)</span>
+Substituting <span class="arithmatex">\(\gamma\)</span> gives
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 \langle -J \dot z(t), T z(t) - T b \rangle dt = T \int_0^1 \langle -J \dot z(t), z(t) \rangle dt = T A(z).\)</span>\)</span></p>
+<p><strong>Theorem:</strong> The set of (weak) critical points of <span class="arithmatex">\(I_K\)</span> is
+<span class="arithmatex">\(<span class="arithmatex">\(\mathcal E^\dagger = \{z \in \mathcal E: \exists a \in \mathbb{R}^4, \quad 8 I_K(z) z + a \in \partial h_K^2(-J \dot z) \text{ a.e.}\}.\)</span>\)</span>
+They also correspond to the set of (weak) critical points of <span class="arithmatex">\(A\)</span> via the mapping $T=A()
+$$
+<strong>Proof:</strong> </p>
+<p>First an observation about <span class="arithmatex">\(T_z \mathcal E\)</span>:
+The change of the constraint <span class="arithmatex">\(1 = \int_0^1 \langle -J \dot z(t), z(t) \rangle dt\)</span> at <span class="arithmatex">\(z\)</span> in direction <span class="arithmatex">\(\xi\)</span> is
+<span class="arithmatex">\(<span class="arithmatex">\(0 = \int_0^1 \langle -J \dot \xi(t), z(t) \rangle + \langle -J \dot z(t), \xi(t) \rangle dt + o(\|\xi\|).\)</span>\)</span>
+Partial integration however gives us
+<span class="arithmatex">\(<span class="arithmatex">\(\int_0^1 \langle -J \dot \xi(t), z(t) \rangle dt = - \int_0^1 \langle -J \xi(t), \dot z(t) \rangle dt = \int_0^1 \langle -J \dot z(t), \xi(t) \rangle dt,\)</span>\)</span>
+which shows that the two terms are equal to zero.</p>
+<p>(1) We show that <span class="arithmatex">\(z \in \mathcal E^\dagger\)</span> implies that <span class="arithmatex">\(z\)</span> is a critical point of <span class="arithmatex">\(I_K\)</span>.
+There exists <span class="arithmatex">\(a \in \mathbb{R}^4\)</span> such that <span class="arithmatex">\(8 I_K(z) z + a \in \partial h_K^2(-J \dot z)\)</span> a.e. 
+Fix a variation <span class="arithmatex">\(\xi \in T_z \mathcal E\)</span>.
+Per definition of the subdifferential we have
+<span class="arithmatex">\(<span class="arithmatex">\(h_K^2(-J (\dot z + \dot \xi)) \geq h_K^2(-J \dot z) + \langle 8 I_K(z) z + a, -J \dot \xi \rangle.\)</span>\)</span>
+When integrating over <span class="arithmatex">\([0,1]\)</span> we can use 
+<span class="arithmatex">\(<span class="arithmatex">\(\int_0^1 \dot\xi(t) dt = 0\)</span>\)</span>
+<span class="arithmatex">\(<span class="arithmatex">\(\int_0^1 \langle -J \dot \xi(t), z(t) \rangle dt = o(\|\xi\|)\)</span>\)</span>
+to get
+<span class="arithmatex">\(<span class="arithmatex">\(I_K(z + \xi) \geq I_K(z) + o(\|\xi\|).\)</span>\)</span>
+This shows that <span class="arithmatex">\(z\)</span> is a critical point of <span class="arithmatex">\(I_K\)</span>.</p>
+<p>(2) Next we show that for a critical point <span class="arithmatex">\(\gamma\)</span> of <span class="arithmatex">\(A\)</span> we get a critical point <span class="arithmatex">\(z\)</span> of <span class="arithmatex">\(I_K\)</span>.
+We already know that critical points of <span class="arithmatex">\(A\)</span> are closed characteristics, and thus are up to reparametrization and time scaling a Hamiltonian orbit.
+We thus can pick a reparametrization and period <span class="arithmatex">\(T&gt;0\)</span> such that almost everywhere
+<span class="arithmatex">\(<span class="arithmatex">\(\frac{1}{T} \dot\gamma(t) \in J \partial g_K^2(\gamma(t))\)</span>\)</span>
+Define $z = \frac{1}{T} \gamma + b for some <span class="arithmatex">\(b \in \mathbb{R}^4\)</span> to be determined later.
+We then have <span class="arithmatex">\(- J \dot z(t) \in \partial g_K^2(\gamma(t))\)</span> a.e.</p>
+<p>By the Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(g_K^2(\gamma(t)) + \frac{1}{4} h_K^2(-J \dot z(t)) \geq \langle \gamma(t), -J \dot z(t) \rangle,\)</span>\)</span>
+with equality iff <span class="arithmatex">\(-J \dot z(t) \in \partial g_K^2(\gamma(t))\)</span> iff <span class="arithmatex">\(\gamma(t) \in \partial h_K^2(-J \dot z(t))\)</span>.
+Since the first condition holds a.e., we get the second condition a.e. as well.
+Integrating over <span class="arithmatex">\([0,1]\)</span> we get
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 \langle \gamma(t), -J \dot z(t) \rangle dt = \frac{1}{T} \int_0^1 \langle \gamma(t), -J \dot\gamma(t) \rangle dt = \frac{1}{T} A(\gamma).\)</span>\)</span></p>
+<p>We want that <span class="arithmatex">\(\gamma = 8 I_K(z) z + a\)</span> for some <span class="arithmatex">\(a \in \mathbb{R}^4\)</span>.</p>
+<p>The Fenchel dual of <span class="arithmatex">\(g_K^2\)</span> is <span class="arithmatex">\(h_K^2/4\)</span>. Proof:
+<span class="arithmatex">\(<span class="arithmatex">\(H^*(w) = \max_{z \in \mathbb{R}^4} \{\langle w, z \rangle - g_K(z)^2\} = \max_{r &gt; 0} \max_{z \in r K} \{\langle w, z \rangle - r^2\} = \max_{r &gt; 0} \{r h_K(w) - r^2\}.\)</span>\)</span>
+Latter maximum is taken at <span class="arithmatex">\(h_K(w) = 2 r\)</span>, giving <span class="arithmatex">\(H^*(w) = h_K(w)^2/4\)</span>.</p>
+<p>For Fenchel duality we have
+<span class="arithmatex">\(<span class="arithmatex">\(g_K^2(z) + \frac{1}{4} h_K^2(w) \geq \langle z, w \rangle,\)</span>\)</span>
+with equality iff <span class="arithmatex">\(w \in \partial g_K^2(z)\)</span> iff <span class="arithmatex">\(z \in \partial h_K^2(w)\)</span>.</p>
+<p>Since <span class="arithmatex">\(H(\gamma)=1\)</span> for <span class="arithmatex">\(\gamma \in W^{1,2}(S^1, \partial K)\)</span>, we have
+<span class="arithmatex">\(<span class="arithmatex">\(1 = \int_0^1 H(\gamma(t)) dt\)</span>\)</span>
+This gives us
+<span class="arithmatex">\(<span class="arithmatex">\(1 + I_K(z) = \int_0^1 g_K^2(\gamma(t)) + \frac{1}{4} h_K^2(-J \dot z(t)) dt \geq \int_0^1 \langle -J \dot z(t), \gamma(t) \rangle dt.\)</span>\)</span>
+Equality holds iff a.e. we have <span class="arithmatex">\(-J \dot z(t) \in \partial g_K^2(\gamma(t))\)</span> iff a.e. we have <span class="arithmatex">\(\gamma(t) \in \partial h_K^2(-J \dot z(t))\)</span>.</p>
+<p>If we pick a critical <span class="arithmatex">\(\gamma\)</span> of <span class="arithmatex">\(A\)</span>, we know that after a reparametrization we have <span class="arithmatex">\(\dot\gamma(t) \in J \partial g_K^2(\gamma(t))\)</span>
+We define <span class="arithmatex">\(z\)</span> via 
+$$</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+      
+        <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
+      
+        <script src="../../assets/js/plotly-hydrate.js"></script>
+      
+    
+  </body>
+</html>

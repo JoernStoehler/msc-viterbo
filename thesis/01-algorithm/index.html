@@ -1,0 +1,965 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../02-algorithms-overview/">
+      
+      
+        <link rel="next" href="../02-geometry/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Capacity Algorithm - Probing Viterbo's Conjecture – Thesis</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../assets/css/thesis.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#probing-viterbos-conjecture-capacity-algorithm-draft" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-header__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Probing Viterbo's Conjecture – Thesis
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Capacity Algorithm
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-nav__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Probing Viterbo's Conjecture – Thesis
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-research-question/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research Question
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-algorithms-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity Algorithm
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity Algorithm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#notation-definitions-and-preliminaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation, Definitions, and Preliminaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#algorithm-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Specification
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Foundations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-data-science-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Science Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-thesis-and-ai-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thesis and AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-literature-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Digests
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Literature Digests
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/haim-kislev-2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Haim-Kislev 2019
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/haim-kislev-ostrover-2024-counterexample/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Haim-Kislev & Ostrover 2024
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/rudolf-2022-minkowski-billiard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rudolf 2022 Minkowski Billiard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internal (drafts)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internal (drafts)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internal/math-introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Math Introduction (draft)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internal/todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TODO scratchpad
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#notation-definitions-and-preliminaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation, Definitions, and Preliminaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#algorithm-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Specification
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="probing-viterbos-conjecture-capacity-algorithm-draft">Probing Viterbo's Conjecture – Capacity Algorithm (Draft)<a class="headerlink" href="#probing-viterbos-conjecture-capacity-algorithm-draft" title="Permanent link">&para;</a></h1>
+<p>This chapter details our novel algorithm to compute symplectic capacities in
+four dimensions. The algorithm is based on algorithms and theorems from 
+- <a href="https://arxiv.org/abs/2008.10111">Chaidez, Hutchings 2021</a>
+- <a href="https://arxiv.org/abs/1712.03494">Haim-Kislev 2019</a>
+- <a href="https://arxiv.org/abs/2405.16513">Haim-Kislev 2024</a></p>
+<p>We implemented our algorithm in Lean4 to formally verify its correctness, based on various theorems without proof about symplectic geometry on four dimensional polytopes.
+Lean4+mathlib does not currently offer enough smooth differential geometry, or any symplectic geometry to prove these basic theorems from first principles, so we simply assume them as axioms.</p>
+<p>While the Lean4 algorithm is runnable, we also provide a high performance implementation in Rust that is closely similar to the Lean4 code, but without a dependent type system.</p>
+<p>Our algorithm is applicable to all non-degenerate convex star-shaped polytopes in four dimensions. We make no assumption on e.g. 3-faces being non-lagrangian, or on the polytope being generic. </p>
+<p>This chapter is focused on the exact idealized algorithm with real or rational numbers. To go to the practical floating point number implementation with rounding errors, we generally follow the strategy outlined in section <a href="#floating-point-implementation"></a> below.
+The Lean4 implementation uses reals, while the Rust implementation uses <code>f64</code> i.e. floating point numbers with double precision.</p>
+<h2 id="notation-definitions-and-preliminaries">Notation, Definitions, and Preliminaries<a class="headerlink" href="#notation-definitions-and-preliminaries" title="Permanent link">&para;</a></h2>
+<p><span class="arithmatex">\(\mathbb{R}^4\)</span>: our ambient space.<br />
+<span class="arithmatex">\(\omega = \sum_{i=1}^2 dq_i \wedge dp_i\)</span>: the standard symplectic form.<br />
+<span class="arithmatex">\(\alpha = \frac{1}{2} \sum_{i=1}^2 (p_i dq_i - q_i dp_i)\)</span>: the standard Liouville form.<br />
+<span class="arithmatex">\(J = [[0, -I], [I, 0]]\)</span>: the standard complex structure.
+<span class="arithmatex">\(K \subset R^4\)</span>: a non-degenerate convex star-shaped polytope.</p>
+<ul>
+<li><span class="arithmatex">\(\partial K\)</span>: the boundary of <span class="arithmatex">\(K\)</span>.</li>
+<li><span class="arithmatex">\(F_i\)</span>: a 3-face of <span class="arithmatex">\(K\)</span>.</li>
+<li><span class="arithmatex">\(F\)</span>: any face of <span class="arithmatex">\(K\)</span>, usually <span class="arithmatex">\(F = \bigcap_{i \in I} F_i\)</span> for some finite index set <span class="arithmatex">\(I\)</span>.</li>
+<li><span class="arithmatex">\(n_i\)</span>: the outward normal vector of the 3-face <span class="arithmatex">\(F_i\)</span>.</li>
+<li><span class="arithmatex">\(N_F = \operatorname{conv}\bigl(0, n_i \mid F \subset F_i\bigr)\)</span>: the normal cone of the face <span class="arithmatex">\(F\)</span>.</li>
+<li><span class="arithmatex">\(g_K(x) = \inf\{ \lambda \ge 0 \mid x \in \lambda K \}\)</span>: the gauge function of <span class="arithmatex">\(K\)</span>.</li>
+<li><span class="arithmatex">\(H(x) = g_K(x)^2\)</span>: the Hamiltonian function associated to <span class="arithmatex">\(K\)</span> (convex, not everywhere smooth).</li>
+<li><span class="arithmatex">\(\partial K = \{ x \in \mathbb{R}^4 : H(x) = 1 \}\)</span>: the energy surface <span class="arithmatex">\(H=1\)</span>.</li>
+<li><span class="arithmatex">\(K = \{ x \in \mathbb{R}^4 : H(x) \le 1 \}\)</span>: the sublevel set <span class="arithmatex">\(H \le 1\)</span>.</li>
+</ul>
+<p><span class="arithmatex">\(h_i = \langle x, n_i \rangle\)</span> for <span class="arithmatex">\(x \in F_i\)</span>: the offset of the 3-face <span class="arithmatex">\(F_i\)</span>.</p>
+<p><span class="arithmatex">\(\gamma \in W^{1,2}(S^1, \partial K)\)</span>: a periodic orbit on the energy surface <span class="arithmatex">\(\partial K\)</span>. We normalize to period length <span class="arithmatex">\(1\)</span> to discuss convergence of sequences of orbits.</p>
+<p><span class="arithmatex">\(A(\gamma) = \int_\gamma \alpha\)</span>: action of the periodic orbit <span class="arithmatex">\(\gamma\)</span>, well-defined for <span class="arithmatex">\(W^{1,2}\)</span> curves. If <span class="arithmatex">\(\gamma\)</span> encloses a disk <span class="arithmatex">\(D \subset \mathbb{R}^4\)</span>, then by Stokes <span class="arithmatex">\(A(\gamma) = \int_D \omega\)</span>. Usually one defines <span class="arithmatex">\(A(\gamma) = \int_0^1 \alpha(\dot\gamma(t)) + H(\gamma(t))\,dt\)</span>, but on the energy surface <span class="arithmatex">\(H=1\)</span> we drop the constant <span class="arithmatex">\(+1\)</span> term. When <span class="arithmatex">\(\gamma\)</span> runs along lower-dimensional faces, use the differential inclusion <span class="arithmatex">\(\dot\gamma(t) \in J\,\partial H(\gamma(t))\)</span>, with <span class="arithmatex">\(\partial H(x)\)</span> the convex subdifferential of <span class="arithmatex">\(H\)</span>.</p>
+<p>We can for our choice of <span class="arithmatex">\(H\)</span> explicitly compute the subdifferential at <span class="arithmatex">\(x \in \partial K\)</span>. We need the <span class="arithmatex">\(3\)</span>-faces <span class="arithmatex">\(I = \{ i : x \in F_i \}\)</span> containing <span class="arithmatex">\(x\)</span>. Then we have
+<span class="arithmatex">\(\partial H(x) = 2 \mathrm{conv}(\{ n_i / h_i : i \in I \})\)</span>.</p>
+<p>Theorem: Periodic orbits and critical points of the action functional and closed characteristics on <span class="arithmatex">\(\partial K\)</span> are all the same objects, up to reparametrization.
+Proof: variational calculus.</p>
+<p>Theorem: The positive minimum of the action functional is attained.
+Proof: the proof I've seen sketched shows this for smooth strictly convex bodies, and considers the limit to the polytope case. Not sure if I misremember though.</p>
+<p>Theorem: For any critical value of the action functional, we can find a closed characteristic <span class="arithmatex">\(\gamma\)</span> that has finitely many linear segments, up to reparametrization.
+Proof: Consider the entering and exiting times of <span class="arithmatex">\(\gamma\)</span> on a face <span class="arithmatex">\(F\)</span>. We can simultaneously straighten all segments. It remains to show that there are no accumulation points where <span class="arithmatex">\(\gamma\)</span> moves in finite time infinitely often over two or more faces. By continuity, this must happen at an accumulation point <span class="arithmatex">\(\gamma(t)\)</span> that lies on the intersection face of the visited faces. The argument is then roughly that <span class="arithmatex">\(\gamma\)</span> cannot both move faster and faster towards the point, and away from it, i.e. there is no time symmetry that would allow it to change convergence behavior before <span class="arithmatex">\(t\)</span> and after <span class="arithmatex">\(t\)</span>. Probably can be formalized better, and I suspect convexity of the polytope matters here.</p>
+<p>We are from now on only considering closed characteristics with finitely many linear segments.</p>
+<p>Theorem (Heim-Kislev 2019): There is at least one closed characteristic with minimal action that only visits every <span class="arithmatex">\(3\)</span>-face at most once.
+Proof: see <a href="https://arxiv.org/abs/1712.03494">Haim-Kislev 2019</a>.
+We also wrote up the proof in more detail, and focused on this theorem instead of additional claims, in <a href="#appendix-proofs"></a>. The central idea is to use Clarke's dual principle to get a minimization problem for <span class="arithmatex">\(I_K(z) = \frac{1}{8} \int_0^1 h_K^2(\dot{z}(t)) dt\)</span> with constraint <span class="arithmatex">\(\int_0^1 \langle -J \dot{z}(t), z(t) \rangle dt = 1\)</span>. Then one can show that if a minimizer visits some face <span class="arithmatex">\(F_i\)</span> more than once, we can rearrange the linear segments of <span class="arithmatex">\(z(t)\)</span> to get a new path with same <span class="arithmatex">\(I_K\)</span> value, but larger-or-equal constraint value. After dividing by the constraint value (rather: it's square root), we get a new minimizer that visits <span class="arithmatex">\(F_i\)</span> less often. Repeating this, we get a minimizer that visits every face at most once. We also learn that each division was by <span class="arithmatex">\(1\)</span>, i.e. that the rearrangement did actually not change the constraint value, which is some geometric statement about what minimizers can look like. For non-minimal critical orbits, this argument does not work, since we may obtain a new orbit with lower action after rearrangement.</p>
+<p>Theorem (Chadez Hutchings 2021): No minimum action closed characteristic can have a segment along a <span class="arithmatex">\(1\)</span>-face.
+Proof: again only a sketch here, and a longer writeup in the appendix, though the paper is quite explicit and probably better. The idea is to look at the Zehnder index of the minimum action orbit, show that it is <span class="arithmatex">\(=3\)</span>, which implies that the rotation number <span class="arithmatex">\(\rho(\gamma) \in (1,2)\)</span>. We further show that any closed characteristic on the polytope is the limit of closed characteristics on smoothings of the polytope, and that the combinatorical case rotation number equals the limit of the smooth case rotation numbers. Finally, we show that on a <span class="arithmatex">\(1\)</span>-face, the smooth rotation numbers must diverge to <span class="arithmatex">\(+\infty\)</span>, which contradicts the limit being in <span class="arithmatex">\((1,2)\)</span> for the minimum action orbit.</p>
+<p>Note: we have not yet ruled out that the minimum action orbit has a segment along a <span class="arithmatex">\(2\)</span>-face. In fact, this is for example the case for all minimum action orbits of the standard counterexample to Viterbo's conjecture in four dimensions (Heim-Kislev 2024).</p>
+<p>Lemma: A segment on a <span class="arithmatex">\(2\)</span>-face implies that the <span class="arithmatex">\(2\)</span>-face is Lagrangian.
+Proof: direct computation from variational principle.</p>
+<p>Conjecture: The condition that the minimum action orbit has no segment on a <span class="arithmatex">\(2\)</span>-face and no segment on a <span class="arithmatex">\(1\)</span>-face and does not hit any <span class="arithmatex">\(0\)</span>-faces is generic in the usual sense.
+Proof: N/A, speculation from Chaidez-Hutchings 2021. It's easy to see that Lagrangian <span class="arithmatex">\(2\)</span>-faces is generic, so we only have to think through the <span class="arithmatex">\(1\)</span>-face and <span class="arithmatex">\(0\)</span>-face cases. We didn't think through that though.</p>
+<h2 id="algorithm-specification">Algorithm Specification<a class="headerlink" href="#algorithm-specification" title="Permanent link">&para;</a></h2>
+<p>We now know that the minimum action closed characteristic <span class="arithmatex">\(\gamma\)</span> can be mapped to the sequence of faces whose interior it visits in order. Each closed face is visited at most once, and no <span class="arithmatex">\(1\)</span>-face interiors are visited. In the generic case we could also exclude the interior of <span class="arithmatex">\(2\)</span>-faces and <span class="arithmatex">\(0\)</span>-faces, but we don't need to right now.
+Alternatively, we can track the sequence of closed <span class="arithmatex">\(2\)</span>-faces visited, where each again only is entered and exited at most once, and passing from one <span class="arithmatex">\(2\)</span>-face to the next happens over a closed <span class="arithmatex">\(3\)</span>-face (that contains a potential <span class="arithmatex">\(1\)</span>-face or <span class="arithmatex">\(0\)</span>-face intersection used).
+Moving within a <span class="arithmatex">\(2\)</span>-face can only happen for Lagrangian <span class="arithmatex">\(2\)</span>-faces, and all exit points within a cone are possible, so we cannot recover locally what entrance and exit points were used. Let's for now ignore the Lagrangian <span class="arithmatex">\(2\)</span>-face case, and only track the sequence of closed <span class="arithmatex">\(2\)</span>-faces visited, with closed <span class="arithmatex">\(3\)</span>-faces in between.</p>
+<p>Our algorithm will enumerate above combinatorical structure, but skip various cases early, using dynamic bounding and pruning, to avoid the combinatorial explosion of possibilities.</p>
+<p>For a given sequence we still have to find the minimum action closed characteristic that realizes this combinatorical structure, or determine that no such closed characteristic exists.</p>
+<p>We can do this by defining flow maps between closed <span class="arithmatex">\(2\)</span>-faces along closed <span class="arithmatex">\(3\)</span>-faces. In the non-Lagrangian case, the flow map is an invertible affine map between the two <span class="arithmatex">\(2\)</span>-dimensional subspaces of the <span class="arithmatex">\(2\)</span>-faces. We can define the domain of the flow map as all points in the closed source <span class="arithmatex">\(2\)</span>-face that flow through the closed <span class="arithmatex">\(3\)</span>-face into the closed target <span class="arithmatex">\(2\)</span>-face. This set may be empty, e.g. if the <span class="arithmatex">\(3\)</span>-face's Reeb vector fields points into the source <span class="arithmatex">\(2\)</span>-face instead of out of it.</p>
+<p>Lemma: for any non-Lagrangian <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F = F_1 \cap F_2\)</span>, the Reeb vector fields <span class="arithmatex">\(R_1\)</span>, <span class="arithmatex">\(R_2\)</span> are not tangent to <span class="arithmatex">\(F\)</span>, and one points into <span class="arithmatex">\(F\)</span>, while the other points out of <span class="arithmatex">\(F\)</span>.
+Proof: use convexity of <span class="arithmatex">\(K\)</span> to derive <span class="arithmatex">\(\langle n_1, J n_2 \rangle &gt; 0\)</span> iff <span class="arithmatex">\(R_2\)</span> points into <span class="arithmatex">\(F\)</span>. The equality case directly leads to <span class="arithmatex">\(\langle n_1, J n_2 \rangle = 0\)</span>, which implies that <span class="arithmatex">\(F\)</span> is Lagrangian.</p>
+<p>Notation: <span class="arithmatex">\(\psi_{F \to F'}^{F_k}\)</span>: the flow map from closed <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F\)</span> to closed <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F'\)</span> over closed <span class="arithmatex">\(3\)</span>-face <span class="arithmatex">\(F_k\)</span>. Its domain is <span class="arithmatex">\(\mathrm{dom}(\psi)\)</span> and its image is <span class="arithmatex">\(\mathrm{im}(\psi)\)</span>. The map is affine and invertible in the non-Lagrangian case.</p>
+<p>Lemma: <span class="arithmatex">\(\psi\)</span> is a symplectic affine map of positive orientation between the two <span class="arithmatex">\(2\)</span>-dimensional subspaces, if we equip them with the symplectic form induced by <span class="arithmatex">\(\omega\)</span>. Again we need the non-Lagrangian assumption.
+Proof: direct computation from definition of Reeb flow.</p>
+<p>We can now compose the flow maps along the given combinatorical sequence, and obtain a map <span class="arithmatex">\(\Psi: \mathrm{dom}(\Psi) \subset F_{start} \to \mathrm{im}(\Psi) \subset F_{start}\)</span>. If the domain and image are empty, then no trajectory exists for this combinatorical sequence. If they are non-empty, we can look for fixed points of <span class="arithmatex">\(\Psi\)</span>, i.e. points <span class="arithmatex">\(x \in \mathrm{dom}(\Psi)\)</span> with <span class="arithmatex">\(\Psi(x) = x\)</span>. Potentially the fixed points of the affine map <span class="arithmatex">\(\Psi\)</span> extended to the full <span class="arithmatex">\(2\)</span>-dimensional subspace spanned by <span class="arithmatex">\(F_{start}\)</span> do not lie in the domain, so we have to check that.</p>
+<p>Note: the rotation part of <span class="arithmatex">\(\Psi\)</span> is the sum of the rotation parts of the individual flow maps. The rotation increments are easily calculated since no multiple rotations happen inside a single <span class="arithmatex">\(3\)</span>-face. Also, the rotation part is non-negative, so the summed rotation is non-decreasing as we compose more flow maps along a growing combinatorical sequence. This will be useful for pruning later.</p>
+<p>Lemma: Since <span class="arithmatex">\(\Psi\)</span> is a positively oriented symplectic affine map, either it has exactly one fixed point, or is the identity map, or it is the translation by a non-zero vector.
+Proof: direct from symplectic linear algebra in two dimensions, e.g. look at determinant=1.</p>
+<p>So we now can take a combinatorical structure, and find no, one, or compact but infinitely many closed characteristics that realize it. We can take one with minimal action as our candidate, so it's either zero or one candidate per combinatorical structure.</p>
+<p>Our combinatorial enumeration should now follow these principles:
+- depth first search by growing combinatorical sequences, and skipping search subtrees early if the summed non-negative rotation increments exceed the upper bound <span class="arithmatex">\(&lt;2\)</span>, or if the summed non-negative action increments exceed the current best known upper bound on the minimum action.
+- we prioritize search branches that are more likely to yield low action or low rotation closed characteristics first, to get good upper bounds early for pruning.
+- we start with an easy-to-compute upper bound, e.g. from an enclosing symplectic ellipsoid, to get initial pruning ability.
+- we avoid duplicated effort, i.e. if we exhaust a <span class="arithmatex">\(2\)</span>-face as starting node, we don't even visit it in later branches that have a different starting <span class="arithmatex">\(2\)</span>-face.</p>
+<p>Lastly, we need to discuss Lagrangian <span class="arithmatex">\(2\)</span>-faces again, since they do appear in (non-generic) polytopes and their minimum action orbits, especially the standard counterexample to Viterbo's conjecture in four dimensions (Haim-Kislev 2024) that we are interested in.
+```</p>
+<p>In the Lagrangian <span class="arithmatex">\(2\)</span>-face case, the Reeb vectors of both adjacent <span class="arithmatex">\(3\)</span>-faces are tangent to the <span class="arithmatex">\(2\)</span>-face. So no direct transition from the interior of a <span class="arithmatex">\(3\)</span>-face to the closed <span class="arithmatex">\(2\)</span>-face can happen. Instead, the linear segment in the <span class="arithmatex">\(2\)</span>-face points in a direction in the Reeb cone <span class="arithmatex">\(J N_F\)</span>, and starts and ends at some points on the boundary of the <span class="arithmatex">\(2\)</span>-face, i.e. the interior of a <span class="arithmatex">\(1\)</span>-face or <span class="arithmatex">\(0\)</span>-face.
+In the case of a <span class="arithmatex">\(1\)</span>-face interior as entrypoint, the only way to enter the <span class="arithmatex">\(1\)</span>-face is from the interior of the third <span class="arithmatex">\(3\)</span>-face adjacent to it, or the interior of one of the two other <span class="arithmatex">\(2\)</span>-faces adjacent to it. Similarly for the <span class="arithmatex">\(0\)</span>-face case. Not all these cases may be locally realizable, depending on the Reeb vector directions.</p>
+<p>In the case of the standard counterexample to Viterbo's conjecture, the segments go along the lagrangian <span class="arithmatex">\(2\)</span>-faces, and transition through <span class="arithmatex">\(0\)</span>-faces.</p>
+<p>First we lay out how to handle Lagrangian <span class="arithmatex">\(2\)</span>-faces in the combinatorical enumeration, and then how to find the minimum action closed characteristic for a given combinatorical structure that includes Lagrangian <span class="arithmatex">\(2\)</span>-faces.</p>
+<p>We now know that Lagrangian <span class="arithmatex">\(2\)</span>-faces are only entered and exited via <span class="arithmatex">\(1\)</span>-faces or <span class="arithmatex">\(0\)</span>-faces. Wlog we start our sequence on a Lagrangian <span class="arithmatex">\(2\)</span>-face, i.e. we handle these start cases first, and then after that only consider sequences among non-Lagrangian <span class="arithmatex">\(2\)</span>-faces.</p>
+<p>As a first modification for the search that allows to visit Lagrangian <span class="arithmatex">\(2\)</span>-faces, we switch to a new graph with <span class="arithmatex">\(0\)</span>, <span class="arithmatex">\(1\)</span>, and non-Lagrangian <span class="arithmatex">\(2\)</span>-faces as nodes, and <span class="arithmatex">\(1\)</span>, <span class="arithmatex">\(2\)</span>, <span class="arithmatex">\(3\)</span> faces as edges. We interpret visits as passing through the interior only, and not the boundary of the face. Both for nodes and edges. We also start only on a <span class="arithmatex">\(1\)</span>-face or <span class="arithmatex">\(0\)</span>-face, since we by assumption will need to always visit a Lagrangian <span class="arithmatex">\(2\)</span>-face in our combinatorical search, and os we do it at the start.</p>
+<p>Unlike before, our candidate trajectory sets no longer are described by the convex non-degenerate subset of the start <span class="arithmatex">\(2\)</span>-face, but instead by an interval of a start <span class="arithmatex">\(1\)</span>-face, or equivalently an open/closed/clopen line (which includes the case of a single point) in the current last <span class="arithmatex">\(0\)</span>, <span class="arithmatex">\(1\)</span>, or non-Lagrangian <span class="arithmatex">\(2\)</span>-face.</p>
+<p>We still have flow maps along the interior of <span class="arithmatex">\(3\)</span>-faces between non-Lagrangian <span class="arithmatex">\(2\)</span>-faces, <span class="arithmatex">\(1\)</span>-faces, and <span class="arithmatex">\(0\)</span>-faces, that are affine symplectic maps as before. Our intervals are sent to intervals again.</p>
+<p>For flow maps along the interior of <span class="arithmatex">\(1\)</span>-faces we simply have the point-to-point map, or the empty map if the direction isn't permitted.
+Our intervals (here: a point) are sent to intervals (a point) again.</p>
+<p>For flow maps along the interior of Lagrangian <span class="arithmatex">\(2\)</span>-faces, we now get a cone of possible exit directions. We realize this as two maps <span class="arithmatex">\(\psi,\psi'\)</span> from the entry <span class="arithmatex">\(1\)</span>-dim space to the exit <span class="arithmatex">\(1\)</span>-dim space, that correspond to the two extremal rays of the Reeb cone. If a shared <span class="arithmatex">\(0\)</span>-face exists, the two maps both take the value of that <span class="arithmatex">\(0\)</span>-face point there. Otherwise, the two maps are strictly distinct, which also defines an orientation (that we don't have a use for).
+Mapping an open/closed/clopen interval through the cone map then yields again an interval, potentially with different open/closed/clopen properties. Points in particular can map to non-point intervals.</p>
+<p>After we found a closed combinatorical sequence with non-empty candidate trajectory set, we now have to find a fixed point with minimal action again.
+It is not a 1:1 map that we have, instead we have a bunch of composable 1:1 maps, and the cone maps.
+The cone map on a <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F\)</span> can be represented as a free parameter <span class="arithmatex">\(s_F(x) \in [0,1]\)</span> that interpolates between the two extremal rays of the Reeb cone, i.e. <span class="arithmatex">\(x \mapsto (1-s_F(x)) \psi(x) + s_F(x) \psi'(x)\)</span>.
+The action increment is again affine in <span class="arithmatex">\(x\)</span> for each cone direction, and mixing mixes them linearly, so the total action is again affine in <span class="arithmatex">\(x\)</span> and the <span class="arithmatex">\(s_F(x)\)</span> parameters.</p>
+<p>So we get an optimization problem over the initial starting point <span class="arithmatex">\(x\)</span> in the remaining candidate trajectory set (which is an interval, potentially a point), and the <span class="arithmatex">\(s_F\)</span> parameters for each Lagrangian <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F\)</span> visited. We get another linear equation constraint that the endpoint must be the same as the starting point <span class="arithmatex">\(x\)</span>.
+The whole problem may be satisfiable or not.</p>
+<p>TODO: actually above can be simplified a lot: Per Heim-Kislev 2019, we can always get a minimum action orbit that visits every 3-face at most once, and furthermore, only follows 3-face Reeb directions, never a mixture. So instead of the cones, we can just pick one of the two extremal rays per Lagrangian 2-face we transition through. This reduces to picking one of the two 3-faces to transition through. So in fact, we can just normally enumerate the combinatorics of a graph with 2-face nodes and 3-face edges. If we are on a Lagrangian 2-face, we will then follow a tangential 3-face Reeb direction, and hit another 1-face that lies on both plus a third 3-face. If we go into said 3-face next, then we can define the 1-face as part of the 2-face formed by the third 3-face and the followed 3-face. So the combinatorics checks out. If we go into another Lagrangian 2-face next, then ??. If we go along the 1-face, we aren't minimal. If we don't hit the interior of a 1-face but a 0-face, that's just a subcase of the same, and works out.</p>
+<p>So it's still enough to enumerate the 3-face sequence with 2-faces that one passes through, with flow maps that map entry to exit. The flow maps may however now degenerate to have a 1d domain and a 1d image. I.e. if we go from a Lagrangian 2-face <span class="arithmatex">\(F\)</span> along a 3-face <span class="arithmatex">\(F_k\)</span> into a (non-/)Lagrangian 2-face <span class="arithmatex">\(F'\)</span>, then the flow map <span class="arithmatex">\(\psi\)</span> is onto (a subset of) the <span class="arithmatex">\(1\)</span>-face <span class="arithmatex">\(F \cap F_k\)</span>. After we go through such a flow, we continue onwards with a <span class="arithmatex">\(1\)</span>-dim trajectory candidate set. The rotation increment is still annoying, since <em>iiuc</em> we cannot calculate it for an affine map that's not full rank. Maybe we just ignore it in that case as a cutoff rule, e.g. set it to <span class="arithmatex">\(-\infty\)</span> so that adding never exeeds <span class="arithmatex">\(&lt;2\)</span>. Action increments work as before.</p>
+<p>TODO: Hmm actually it's not quite as simple. On a lagrangian <span class="arithmatex">\(2\)</span>-face the orbit can switch directions from one <span class="arithmatex">\(3\)</span>-face Reeb vector the other, so we don't know that the whole segment has the same vector. I think, we just have to introduce a degree of freedom here. Basically: going from a (maybe lagrangian) <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F\)</span> to the Lagrangian <span class="arithmatex">\(2\)</span>-face <span class="arithmatex">\(F'\)</span> via the direction <span class="arithmatex">\(R_1\)</span> of the shared <span class="arithmatex">\(3\)</span>-face <span class="arithmatex">\(F_1\)</span> gives us a relation <span class="arithmatex">\(\psi\)</span> with domain being the shared <span class="arithmatex">\(1\)</span>-face (note: only the adjacent <span class="arithmatex">\(2\)</span>-faces can enter/exit a lagrangian <span class="arithmatex">\(2\)</span>-face, or at least we can skip direct jumps from afar onto the <span class="arithmatex">\(1\)</span>-face via a third, non-adjacent <span class="arithmatex">\(3\)</span>-face interior), and the image being a whole <span class="arithmatex">\(2\)</span>-dim convex area on the Lagrangian <span class="arithmatex">\(2\)</span>-face, namely everything reachable via <span class="arithmatex">\(R_1\)</span> flow. Similarly if we go from the lagrangian <span class="arithmatex">\(2\)</span>-face to an adjacent <span class="arithmatex">\(2\)</span>-face, the domain is a <span class="arithmatex">\(2\)</span>-dim convex area, and the image is the shared <span class="arithmatex">\(1\)</span>-face. The composition is then line-to-line with only a cone constraint again.
+My suspicion is that the new parameter we get is basically equivalent to an infinitesimal rotation/perturbation that makes the <span class="arithmatex">\(2\)</span>-face non-lagrangian. In that case we get a highly numerically unstable map between <span class="arithmatex">\(2\)</span>-dim convex areas instead of degenerate <span class="arithmatex">\(1\)</span>-dim lines.
+And while the perturbation may drastically shift what action orbit is minimal, the action is continuous. Interestengly this suggests that if we have multiple degrees of freedom added like that, we should be able to collapse them; we loose our ability to track the exact orbits for the non-generic case, and our ability to track which orbits are minimal under what perturbations, but we do still get one orbit with the shared minimal action value.
+So my guess is that we can pick independently arbitrary infinitesimal perturbations for each lagrangian <span class="arithmatex">\(2\)</span>-face visited, resulting in numerically unstable but well-defined <span class="arithmatex">\(1:1\)</span> flow maps, and then proceed as before. We symmetry break the minimal orbits, but not the minimal action value.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+      
+        <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
+      
+        <script src="../assets/js/plotly-hydrate.js"></script>
+      
+    
+  </body>
+</html>
