@@ -5,7 +5,7 @@ Focus: Milestone — writeups
 
 - [x] move legacy/partially wrong docs to `docs/archive`
 - [x] create `docs/todo.md` for today
-- [ ] write up the project's research question
+- [x] write up the project's research question
 - [ ] write up a literature overview
 - [ ] write up the mathematical introduction up to the point where we proved various theorems about the critical points of the action functional and in particular the existence of one point with minimum positive action
 - [ ] write up the HK2019 algorithm

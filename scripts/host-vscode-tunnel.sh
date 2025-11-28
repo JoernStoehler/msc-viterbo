@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Launch a VS Code tunnel from the host into the devcontainer.
-# Usage: scripts/host-vscode-tunnel.sh [--name my-tunnel] [extra code tunnel args]
+# Usage: scripts/host-vscode-tunnel.sh
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -11,7 +11,10 @@ if ! command -v devcontainer >/dev/null 2>&1; then
   exit 1
 fi
 
-TUNNEL_NAME="${TUNNEL_NAME:-msc-viterbo}"
+TUNNEL_NAME="msc-viterbo"
 CODE_TUNNEL_BIN="${CODE_TUNNEL_BIN:-/usr/local/bin/code-tunnel}"
 
-devcontainer exec --workspace-folder "${REPO_ROOT}" -- "${CODE_TUNNEL_BIN}" tunnel --accept-server-license-terms --name "${TUNNEL_NAME}" "$@"
+# Ensure the devcontainer is running so the tunnel can be launched inside it.
+devcontainer up --workspace-folder "${REPO_ROOT}" >/dev/null
+
+devcontainer exec --workspace-folder "${REPO_ROOT}" -- "${CODE_TUNNEL_BIN}" tunnel --accept-server-license-terms --name "${TUNNEL_NAME}"
