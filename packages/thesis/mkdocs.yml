@@ -48,6 +48,10 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - attr_list
 
+exclude_docs: |
+  internal/**
+  literature/README.md
+
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
   - https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js

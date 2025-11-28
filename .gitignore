@@ -61,3 +61,4 @@ log/
 
 # Local git worktree directories should live outside the repo root. Ignore in case someone creates one here accidentally.
 worktrees/
+scratch/
