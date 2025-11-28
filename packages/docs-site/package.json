@@ -4,28 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
-    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
-    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
-    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
-    "lint:mdx": "remark ../thesis/src ../thesis/src/literature ../thesis/src/internal --ext .mdx"
-  },
-  "dependencies": {
-    "@astrojs/mdx": "^4.3.11",
-    "@astrojs/react": "^4.0.1",
-    "astro": "^5.0.0",
-    "plotly.js-dist-min": "^2.33.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "rehype-katex": "^7.0.1"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "remark-cli": "^12.0.1",
-    "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0",
-    "remark-mdx": "^3.1.1",
-    "typescript": "^5.6.3"
+    "noop": "echo 'Use scripts/docs-publish.sh; no local build here.'"
   }
 }

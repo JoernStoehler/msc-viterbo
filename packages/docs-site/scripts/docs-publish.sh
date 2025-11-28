@@ -1,34 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fresh glue layer: stage per-package docs and build the Astro site.
+# Glue layer: copy already-built docs into public/ for GitHub Pages.
 # Assumptions:
-# - Each package owns its docs and may emit build artifacts under packages/<pkg>/build/docs or target/doc.
-# - We only copy prebuilt docs; heavy builds should be run explicitly before calling this script.
+# - Each package owns its docs and emits static HTML under packages/<pkg>/build/... (or shared target for Rust).
+# - This script does NO builds; run package-specific build commands first.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCS_SITE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${DOCS_SITE_ROOT}/../.." && pwd)"
 
-THESIS_SRC="${REPO_ROOT}/packages/thesis/src"
-THESIS_DEST="${DOCS_SITE_ROOT}/src/content/thesis"
-API_DEST="${DOCS_SITE_ROOT}/public/api"
+THESIS_SRC="${REPO_ROOT}/packages/thesis/build/site"
+PUBLIC_ROOT="${DOCS_SITE_ROOT}/public"
+API_DEST="${PUBLIC_ROOT}/api"
+THESIS_DEST="${PUBLIC_ROOT}/thesis"
 
 echo "Docs site root: ${DOCS_SITE_ROOT}"
 echo "Repo root:      ${REPO_ROOT}"
 
 echo
-echo "[1/5] Clean staging directories"
+echo "[1/4] Clean staging directories"
 rm -rf "${THESIS_DEST}" "${API_DEST}"
 mkdir -p "${THESIS_DEST}" "${API_DEST}"
 
 echo
-echo "[2/5] Stage thesis MDX + assets (no mutations)"
-rsync -a --delete --exclude 'build/' --exclude '.DS_Store' --exclude '*.bak.*' \
-  "${THESIS_SRC}/" "${THESIS_DEST}/"
+echo "[2/4] Stage thesis static site (if present)"
+if [ -d "${THESIS_SRC}" ]; then
+  rsync -a --delete "${THESIS_SRC}/" "${THESIS_DEST}/"
+else
+  echo "- skip thesis (missing: ${THESIS_SRC})"
+fi
 
 echo
-echo "[3/5] Stage package API docs (best-effort)"
+echo "[3/4] Stage package API docs (best-effort)"
 
 stage_api() {
   local src="$1" dest_sub="$2"
@@ -52,16 +56,7 @@ stage_api "${REPO_ROOT}/packages/python_viterbo/build/docs" "python"
 stage_api "${REPO_ROOT}/packages/lean_viterbo/build/doc" "lean"
 
 echo
-echo "[4/5] Install Node deps if needed"
-if [ ! -d "${DOCS_SITE_ROOT}/node_modules" ]; then
-  (cd "${DOCS_SITE_ROOT}" && npm install --loglevel error)
-else
-  echo "node_modules present – skipping npm install"
-fi
+echo "[4/4] Landing page stays in public/index.html; nothing to build"
 
 echo
-echo "[5/5] Build Astro site"
-(cd "${DOCS_SITE_ROOT}" && npm run build)
-
-echo
-echo "Done. Extend this script (or the per-package build steps) instead of wiring packages directly into Astro."
+echo "Done. Extend per-package build steps; this script only copies outputs."
