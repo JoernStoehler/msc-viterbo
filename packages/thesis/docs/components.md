@@ -36,6 +36,11 @@ Figures and plots
 
   `assets/js/plotly-hydrate.js` loads the JSON and renders via the Plotly CDN. Keep JSON deterministic.
 
+Minimal figure recipe for agents
+- Generate both `fig-id.png` and `fig-id.json` from Python into `src/assets/figures/<chapter>/`.
+- In the corresponding Markdown file, add the static image first, then (optionally) the interactive div as above.
+- If a figure must stay internal, keep it under `src/internal/` alongside the page that references it.
+
 Cross-references
 - Use standard Markdown links; MkDocs will resolve relative paths within `src/`.
 - For equations, use labelled text (e.g., "(HK24, Thm. 1.1)") rather than custom numbering macros.
