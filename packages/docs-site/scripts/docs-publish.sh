@@ -9,34 +9,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCS_SITE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${DOCS_SITE_ROOT}/../.." && pwd)"
 
-err() { echo "ERROR: $*" >&2; exit 1; }
-
 build_thesis() {
   if [[ ${SKIP_THESIS:-0} -eq 1 ]]; then echo "[thesis] skipped"; return; fi
-  local script="${REPO_ROOT}/packages/thesis/scripts/build-site.sh"
-  if [[ -x "${script}" ]]; then
-    echo "[thesis] building via ${script}"; (cd "${REPO_ROOT}/packages/thesis" && "${script}")
-  else
-    err "thesis build script missing: ${script} (set SKIP_THESIS=1 to bypass)"
-  fi
+  (cd "${REPO_ROOT}/packages/thesis" && ./scripts/build-site.sh)
 }
 
 build_rust() {
   if [[ ${SKIP_RUST:-0} -eq 1 ]]; then echo "[rust] skipped"; return; fi
-  echo "[rust] cargo doc --no-deps"
-  (cd "${REPO_ROOT}/packages/rust_viterbo" && cargo doc --no-deps)
+  (cd "${REPO_ROOT}/packages/rust_viterbo" && ./scripts/build-docs.sh)
 }
 
 build_python() {
   if [[ ${SKIP_PYTHON:-0} -eq 1 ]]; then echo "[python] skipped"; return; fi
-  echo "[python] uv run pdoc viterbo -o build/docs"
-  (cd "${REPO_ROOT}/packages/python_viterbo" && uv run pdoc viterbo -o build/docs)
+  (cd "${REPO_ROOT}/packages/python_viterbo" && ./scripts/build-docs.sh)
 }
 
 build_lean() {
   if [[ ${SKIP_LEAN:-0} -eq 1 ]]; then echo "[lean] skipped"; return; fi
-  echo "[lean] lake exe doc"
-  (cd "${REPO_ROOT}/packages/lean_viterbo" && lake exe doc)
+  (cd "${REPO_ROOT}/packages/lean_viterbo" && ./scripts/build-docs.sh)
 }
 
 stage_hub() {
