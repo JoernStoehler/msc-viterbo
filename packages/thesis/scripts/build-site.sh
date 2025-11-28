@@ -6,13 +6,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 cd "${PROJECT_ROOT}"
 
-# Build static HTML via MkDocs + Material. Dependencies are pulled on-the-fly via uv.
+# Build static HTML via MkDocs + Material using the locked deps in pyproject/uv.lock.
 # Output: build/site/
 
-echo "[thesis] mkdocs build --strict"
-uv run \
-  --with mkdocs \
-  --with mkdocs-material \
-  --with mkdocs-material-extensions \
-  --with pymdown-extensions \
-  mkdocs build --strict
+echo "[thesis] mkdocs build --strict (uv --frozen)"
+uv run --frozen mkdocs build --strict

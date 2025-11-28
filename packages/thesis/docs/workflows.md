@@ -17,6 +17,12 @@ Claim-check checklist
 - For algorithms, note assumptions (smoothness, non-Lagrangian faces, etc.) and whether they hold for our polytope classes.
 - Record any parameter ranges or rotation bounds used for pruning.
 
+MkDocs build reminders
+- Source lives in `packages/thesis/src/`; build output in `build/site/` (gitignored).
+- Build: `packages/thesis/scripts/build-site.sh` (uses uv + mkdocs-material, frozen via uv.lock).
+- Publish (all docs): `packages/docs-site/scripts/docs-publish.sh` (fails fast unless SKIP flags are set).
+- Interactive plots: include PNG + optional `<div data-plot-json="...">`; Plotly hydration is wired in `mkdocs.yml` via `assets/js/plotly-hydrate.js`.
+
 Housekeeping
 - When moving a draft to public, remove `internal: true`, re-read for tone, and ensure references point to assets and code paths under `packages/`.
 - If a convention changes, update this file and the relevant MDX pages; do not leave stale alternatives.
