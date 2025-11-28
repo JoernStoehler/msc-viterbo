@@ -32,10 +32,10 @@ export interface ThesisEntry {
 
 type ThesisModule = MarkdownInstance<ThesisFrontmatter>;
 
-const thesisModules = {
-  ...import.meta.glob<ThesisModule>('../../../thesis/src/*.mdx', { eager: true }),
-  ...import.meta.glob<ThesisModule>('../../../thesis/src/literature/*.mdx', { eager: true }),
-};
+const thesisModules = import.meta.glob<ThesisModule>(
+  '../content/thesis/**/*.mdx',
+  { eager: true },
+);
 
 const thesisEntries: ThesisEntry[] = Object.entries(thesisModules).map(([filePath, module]) => {
   const frontmatter = module.frontmatter ?? ({} as ThesisFrontmatter);
