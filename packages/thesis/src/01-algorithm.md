@@ -79,6 +79,10 @@ Proof: N/A, speculation from Chaidez-Hutchings 2021. It's easy to see that Lagra
 
 ## Algorithm Specification
 
+<div id="floating-point-implementation"></div>
+
+<div id="appendix-proofs"></div>
+
 We now know that the minimum action closed characteristic $\gamma$ can be mapped to the sequence of faces whose interior it visits in order. Each closed face is visited at most once, and no $1$-face interiors are visited. In the generic case we could also exclude the interior of $2$-faces and $0$-faces, but we don't need to right now.
 Alternatively, we can track the sequence of closed $2$-faces visited, where each again only is entered and exited at most once, and passing from one $2$-face to the next happens over a closed $3$-face (that contains a potential $1$-face or $0$-face intersection used).
 Moving within a $2$-face can only happen for Lagrangian $2$-faces, and all exit points within a cone are possible, so we cannot recover locally what entrance and exit points were used. Let's for now ignore the Lagrangian $2$-face case, and only track the sequence of closed $2$-faces visited, with closed $3$-faces in between.

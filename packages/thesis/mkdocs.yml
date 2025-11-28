@@ -18,9 +18,6 @@ nav:
       - Haim-Kislev 2019: literature/haim-kislev-2019.md
       - Haim-Kislev & Ostrover 2024: literature/haim-kislev-ostrover-2024-counterexample.md
       - Rudolf 2022 Minkowski Billiard: literature/rudolf-2022-minkowski-billiard.md
-  - Internal (drafts):
-      - Math Introduction (draft): internal/math-introduction.md
-      - TODO scratchpad: internal/todo.md
 
 theme:
   name: material
