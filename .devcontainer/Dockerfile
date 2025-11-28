@@ -20,6 +20,7 @@ SHELL ["/bin/bash", "-lc"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    git-lfs \
     build-essential \
     pkg-config \
     libssl-dev \
