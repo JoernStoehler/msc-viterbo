@@ -22,6 +22,7 @@ MkDocs build reminders
 - Build: `packages/thesis/scripts/build-site.sh` (uses uv + mkdocs-material, frozen via uv.lock).
 - Publish (all docs): `packages/docs-site/scripts/docs-publish.sh` (fails fast unless SKIP flags are set).
 - Interactive plots: include PNG + optional `<div data-plot-json="...">`; Plotly hydration is wired in `mkdocs.yml` via `assets/js/plotly-hydrate.js`.
+- Placeholder anchors: if you link to a future section, add `<div id="anchor-name"></div>` or a stub heading `## TODO {#anchor-name}` to keep strict builds clean.
 
 Housekeeping
 - When moving a draft to public, remove `internal: true`, re-read for tone, and ensure references point to assets and code paths under `packages/`.

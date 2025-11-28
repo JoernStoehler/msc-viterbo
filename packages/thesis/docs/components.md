@@ -41,6 +41,11 @@ Minimal figure recipe for agents
 - In the corresponding Markdown file, add the static image first, then (optionally) the interactive div as above.
 - If a figure must stay internal, keep it under `src/internal/` alongside the page that references it.
 
+Placeholder anchors (to avoid missing-anchor warnings while drafting)
+- Quick stub: `<div id="future-section"></div>` anywhere in the file.
+- Or use a stub heading with an explicit id: `## Placeholder {#future-section}` (needs `attr_list`, already enabled).
+- Replace the stub with real content later; until then builds stay strict-clean.
+
 Cross-references
 - Use standard Markdown links; MkDocs will resolve relative paths within `src/`.
 - For equations, use labelled text (e.g., "(HK24, Thm. 1.1)") rather than custom numbering macros.
