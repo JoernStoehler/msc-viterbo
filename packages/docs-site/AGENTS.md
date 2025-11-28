@@ -16,13 +16,14 @@ You are in `packages/docs-site/`, a thin static host for all docs outputs. Packa
 
 ## Build Workflow
 
-1. Build docs inside each package (recommended commands):
-   - Thesis: run your static exporter so output lands in `packages/thesis/build/site/` (e.g., `packages/thesis/scripts/build-site.sh` once available; for now pick any static MDX→HTML flow).
-   - Rust: `cd packages/rust_viterbo && cargo doc --no-deps` (uses shared `worktrees/shared/target/doc/`).
-   - Python: `cd packages/python_viterbo && uv run pdoc viterbo -o build/docs` (or your chosen Sphinx command to the same folder).
-   - Lean: `cd packages/lean_viterbo && lake exe doc` (expected at `packages/lean_viterbo/build/doc`).
-2. Run `packages/docs-site/scripts/docs-publish.sh` to copy those outputs into `public/thesis/` and `public/api/*`. The script warns if any docs are missing or older than sources.
-3. Deploy GitHub Pages from `packages/docs-site/public/`.
+1. One-shot pipeline: `packages/docs-site/scripts/docs-publish.sh` builds all package docs, stages them into `public/`, and publishes to `gh-pages` via a temporary worktree. It fails fast if a package build is missing/broken. Override with SKIP flags: `SKIP_THESIS=1`, `SKIP_RUST=1`, `SKIP_PYTHON=1`, `SKIP_LEAN=1`, `SKIP_PUBLISH=1`.
+2. Internals of the one-shot pipeline (for troubleshooting):
+   - Thesis: `packages/thesis/scripts/build-site.sh` → `packages/thesis/build/site/` (required).
+   - Rust: `cargo doc --no-deps` in `packages/rust_viterbo` → `worktrees/shared/target/doc/`.
+   - Python: `uv run pdoc viterbo -o build/docs` in `packages/python_viterbo`.
+   - Lean: `lake exe doc` in `packages/lean_viterbo` → `packages/lean_viterbo/build/doc/`.
+   - Stage: `scripts/stage-hub.sh` copies builds into `public/thesis/` and `public/api/*` and warns on stale/missing outputs.
+   - Publish: `scripts/publish-ghpages.sh` copies `public/` into a `gh-pages` worktree, commits, and pushes.
 
 ## Scripts
 
