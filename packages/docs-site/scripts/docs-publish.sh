@@ -58,5 +58,28 @@ stage_api "${REPO_ROOT}/packages/lean_viterbo/build/doc" "lean"
 echo
 echo "[4/4] Landing page stays in public/index.html; nothing to build"
 
+warn_if_outdated() {
+  local label="$1" src_dir="$2" doc_dir="$3"
+  if [ ! -d "${doc_dir}" ]; then
+    echo "WARN: ${label} docs missing at ${doc_dir}; build before publish." >&2
+    return
+  fi
+  # newest source mtime (ignores build/ to avoid self-counting)
+  local src_mtime
+  src_mtime=$(find "${src_dir}" -path "*/build" -prune -o -type f -printf '%T@\n' | sort -nr | head -n1 || true)
+  local doc_mtime
+  doc_mtime=$(find "${doc_dir}" -type f -printf '%T@\n' | sort -nr | head -n1 || true)
+  if [ -n "${src_mtime}" ] && [ -n "${doc_mtime}" ]; then
+    if awk "BEGIN {exit !(${doc_mtime} < ${src_mtime})}"; then
+      echo "WARN: ${label} docs older than sources (src ${src_mtime}, docs ${doc_mtime}); rebuild recommended." >&2
+    fi
+  fi
+}
+
+warn_if_outdated "Thesis" "${REPO_ROOT}/packages/thesis" "${THESIS_SRC}"
+warn_if_outdated "Rust API" "${REPO_ROOT}/packages/rust_viterbo" "${REPO_ROOT}/worktrees/shared/target/doc"
+warn_if_outdated "Python API" "${REPO_ROOT}/packages/python_viterbo" "${REPO_ROOT}/packages/python_viterbo/build/docs"
+warn_if_outdated "Lean docs" "${REPO_ROOT}/packages/lean_viterbo" "${REPO_ROOT}/packages/lean_viterbo/build/doc"
+
 echo
 echo "Done. Extend per-package build steps; this script only copies outputs."

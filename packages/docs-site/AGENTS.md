@@ -16,12 +16,12 @@ You are in `packages/docs-site/`, a thin static host for all docs outputs. Packa
 
 ## Build Workflow
 
-1. Build docs inside each package:
-   - Thesis static site → `packages/thesis/build/site/` (Astro static / Pandoc / other static generator).
-   - Rust API → `worktrees/shared/target/doc/` via `cargo doc`.
-   - Python API → `packages/python_viterbo/build/docs/` via `pdoc` or Sphinx.
-   - Lean docs → `packages/lean_viterbo/build/doc/` via `lake exe doc`.
-2. Run `packages/docs-site/scripts/docs-publish.sh` to copy those outputs into `public/thesis/` and `public/api/*`.
+1. Build docs inside each package (recommended commands):
+   - Thesis: run your static exporter so output lands in `packages/thesis/build/site/` (e.g., `packages/thesis/scripts/build-site.sh` once available; for now pick any static MDX→HTML flow).
+   - Rust: `cd packages/rust_viterbo && cargo doc --no-deps` (uses shared `worktrees/shared/target/doc/`).
+   - Python: `cd packages/python_viterbo && uv run pdoc viterbo -o build/docs` (or your chosen Sphinx command to the same folder).
+   - Lean: `cd packages/lean_viterbo && lake exe doc` (expected at `packages/lean_viterbo/build/doc`).
+2. Run `packages/docs-site/scripts/docs-publish.sh` to copy those outputs into `public/thesis/` and `public/api/*`. The script warns if any docs are missing or older than sources.
 3. Deploy GitHub Pages from `packages/docs-site/public/`.
 
 ## Scripts
