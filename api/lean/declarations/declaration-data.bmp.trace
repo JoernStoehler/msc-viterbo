@@ -1,0 +1,18 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": null,
+ "log":
+ [{"message": "Documentation indexing", "level": "info"},
+  {"message":
+   ".> /workspaces/worktrees/shared/lean/packages/doc-gen4/.lake/build/bin/doc-gen4 index --build /workspaces/msc-viterbo/packages/lean_viterbo/docbuild/.lake/build",
+   "level": "trace"}],
+ "inputs":
+ [["/workspaces/worktrees/shared/lean/packages/doc-gen4/.lake/build/bin/doc-gen4",
+   "9e6b0df9b550ac7e"],
+  ["<nil>", "7c0baac5fc784a49"],
+  ["<collection>",
+   [["/workspaces/msc-viterbo/packages/lean_viterbo/docbuild/.lake/build/doc/ProbingViterbo/Dummy.html",
+     "3c81d2871f270e99"],
+    ["/workspaces/msc-viterbo/packages/lean_viterbo/docbuild/.lake/build/doc/ProbingViterbo.html",
+     "128d2eef2cbac397"]]]],
+ "depHash": "e96f47eb255f8b04"}

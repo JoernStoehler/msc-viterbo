@@ -616,121 +616,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
-        
-          
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Internal (drafts)
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_9">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Internal (drafts)
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internal/math-introduction/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Math Introduction (draft)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internal/todo/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TODO scratchpad
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -848,6 +733,10 @@ Proof: direct computation from variational principle.</p>
 <p>Conjecture: The condition that the minimum action orbit has no segment on a <span class="arithmatex">\(2\)</span>-face and no segment on a <span class="arithmatex">\(1\)</span>-face and does not hit any <span class="arithmatex">\(0\)</span>-faces is generic in the usual sense.
 Proof: N/A, speculation from Chaidez-Hutchings 2021. It's easy to see that Lagrangian <span class="arithmatex">\(2\)</span>-faces is generic, so we only have to think through the <span class="arithmatex">\(1\)</span>-face and <span class="arithmatex">\(0\)</span>-face cases. We didn't think through that though.</p>
 <h2 id="algorithm-specification">Algorithm Specification<a class="headerlink" href="#algorithm-specification" title="Permanent link">&para;</a></h2>
+<div id="floating-point-implementation"></div>
+
+<div id="appendix-proofs"></div>
+
 <p>We now know that the minimum action closed characteristic <span class="arithmatex">\(\gamma\)</span> can be mapped to the sequence of faces whose interior it visits in order. Each closed face is visited at most once, and no <span class="arithmatex">\(1\)</span>-face interiors are visited. In the generic case we could also exclude the interior of <span class="arithmatex">\(2\)</span>-faces and <span class="arithmatex">\(0\)</span>-faces, but we don't need to right now.
 Alternatively, we can track the sequence of closed <span class="arithmatex">\(2\)</span>-faces visited, where each again only is entered and exited at most once, and passing from one <span class="arithmatex">\(2\)</span>-face to the next happens over a closed <span class="arithmatex">\(3\)</span>-face (that contains a potential <span class="arithmatex">\(1\)</span>-face or <span class="arithmatex">\(0\)</span>-face intersection used).
 Moving within a <span class="arithmatex">\(2\)</span>-face can only happen for Lagrangian <span class="arithmatex">\(2\)</span>-faces, and all exit points within a cone are possible, so we cannot recover locally what entrance and exit points were used. Let's for now ignore the Lagrangian <span class="arithmatex">\(2\)</span>-face case, and only track the sequence of closed <span class="arithmatex">\(2\)</span>-faces visited, with closed <span class="arithmatex">\(3\)</span>-faces in between.</p>

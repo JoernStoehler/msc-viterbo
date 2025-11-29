@@ -1,0 +1,1 @@
+rd_("f[1,\"\"]00f[0,\"\"]11Ak[8,\"core::fmt\",\"core::fmt\"]Ba[6,\"core::result\",\"core::result\"]Ak[5,\"core::any\",\"core::any\"]4Ak[5,\"core::fmt\",\"core::fmt\"]5Bk[5,\"rust_viterbo_geom\",\"rust_viterbo_geom\"]f[3,\"\"]0")
