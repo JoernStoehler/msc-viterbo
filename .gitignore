@@ -10,7 +10,7 @@
 .vscode/
 !.vscode/settings.json
 .idea/
-*.code-workspace
+.code-workspace
 
 # OS-level metadata
 .DS_Store

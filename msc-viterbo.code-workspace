@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../worktrees"
+		}
+	],
+	"settings": {
+		"git.autoRepositoryDetection": "openEditors",
+		"git.ignoredRepositories": [
+			"/workspaces/worktrees/shared/lean/packages",
+			"/tmp/docs-site-gh-pages.*"
+		],
+		"git.ignoreLimitWarning": true
+	}
+}
