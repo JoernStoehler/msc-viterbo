@@ -14,5 +14,26 @@
 			"/tmp/docs-site-gh-pages.*"
 		],
 		"git.ignoreLimitWarning": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"charliermarsh.ruff",
+			"ms-python.vscode-pylance",
+			"rust-lang.rust-analyzer",
+			"vadimcn.vscode-lldb",
+			"leanprover.lean4",
+			"dbaeumer.vscode-eslint",
+			"esbenp.prettier-vscode",
+			"tamasfe.even-better-toml",
+			"redhat.vscode-yaml",
+			"openai.chatgpt",
+			"github.copilot",
+			"github.copilot-chat",
+			"github.vscode-pull-request-github",
+			"usernamehw.errorlens",
+			"github.github-vscode-theme",
+			"miguelsolorio.symbols"
+		]
 	}
 }
