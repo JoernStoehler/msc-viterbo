@@ -10,6 +10,9 @@ DOCBUILD_ROOT="${PROJECT_ROOT}/docbuild"
 SHARED_DOC_BUILD="/workspaces/worktrees/shared/lean/docbuild-build"
 mkdir -p "${SHARED_DOC_BUILD}"
 
+# Ensure docbuild/.lake exists before wiring the shared build dir.
+mkdir -p "${DOCBUILD_ROOT}/.lake"
+
 # Ensure docbuild/.lake/build points at the shared location. If a local build
 # dir exists, sync its contents over before replacing it with the symlink.
 if [ ! -L "${DOCBUILD_ROOT}/.lake/build" ]; then
@@ -29,27 +32,16 @@ if [ ! -e "${DOCBUILD_ROOT}/lean-toolchain" ]; then
 fi
 
 echo "[lean] lake -Kdoc=on exe cache get (mathlib oleans)"
-MATHLIB_NO_CACHE_ON_UPDATE=1 lake -Kdoc=on exe cache get
 
-echo "[lean] lake -Kdoc=on build docs (doc-gen4)"
-lake -Kdoc=on build docs
+LOCKDIR="/workspaces/worktrees/shared/lean/locks"
+mkdir -p "${LOCKDIR}"
+LOCKFILE="${LOCKDIR}/lean-docs.lock"
 
-rm -rf "${PROJECT_ROOT}/build/doc"
-mkdir -p "${PROJECT_ROOT}/build"
+flock "${LOCKFILE}" bash -c '
+  set -euo pipefail
+  MATHLIB_NO_CACHE_ON_UPDATE=1 lake -Kdoc=on exe cache get
+  echo "[lean] lake -Kdoc=on build ProbingViterbo:docs (doc-gen4)"
+  lake -Kdoc=on build ProbingViterbo:docs
+'
 
-# doc-gen4 attaches the docs facet to the package that owns the sources
-# (here: the path dependency `lean_viterbo`). As a result the HTML output
-# lands in that package's `.lake/build/doc`, not in the auxiliary
-# `docbuild/.lake` directory. Prefer that location, but keep the old path
-# as a fallback in case we ever change the layout again.
-DOC_OUT_MAIN="${PROJECT_ROOT}/.lake/build/doc"
-DOC_OUT_DOCBUILD="${DOCBUILD_ROOT}/.lake/build/doc"
-
-if [ -d "${DOC_OUT_MAIN}" ]; then
-  mv "${DOC_OUT_MAIN}" "${PROJECT_ROOT}/build/doc"
-elif [ -d "${DOC_OUT_DOCBUILD}" ]; then
-  mv "${DOC_OUT_DOCBUILD}" "${PROJECT_ROOT}/build/doc"
-else
-  echo "ERROR: doc-gen4 output not found at ${DOC_OUT_MAIN} or ${DOC_OUT_DOCBUILD}" >&2
-  exit 1
-fi
+echo "Docs remain in ${PROJECT_ROOT}/.lake/build/doc (shared cache)."

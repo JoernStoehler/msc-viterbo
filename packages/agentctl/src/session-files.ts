@@ -118,7 +118,7 @@ export async function discoverSessionFile(options: DiscoverOptions): Promise<{ f
 
     while (Date.now() < deadline) {
         const files = walkSessions(root)
-            .filter(f => f.mtimeMs >= options.sinceMs - 200)
+            .filter(f => f.mtimeMs >= options.sinceMs)
             .sort((a, b) => {
                 const diff = b.mtimeMs - a.mtimeMs;
                 if (diff !== 0) return diff;
