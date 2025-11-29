@@ -4,6 +4,7 @@ set -euo pipefail
 # End-to-end docs pipeline: build all package docs, stage them into public/, and publish to gh-pages.
 # SKIP flags: SKIP_THESIS=1, SKIP_RUST=1, SKIP_PYTHON=1, SKIP_LEAN=1, SKIP_PUBLISH=1
 # Lean docs: set LEAN_DOCS=0 to skip; warm cache ~30s, cold cache (wiped) ~20–25m.
+# Outdated warnings: set WARN_OUTDATED=1 to check source vs. staged mtimes (off by default to avoid noisy false positives).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCS_SITE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -101,6 +102,9 @@ stage_all() {
 
   warn_if_outdated() {
     local label="$1" src_dir="$2" doc_dir="$3"
+    if [[ ${WARN_OUTDATED:-0} -ne 1 ]]; then
+      return
+    fi
     if [ ! -d "${doc_dir}" ]; then
       echo "WARN: ${label} docs missing at ${doc_dir}; build before publish." >&2
       return
@@ -115,10 +119,13 @@ stage_all() {
     fi
   }
 
-  warn_if_outdated "Thesis" "${REPO_ROOT}/packages/thesis" "${THESIS_SRC}"
-  warn_if_outdated "Rust API" "${REPO_ROOT}/packages/rust_viterbo" "${RUST_DOC_SRC}"
-  warn_if_outdated "Python API" "${REPO_ROOT}/packages/python_viterbo" "${REPO_ROOT}/packages/python_viterbo/build/docs"
-  warn_if_outdated "Lean docs" "${REPO_ROOT}/packages/lean_viterbo" "${REPO_ROOT}/packages/lean_viterbo/.lake/build/doc"
+  if [[ ${WARN_OUTDATED:-0} -eq 1 ]]; then
+    echo "[stage] checking mtimes (WARN_OUTDATED=1)"
+    warn_if_outdated "Thesis" "${REPO_ROOT}/packages/thesis" "${THESIS_SRC}"
+    warn_if_outdated "Rust API" "${REPO_ROOT}/packages/rust_viterbo" "${RUST_DOC_SRC}"
+    warn_if_outdated "Python API" "${REPO_ROOT}/packages/python_viterbo" "${REPO_ROOT}/packages/python_viterbo/build/docs"
+    warn_if_outdated "Lean docs" "${REPO_ROOT}/packages/lean_viterbo" "${REPO_ROOT}/packages/lean_viterbo/.lake/build/doc"
+  fi
 }
 
 publish() {
@@ -126,8 +133,25 @@ publish() {
   echo "[publish] pushing gh-pages via worktree"
   local PUBLIC_DIR="${DOCS_SITE_ROOT}/public"
   local BRANCH="gh-pages"
+  local WORKTREE_GLOB="/tmp/docs-site-gh-pages.*"
+  local WORKTREE_NAME_PREFIX="docs-site-gh-pages"
+  # Use a deterministic trap with the path baked in; otherwise the EXIT trap
+  # would reference an unset local under `set -u` once the function returns.
   local WORKTREE_DIR
   WORKTREE_DIR="$(mktemp -d /tmp/docs-site-gh-pages.XXXXXX)"
+
+  echo "[publish] pruning stale gh-pages worktrees"
+  (
+    cd "${REPO_ROOT}" && git worktree prune >/dev/null
+  ) || true
+  for stale in ${WORKTREE_GLOB}; do
+    [[ -d "${stale}" ]] || continue
+    echo "  removing stale ${stale}"
+    rm -rf "${stale}" || true
+  done
+  if [[ -d "${REPO_ROOT}/.git/worktrees" ]]; then
+    find "${REPO_ROOT}/.git/worktrees" -maxdepth 1 -type d -name "${WORKTREE_NAME_PREFIX}.*" -print -exec rm -rf {} +
+  fi
 
   if [ ! -d "${PUBLIC_DIR}" ]; then
     echo "ERROR: public/ not found; stage failed" >&2
@@ -144,10 +168,12 @@ publish() {
   git worktree add --force "${WORKTREE_DIR}" "${BRANCH}" >/dev/null
 
   cleanup() {
-    git worktree remove --force "${WORKTREE_DIR}" >/dev/null || true
-    rm -rf "${WORKTREE_DIR}"
+    # We must not rely on locals here: trap runs after locals are unset.
+    local dir="$1"
+    cd "${REPO_ROOT}" && git worktree remove --force "${dir}" >/dev/null || true
+    rm -rf "${dir}" || true
   }
-  trap cleanup EXIT
+  trap "cleanup ${WORKTREE_DIR@Q}" EXIT INT TERM
 
   echo "Clearing old contents"
   rm -rf "${WORKTREE_DIR:?}"/*
@@ -157,7 +183,7 @@ publish() {
 
   cd "${WORKTREE_DIR}"
   if [ -z "$(git status --porcelain)" ]; then
-    echo "No changes to publish" >&2
+    echo "[publish] no staged changes; skipping commit/push" >&2
     exit 0
   fi
 
