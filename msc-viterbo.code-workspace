@@ -13,7 +13,9 @@
 			"/workspaces/worktrees/shared/lean/packages",
 			"/tmp/docs-site-gh-pages.*"
 		],
-		"git.ignoreLimitWarning": true
+		"git.ignoreLimitWarning": true,
+		"mdmath.delimiters": "brackets",
+		"mdmath.theme": "publication"
 	},
 	"extensions": {
 		"recommendations": [
@@ -33,7 +35,8 @@
 			"github.vscode-pull-request-github",
 			"usernamehw.errorlens",
 			"github.github-vscode-theme",
-			"miguelsolorio.symbols"
+			"miguelsolorio.symbols",
+			"goessner.mdmath"
 		]
 	}
 }
