@@ -1,0 +1,71 @@
+---
+title: Research Question
+slug: research-question
+summary: Statement of the thesis problem, scope, and sub-questions for probing Viterbo's conjecture on 4D convex polytopes.
+---
+
+# Research Question
+<!-- Style: literal, explicit, rigorous; keep terminology consistent; mark assistant additions with <proposed>. -->
+
+The Viterbo Conjecture was long believed to be true by many, until Haim-Kislev 2024 gave a counterexample in $4$ dimensions. That's the lowest dimension where Viterbo's conjecture is not trivially true, and further counterexamples in higher dimensions can be constructed from the $4$-dimensional one.
+
+We are interested in which convex bodies the Viterbo Conjecture fails and holds, concretely in the computationally feasible case of convex polytopes in $4$ dimensions.
+The research question of the thesis is thus to probe Viterbo's Conjecture using computational methods, formulate and falsify hypotheses, and try to formulate conjectures we believe to be true and relevant for future research or for motivating a deeper understanding of symplectic geometry.
+
+## Scope
+- Convex polytopes in $\mathbb{R}^4$, with standard symplectic form $\omega_0$ and standard Liouville form $\lambda_0$.
+- For a few nicer properties downstream, we move the origin into the interior of the polytope.
+- We want to handle both generic cases, and symmetric or otherwise special cases that may have degenerate behavior.
+- In particular, we want to handle polytopes with as many facets, and as degenerate behavior, as the standard counterexample from Haim-Kislev 2024.
+
+## Out-of-Scope
+- Smooth convex bodies (we only handle polytopes directly; smooth bodies can be approximated by polytopes).
+- Other dimensions than $4$ (we only handle $4$ dimensions directly; higher dimensions may behave differently, but are also harder to compute with).
+- Non-convex bodies, e.g. merely symplectic convex bodies.
+- Other questions about symplectic geometry not related to Viterbo's conjecture and the action of closed characteristics on convex polytopes.
+
+## Sub-Questions
+
+**"How does symplectic geometry work on polytopes?"**
+
+There is existing literature for how to treat the polytope case as a limit of smoothings, but we want to directly reason about the polytope limit and need to gather notations and facts from the literature, and extend them to more tricky edge-cases where the limits behave badly.
+
+**"How do we compute the EHZ capacity of a convex polytope?"**
+
+Existing algorithms exist (Chaidez-Hutchings 2021, Haim-Kislev 2019, Haim-Kislev 2024 with reference to Minkowski Billiards dynamics), but are not optimized enough to handle polytopes with many facets in a high-throughput setting as is needed for data science experiments.
+
+**"What data science methods yield insights into Viterbo's conjecture?"**
+
+We treat Viterbo's conjecture and symplectic geometry as a black box that takes a convex polytope and returns rich data beyond the boolean of whether Viterbo's conjecture holds. Concretely our rich data involves different polytope representations, the EHZ capacity, the volume, one minimum action orbit, and possibly more. On top of the black box we then employ all the data science methods we can think of, to simply try-and-see what yields insights. This includes clustering, dimensionality reduction, anomaly detection, feature importance methods, and more.
+
+**"What rich data is useful for data science methods and what rich data can we compute efficiently?"**
+
+The black box data science methods require us to compute rich data for many polytopes. We will simply try-and-see what data is useful and worth the hassle of developing a computationally efficient algorithm.
+
+**"What insights did we obtain about symplectic geometry and Viterbo's conjecture in particular?"**
+
+We translate our computational findings back into statements about mathematics, in particular as computationally obtained witnesses of existence statements, e.g. of further counterexamples of particular types, and as soft evidence that supports/suggests our hypotheses and conjectures. 
+
+**"Can we prove some of our conjectures?"** 
+
+Besides computational arguments that counterexamples to our conjectures must be rare, we'd like actual arguments that they are non-existent and our conjectures are true. We try to look for insights that inspire proofs, and we look for computationally exhaustive numerical bounding arguments that give us the sharp, or relaxed versions, of our conjectures.
+
+## Viterbo's Conjecture
+
+**Conjecture (false): Viterbo's Conjecture**: For a convex body K in R^{2n},
+
+```text
+Define sys(K) := A_min(K)^n / (n! * vol(K)). The conjecture claims sys(K) <= 1.
+A_min(K) = c_EHZ(K) = inf{ |A(gamma)| : gamma closed characteristic on dK }.
+A(gamma) = integral over gamma of lambda_0, the action of a closed characteristic on the boundary of K; lambda_0 is the standard Liouville form on R^{2n}.
+Equivalently, view A: W^{1,2}(S^1, R^{2n}) -> R, A(gamma) = integral_0^{2pi} lambda_0(gamma_dot(t)) dt, and minimize over non-stationary critical points.
+```
+This uses that the critical points are precisely the closed characteristics, plus the stationary curves with action $0$ which we exclude.
+
+**Theorem: Standard Counterexample (Haim-Kislev 2024)**: There exists a 4-dimensional convex polytope K with sys(K) > 1.
+
+```text
+K = P_5 ×_L R_{90deg} P_5
+×_L: Lagrangian product; P_5: regular pentagon (circumradius 1); R_{90deg}: CCW rotation by 90 degrees in R^2.
+sys(K) = ((2 cos(pi/10) (1 + cos(pi/5)))^2) / (2 * ( (5/2) sin(2pi/5) )^2 ) ≈ 1.04721 > 1.
+```

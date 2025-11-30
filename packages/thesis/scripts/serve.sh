@@ -9,5 +9,5 @@ if ! command -v quarto >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[thesis] quarto render -> build/site"
-quarto render
+echo "[thesis] quarto preview --port 8000 --host 0.0.0.0"
+quarto preview --port 8000 --host 0.0.0.0
