@@ -1,9 +1,4 @@
----
-title: Haim–Kislev & Ostrover (2024) — Counterexample to Viterbo via Lagrangian Pentagons
-slug: haim-kislev-ostrover-2024-counterexample
-summary: Exhibits $K\times T$ (regular pentagon × 90° rotation) with $\mathrm{sys}(K\times T)>1$, disproving Viterbo’s conjecture in all dimensions via product lifts.
-tags: [viterbo, counterexample, lagrangian-product]
----
+# Haim–Kislev & Ostrover 2024 Counterexample
 
 ## Context
 - Source: `packages/thesis/build/arxiv/2405.16513v2/main.tex` (TeX from arXiv v2). Avoid PDF.

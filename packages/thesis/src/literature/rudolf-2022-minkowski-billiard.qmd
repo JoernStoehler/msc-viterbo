@@ -1,9 +1,4 @@
----
-title: Rudolf (2022) — Minkowski Billiard Characterization of c_EHZ(K×T)
-slug: rudolf-2022-minkowski-billiard
-summary: Shows c_EHZ(K×T) equals the minimal T-length of closed (K,T) Minkowski billiard trajectories without smoothness assumptions.
-tags: [EHZ, minkowski-billiard, lagrangian-product]
----
+# Rudolf 2022 – Minkowski Billiard
 
 ## Context
 - Source: `packages/thesis/build/arxiv/2203.01718v1/The_Minkowski_billiard-characterization_of_the_EHZ-capacity_of_convex_Lagrangian_products.tex` (arXiv v1 TeX).

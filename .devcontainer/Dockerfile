@@ -29,6 +29,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+ 
+# Quarto (for thesis docs) — pinned version for reproducibility.
+RUN QUARTO_DEB="quarto-1.8.26-linux-amd64.deb" \
+    && cd /tmp \
+    && wget -q "https://github.com/quarto-dev/quarto-cli/releases/download/v1.8.26/${QUARTO_DEB}" \
+    && dpkg -i "${QUARTO_DEB}" \
+    && rm -f "${QUARTO_DEB}"
 
 # Common CLI tools used by agents (cheap to adjust; comes after base deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \

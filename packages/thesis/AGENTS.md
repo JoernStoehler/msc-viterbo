@@ -4,7 +4,10 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 
 ## Strategy
 
-- Canonical sources are Markdown files under `src/`, built to static HTML with MkDocs + Material.
+**Read these first (required):**
+- Root `docs/context-engineering.md` — cross-package context rules.
+
+- Canonical sources are `.qmd` files under `src/`, built to static HTML with **Quarto**.
 - Roughly a week before submission we will export to LaTeX/PDF; until then, optimize for GH Pages (math + plots) and fast rebuilds.
 
 ## Layout (initial)
@@ -12,18 +15,16 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 - `src/` – Markdown sources (public chapters).
 - `src/internal/` – drafts/internal notes (kept in nav under “Internal”).
 - `src/literature/` – per-paper digests.
-- `build/` – generated artifacts (MkDocs HTML under `build/site/`, gitignored).
+- `build/` – generated artifacts (Quarto HTML under `build/site/`, gitignored).
 - `archive/` – legacy docs, read-only.
-- Package-specific guidance lives in `docs/` (see below).
 
 ## Required reading & layout pointers
 
-- Markdown with YAML front matter is canonical (`title`, optional `summary`, optional `internal: true`).
+- No YAML front matter; start each file with an `# H1` title.
 - Drafts/internal material belongs in `src/internal/`; public chapters in `src/`; literature digests in `src/literature/`.
-- Thesis writing/conventions: `packages/thesis/docs/writing.md`, `packages/thesis/docs/components.md`, `packages/thesis/docs/workflows.md`.
 - Cross-package context rules: `docs/context-engineering.md` (root). Follow its placement/maintenance rules when adding new context.
 - Avoid PDFs for math verification; prefer TeX from the arXiv store (`packages/thesis/scripts/arxiv_fetch.sh` places sources under `build/arxiv/`).
-- Math input: MDX is configured with `remark-math` + `rehype-katex`, so write math normally with `$...$` and `$$...$$` (prefer TeX commands over Unicode symbols).
+- Math input: write math with `\(...\)` and `\[...\]`; prefer TeX commands over Unicode symbols.
 
 ## Architecture context
 
@@ -33,27 +34,8 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 
 ## Source format & components
 
-- Author every chapter as `.mdx` inside `src/`. Each file starts with YAML front matter:
-
-  ```yaml
-  ---
-  title: Probing Viterbo's Conjecture
-  slug: overview
-  summary: >
-    Short abstract for web previews.
-  figures:
-    - id: fig-ball-sys
-      caption: Symplectic systole for the 4-ball.
-      assets:
-        interactive: figures/fig-ball-sys.json
-        static: figures/fig-ball-sys.png
-  ---
-  ```
-
-- Write plain Markdown. Use admonitions for structure:
-  - Theorem/Proposition/etc.: `!!! info "Theorem"` followed by the statement.
-  - Proof: `!!! note "Proof"` or a paragraph labelled “Proof.”
-  - Remarks/Warnings via `!!! tip` / `!!! warning`.
+- Files live in `src//`. No YAML front matter; start with an `# H1` title.
+- Write plain Markdown. For statements use bold labels (`**Definition.**`, `**Proposition.**`); proofs start with `Proof.`.
 
 ## Figures and assets
 
@@ -61,17 +43,17 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 - Embed in Markdown using the static image, and optionally add a Plotly div for interactivity:
   - `![caption](assets/figures/ch1/fig-foo.png)`
   - `<div data-plot-json="assets/figures/ch1/fig-foo.json"></div>`
-  MkDocs loads `assets/js/plotly-hydrate.js` which fetches the JSON and renders via the global Plotly CDN.
+  `assets/js/plotly-hydrate.js` (included via mdBook config) fetches the JSON and renders via the global Plotly CDN.
 - Always commit static assets. Interactive specs must be reproducible (pin seeds/commits).
 
 ## Interaction with `packages/docs-site/`
 
-- `packages/thesis/scripts/build-site.sh` builds static HTML to `build/site/` via MkDocs.
+- `packages/thesis/scripts/build-site.sh` builds static HTML to `build/site/` via Quarto.
 - `packages/docs-site/scripts/docs-publish.sh` copies `build/site/` into `packages/docs-site/public/thesis/` (and publishes gh-pages). No direct coupling beyond that copy.
 
 ## Export workflows
 
-- **Docs / GH Pages**: `packages/thesis/scripts/build-site.sh` (MkDocs) then `packages/docs-site/scripts/docs-publish.sh` (builds all packages and publishes gh-pages).
+- **Docs / GH Pages**: `packages/thesis/scripts/build-site.sh` (Quarto) then `packages/docs-site/scripts/docs-publish.sh` (builds all packages and publishes gh-pages).
 - **Print / PDF** (future): add `build/pandoc/` and a script that reuses the Markdown sources; swap interactive plots for static assets.
 
 ## ArXiv sources (offline access)
@@ -84,7 +66,9 @@ You are in `packages/thesis/`, which contains the sources and build pipeline for
 
 ## Tooling and commands
 
-- Build HTML (thesis): `packages/thesis/scripts/build-site.sh` (MkDocs; uses uv to pull deps on-the-fly). Output in `build/site/`.
+- Build HTML (thesis): `packages/thesis/scripts/build-site.sh` (`quarto render`). Output in `build/site/`.
+- Live preview: `packages/thesis/scripts/serve.sh` (`quarto preview --host 0.0.0.0 --port 8000`).
+- Math: KaTeX via Quarto. No static lint currently.
 - Full publish (all packages → gh-pages): `packages/docs-site/scripts/docs-publish.sh` (fails fast unless SKIP_* set).
 - Figures pipeline: extend Python scripts to emit `*.png` + `*.json` into `src/assets/figures/...`.
-- PDF export: not yet implemented; keep Markdown math/structure clean for Pandoc later.
+- PDF export: not yet implemented; keep Markdown math/structure clean for future conversion.

@@ -1,9 +1,4 @@
----
-title: Haim–Kislev (2019) — Simple Closed Characteristics on Polytopes
-slug: haim-kislev-2019
-summary: Minimum-action closed characteristics visit each facet at most once, yielding a finite combinatorial search for c_EHZ on convex polytopes.
-tags: [EHZ, polytopes, combinatorial]
----
+# Haim–Kislev 2019
 
 ## Context
 - Source: `packages/thesis/build/arxiv/1712.03494v3/EHZ-polytopes.tex` (TeX from arXiv v3). Avoid the PDF; copy formulas from TeX.
