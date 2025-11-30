@@ -7,12 +7,16 @@ docs_dir: src
 site_dir: build/site
 
 nav:
-  - Research Question: 01-research-question.md
-  - Algorithms Overview: 02-algorithms-overview.md
-  - Capacity Algorithm: 01-algorithm.md
-  - Geometry Foundations: 02-geometry.md
-  - Data Science Experiments: 03-data-science-experiments.md
-  - Thesis and AI Agents: 04-thesis-and-ai-agents.md
+  - Project: 01-project.md
+  - Math Background: 02-math.md
+  - Algorithm Design: 03-algorithm.md
+  - Experiments: 04-experiments.md
+  - Conjectures: 05-conjectures.md
+  - Appendices:
+      - Lean Library: 10-lean-library.md
+      - Rust Library: 11-rust-library.md
+      - Detailed Experiments: 12-detailed-experiments.md
+      - AI Agents: 13-ai-agents.md
   - Literature Overview: 05-literature-overview.md
   - Literature Digests:
       - Haim-Kislev 2019: literature/haim-kislev-2019.md

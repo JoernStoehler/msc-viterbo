@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "markdown.extension.math.enabled": true,
+    "markdown.extension.math.delimiters": [
+      { "left": "\\(", "right": "\\)", "display": false },
+      { "left": "\\[", "right": "\\]", "display": true }
+    ]
+  }
+}
