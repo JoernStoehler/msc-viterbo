@@ -82,6 +82,7 @@ All development happens in a single VS Code devcontainer that owns the lone git 
     🤖 Author: codex agent on branch `agent/issue-123`
     🤖 Edited by: codex agent on branch `agent/issue-128`
     ```
+- **Contacting the project owner.** The owner is Jörn Stöhler. Default channel: end your turn with a clear finalMessage (preferred) or leave a concise comment on the relevant GitHub issue/PR via `gh issue comment --body-file …` / `gh pr comment --body-file …` (with the provenance footer). Do not assume Slack/DM access.
 - **Delegation hooks.** For large sub-issues you own, create another git worktree, run `scripts/worktree-prepare.sh`, and spin up a new `agentctl start --workdir <that-dir> …` turn dedicated to the subtask. For tiny helper tasks inside the same worktree, it is fine to run an additional `agentctl start --workdir <current-dir> --prompt "helper task"` turn and keep the deliverable short.
 
 ## The Most Frequent Workflows
