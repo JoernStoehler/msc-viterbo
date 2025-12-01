@@ -7,9 +7,11 @@
 ## Claims Checked
 - Theorem (label `counterexample_thm`): Viterbo’s conjecture fails for every \(n\ge 2\).
 - Proposition `counterexample_prop`: for \(K\) a unit regular pentagon and \(T=R_{90^\circ}K\),
+
   \[
   c_{EHZ}(K\times T)=2\cos(\tfrac{\pi}{10})(1+\cos(\tfrac{\pi}{5})),
   \]
+
   achieved by a 2-bounce \(T\)-billiard along a diagonal.
 - Volume computation gives \(\mathrm{sys}(K\times T)=1.04721\dots>1\) (used in our literature overview).
 

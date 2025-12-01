@@ -3,10 +3,10 @@ MKDOCS_CONFIG := mkdocs.yml
 .PHONY: docs-html docs-serve docs-lint
 
 docs-html:
-	mkdocs build -f $(MKDOCS_CONFIG)
+	scripts/build-site.sh
 
 docs-serve:
-	mkdocs serve -f $(MKDOCS_CONFIG) --dev-addr 0.0.0.0:8000
+	scripts/serve.sh
 
 docs-lint:
-	scripts/lint_math.py
+	scripts/lint.sh

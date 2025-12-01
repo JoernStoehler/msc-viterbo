@@ -34,16 +34,21 @@ plugins:
   - autorefs
 
 markdown_extensions:
+  - attr_list
+  - md_in_html
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: math
+          class: arithmatex
+          format: !!python/name:pymdownx.arithmatex.fence_mathjax_format
   - pymdownx.arithmatex:
       generic: true
-      tex_inline_wrap: ['\\(', '\\)']
-      tex_block_wrap: ['\\[', '\\]']
 
 extra_javascript:
   - overrides/assets/mathjax-config.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
   - assets/js/plotly-hydrate.js
   - https://cdn.plot.ly/plotly-2.35.2.min.js

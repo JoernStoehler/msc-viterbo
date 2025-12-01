@@ -1,0 +1,18 @@
+[project]
+name = "thesis-docs"
+version = "0.1.0"
+description = "MkDocs site for the Probing Viterbo's Conjecture thesis."
+requires-python = ">=3.12"
+dependencies = [
+    "mkdocs==1.5.3",
+    "mkdocs-material==9.1.11",
+    "mkdocs-autorefs==1.4.3",
+    "pymdown-extensions==10.10.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false

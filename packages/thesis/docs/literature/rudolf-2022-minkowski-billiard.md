@@ -6,9 +6,11 @@
 
 ## Claims Checked
 - Main equivalence for convex bodies \((K, T) \subset \mathbb{R}^n\):
+
   \[
   c_{EHZ}(K\times T)=\min_{q\in F_{n+1}^{cp}(K)} \ell_T(q)=\min_{p\in F_{n+1}^{cp}(T)} \ell_K(p)=\min_{q\in M_{n+1}(K,T)} \ell_T(q).
   \]
+
 - No smoothness or strict convexity required; statement covers polytopes.
 - The minimal closed characteristic on \(K\times T\) corresponds to a shortest \(T\)-Minkowski billiard trajectory in \(K\).
 

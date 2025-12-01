@@ -5,10 +5,13 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG="${PROJECT_ROOT}/mkdocs.yml"
 cd "${PROJECT_ROOT}"
 
-if ! command -v mkdocs >/dev/null 2>&1; then
-  echo "mkdocs not installed; install with 'uv tool install mkdocs-material' or pip" >&2
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv not installed; install uv to use the pinned MkDocs toolchain" >&2
   exit 1
 fi
 
-echo "[thesis] mkdocs build -f ${CONFIG}"
-mkdocs build -f "${CONFIG}"
+echo "[thesis] uv sync --frozen"
+uv sync --frozen
+
+echo "[thesis] uv run --frozen mkdocs build -f ${CONFIG}"
+uv run --frozen mkdocs build -f "${CONFIG}"
