@@ -17,7 +17,7 @@ Repo layout (top level):
 - Node.js 22.21.0, npm 10.9.4.
 - Lean 4.25.0, lake 5.0.0.
 - git 2.52.0, gh 2.45.0, git lfs.
-- MkDocs 1.5.13, Material for MkDocs 9.1.11.
+- MkDocs 1.5.13, Material for MkDocs 9.1.11, pymdown-extensions 10.17.2 (Blocks enabled).
 - Misc: `rg, fd, jq, tree, bash -lc, ctags`.
 - Codex CLI >=0.63.0.
 

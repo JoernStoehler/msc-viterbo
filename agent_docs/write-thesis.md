@@ -23,19 +23,44 @@ The style we aim for is
 
 ## Syntax Reminders
 - Standard Markdown for most things.
-- HTML with Markdown-In-HTML allows us to do named figures, theorems, etc.
-- <figure markdown name="fig:unique">
+- Use the **Blocks** `///` fences (pymdownx.blocks) instead of hand-written HTML:
+  - Admonition: 
+    ```
+    /// admonition | Lemma (Upper Bound)
+        type: lemma
+        attrs: { name: "lem:upper-bound" }
+    Statement of the lemma.
+    ///
+    ```
+  - Proof (collapsible details):
+    ```
+    /// details | Proof
+        type: proof
+        open: true
+    Proof details go here.
+    ///
+    ```
+  - Figure/table captions (auto-numbered):
+    ```
     ![Alt text](path/to/image.png)
-    <figcaption>Caption text.</figcaption>
-  </figure>
-- <div class="admonition theorem" markdown name="thm:upper-bound-capacity">
-    <p class="admonition-title">Theorem (Upper Bound on Capacity)</p>
-    Statement of the theorem goes here.
-  </div>
-- <details class="admonition proof" markdown open>
-    <summary class="admonition-title">Proof</summary>
-    Proof details go here. Can be collapsed. Open by default.
-  </details>
+
+    /// figure-caption
+    Caption text.
+    ///
+    ```
+    (use `table-caption` after a Markdown table for automatic table numbers.)
+  - Tabs (avoid legacy `=== ""` syntax):
+    ```
+    /// tab | Python
+        :::bash
+        uv run python script.py
+    ///
+
+    /// tab | Rust
+        :::bash
+        cargo run --release
+    ///
+    ```
 - LaTeX math: Arithmatex extension ( https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/ )
   - `\(...\)` for inline math, `\[...\]` for display math.
     ```math

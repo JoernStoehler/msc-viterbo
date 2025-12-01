@@ -36,8 +36,11 @@ plugins:
 markdown_extensions:
   - attr_list
   - md_in_html
-  - admonition
-  - pymdownx.details
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.caption
+  - pymdownx.blocks.details
+  - pymdownx.blocks.html
+  - pymdownx.blocks.tab
   - pymdownx.superfences:
       custom_fences:
         - name: math
