@@ -41,7 +41,7 @@ Repo layout (top level):
 Jörn Stöhler. He owns the `main` worktree, including PRs to `main`.
 
 ## Subagents
-- Run `codex exec "<prompt>" 2>/dev/null` to spawn a fresh agent in the cwd with zero prior context. The subagent can take agents, and will write a text message to stdout once done. Useful for delegating a subtask that is clearly defined and scoped to a known list of files, that is doable for agents without complex context about the ongoing task, and that has too many or too conceptually different steps to be worth doing directly in the main agent. Examples of subagent tasks: semantic search or comparison where many files need to be read but only a small text message needs to be returned; executing a refactoring across many files that is too tricky for mere text-replacement; reviewing the staged changes with fresh eyes.
+- Run `codex exec "<prompt>" 2>/dev/null` to spawn a fresh agent in the cwd with zero prior context. The subagent can take actions, and will write a text message to stdout once done. Useful for delegating a subtask that is clearly defined and scoped to a known list of files, that is doable for agents without complex context about the ongoing task, and that has too many or too conceptually different steps to be worth doing directly in the main agent. Examples of subagent tasks: semantic search or comparison where many files need to be read but only a small text message needs to be returned; executing a refactoring across many files that is too tricky for mere text-replacement; reviewing the staged changes with fresh eyes.
 
 ## Where to Go Next
 - Run `pwd && git status -sb` to confirm your worktree.
