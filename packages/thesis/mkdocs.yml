@@ -15,7 +15,6 @@ nav:
       - Rust Library: 11-rust-library.md
       - Detailed Experiments: 12-detailed-experiments.md
       - AI Agents: 13-ai-agents.md
-      - Style Guide: STYLE.md
   - Literature:
       - Index: literature/README.md
       - Overview: 05-literature-overview.md
