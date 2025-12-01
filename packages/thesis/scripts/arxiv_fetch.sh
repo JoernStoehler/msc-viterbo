@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fetch arXiv source tarballs (and optionally PDFs) into an immutable store
-# and extract read-only copies into the current git worktree.
+# Fetch arXiv source tarballs (and optionally PDFs) into a shared store
+# and extract copies into the current git worktree.
 #
-# Store (canonical, immutable):
+# Store (canonical):
 #   ARXIV_STORE (env) or /workspaces/worktrees/shared/arxiv-store/<id>/vN/
 #   contains: source.tar.gz, optional pdf, source.tar.gz.sha256
 #
@@ -110,10 +110,6 @@ verify_sha() {
   sha256sum -c "$sha_path" >/dev/null
 }
 
-read_only() {
-  chmod -R a-w "$@"
-}
-
 for arg in "$@"; do
   id=$(normalize_id "$arg") || { echo "[skip] could not parse arXiv id from '$arg'" >&2; continue; }
   version=$(extract_version "$id")
@@ -130,7 +126,6 @@ for arg in "$@"; do
     echo "[fetch] $id → $src_tar"
     curl -L --fail "https://arxiv.org/e-print/$id" -o "$src_tar"
     ensure_sha "$src_tar"
-    read_only "$src_tar" "$(sha_file "$src_tar")"
   else
     verify_sha "$src_tar"
     echo "[cached] $src_tar"
@@ -142,14 +137,11 @@ for arg in "$@"; do
       echo "[fetch] $id → $pdf_path"
       curl -L --fail "https://arxiv.org/pdf/$id.pdf" -o "$pdf_path"
       ensure_sha "$pdf_path"
-      read_only "$pdf_path" "$(sha_file "$pdf_path")"
     else
       verify_sha "$pdf_path"
       echo "[cached] $pdf_path"
     fi
   fi
-
-  read_only "$store_paper_dir"
 
   extract_dir="$worktree_extract_base/$id"
   mkdir -p "$extract_dir"
@@ -158,6 +150,7 @@ for arg in "$@"; do
     cp "$pdf_path" "$extract_dir/"
     cp "$(sha_file "$pdf_path")" "$extract_dir/"
   fi
-  read_only "$extract_dir"
+  # Keep the immutable store read-only, but leave per-worktree extracts writable
+  # so agents can clean or regenerate them without fighting permissions.
   echo "[ready] extracted to $extract_dir"
 done

@@ -1,4 +1,5 @@
 build/site
+build/arxiv/
 .quarto/
 .quarto-cache/
 
