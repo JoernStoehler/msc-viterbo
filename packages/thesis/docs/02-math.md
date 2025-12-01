@@ -274,6 +274,8 @@ If we look at trajectories instead of orbits, then we can indeed give examples o
 Nothing to be said about 0-faces.
 ///
 
+### Generic Behavior
+
 One potentially interesting question is what of the above behavior is just an edge case, i.e. whether there's some generic property that simplifies the behavior of closed characteristics on polytopes.
 
 /// admonition | Lemma (Non-Lagrangianness is Generic)
@@ -290,116 +292,89 @@ For a fixed number of vertices, or fixed number of facets, the set of admissable
 /// admonition | Conjecture
     type: conjecture
     attrs: { name: "conj-generic-0-faces" }
-Generically, there's at least one minimum action closed characteristic that does not pass through any 0-faces.
+For a "generic" admissable polytope, no closed characteristic passes through a 0-face.
+///
+/// details | Note
+    type: note
+    open: true
+This conjecture was voiced by @ChaidezHutchings2021. Quote:
+> "We expect that Type 2 combinatorial Reeb orbits do not exist for generic polytopes; see Conjecture 1.26 below." (p.7)
 ///
 
+Besides asking about generic properties, we can also try to classify degeneracies. In particular, we care about degeneracies of multiple closed characteristics having the same action, since that also may complicate finding the minimal action, depending on our algorithmic approach.
 
+### Degeneracies of the Action
 
-
-
-## Generalized closed characteristics on polytopes
-
-### Normal cones and Hamiltonian inclusion
-For \(x\in\partial K\) the outward normal cone is \(N_K(x)=\mathbb R_{\ge0}\,\mathrm{conv}\{n_i: x\in F_i\}\). The Hamiltonian \(H=g_K^2\) satisfies \(\partial H(x)=2\,g_K(x)\,\partial g_K(x)\) and on \(\partial K\) (where \(g_K=1\)) we have
-
-\[
-\dot\gamma(t) \in J\,N_K(\gamma(t)) = \mathrm{conv}\{p_i : \gamma(t)\in F_i\}\qquad\text{a.e.}
-\]
-
-/// admonition | Definition (Hamiltonian closed characteristic)
+/// admonition | Definition (Polygonal Orbit)
     type: definition
-    attrs: { name: "def-closed-characteristic" }
-A **(generalized) Hamiltonian closed characteristic** on \(\partial K\) is a loop \(\gamma\in W^{1,2}([0,T],\partial K)\) with period \(T>0\) such that \(\gamma(0)=\gamma(T)\) and the Hamiltonian inclusion above holds a.e. We regard two parametrized loops as the same orbit when they differ by an orientation‑preserving \(C^1\) reparametrization \(\phi:[0,T']\to[0,T]\) with \(\phi(0)=0\), \(\phi(T')=T\). This coincides with Reeb orbits on smooth approximations of \(K\) [@ArtsteinAvidanOstrover2014].
+    attrs: { name: "def-piecewise-constant-velocity" }
+A Reeb/Hamiltonian orbit is **polygonal** if we can partition time into finitely many open intervals, such that during each interval the orbit does not change what facets it lies on, and has constant velocity equal to one of the incident facet velocities \(p_i\). Note that the velocity is no longer a convex combination. Note that we don't require the orbit to lie only on 3-faces, or intervals to correspond to changes in the incident facet set. Breakpoints may occur anywhere.
 ///
 
-/// admonition | Proposition (Facet behaviour)
-    type: proposition
-    attrs: { name: "prop-facet-behaviour" }
-Let \(K\) be an admissible polytope.
-
-1. **Facet interior.** If \(\gamma(t)\) lies in the relative interior of \(F_i\), then \(\dot\gamma(t)=p_i\) a.e.
-2. **Non‑Lagrangian 2‑face.** If \(G=F_i\cap F_j\) with \(\omega(n_i,n_j)\neq0\), no nonzero admissible velocity is tangent to \(G\); a characteristic must cross \(G\) from one adjacent facet to the other.
-3. **Lagrangian 2‑face.** If \(\omega(n_i,n_j)=0\), any convex combination of \(p_i,p_j\) is tangent to \(G\), so a characteristic may slide inside \(G\).
+/// admonition | Theorem (Homotopy to Polygonal Orbit)
+    type: theorem
+    attrs: { name: "thm-homotopy-pl" }
+Any Hamiltonian/Reeb orbit \(\gamma\) is homotopic through Hamiltonian/Reeb orbits of the same action to a polygonal orbit \(\gamma'\).
 ///
-
 /// details | Proof
     type: proof
     open: true
-1. On the interior of \(F_i\), \(N_K(x)=\mathbb R_{\ge0} n_i\); the Hamiltonian inclusion gives \(\dot\gamma=c\,J n_i\). For \(H=g_K^2\) the coefficient is \(2/h_i\), hence \(\dot\gamma=p_i\).
+There is a proof in @HaimKislev2017 using Clarke's dual principle. Here we use our previous observations about the flow on facets and faces to give a more geometric proof. 
 
-2. On \(G\) any admissible velocity has the form \(v=a p_i+b p_j\), \(a,b\ge0\). Tangency requires \(\langle v,n_i\rangle=\langle v,n_j\rangle=0\), i.e.
+Let \(\gamma\) be a Hamiltonian/Reeb orbit with period \(T>0\). 
 
-    \[
-    \tfrac{2b}{h_j}\,\omega(n_j,n_i)=0,\qquad
-    \tfrac{2a}{h_i}\,\omega(n_i,n_j)=0.
-    \]
+First we consider the map from time into the face lattice of \(K\), sending \(t\) to the minimal face containing \(\gamma(t)\). We previously discussed all the ways an orbit can change faces, and know that it happens on isolated times only. By compactness, we get a finite partition into open intervals, where we drop faces that are crossed instantaneously through their interior, e.g. non-Lagrangian 2-faces, 0-faces, and perhaps some 1-faces, but never Lagrangian 2-faces or 3-faces.
 
-    Since \(\omega(n_i,n_j)=-\omega(n_j,n_i)\neq0\), both equalities force \(a=b=0\), so only the zero velocity is tangent.
+In the case of 3-faces, the velocity is already constant.
 
-3. When \(\omega(n_i,n_j)=0\), the tangent plane is Lagrangian and contains \(J n_i\) and \(J n_j\); any convex combination remains tangent.
+In remains to consider the case of Lagrangian 2-faces and of 1-faces with positive length intervals.
+
+For the Lagrangian 2-face, the two facet velocities \(p_i, p_j\) form a basis(quick check from convexity of the polytope). 
+We restrict to the interval, and split \(\dot\gamma(t) = a(t) p_i + b(t) p_j\) and integrate to get total contributions \(A = \int a(t) dt\), \(B = \int b(t) dt\).
+We can homotope \(\gamma\) using mixtures that leave \(A,B\) constant, to a path where \(a(t) = 1_{[0,A]}(t)\), \(b(t) = 1_{[A,A+B]}(t)\). This gives a polygonal path segment.
+The linearity of the action functional implies:
+\(A(\gamma) = \int \tfrac12 \langle J \gamma(t), \dot\gamma(t) \rangle dt = + \int \tfrac12 \langle \gamma(t), a(t) J p_i + b(t) J p_j \rangle dt\).
+However, since \(J p_i, J p_j\) are both perpendicular to the 2-face and any possible velocities along it, we have that \(\langle \gamma(t), J p_i \rangle = \text{const}\), and so that \(A(\gamma)\) only depends on \(\int a(t) dt\) and \(\int b(t) dt\), which we kept constant. Thus the action is preserved, and we don't even have to change the interval length.
+
+For the 1-face case, may have convex combinations of three or more velocities. Just like before however the action functional is linear and the 1-face is perpendicular to all \(J p_i\), so we can again homotope to a polygonal path segment without changing the action.
+
+Putting everything together, we get a homotopy of \(\gamma\) to a polygonal orbit \(\gamma'\), along Reeb/Hamiltonian orbits of the same action.
 ///
 
-### Simple Hamiltonian orbits
-We often work with polygonal representatives of an orbit.
-
-/// admonition | Definition (Polygonal Hamiltonian orbit)
+/// admonition | Definition (Simple Orbit)
     type: definition
-    attrs: { name: "def-polygonal-orbit" }
-A Hamiltonian closed characteristic on a polytope is **polygonal** if it has a representative \(\gamma\) with a finite partition \(0=t_0<\dots<t_m=T\) such that
-
-- each open segment \(\gamma((t_{k-1},t_k))\) lies in the relative interior of a facet \(F_{i_k}\) and is affine with constant velocity \(p_{i_k}\);
-- breakpoints \(\gamma(t_k)\) lie in codimension \(\ge2\) faces; at a non‑Lagrangian 2‑face \(F_{i_k}\cap F_{i_{k+1}}\) the path crosses directly from \(F_{i_k}\) to \(F_{i_{k+1}}\); at a Lagrangian 2‑face we may insert a (short) tangent subsegment with velocity in \(\mathrm{conv}\{p_{i_k},p_{i_{k+1}}\}\).
+    attrs: { name: "def-simple-orbit-2" }
+A polygonal Hamiltonian/Reeb orbit is **simple** if every facet velocity \(p_i\) is used at most once. Note that breakpoints may still lie in the interior of 2-faces or 1-faces.
 ///
 
-/// admonition | Definition (Simple Hamiltonian orbit)
-    type: definition
-    attrs: { name: "def-simple-orbit" }
-A simple Hamiltonian orbit is a polygonal orbit that visits each facet at most once. Fix the representative whose total time is \(1\) and write \(s_i>0\) for the time spent with velocity \(p_i\) on facet \(F_i\). Set \(\beta_i := s_i/h_i\); then \(\sum_i \beta_i h_i = \sum_i s_i = 1\) and the closing condition \(\sum_i s_i p_i = 0\) becomes \(\sum_i \beta_i n_i = 0\). Thus the orbit is encoded by a cyclic permutation \(\sigma\) of the visited facets and positive coefficients \(\beta_i\); the affine segments have lengths \(h_i\beta_i\) in time and are traversed with velocity \(p_i\).
+/// admonition | Theorem (Homotopy to Simple Orbit)
+    type: theorem
+    attrs: { name: "thm-min-action-simple" }
+Any Hamiltonian/Reeb orbit has a homotopy through Hamiltonian/Reeb orbits to a simple orbit where the action is non-increasing along the homotopy.
+///
+/// details | Proof
+    type: proof
+    open: true
+Omitted. There is a similar theorem with proof in @HaimKislev2017 that uses Clarke's dual principle. It doesn't show a homotopy, only that for any orbit there's a simple orbit with less or equal action.
 ///
 
-HK2017 prove an action minimizer admits a simple representative; CH2021 refine rotation bounds for non‑Lagrangian polytopes [@HK2017; @CH2021].
-
-*Lean formalization note.* Encode a simple orbit by the cyclic order \(\sigma\) of facets visited and positive coefficients \(\beta_i\) satisfying \(\sum_i \beta_i h_i = 1\) and \(\sum_i \beta_i n_i = 0\); the segment on \(F_i\) then has duration \(h_i\beta_i\) and velocity \(p_i\). Reparametrization invariance is absorbed by the normalization \(\sum_i \beta_i h_i = 1\).
-
-## Action and the EHZ capacity
-
-/// admonition | Definition (Action)
-    type: definition
-    attrs: { name: "def-action" }
-For a loop \(\gamma:[0,T]\to\mathbb R^4\),
-
-\[
-A(\gamma)=\tfrac12\int_0^T \langle J\gamma(t),\dot\gamma(t)\rangle\,dt = \int_0^T \lambda(\dot\gamma(t))\,dt.
-\]
+/// admonition | Corollary (Simple Minimum Action Orbit)
+    type: corollary
+    attrs: { name: "cor-simple-min-action" }
+There is a minimum action Hamiltonian/Reeb orbit that is simple.
 ///
 
-Reversing orientation changes the sign of \(A\); we minimize over positive-action parametrizations. On a contact-type hypersurface the action equals the period.
+While we have shown that any minimum action orbit is homotopic to a simple orbit, we have made no statement that all minimum action orbits are homotopic to each other.
 
-/// admonition | Definition (Ekeland–Hofer–Zehnder capacity)
-    type: definition
-    attrs: { name: "def-ehz-capacity" }
-For a convex body \(K\),
+/// admonition | Example (Viterbo Counterexample Degeneracy)
+    type: example
+    attrs: { name: "ex-viterbo-degeneracy" }
+The counterexample to Viterbo's conjecture from @HaimKislev2024 has multiple distinct minimum action closed characteristics, which are all homotopic to each other.
 
-\[
- c_{\mathrm{EHZ}}(K)=\min\{A(\gamma): \gamma \text{ closed characteristic on }\partial K\}.
-\]
+See @HaimKislev2024 for details, e.g. Figure 4. The basic idea is that in the two-bounce orbits we can move one bounce point along a pentagon edge while the other stays at a vertex. Then we can switch and move the point that we previously kept still along an edge. This way all two-bounce orbits can be homotoped. Three-bounce orbits can be homotoped into a two-bounce orbit by moving two bounce points that neighbor the same vertex towards the vertex together, until they both reach the vertex at the same time.
 ///
 
-For smooth convex \(K\) this equals both the first Ekeland–Hofer and Hofer–Zehnder capacities; continuity extends the definition to all convex bodies [@EkelandHofer1990; @HoferZehnder1990; @ArtsteinAvidanOstrover2014]. Fundamental properties: monotonicity under inclusion, 2‑homogeneity under scaling, translation invariance, and \(c_{\mathrm{EHZ}}(B(r))=c_{\mathrm{EHZ}}(Z(r))=\pi r^2\).
-
-We use the systolic ratio.
-
-/// admonition | Definition (Systolic ratio)
-    type: definition
-    attrs: { name: "def-systolic-ratio" }
-For a convex body \(K\subset\mathbb R^4\), the systolic ratio is
-
-\[
-\operatorname{sys}(K)=\frac{c_{\mathrm{EHZ}}(K)^2}{2\,\operatorname{vol}(K)}.
-\]
-///
-
-## Gauge–support duality and Clarke’s functional
+## Clarke's Dual Action Principle
 
 Fenchel duality yields
 
