@@ -1,10 +1,10 @@
 # Developing in Rust
 - Package: `packages/rust_viterbo`
 - Goal: High-performance symplectic geometry primitives and algorithms; expose stable bindings for Python via the `ffi` crate.
-- Toolchain: we pinned a recent-ish version.
+- Toolchain: Rust 1.91.1 (cargo 1.91.1), sccache installed in the devcontainer.
 - Caching: Shared target dir at `/workspaces/worktrees/shared/target` to reduce rebuild times.
 - Commands: `cargo fmt`, `cargo clippy --workspace --all-targets`, `cargo test --workspace`.
-- Creates: `geom` crate with core geometry; `algorithm` with algorithms for the EHZ capacity; `ffi` crate with Python FFI bindings.
+- Creates: `geom` crate with core geometry (nalgebra-based vectors); `algorithm` with placeholder algorithms; `ffi` crate with Python FFI bindings (PyO3).
 
 ## Conventions
 - Prefer straightforward, idiomatic Rust solutions over clever or complex ones.
@@ -17,4 +17,3 @@
 - Only optimize code for performance after benchmarking, profiling, identifying the hotspots, and discussing with the project owner.
 - Use the `ffi` crate to expose stable, ergonomic Python bindings. Python uses `maturin` to build the bindings. 
 - Use `nalgebra` for linear algebra operations.
-

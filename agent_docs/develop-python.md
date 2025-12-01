@@ -1,9 +1,9 @@
 # Developing in Python
 - Package: `packages/python_viterbo`
 - Goal: Orchestration layer and logic of quickly written experiments/pipelines.
-- Toolchain: we pinned a recent-ish version.
+- Toolchain: Python 3.12.3, uv 0.9.13. Dev extras install `pytest`, `pyright`, `ruff`, `maturin`.
 - Caching: `uv` has a global cache. Worktrees have local `.venv` virtual environments.
-- Commands: Use `uv run` to run all commands.
+- Commands: Use `uv run` to run all commands (`uv run pyright`, `uv run ruff check`, `uv run pytest`, `uv run python -m viterbo.experiments.hello.stage_hello --config config/hello/hello.json`).
 
 ## Conventions
 - Experiments consume and produce artifacts and json files in `packages/python_viterbo/{data/,config/}` that are committed to git and git LFS.

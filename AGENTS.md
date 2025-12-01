@@ -12,12 +12,12 @@ Repo layout (top level):
 - `AGENTS.md`, `agent_docs/`: package- and environment-specific onboarding (progressive disclosure).
 
 ## Toolchains
-- Rust 1.91.1, cargo 1.91.1, clippy, rustfmt, sccache, cargo-chef.
+- Rust 1.91.1, cargo 1.91.1, clippy, rustfmt, sccache.
 - Python 3.12.3, uv 0.9.13, pyright, ruff, pytest (via `uv run ruff/pyright/pytest`).
 - Node.js 22.21.0, npm 10.9.4.
 - Lean 4.25.0, lake 5.0.0.
 - git 2.52.0, gh 2.45.0, git lfs.
-- MkDocs + Material ?.?.?.
+- MkDocs 1.5.13, Material for MkDocs 9.1.11.
 - Misc: `rg, fd, jq, tree, bash -lc, ctags`.
 - Codex CLI >=0.63.0.
 
@@ -49,4 +49,3 @@ Jörn Stöhler. He owns the `main` worktree, including PRs to `main`.
 - Skip files that are not relevant to your assigned task and read them once they become relevant.
 - Ask the project owner if you have any questions about your assigned task, or if you need context beyond what is in the onboarding docs.
 - Happy coding!
-

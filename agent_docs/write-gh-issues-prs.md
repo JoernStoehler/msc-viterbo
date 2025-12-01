@@ -13,5 +13,4 @@
   - We clearly distinguish between must-have goals, and mere suggestions for how to achieve them, to avoid agents getting stuck on non-essential details, or worse, trading true goals against irrelevant ideas.
 - Most PRs are reviewed by the project owner only. The project owner will read fewer files than agents do, and will focus on the git diffs of the changes, and verify high-level claims made by the agent about the delivered branch. To make this job easier, we ensure that PR descriptions restate the changes from a high-level perspective as an overview, and then describe also the agent's process of arriving at the changes, so that the project owner is aware of what commands and files were consulted along the way.
 - Agents can use `--body-file` also as a chance to iterate on their drafts before submitting them.
-- All agents share the GitHub identity of the project owner, thus various fields in PRs and issues loose their meaning (e.g. author, assignee). Instead we use footers and body text to clarify these aspects where relevant.
-
+- All agents share the GitHub identity of the project owner, thus various fields in PRs and issues lose their meaning (e.g. author, assignee). Instead we use footers and body text to clarify these aspects where relevant.

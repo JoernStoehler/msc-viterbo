@@ -3,35 +3,26 @@
 //! The crate currently exposes light-weight placeholder types so we can
 //! validate the toolchain end-to-end before dropping in the real math.
 
+use nalgebra::Vector2;
+
 /// Simple 2D vector tailored to quick symplectic-form experiments.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SymplecticVector {
-    pub x: f64,
-    pub y: f64,
-}
+pub type SymplecticVector = Vector2<f64>;
 
-impl SymplecticVector {
-    /// Construct a vector from its coordinates.
-    pub const fn new(x: f64, y: f64) -> Self {
-        Self { x, y }
-    }
-
-    /// Compute the standard symplectic form ⟨v, w⟩ = x₁y₂ - y₁x₂.
-    pub fn symplectic_form(self, other: Self) -> f64 {
-        self.x * other.y - self.y * other.x
-    }
+/// Compute the standard symplectic form ⟨v, w⟩ = x₁y₂ - y₁x₂.
+pub fn symplectic_form(v: SymplecticVector, w: SymplecticVector) -> f64 {
+    v.x * w.y - v.y * w.x
 }
 
 #[cfg(test)]
 mod tests {
-    use super::SymplecticVector;
+    use super::{symplectic_form, SymplecticVector};
 
     #[test]
     fn symplectic_form_matches_cross_product() {
         let v = SymplecticVector::new(1.0, 2.0);
         let w = SymplecticVector::new(3.0, -1.0);
 
-        assert_eq!(v.symplectic_form(w), -7.0);
-        assert_eq!(w.symplectic_form(v), 7.0);
+        assert_eq!(symplectic_form(v, w), -7.0);
+        assert_eq!(symplectic_form(w, v), 7.0);
     }
 }

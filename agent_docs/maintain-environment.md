@@ -11,4 +11,4 @@
 - The sources define the entire environment. We don't accept local-only installs or changes that are not codified in the sources.
 - The image is based on `mcr.microsoft.com/vscode/devcontainers/base:ubuntu`. It installs the toolchains we mentioned in `AGENTS.md`, and sets up shared caches mentioned in `agent_docs/maintain-environment-caches.md`.
 - The workspace file defines recommended extensions and settings for VSCode, which is relevant mostly for the project owner and not the agents.
-- For git worktrees, we always run teh prep script to initialize the toolchains and caches for the new worktree's packages.
+- For git worktrees, always run the prep script to initialize the toolchains and caches for the new worktree's packages.

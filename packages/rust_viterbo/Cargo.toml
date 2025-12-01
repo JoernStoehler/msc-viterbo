@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "geom",
+    "algorithm",
     "ffi",
 ]
 resolver = "2"

@@ -1,7 +1,7 @@
 # Writing Agent Docs
 - Goal: Provide onboarding and reference docs for agents working on the project. Write in a way that is maximally helpful for agents.
 - Onboarding knowledge goes into `agent_docs/` and `AGENTS.md`.
-- Documentation and thesis writeup are arguably also used in onboarding, and follow similar principles. See `writing-thesis.md` for more details.
+- Documentation and thesis writeup are arguably also used in onboarding, and follow similar principles. See `write-thesis.md` for more details.
 
 - Agents have zero prior context about the project, but are already familiar with all popular toolchains, frameworks, patterns and domain knowledge.
 - Instead of explaining such familiar concepts, we just need to tell the agent which ones we are using when there are multiple popular options.

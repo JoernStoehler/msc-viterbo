@@ -1,12 +1,12 @@
 //! PyO3 bindings for exposing Rust functionality to Python.
 
 use pyo3::prelude::*;
-use rust_viterbo_geom::SymplecticVector;
+use rust_viterbo_geom::{symplectic_form, SymplecticVector};
 
 /// Return the oriented symplectic area spanned by two vectors.
 #[pyfunction]
 fn oriented_area(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {
-    SymplecticVector::new(ax, ay).symplectic_form(SymplecticVector::new(bx, by))
+    symplectic_form(SymplecticVector::new(ax, ay), SymplecticVector::new(bx, by))
 }
 
 #[pymodule]

@@ -1,9 +1,9 @@
 # Developing in Lean
 - Package: `packages/lean_viterbo`
 - Goal: Formalizing our mathematical results in Lean4 using mathlib4 for verification.
-- Toolchain: we pinned a recent-ish version.
-- Caching: We cache dependencies via the symlink `.lake/packages -> /workspaces/worktrees/shared/lean/packages`. Each worktree builds our code locally into `.lake/build`.
-- Commands: `lake build -q` for normal work; Search the web for mathlib4 docs and guides;
+- Toolchain: Lean 4.25.0 (elan default set to `leanprover/lean4:v4.25.0`), mathlib pinned via lakefile. It's a recent stable version.
+- Caching: We cache dependencies via the symlink `.lake/packages -> /workspaces/worktrees/shared/lean/packages`. Build output is shared at `/workspaces/worktrees/shared/lean/build-global` via the `.lake/build` symlink.
+- Commands: `lake build -q` for normal work; search the mathlib4 docs/source as needed. Run the root prep script `scripts/worktree-prepare.sh <worktree>` to link caches before building.
 - Quality: We must pass `lake build` without errors. `sorry` in proofs is allowed temporarily, or with explicit documented permission from the project owner. We target the same quality as mathlib4 itself. We document the why behind design decisions in code comments, and reference the thesis writeup's notation where definitions correspond or where they differ.
 
 ## Tips

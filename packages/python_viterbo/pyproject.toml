@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "pyright", "ruff", "maturin"]
 
 [build-system]
 requires = ["hatchling"]
