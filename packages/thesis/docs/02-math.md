@@ -30,11 +30,14 @@ K = \bigcap_{i=1}^F \{x: \langle x,n_i\rangle \le h_i\},\qquad |n_i|=1,\ h_i=h_K
 \]
 A 3‑face is a facet \(F_i\); a 2‑face is the intersection of two or more facets.
 
-**Definition (Admissible polytope).** A polytope \(K\subset\mathbb R^4\) is admissible if it is convex, bounded, full dimensional, and \(0\in\mathrm{int}\,K\). Translating the polytope can always enforce this without loss.
+!!! definition "Admissible polytope {#def-admissible-polytope}"
+    A polytope \(K\subset\mathbb R^4\) is **admissible** if it is convex, bounded, full dimensional, and \(0\in\mathrm{int}\,K\). Translating the polytope can always enforce this without loss.
 
-**Definition (Lagrangian vs. non‑Lagrangian 2‑face).** For a 2‑face \(G=F_i\cap F_j\) with tangent plane \(T G = \{v: \langle v,n_i\rangle=\langle v,n_j\rangle=0\}\):
-- \(G\) is Lagrangian if \(\omega|_{TG}=0\), equivalently \(\omega(n_i,n_j)=0\).
-- Otherwise \(G\) is non‑Lagrangian. This dichotomy governs whether facet velocities can be tangent along \(G\).
+!!! definition "Lagrangian vs. non‑Lagrangian 2‑face {#def-lagrangian-face}"
+    For a 2‑face \(G=F_i\cap F_j\) with tangent plane \(T G = \{v: \langle v,n_i\rangle=\langle v,n_j\rangle=0\}\):
+
+    - \(G\) is **Lagrangian** if \(\omega|_{TG}=0\), equivalently \(\omega(n_i,n_j)=0\).
+    - Otherwise \(G\) is **non‑Lagrangian**. This dichotomy governs whether facet velocities can be tangent along \(G\).
 
 **Facet velocities.** For each facet define
 \[
@@ -49,31 +52,42 @@ For \(x\in\partial K\) the outward normal cone is \(N_K(x)=\mathbb R_{\ge0}\,\ma
 \[
 \dot\gamma(t) \in J\,N_K(\gamma(t)) = \mathrm{conv}\{p_i : \gamma(t)\in F_i\}\qquad\text{a.e.}
 \]
-A **(generalized) Hamiltonian closed characteristic** is \(\gamma\in W^{1,2}(\mathbb T,\mathbb R^4)\) with period \(T>0\) satisfying this inclusion and \(\gamma(0)=\gamma(T)\). This coincides with Reeb orbits on smooth approximations of \(K\) [@ArtsteinAvidanOstrover2014].
+A **(generalized) Hamiltonian closed characteristic** on \(\partial K\) is a loop \(\gamma\in W^{1,2}([0,T],\partial K)\) with period \(T>0\) such that \(\gamma(0)=\gamma(T)\) and the inclusion above holds a.e. We regard two parametrized loops as the same orbit when they differ by an orientation‑preserving \(C^1\) reparametrization \(\phi:[0,T']\to[0,T]\) with \(\phi(0)=0\), \(\phi(T')=T\); all statements below are invariant under this equivalence. This coincides with Reeb orbits on smooth approximations of \(K\) [@ArtsteinAvidanOstrover2014].
 
-**Proposition (Facet behaviour).** Let \(K\) be an admissible polytope.
+!!! proposition "Facet behaviour {#prop-facet-behaviour}"
+    Let \(K\) be an admissible polytope.
 
-(a) Facet interior. If \(\gamma(t)\) lies in the relative interior of \(F_i\), then \(\dot\gamma(t)=p_i\) a.e.
+    1. **Facet interior.** If \(\gamma(t)\) lies in the relative interior of \(F_i\), then \(\dot\gamma(t)=p_i\) a.e.
+    2. **Non‑Lagrangian 2‑face.** If \(G=F_i\cap F_j\) with \(\omega(n_i,n_j)\neq0\), no nonzero admissible velocity is tangent to \(G\); a characteristic must cross \(G\) from one adjacent facet to the other.
+    3. **Lagrangian 2‑face.** If \(\omega(n_i,n_j)=0\), any convex combination of \(p_i,p_j\) is tangent to \(G\), so a characteristic may slide inside \(G\).
 
-(b) Non‑Lagrangian 2‑face. If \(G=F_i\cap F_j\) with \(\omega(n_i,n_j)\neq0\), no nonzero admissible velocity is tangent to \(G\); a characteristic must cross \(G\) from one adjacent facet to the other.
+!!! proof "Proof"
+    1. On the interior of \(F_i\), \(N_K(x)=\mathbb R_{\ge0} n_i\); the Hamiltonian inclusion gives \(\dot\gamma=c\,J n_i\). For \(H=g_K^2\) the coefficient is \(2/h_i\), hence \(\dot\gamma=p_i\).
 
-(c) Lagrangian 2‑face. If \(\omega(n_i,n_j)=0\), any convex combination of \(p_i,p_j\) is tangent to \(G\), so a characteristic may slide inside \(G\).
-
-*Proof.* (a) On the interior of \(F_i\), \(N_K(x)=\mathbb R_{\ge0} n_i\); the Hamiltonian inclusion gives \(\dot\gamma=c\,J n_i\). For \(H=g_K^2\) the coefficient is \(2/h_i\), hence \(\dot\gamma=p_i\).
-
-(b) On \(G\) any admissible velocity has the form \(v=a p_i+b p_j\), \(a,b\ge0\). Tangency requires \(\langle v,n_i\rangle=\langle v,n_j\rangle=0\), i.e.
+    2. On \(G\) any admissible velocity has the form \(v=a p_i+b p_j\), \(a,b\ge0\). Tangency requires \(\langle v,n_i\rangle=\langle v,n_j\rangle=0\), i.e.
 \[
 \tfrac{2b}{h_j}\,\omega(n_j,n_i)=0,\qquad
 \tfrac{2a}{h_i}\,\omega(n_i,n_j)=0.
 \]
 Since \(\omega(n_i,n_j)=-\omega(n_j,n_i)\neq0\), both equalities force \(a=b=0\), so only the zero velocity is tangent.
 
-(c) When \(\omega(n_i,n_j)=0\), the tangent plane is Lagrangian and contains \(J n_i\) and \(J n_j\); any convex combination remains tangent.
+    3. When \(\omega(n_i,n_j)=0\), the tangent plane is Lagrangian and contains \(J n_i\) and \(J n_j\); any convex combination remains tangent.
 
 ### Simple Hamiltonian orbits
-**Definition (Simple Hamiltonian orbit).** A simple Hamiltonian orbit is a closed characteristic whose derivative is piecewise constant, equals \(p_i\) on at most one time segment per facet, and changes only at facet intersections.
+We often work with polygonal representatives of an orbit.
 
-HK2017 prove an action minimizer can be chosen simple; CH2021 refine rotation bounds for non‑Lagrangian polytopes [@HK2017; @CH2021].
+!!! definition "Polygonal Hamiltonian orbit {#def-polygonal-orbit}"
+    A Hamiltonian closed characteristic on a polytope is **polygonal** if it has a representative \(\gamma\) with a finite partition \(0=t_0<\dots<t_m=T\) such that
+
+    - each open segment \(\gamma((t_{k-1},t_k))\) lies in the relative interior of a facet \(F_{i_k}\) and is affine with constant velocity \(p_{i_k}\);
+    - breakpoints \(\gamma(t_k)\) lie in codimension \(\ge2\) faces; at a non‑Lagrangian 2‑face \(F_{i_k}\cap F_{i_{k+1}}\) the path crosses directly from \(F_{i_k}\) to \(F_{i_{k+1}}\); at a Lagrangian 2‑face we may insert a (short) tangent subsegment with velocity in \(\mathrm{conv}\{p_{i_k},p_{i_{k+1}}\}\).
+
+!!! definition "Simple Hamiltonian orbit {#def-simple-orbit}"
+    A simple Hamiltonian orbit is a polygonal orbit that visits each facet at most once. Fix the representative whose total time is \(1\) and write \(s_i>0\) for the time spent with velocity \(p_i\) on facet \(F_i\). Set \(\beta_i := s_i/h_i\); then \(\sum_i \beta_i h_i = \sum_i s_i = 1\) and the closing condition \(\sum_i s_i p_i = 0\) becomes \(\sum_i \beta_i n_i = 0\). Thus the orbit is encoded by a cyclic permutation \(\sigma\) of the visited facets and positive coefficients \(\beta_i\); the affine segments have lengths \(h_i\beta_i\) in time and are traversed with velocity \(p_i\).
+
+HK2017 prove an action minimizer admits a simple representative; CH2021 refine rotation bounds for non‑Lagrangian polytopes [@HK2017; @CH2021].
+
+*Lean formalization note.* Encode a simple orbit by the cyclic order \(\sigma\) of facets visited and positive coefficients \(\beta_i\) satisfying \(\sum_i \beta_i h_i = 1\) and \(\sum_i \beta_i n_i = 0\); the segment on \(F_i\) then has duration \(h_i\beta_i\) and velocity \(p_i\). Reparametrization invariance is absorbed by the normalization \(\sum_i \beta_i h_i = 1\).
 
 ## Action and the EHZ capacity
 
@@ -125,11 +139,12 @@ For a permutation \(\sigma\in S_F\), set
 \[
 Q(\sigma,\beta)=\sum_{j<i} \beta_{\sigma(i)}\,\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)}).
 \]
-**Theorem (HK combinatorial formula, 4D).** Haim‑Kislev’s formula gives
+!!! theorem "HK combinatorial formula (4D) {#thm-hk-combinatorial}"
+    Haim‑Kislev’s formula gives
 \[
 c_{\mathrm{EHZ}}(K) = \frac{1}{2}\Big[\max_{\sigma,\beta} Q(\sigma,\beta)\Big]^{-1}.
 \]
-In the centrally symmetric case the factor becomes \(\tfrac14\) with paired normals. The maximizer encodes a simple action‑minimizing orbit: velocities appear in the order \(\sigma\) with time proportions \(\beta_{\sigma(i)}\). Chaidez–Hutchings show that for non‑Lagrangian polytopes any minimizer has combinatorial rotation number \(\rho\le2\), giving a finite search set for algorithms [@CH2021].
+    In the centrally symmetric case the factor becomes \(\tfrac14\) with paired normals. The maximizer encodes a simple action‑minimizing orbit: velocities appear in the order \(\sigma\) with normalized time weights \(\beta_{\sigma(i)}\) as in the definition of simple orbits. Chaidez–Hutchings show that for non‑Lagrangian polytopes any minimizer has combinatorial rotation number \(\rho\le2\), giving a finite search set for algorithms [@CH2021].
 
 ## Forward use
 This chapter fixes conventions and the variational/combinatorial tools used in later chapters. The forthcoming Chapter 02.1 will work out the HK2024 counterexample and other explicit polytopes using these conventions. Algorithms and Lean formalisations will cite the definitions, facet dynamics, duality, and the HK/CH formula established here.

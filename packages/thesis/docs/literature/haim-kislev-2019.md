@@ -6,7 +6,7 @@
 
 ## Claims Checked
 - Existence of a minimum-action closed characteristic whose velocity is piecewise constant and uses each facet at most once (Theorem 1.1 in paper, label `simple_loop_theorem`).
-- Resulting bound: at most $\kappa_F$ velocity changes (one per facet), so the search space is finite.
+- Resulting bound: at most \(\kappa_F\) velocity changes (one per facet), so the search space is finite.
 - Subadditivity for hyperplane cuts follows from the combinatorial formula (Theorem `subadditivity_theorem`).
 
 ## Key Equations / Source TeX
@@ -18,7 +18,7 @@ Source TeX (Theorem `simple_loop_theorem`, lines ~130ff):
 \text{and each facet normal } n_j \text{ appears in at most one segment.}
 \end{theorem}
 ```
-Interpretation: minimal-action trajectories visit each facet interior at most once; velocities are positive multiples of the outward facet normals rotated by $J$.
+Interpretation: minimal-action trajectories visit each facet interior at most once; velocities are positive multiples of the outward facet normals rotated by \(J\).
 
 Source TeX (subadditivity, lines ~150ff):
 ```
@@ -31,9 +31,9 @@ c_{EHZ}(K) \le c_{EHZ}(K_1)+c_{EHZ}(K_2).
 
 ## Caveats / Scope
 - The “one visit per facet” statement can fail for minimizers passing through Lagrangian faces; the paper gives simplex counterexamples. Our algorithms must keep a fallback path for Lagrangian 2-faces.
-- Results are stated for convex polytopes in $\R^{2n}$; we specialize to $n=2$.
+- Results are stated for convex polytopes in \(\mathbb{R}^{2n}\); we specialize to \(n=2\).
 
 ## How We Reuse
 - Search pruning: bound branching by “facet at most once.”
-- Initial candidate generation: restrict to piecewise-constant velocities along $J n_i$.
+- Initial candidate generation: restrict to piecewise-constant velocities along \(J n_i\).
 - Subadditivity check: hyperplane-cut decomposition tests can use the stated inequality to bound capacities of sub-polytopes.
