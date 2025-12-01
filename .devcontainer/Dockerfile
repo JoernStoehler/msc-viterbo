@@ -79,7 +79,8 @@ ENV PATH="$HOME/.cargo/bin:$HOME/.elan/bin:$HOME/.local/bin:$PATH"
 # Install Rust (rustup + basic components).
 # We install rustfmt/clippy up front so agents can rely on them everywhere.
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
-    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true
+    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true \
+    && "$HOME/.cargo/bin/cargo" install sccache || true
 
 # Install Lean4 toolchain manager (elan).
 # The specific toolchain is controlled by the lean_viterbo/lean-toolchain file

@@ -32,6 +32,7 @@ htmlcov/
 .eggs/
 *.egg-info/
 pip-wheel-metadata/
+packages/python_viterbo/build/
 
 # Rust/Cargo artefacts (rust_viterbo and any helper crates)
 target/

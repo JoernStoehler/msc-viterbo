@@ -28,7 +28,6 @@ if command -v npm >/dev/null 2>&1; then
   npm config set prefix "${HOME}/.local"
   npm config set cache "${HOME}/.cache/npm"
   npm i -g @openai/codex || true
-  npm install -g "${REPO_ROOT}/packages/agentctl"
 fi
 
 # Ensure VS Code tunnel CLI is present inside the container

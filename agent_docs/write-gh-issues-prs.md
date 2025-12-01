@@ -1,0 +1,17 @@
+## Writing GitHub Issues and PRs
+- Goal: Write GitHub issues and PRs that agents understand and find actionable.
+- Use GitHub CLI with `--body-file` to avoid shell quoting pain.
+- Always include a footer `Written-by: codex agent running in worktree <path>`
+- Relevant context:
+  - Agents have zero prior context about the project. They go through onboarding docs in `agent_docs/` and `AGENTS.md` and can read up on anything they need from the repo.
+- In consequence, issues and PRs must help agents onboard quickly for the described task / for the implied review task.
+  - We mention the files that are required reading for the task, or that may be potentially useful further readings. This reduces the chance that agents miss important context.
+  - We put important context preferably into files in the repo, but can also put it into the issue/PR body if it is only short-lived context (e.g. for the task itself) or if it will be written into files per the task goals (e.g. if a code spec as context then turns into committed code).
+  - We avoid overwhelming agents with tasks that require a large amount of reading files, reading command output, and editing files. Instead we break down such large tasks into more focused milestones, so that each agent in the sequence has to read and edit only a manageable amount of not-too-distinct content.
+  - We ensure literal correctness and unambiguity in issue and PR descriptions, to avoid misunderstandings. Agents do not have the context we have, so they cannot resolve misunderstandings or detect incorrect claims in the text themselves.
+  - We write in a clear, digestable style with low cognitive overhead, to help agents process the information quickly and correctly. 
+  - We clearly distinguish between must-have goals, and mere suggestions for how to achieve them, to avoid agents getting stuck on non-essential details, or worse, trading true goals against irrelevant ideas.
+- Most PRs are reviewed by the project owner only. The project owner will read fewer files than agents do, and will focus on the git diffs of the changes, and verify high-level claims made by the agent about the delivered branch. To make this job easier, we ensure that PR descriptions restate the changes from a high-level perspective as an overview, and then describe also the agent's process of arriving at the changes, so that the project owner is aware of what commands and files were consulted along the way.
+- Agents can use `--body-file` also as a chance to iterate on their drafts before submitting them.
+- All agents share the GitHub identity of the project owner, thus various fields in PRs and issues loose their meaning (e.g. author, assignee). Instead we use footers and body text to clarify these aspects where relevant.
+

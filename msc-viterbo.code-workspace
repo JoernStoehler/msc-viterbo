@@ -10,8 +10,7 @@
 	"settings": {
 		"git.autoRepositoryDetection": "openEditors",
 		"git.ignoredRepositories": [
-			"/workspaces/worktrees/shared/lean/packages",
-			"/tmp/docs-site-gh-pages.*"
+			"/workspaces/worktrees/shared/lean/packages"
 		],
 		"git.ignoreLimitWarning": true,
 		"mdmath.delimiters": "brackets",

@@ -1,108 +1,126 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
+# A small, boring helper to prep a new worktree for all toolchains we ship.
+
+DEFAULT_SHARED_BASE="/workspaces/worktrees/shared"
+
+log()   { printf '[prep] %s\n' "$*"; }
+warn()  { printf '[prep][warn] %s\n' "$*" >&2; }
+die()   { printf '[prep][error] %s\n' "$*" >&2; exit 64; }
+have()  { command -v "$1" >/dev/null 2>&1; }
+
 usage() {
-  cat <<'EOF' >&2
-Usage: worktree-prepare.sh [options] /absolute/path/to/worktree
+  cat <<'EOF'
+Usage: worktree-prepare.sh /absolute/path/to/worktree
 
-Options (defaults: general + python + docs + lean cache + rust):
-  --general       Run cheap, repo-wide setup (git lfs init). Always on.
-  --python        Prep packages/python_viterbo (uv sync --locked --extra dev).
-  --docs          Prep packages/docs-site (npm install).
-  --lean          Prep packages/lean_viterbo (shared cache, no build).
-  --rust          Prep packages/rust_viterbo (shared target dir, cargo fetch).
-  --all           Same as defaults (kept for clarity).
-  --minimal       Only --general (skip python/docs/lean/rust).
-  -h, --help  Show this help.
-
-Pick only what you need to save time.\n
+Prepares caches and dependencies for all packages. Run after
+`git worktree add <path> <branch>`.
 EOF
-  exit 64
 }
 
-WORKTREE=""
-GENERAL=true
-PYTHON=true
-DOCS=true
-LEAN=true
-RUST=true
+trap 'warn "failed at line ${LINENO} (exit $?)"' ERR
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --general) GENERAL=true ;;
-    --python) PYTHON=true ;;
-    --docs) DOCS=true ;;
-    --lean) LEAN=true ;;
-    --rust) RUST=true ;;
-    --all) GENERAL=true; PYTHON=true; DOCS=true; LEAN=true; RUST=true ;;
-    --minimal) GENERAL=true; PYTHON=false; DOCS=false; LEAN=false; RUST=false ;;
-    -h|--help) usage ;;
-    *)
-      if [[ -z "$WORKTREE" ]]; then
-        WORKTREE="$1"
-      else
-        printf 'Unexpected argument: %s\n' "$1" >&2
-        usage
-      fi
-      ;;
-  esac
-  shift
-done
+main() {
+  if [[ $# -ne 1 ]]; then
+    usage >&2
+    exit 64
+  fi
 
-[[ -n "$WORKTREE" ]] || usage
-if [[ ! -d "$WORKTREE" ]]; then
-  printf 'worktree path %s does not exist\n' "$WORKTREE" >&2
-  exit 64
-fi
+  local worktree
+  worktree="$(realpath "$1")"
 
-cd "$WORKTREE"
+  [[ -d "$worktree" ]] || die "worktree path $worktree does not exist"
 
-log() { printf '[prep] %s\n' "$*"; }
+  cd "$worktree"
+  log "preparing worktree at $worktree"
 
-if $GENERAL; then
-  if command -v git >/dev/null 2>&1 && command -v git-lfs >/dev/null 2>&1; then
-    git lfs install --local --skip-repo || true
+  prepare_git_lfs
+  prepare_python
+  prepare_lean
+  prepare_rust
+  prepare_mkdocs
+
+  log "worktree prep complete"
+}
+
+prepare_git_lfs() {
+  if have git && have git-lfs; then
+    git lfs install --local --skip-repo || warn "git lfs initialization failed"
     log "git lfs initialized"
   else
     log "git or git-lfs missing; skipped git lfs init"
   fi
-fi
+}
 
-if $PYTHON; then
-  if [[ -x packages/python_viterbo/scripts/worktree-prepare.sh ]]; then
-    log "python_viterbo prep"
-    (cd packages/python_viterbo && scripts/worktree-prepare.sh)
+prepare_python() {
+  if have uv && [[ -d packages/python_viterbo ]]; then
+    log "python_viterbo: uv sync --locked --extra dev"
+    (cd packages/python_viterbo && uv sync --locked --extra dev)
   else
-    log "python prep script missing; skipped"
+    log "python_viterbo prep skipped (uv missing or package absent)"
   fi
-fi
+}
 
-if $DOCS; then
-  if [[ -x packages/docs-site/scripts/worktree-prepare.sh ]]; then
-    log "docs-site prep"
-    (cd packages/docs-site && scripts/worktree-prepare.sh)
+prepare_lean() {
+  if ! have lake || [[ ! -d packages/lean_viterbo ]]; then
+    log "lean_viterbo prep skipped (lake missing or package absent)"
+    return
+  fi
+
+  log "lean_viterbo: link shared cache + lake exe cache get"
+  pushd packages/lean_viterbo >/dev/null
+
+  local shared_base shared_pkgs
+  shared_base="${SHARED_LEAN_BASE:-$DEFAULT_SHARED_BASE/lean}"
+  shared_pkgs="$shared_base/packages"
+  mkdir -p "$shared_pkgs" .lake
+
+  # Move existing local packages to the shared cache once, then link.
+  if [[ -d .lake/packages && ! -L .lake/packages ]]; then
+    if have rsync; then
+      rsync -a .lake/packages/ "$shared_pkgs"/ 2>/dev/null || true
+    else
+      cp -a .lake/packages/. "$shared_pkgs"/ 2>/dev/null || true
+    fi
+    rm -rf .lake/packages
+  fi
+  ln -sfn "$shared_pkgs" .lake/packages
+
+  log "lean_viterbo: lake exe cache get"
+  lake exe cache get || warn "lean cache download failed; run lake exe cache get manually"
+  log "lean_viterbo: lake build"
+  lake build -q || warn "lean build failed; run lake build manually"
+
+  popd >/dev/null
+}
+
+prepare_rust() {
+  if ! have cargo || [[ ! -d packages/rust_viterbo ]]; then
+    log "rust_viterbo prep skipped (cargo missing or package absent)"
+    return
+  fi
+
+  local target_dir
+  target_dir="${CARGO_TARGET_DIR:-$DEFAULT_SHARED_BASE/target}"
+  mkdir -p "$target_dir"
+
+  log "rust_viterbo: cargo fetch (shared target dir: $target_dir)"
+  CARGO_TARGET_DIR="$target_dir" cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml
+  log "rust_viterbo: cargo build dev"
+  CARGO_TARGET_DIR="$target_dir" cargo build --manifest-path packages/rust_viterbo/Cargo.toml
+}
+
+prepare_mkdocs() {
+  if have uv && [[ -d docs/mkdocs_viterbo ]]; then
+    log "mkdocs_viterbo: uv sync --locked --extra dev"
+    (cd docs/mkdocs_viterbo && uv sync --locked --extra dev)
+    log "mkdocs_viterbo: uv run mkdocs build"
+    (cd docs/mkdocs_viterbo && uv run mkdocs build)
   else
-    log "docs-site prep script missing; skipped"
+    log "mkdocs_viterbo prep skipped (uv missing or package absent)"
   fi
-fi
+}
 
-if $LEAN; then
-  if [[ -x packages/lean_viterbo/scripts/worktree-prepare.sh ]]; then
-    log "lean_viterbo prep"
-    (cd packages/lean_viterbo && scripts/worktree-prepare.sh)
-  else
-    log "lean prep script missing; skipped"
-  fi
-fi
-
-if $RUST; then
-  if [[ -x packages/rust_viterbo/scripts/worktree-prepare.sh ]]; then
-    log "rust_viterbo prep"
-    (cd packages/rust_viterbo && scripts/worktree-prepare.sh)
-  else
-    log "rust prep script missing; skipped"
-  fi
-fi
-
-log "worktree prep complete for $WORKTREE"
+main "$@"

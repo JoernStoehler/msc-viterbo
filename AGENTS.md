@@ -1,50 +1,52 @@
 # AGENTS.md
 
 ## Project Overview
-This repository contains all materials for the MSc thesis project "Probing Viterbo's Conjecture", including data, code, formal proofs, documentation, the written thesis, project management, the development environment definition and custom scripts.
-We use a monorepo structure:
-- `packages/thesis/`: Written thesis in Material for MkDocs.
-- `packages/rust_viterbo/`: High-performance Rust implementation of symplectic geometry algorithms, including our custom algorithm to compute the Ekeland-Hofer-Zehnder capacity for convex polytopes in $\mathbb{R}^4$.
-- `packages/python_viterbo/`: Python data science and machine learning experiments.
-- `packages/lean_viterbo/`: Lean4 formalization of symplectic geometry on polytopes.
-- `.devcontainer/{Dockerfile,devcontainer.json}`, `scripts/devcontainer-post-create.sh`: Definition of the sole development environment that all agents and the project owner use.
-- `gh issues + prs`: Project management artifacts live on GitHub. All agents also share the project owner's GitHub identity.
-- `/workspaces/worktrees/`: We use git worktrees for parallel development.
-- `AGENTS.md`: onboarding documentation for all agents.
-- `agent_docs/`: further readings that may be relevant depending on your task.
-- `scripts/`, `packages/*/scripts/` folders: contain convenience shortcut scripts for frequent multi-step workflows.
+Monorepo for the MSc thesis **"Probing Viterbo's Conjecture"** (code, experiments, proofs, thesis, tooling, environment, agents). Agents work in a single defined devcontainer; GitHub issues/PRs coordinate the work.
 
-## Available Tools
+Repo layout (top level):
+- `packages/rust_viterbo/`: Rust library.
+- `packages/python_viterbo/`: Python experiments/pipelines.
+- `packages/lean_viterbo/`: Lean4 formalization.
+- `packages/thesis/`: Written thesis.
+- `.devcontainer/*`, `scripts/*`: Environment definition and convenience scripts.
+- `AGENTS.md`, `agent_docs/`: package- and environment-specific onboarding (progressive disclosure).
 
-Installed and configured: `rg, fd, tree, jq, git, gh, cargo, uv run, lake, bash -lc`
-Quick overview of commands:
-- `git worktree add /workspaces/worktrees/{name} && scripts/worktree-prepare.sh /workspaces/worktrees/{name}`: prepare a new worktree with branch `{name}`.
-- `cd {folder} && git status -sb && codex exec "{prompt}" &2> /dev/null`: run a new codex subagent. The subagent prints a message to stdout when done. Useful when you need a well-scoped task done but you don't want to do it yourself and deal with the context switching, the extra irrelevant file reads, or thinking through tool call sequences. Specify clearly and literally correct what the agent should do, and what files it is allowed to edit (if any).
-- `gh issue create --title "..." --body-file path/to/body.md`: create a new GitHub issue. Use a body file to avoid shell-escaping pain.
-- `gh pr create --title "..." --body-file path/to/body.md --base main --head {branch}`: create a new PR from branch `{branch}` into `main`. Use a body file to avoid shell-escaping pain.
+## Toolchains
+- Rust 1.91.1, cargo 1.91.1, clippy, rustfmt, sccache, cargo-chef.
+- Python 3.12.3, uv 0.9.13, pyright, ruff, pytest (via `uv run ruff/pyright/pytest`).
+- Node.js 22.21.0, npm 10.9.4.
+- Lean 4.25.0, lake 5.0.0.
+- git 2.52.0, gh 2.45.0, git lfs.
+- MkDocs + Material ?.?.?.
+- Misc: `rg, fd, jq, tree, bash -lc, ctags`.
+- Codex CLI >=0.63.0.
 
-Toolchain versions:
-- Rust: rustc 1.91.1, cargo 1.91.1, sccache 0.3.4, clippy 1.91.1, rustfmt 1.91.1, cargo-chef 0.2.21
-- Python: 3.12.3, uv 0.9.9 (ruff, pyright, pytest via `uv run`)
-- Node.js: 22.21.0, npm 10.9.4
-- Lean4: 4.25.0, Lake 5.0.0
-- GitHub CLI: 2.45.0
-- git: 2.51.1
-- MkDocs: 1.5.13, Material for MkDocs: 9.1.11
+## Worktrees
+- Main worktree: `/workspaces/msc-viterbo`.
+- Keep additional worktrees under `/workspaces/worktrees/<name>`.
+- Prep script: `git worktree add <path> <branch>` + `scripts/worktree-prepare.sh <path>`.
+- Shared caches between worktrees to minimize rebuild times.
+- GitHub CLI: always use `--body-file` for issues/PRs to avoid shell quoting pain. Always include a footer
+  `Written-by: codex agent running in worktree <path>`.
+- Only project owner approves PRs targeting `main`.
 
-## Main Conventions
-- **Communication**: Be literal correct, specific, unambiguous, and do progressive disclosure when chatting with the project owner. Don't take silence as agreement, repeat questions or blockers until resolved.
-- **Quality**: This project is a master thesis. Aim for literally correct, specific and interesting mathematics. The target audience of math writing are other mathematicians with a background in smooth symplectic geometry, but not necessarily on polytopes. The target audience of code are other senior developers familiar with all common libraries, toolchains, patterns, and best practices in Rust, Python, Lean4, Git, Bash, project management on GitHub, MkDocs, devcontainers, ...
-- **Testing**: To assure mathematical correctness, we use formal proofs in Lean4, unit tests in Rust, and e2e sanity checks in Python experiments. We use static linters and type checkers to get even earlier feedback. Use the standard commands such as `uv run pytest <file>`, `cargo test --package <crate>`, `lake build -q`, `cargo clippy`, `uv run ruff check .`, etc.
-- **Documentation**: We use high quality comments and docstrings to explain the why behind code, including contracts, design decisions and their reasons. We don't document legacy or migration paths, we focus entirely on the current commit and don't bother readers with irrelevant information about the past. We use cross references to link code to the thesis writeup and vice versa.
-- **Agents**: We write for agents as first-class contributors to the project. Agents are familiar with all common libraries, toolchains, patterns, and best practices in all languages and ecosystems. They however start their work with an empty context window and need to be onboarded to the project and repo from scratch each time. Therefore we document in `AGENTS.md` and `agent_docs/` everything there is to know about the project and repo, minimizing the implicit knowledge held by the project owner. We focus on the current commit, and the plans for the future, and don't waste the agents' time with legacy or migration paths. Since agents are familiar with all common patterns, we only name-drop and optionally if non-obvious state the why, and we do not explain the how/what in detail. We use progressive disclosure, so that agents can pick their own reading material depending on their assigned tasks, and get to work without having to read everything upfront.
+## Universal Conventions
+- **Communication**: Be literally correct, specific, unambiguous. Escalate blockers and repeat unanswered questions; do not assume silence is approval. Disclose progressively to respect project owner time.
+- **Quality**: This is a thesis: prioritize mathematical correctness. Code targets senior developers; keep APIs clean, simple, idiomatic. Request reviews from project owner for complex or high-stakes changes.
+- **Testing**: Catch errors and regressions early. Use static analysis (linters, type checkers) and runtime tests (unit, integration, e2e) as appropriate per package. Document manual test procedures in comments/docstrings where not automated.
+- **Documentation**: Explain the “why” in comments/docstrings; avoid legacy/migration lore entirely.
+- **Agents**: Agents are first-class contributors. Agents have zero prior context about the project, but are already familiar with all popular toolchains, frameworks, patterns and domain knowledge. Maintain complete and high quality onboarding docs in `AGENTS.md` and `agent_docs/` so that future agents can onboard themselves quickly for their assigned tasks. Always err strongly towards the common, boring, simple solution that agents have been trained on, instead of a custom, superficially clever, complex solution.
 
 ## Project Owner
-The project owner is Jörn Stöhler. 
-He is the user you talk to, unless your prompt mentioned that you are a subagent. 
-Jörn has a strong background in mathematics, software engineering, and data science. He has a coherent vision for the project and you can ask him if you need context that wasn't covered by the onboarding materials.
-Only Jörn can merge PRs into `main`, and he has to be consulted before making major architecture decisions that have long-term implications for the project, e.g. tech-stack, dependency upgrades, or changes to heavily used interfaces.
+Jörn Stöhler. He owns the `main` worktree, including PRs to `main`.
+
+## Subagents
+- Run `codex exec "<prompt>" 2>/dev/null` to spawn a fresh agent in the cwd with zero prior context. The subagent can take agents, and will write a text message to stdout once done. Useful for delegating a subtask that is clearly defined and scoped to a known list of files, that is doable for agents without complex context about the ongoing task, and that has too many or too conceptually different steps to be worth doing directly in the main agent. Examples of subagent tasks: semantic search or comparison where many files need to be read but only a small text message needs to be returned; executing a refactoring across many files that is too tricky for mere text-replacement; reviewing the staged changes with fresh eyes.
 
 ## Where to Go Next
-You can at any point read further onboarding materials in the `agent_docs/` folder. The file names were chosen to be self-explanatory.
-A good command to run right now is `bash scripts/hello-agent.sh` which gives you dynamic information about the repo state not captured in the less frequently updated onboarding materials.
+- Run `pwd && git status -sb` to confirm your worktree.
+- Run `ls agent_docs/` to see available onboarding docs.
+- Skip files that are not relevant to your assigned task and read them once they become relevant.
+- Ask the project owner if you have any questions about your assigned task, or if you need context beyond what is in the onboarding docs.
+- Happy coding!
+
