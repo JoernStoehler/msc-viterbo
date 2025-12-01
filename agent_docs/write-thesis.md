@@ -18,7 +18,7 @@ The style we aim for is
 ## Toolchain
 - Markdown in MkDocs + Material flavor. We heavily use Markdown-in-HTML as a style convention.
 - We run `packages/thesis/scripts/lint.sh` to check for common issues. It runs `mkdocs build` under the hood.
-- The project owner can preview the rendered thesis via `cd packages/thesis && mkdocs serve`.
+- The project owner can preview the rendered thesis via `cd packages/thesis && mkdocs serve --livereload`. `mkdocs serve` does start, but its auto-reload loop is broken; the `--livereload` flag fixes reloads.
 - The python experiments can generate static assets (plots as images, diagrams, tables) that we embed into the thesis. We store them under `packages/thesis/docs/assets/generated/` and commit them to the repo.
 
 ## Syntax Reminders
@@ -79,5 +79,11 @@ The style we aim for is
       C-->D;
   ```
 - Tables: standard Markdown tables.
+- Definition lists (enabled):
+  ```
+  Term
+  : First definition line
+  : Second definition line
+  ```
 - Lists: standard Markdown lists, nested as needed, ordered and unordered and task lists.
 - The full extension list for MkDocs + Material is in `packages/thesis/mkdocs.yml`.

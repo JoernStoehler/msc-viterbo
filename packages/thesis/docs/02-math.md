@@ -1,89 +1,301 @@
 
 # Math Background
 
-## Symplectic preliminaries in \(\mathbb{R}^4\)
+This chapter sets notation and definitions for the rest of the thesis. We follow primarily @ChaidezHutchings2021 and secondarily @HaimKislev2017, @HaimKislev2024 in our choice of notation.  
+We assume the reader is already familiar with basic symplectic geometry in a smooth setting, as per a master's level course (Reeb vector fields, contact forms, symplectic capacities, Hamiltonian dynamics).
 
-We write points as \(z=(q_1,q_2,p_1,p_2)\) and fix the standard almost complex structure
+## Standard Symplectic \(\mathbb{R}^4\)
 
-\[
-J = \begin{pmatrix}0 & -I_2 \\ I_2 & 0\end{pmatrix},\qquad J(q_1,q_2,p_1,p_2)=(-p_1,-p_2,q_1,q_2).
-\]
+We work in the standard \(\mathbb R^4\) setting:
 
-/// admonition | Lemma (Properties of \(J\))
+Coordinates
+
+:   \(z=(q_1,q_2,p_1,p_2)\)
+
+Inner product
+
+:   \(\langle x,y\rangle = x^T y\)
+
+Norm
+
+:   \(|x|=\sqrt{\langle x,x\rangle}\)
+
+Volume form
+
+:   \(\mathrm{vol} = \prod_{i=1}^2 dq_i \wedge dp_i\)
+
+Almost complex structure
+
+:   \(J = \begin{pmatrix}0 & -I_2 \\ I_2 & 0\end{pmatrix} ,\quad J^2 = -I_4\)
+
+Symplectic form
+
+:   \(\omega = \sum_{i=1}^2 dq_i \wedge dp_i ,\quad \omega(x,y)=\langle Jx,y\rangle\)
+
+Liouville 1‑form
+
+:   \(\lambda = \tfrac12 \sum_{i=1}^2 (q_i\,dp_i - p_i\,dq_i) ,\quad \lambda_z(\dot z) = \tfrac12 \langle J z, \dot z\rangle ,\quad d\lambda = \omega\)
+
+Lagrangian 2-plane
+
+:   An affine 2-plane \(L\subset\mathbb R^4\) is Lagrangian iff \(\omega|_L \equiv 0\).
+
+## Convex Bodies and Polytopes
+
+
+Half-space
+
+:   For \(n\in\mathbb R^4\), \(|n|=1\), and \(h \in \mathbb R\), the half-space \(\{x: \langle x,n\rangle \le h\}\) has a boundary hyperplane \(\{x: \langle x,n\rangle = h\}\) and outward unit normal \(n\). Iff \(h>0\) the half-space contains \(0\) in its interior, and we call it positive.
+
+Admissable, aka Bounded Convex Star-Shaped
+
+:   A set \(K\subset\mathbb R^4\) is called bounded, convex in the usual sense, and star-shaped iff it contains \(0\) in its interior. Due to convexity, every ray from \(0\) through a boundary point cuts the boundary transversely and exactly once. Any star-shaped body is full-dimensional since it contains a neighborhood of \(0\). We abbreviate "bounded convex star-shaped body" as "admissable body". Any bounded convex body with non-empty interior can be translated to an admissable body.
+
+Irredundant H-representation
+
+:   Any admissable polytope \(K\) has a unique representation as the intersection of finitely many positive half-spaces, with minimal number of half-spaces. Writing the outward unit normals and heights as \((n_i,h_i)_{i=1}^F\), \(|n_i|=1\), \(h_i>0\), we have \(K = \bigcap_{i=1}^F \{x: \langle x,n_i\rangle \le h_i\}\). Any such representation with bounded \(K\) defines an admissable polytope.
+
+Boundary of a Convex Body
+
+:   We write \(\partial K\) for the boundary of a convex body \(K\subset\mathbb R^4\).
+
+Facets and Faces
+
+:   For an admissable polytope \(K\) the boundary decomposes into finitely many facets (aka 3-faces) \(F_i = K \cap \{x: \langle x,n_i\rangle = h_i\}\). We take our facets to be closed sets relative to the hyperplane topology. Where multiple hyperplanes meet, we have lower-dimensional 2-, 1-, and 0-faces. It's important to note that due to irredundancy, every 2-face is the intersection of two unique facets. For 1-faces and 0-faces, unboundedly many facets may meet. We call the \(n_i, h_i\) the facet normals and heights.
+
+
+
+Support
+
+:   For an admissable body \(K\subset\mathbb R^4\) the support function is \(h_K(v) = \max_{x\in K} \langle x,v\rangle\). For polytopes, for any facet \(F_i\) we have \(h_K(n_i) = h_i\).
+
+Gauge
+
+:   For an admissable body \(K\subset\mathbb R^4\) the gauge function is \(g_K(v) = \min\{r>0: v\in rK\}\). On the boundary \(x \in \partial K\) we have \(g_K(x)=1\).
+
+Polar
+
+:   For an admissable body \(K\subset\mathbb R^4\) the polar body is \(K^\circ = \{y: h_K(y) \le 1\}\). For admissable polytopes, the polar is again an admissable polytope with vertices at the points \(n_i/h_i\) for every facet \(F_i\) of \(K\).
+
+## Correspondence of Combinatorial and Smooth Settings
+
+The reason we are interested in admissable polytopes is that they approximate any bounded convex star-shaped body arbitrarily well in the Hausdorff metric, and other metrics of interest. Understanding the polytope case is a key step towards understanding general convex bodies.
+
+We will in several places make statements that the "combinatorial" definition of some symplectic data on polytopes is indeed the limit of the symplectic data for smoothings of the polytope, which are \(C^{1}\) admissable bodies.
+
+
+\(\varepsilon\)-Smoothings
+
+:   For an admissable polytope \(K\) and \(\varepsilon>0\), the \(\varepsilon\)-smoothing \(K_\varepsilon := \{x \in \mathbb R^4 : \mathrm{dist}(x,K) \le \varepsilon\}\) is an admissable body with \(C^{1,1}\) boundary. Any sequence of admissable bodies that converges to \(K\) in the Hausdorff metric is contained in a sequence of \(\varepsilon\)-smoothings with \(\varepsilon \to 0\).
+
+## Hamiltonian Dynamics
+
+Standard Hamiltonian
+
+:   For our interests any choice of Hamiltonian \(H: \mathbb R^4 \to \mathbb R\) with regular level set \(H^{-1}(1) = \partial K\) and some sufficient regularity will do. We fix a standard Hamiltonian that will later be useful for computations and for applying a Clarke dual principle. We set \(H = g_K^2\), the square of the gauge function of \(K\). This is 2-homogeneous, convex, and piecewise quadratic for polytopes. Derivatives exist everywhere except on the rays through the \(2\)-faces of \(K\).
+
+Hamiltonian vector field (Regular case)
+
+:   For \(H \in C^1(\mathbb R^4)\) the Hamiltonian vector field \(X_H \in \Gamma^0(T\mathbb R^4)\) is defined by \(\omega(X_H,\cdot) = dH(\cdot)\), or equivalently \(X_H = J \nabla H\).
+
+Hamiltonian flow, trajectories (Regular case)
+
+:   We can define a flow \(\phi_H^t: \mathbb R^4 \to \mathbb R^4\) generated by \(X_H\) via the ODE \(\dot x(t) = X_H(x(t))\). The trajectories \(x(t) = \phi_H^t(x_0)\) with initial condition \(x(0)=x_0\) exist and, for some conditions on \(H\) we don't discuss here, are unique for all time. The flow preserves level sets of \(H\), so in particular \(\partial K\) is invariant under the flow.
+
+Combinatorial Hamiltonian dynamics (Polytope case)
+
+:   For admissable polytopes \(K\) the Hamiltonian \(H=g_K^2\) is not differentiable everywhere, so the standard Hamiltonian vector field and flow are not defined globally. Instead we work with generalized Hamiltonian dynamics via differential inclusions, as in @HaimKislev2017. We use the subdifferential \(\partial H(x)\) in place of the gradient \(\nabla H(x)\) to define a Hamiltonian inclusion \(\dot x(t) \in J \partial H(x(t)) \, \text{a.e.}\). Solutions in \(W^{1,2}(\mathbb R, \mathbb R^4)\) exist for any initial condition and all time, but need not be unique. We still have that \(\partial K\) is invariant under the generalized flow, i.e. any solution with initial condition in \(\partial K\) remains in \(\partial K\) for all time.
+
+Combinatorial Hamiltonian orbits (Polytope case)
+
+:   We call a periodic solution \(\gamma \in W^{1,2}(\mathbb T, \partial K)\) of the Hamiltonian inclusion a Hamiltonian orbit, where \(\mathbb T = \mathbb R / T \mathbb Z\) for some minimal period \(T>0\). Not all solutions need be periodic. We exclude stationary solutions \(\gamma \equiv \text{const}\) by the \(T > 0\) requirement, since they will not be interesting for us later on.
+
+Subdifferential
+
+:   For a convex function \(f: \mathbb R^n \to \mathbb R\) the subdifferential at \(x\) is the set of subgradients \(\partial f(x) = \{v \in \mathbb R^n : f(y) \ge f(x) + \langle v, y - x \rangle \text{ for all } y \in \mathbb R^n\}\). So \(\partial f(x)\) is the set of slopes of affine functions that globally underestimate \(f\) and touch \(f\) at \(x\). If \(f\) is differentiable at \(x\), then \(\partial f(x) = \{\nabla f(x)\}\).
+
+Subdifferential of \(H = g_K^2\)
+
+:   At any \(x \in \partial K\) for an admissable polytope \(K\) we have subgradients for every facet \(F_i\) containing \(x\). In fact, we can easily see that the underestimating affine functions are the half-spaces containing \(K\), and their slopes are the convex combinations of the facet normals at \(x\). Thus \(\partial H(x) = 2 g_K(x) \, \partial g_K(x) = \mathrm{conv}\{(2/h_i) \, n_i : x \in F_i\}\).
+
+Facet velocities
+
+:   We define the facet velocities \(p_i = (2/h_i) \, J n_i\) for each facet \(F_i\) of an admissable polytope \(K\). The Hamiltonian inclusion on \(\partial K\) can then be written as \(\dot x(t) \in \mathrm{conv}\{p_i : x(t) \in F_i\} \, \text{a.e.}\). And in the interior of a facet \(F_i\) we have the unique velocity \(\dot x(t) = p_i\).
+
+## Reeb Dynamics and Closed Characteristics
+
+Contact form and Reeb vector field (Regular case)
+
+:   Let \(\partial K\) be a \(C^1\) boundary of an admissable body. It is a contact-type hypersurface with contact form \(\alpha = \lambda|_{\partial K}\). The Reeb vector field defined by \(\alpha(R) = 1\), \(d\alpha(R,\cdot) = 0\) can be explicitly given. For a point \(x \in \partial K\), with outwards unit normal \(n_x \in \mathbb R^4\), \(|n_x| = 1\), we have that any direction \(v \in T_x \partial K\) satisfies \(\langle J v, J n_x \rangle = \langle v, n_x \rangle = 0\). Thus \(J n_x \in \mathrm{ker}(d\alpha_x)\). Normalizing to \(\alpha(R) = 1\) gives \(R(x) = (2 / \langle x, n_x \rangle) \, J n_x\).
+
+Reeb flow and Reeb orbits (Regular case)
+
+:   Just like in the Hamiltonian case, we can define a flow and ODE, this time only on \(\partial K\), via \(\dot x(t) = R(x(t))\). The flow preserves \(\alpha\) and \(d\alpha\). Periodic solutions are called Reeb orbits.
+
+Closed characteristics (Regular case)
+
+:   If we relax the ODE and only demand that some loop \(\gamma: S^1 \to \partial K\) have its tangent vector \(\dot\gamma(t)\) be parallel with same orientation to the Reeb vector field, i.e. \(\dot\gamma(t) \in \mathrm{ker}(d\alpha_{\gamma(t)}) \land \alpha(\dot\gamma(t)) > 0\) for all \(t\), we call such loops closed characteristics. On admissable bodies with enough regularity, closed characteristics coincide with Reeb orbits up to orientation-preserving reparametrization. We can also turn the Reeb flow for some contact form (\alpha\) into a Hamiltonian flow near \(\partial K\) and vice versa, with some caveats on regularity, so basically closed characteristics and Reeb orbits and Hamiltonian orbits on \(\partial K\) all give us the same geometric information.
+
+Reeb orbits, Closed characteristics, Hamiltonian orbits (Polytope case)
+
+:   For admissable polytopes \(K\) we instantly spot that on the interior of facets the (well-defined) Reeb vector field equals the Hamiltonian velocity. So the generalized Reeb orbits for the standard contact form are just the generalized Hamiltonian orbits on \(\partial K\) for our choice of Hamiltonian \(H = g_K^2\). The generalized closed characteristics are then defined as the loops \(\gamma \in W^{1,2}(S^1, \partial K)\) whose tangent vectors satisfy the inclusion \(\dot\gamma(t) \in \mathrm{cone}\{p_i : \gamma(t) \in F_i\}\, \text{a.e.}\). Note that the cone for us here only contains combinations with nonnegative and not-all-zero coefficients. We again basically have equivalence of the three notions of orbits, up to orientation-preserving reparametrizations.
+
+## Action, EHZ Capacity, and Systolic Ratio
+
+The notion of closed characteristics allows us to define a symplectic capacity \(c_{\mathrm{EHZ}}\) on admissable bodies with enough regularity. Since we already defined generalized closed characteristics on polytopes, we can define \(c_{\mathrm{EHZ}}\) there as well. By continuity of all symplectic capacities with respect to the Hausdorff metric, it's easy to see that the capacity defined on polytopes coincides with the limit of the capacities of their smoothings.
+
+Action
+
+:   For a curve \(\gamma\) in \(\mathbb R^4\), the action is defined as \(A(\gamma) = \int_\gamma \lambda = \int_0^T \lambda_{\gamma(t)}(\dot\gamma(t))\,dt = \tfrac12 \int_0^T \langle J \gamma(t), \dot\gamma(t) \rangle\, dt\). This definition is independent of the choice of orientation-preserving reparametrization, and the action changes sign if we reverse orientation. This definition works for \(W^{1,2}\) curves already.
+
+EHZ Capacity
+
+:   For an admissable body \(K\) with enough regularity, there is a closed characteristic \(\gamma\) on \(\partial K\) that minimizes the action among all closed characteristics. The minimum action, which equals the Ekeland–Hofer-Zehnder capacity \(c_{\mathrm{EHZ}}(K) = \min\{A(\gamma) : \gamma \text{ closed characteristic on } \partial K\}\), defines a symplectic capacity. In the polytope case we use the same definition with generalized closed characteristics.
+
+Systolic Ratio
+
+:   The systolic ratio \(\mathrm{sys}(K) = c_{\mathrm{EHZ}}(K)^2 / (2 \, \mathrm{vol}(K))\) is a dimensionless quantity. It is scale invariant and translation invariant. The systolic ratio of the ball and cylinder of radius \(r\) is \(\mathrm{sys}(B(r)) = \mathrm{sys}(Z(r)) = 1\).
+
+
+## Viterbo Conjecture (falsified)
+
+We can now finally state the famous Viterbo's conjecture, which was long believed by many to be true, but has recently been falsified by @HaimKislev2024.
+
+/// admonition | Conjecture (Viterbo's conjecture)
+    type: conjecture
+    attrs: { name: "conj-viterbo" }
+For any admissable body \(K \subset \mathbb R^4\), the systolic ratio satisfies \(\mathrm{sys}(K) \le 1\).
+///
+
+/// admonition | Counterexample (Viterbo's conjecture)
+    type: example
+    attrs: { name: "ex-counterexample-viterbo" }
+From @HaimKislev2024, there exists an admissable polytope \(K \subset \mathbb R^4\) with \(\mathrm{sys}(K) > 1\), thus falsifying Viterbo's conjecture.
+///
+
+Goal of this master's thesis is to probe the landscape of admissable polytopes further, to find more counterexamples, and conjecture or even prove mathematically interesting statements about when Viterbo's conjecture does or does not hold.
+
+The existing literature already covers a few interesting statements:
+
+/// admonition | Theorem (Master Thesis Haim-Kislev)
+    type: theorem
+    attrs: { name: "thm-simplex-viterbo" }
+For simplices, which if they are star-shaped are automatically admissable polytopes, Viterbo's conjecture holds with an even stronger bound: \(\mathrm{sys}(K) \le 3/4 < 1\). Equality is taken only for the orthonormal simplex with vertices \(\{0, e_1, e_2, e_3, e_4\}\) and its symplectomorphic images, i.e. translations and linear symplectic maps.
+///
+
+/// admonition | Theorem (Mahler-Conjecture in 2D)
+    type: theorem
+    attrs: { name: "thm-mahler-2d-viterbo" }
+The Mahler Conjecture in 2D is known to hold: for any centrally symmetric convex polygon \(P = - P \subset \mathbb R^2\) we have \(\mathrm{area}(P) \, \mathrm{area}(P^\circ) \ge 8\), with equality for parallelograms. It turns out that the Mahler conjecture is equivalent to Viterbo's conjecture for \(K = P \times P^\circ \subset \mathbb R^4\), where \(P^\circ\) is the polar of \(P\), and equality is preserved. Thus Viterbo's conjecture holds for such \(K\).
+///
+
+We can trivially construct a family of counterexamples to Viterbo's conjecture by using the 2024 counterexample as base and applying scalings, symplectomorphisms, and by doing small continuous deformations. Since the systolic ratio is continuous in the Hausdorff metric, small perturbations of a counterexample remain counterexamples.
+
+We are interested in finding more counterexamples that are not trivially derived from the known one. For that, we need a way to probe different polytopes systematically, and computationally, rather than calculating the systolic ratio by hand, using ad-hoc methods, for hand-picked polytopes.
+
+The first major result of this thesis is to develop such a computational method that is applicable to all admissable polytopes, and is performant enough to be used for data science and machine learning methods that require large datasets of polytopes and their symplectic data.
+
+Before we dive into discussing the computational methods, we need to discuss the behavior of the Reeb orbits (or Hamiltonian orbits) on polytopes in more detail.
+
+## Behavior of Reeb Orbits on Polytopes
+
+Fix now an admissable polytope \(K \subset \mathbb R^4\) with irredundant H-representation via facet normals and heights \((n_i, h_i)_{i=1}^F\), \(|n_i| = 1\), \(h_i > 0\).
+Recall the facet velocities \(p_i = (2/h_i) \, J n_i\).
+
+The main result we want to recall from the previous sections is that
+
+/// admonition | Fact
+    type: theorem
+Any closed characteristic \(\gamma\) corresponds to a Reeb orbit, which also is a Hamiltonian orbit for the Hamiltonian \(H = g_K^2\). It is parametrized uniquely then as \(\gamma \in W^{1,2}(\mathbb T, \partial K)\) with period \(T > 0\) such that 
+\(
+\dot\gamma(t) \in \mathrm{conv}\{p_i : \gamma(t) \in F_i\} \, \text{a.e.}
+\)
+///
+
+In the interior of a facet \(F_i\) the velocity is constant \(\dot\gamma(t) = p_i\), and so the orbit has a linear segment there. 
+
+/// admonition | Lemma (Flow on Facets)
     type: lemma
-    attrs: { name: "lem:j-properties" }
-\[
-    J^2 = -I_4,\qquad
-    J^T = -J,\qquad
-    \langle Jx, y\rangle = -\langle x, Jy\rangle.
-\]
+    attrs: { name: "lem-facet-flow" }
+If the orbit \(\gamma\) touches the interior of a facet \(F_i\), then it does so as part of a closed linear segment with velocity \(p_i\), which starts and ends at the boundary of \(F_i\) after finite time, i.e. at a 2-face, 1-face, or 0-face.
+///
+/// details | Proof
+    type: proof
+    open: true
+Trivial.
 ///
 
-The symplectic form and Liouville 1‑form are
+At the intersections of facets, i.e. at lower-dimensional faces, we have more complicated behavior.
 
-\[
-\omega = \sum_{i=1}^2 dq_i \wedge dp_i,\qquad
-\omega(x,y)=\langle Jx,y\rangle 
-\]
+If the orbit \(\gamma\) touches a (closed, non-empty) 2-face \(F_{ij} = F_i \cap F_j\), we have two cases to consider: either the 2-face is Lagrangian, i.e. lies in a Lagrangian plane, or it is non-Lagrangian.
 
-\[
-\lambda = \tfrac12 \sum_{i=1}^2 (q_i\,dp_i - p_i\,dq_i),\qquad \lambda_z = \langle Jz,dz\rangle.
-\]
-
-A 2‑plane \(L\subset\mathbb R^4\) is **Lagrangian** if \(\omega|_L\equiv0\). We use the Euclidean inner product \(\langle\cdot,\cdot\rangle\) and norm \(|\cdot|\). All signs below are consistent with this \(J\) and \(\omega\).
-
-## Convex bodies and polytopes
-
-**Support / gauge / polar.**
-
-/// admonition | Definition (Support, gauge, polar)
-    type: definition
-    attrs: { name: "def-support-gauge-polar" }
-For a convex body \(K\subset\mathbb R^4\) with \(0\in\mathrm{int}\,K\), the support, gauge, and polar are
-
-\[
-h_K(v)=\sup_{x\in K}\langle x,v\rangle,\qquad
-g_K(v)=\inf\{r>0: v\in rK\},\qquad
-K^\circ = \{y: h_K(y)\le1\}.
-\]
+/// admonition | Lemma (Flow on Lagrangian 2-Faces)
+    type: lemma
+    attrs: { name: "lem-lagrangian-2face" }
+If \(F_{ij}\) is Lagrangian, then both facet velocities \(p_i\) and \(p_j\) lie in the tangent plane of \(F_{ij}\). Locally, the Reeb orbit may a-priori slide along \(F_{ij}\) with any \(W^{1,2}\) velocity in \(\mathrm{conv}\{p_i, p_j\}\), and need not be piecewise linear. The orbit enters and exits \(F_{ij}\) after finite time in its boundary, i.e. in a 1-face or 0-face.
 ///
 
-Gauge and support are Legendre–Fenchel dual up to the quadratic factor (Section “Clarke duality”).
-
-**Facets and heights.** An irredundant \(H\)-representation is
-
-\[
-K = \bigcap_{i=1}^F \{x: \langle x,n_i\rangle \le h_i\},\qquad |n_i|=1,\ h_i=h_K(n_i)>0.
-\]
-
-A 3‑face is a facet \(F_i\); a 2‑face is the intersection of two or more facets.
-
-/// admonition | Definition (Admissible polytope)
-    type: definition
-    attrs: { name: "def-admissible-polytope" }
-A polytope \(K\subset\mathbb R^4\) is **admissible** if it is convex, bounded, full dimensional, and \(0\in\mathrm{int}\,K\). Translating the polytope can always enforce this without loss.
+/// details | Proof
+    type: proof
+    open: true
+The basic idea is that since \(p_i, p_j\) both are parallel to \(F_{ij}\), the Reeb orbit cannot enter from the interior of the 3-faces into the interior of the 2-face. It must pass through the boundary instead. Also \(0 \notin \mathrm{conv}\{p_i, p_j\}\), so the 1-form \(\alpha\) is constant and non-zero along the 2-face, integrates to a potential on the 2-face, and thus the orbit cannot stay in the 2-face forever.
 ///
 
-/// admonition | Definition (Lagrangian vs. non‑Lagrangian 2‑face)
-    type: definition
-    attrs: { name: "def-lagrangian-face" }
-For a 2‑face \(G=F_i\cap F_j\) with tangent plane \(T G = \{v: \langle v,n_i\rangle=\langle v,n_j\rangle=0\}\):
-
-- \(G\) is **Lagrangian** if \(\omega|_{TG}=0\), equivalently \(\omega(n_i,n_j)=0\).
-- Otherwise \(G\) is **non‑Lagrangian**. This dichotomy governs whether facet velocities can be tangent along \(G\).
+/// admonition | Lemma (Flow through Non-Lagrangian 2-Faces)
+    type: lemma
+    attrs: { name: "lem-nonlagrangian-2face" }
+If \(F_{ij}\) is non-Lagrangian, then there's a direction \(i \to j\) or \(j \to i\) such that the Reeb orbit touches the interior of \(F_{ij}\) only at isolated times, crossing directly from one facet to the other along the position-independent direction. The direction is determined by the sign of \(\omega(n_i, n_j)\): if \(\omega(n_i, n_j) > 0\), then the orbit crosses from \(F_i\) to \(F_j\); if \(\omega(n_i, n_j) < 0\), then it crosses from \(F_j\) to \(F_i\).
+///
+/// details | Proof
+    type: proof
+    open: true
+Key idea is that \(\langle J n_i, n_j \rangle = - \langle J n_j, n_i \rangle = \omega(n_i, n_j)\). The value is zero iff the 2-face is Lagrangian. The inner product tells us whether \(p_i\) points into or out of the half-space defined by \(F_j\), and thus into or out of \(K\) and the facet \(F_i\).
+Locally, around an interior point of \(F_{ij}\), the orbit consists of two linear segments, one in \(F_i\) with velocity \(p_i\) and one in \(F_j\) with velocity \(p_j\). So we get that the touching time is isolated, and the crossing direction is as claimed.
 ///
 
-/// admonition | Definition (Facet velocity)
-    type: definition
-    attrs: { name: "def-facet-velocity" }
-For each facet \(F_i\) with outward unit normal \(n_i\) and height \(h_i\) set
+For 1-faces, there is a unique direction, but not necessarily a unique velocity.
 
-\[
-p_i := \frac{2}{h_i}\,J n_i.
-\]
-
-These are the Hamiltonian velocities of the quadratic Hamiltonian \(H=g_K^2\) on \(\partial K\).
+/// admonition | Lemma (Flow on 1-Faces)
+    type: lemma
+    attrs: { name: "lem-1face-flow" }
+If the orbit \(\gamma\) touches the interior of a 1-face \(F = \bigcap_{k=1}^m F_{i_k}\), which is an intersection of \(m \ge 3\) facets, then there is a unique direction along which the orbit may flow along \(F\). There is a-priori no additional statement we can make about the velocity, and the orbit may enter and exit \(F\) both in the boundary 0-faces and interior points of \(F\). So we don't know much, only that the orbit enters and exits through an adjacent 0-face, or through the interior of an adjacent 2- or 3-face.
 ///
+
+/// details | Proof
+    type: proof
+    open: true
+Key idea is to use the convexity of \(K\) to view the local neighborhood as an intersection of half-spaces. This implies the normals don't convexly combine to zero, as then the intersection would be empty. Thus the velocities \(p_{i_k}\) also don't convexly combine to zero, and there is a unique half-line the convex span lies in. This gives the unique direction of flow along the 1-face.
+If we look at trajectories instead of orbits, then we can indeed give examples of polytopes where trajectories enter and exit 1-faces in all the fashions described.
+///
+
+/// admonition | Lemma (Flow on 0-Faces)
+    type: lemma
+    attrs: { name: "lem-0face-flow" }
+Nothing to be said about 0-faces.
+///
+
+One potentially interesting question is what of the above behavior is just an edge case, i.e. whether there's some generic property that simplifies the behavior of closed characteristics on polytopes.
+
+/// admonition | Lemma (Non-Lagrangianness is Generic)
+    type: lemma
+    attrs: { name: "lem-nonlagrangian-generic" }
+The set of admissable polytopes with at no Lagrangian 2-faces is "open" and "dense" in some reasonable sense.
+///
+/// details | Proof
+    type: proof
+    open: true
+For a fixed number of vertices, or fixed number of facets, the set of admissable polytopes can be viewed as an open subset of \(\mathbb R^{4F}\) or \(\mathbb R^{4V}\) respectively, parametrized by the facet normals and heights or vertex coordinates respectively. The Lagrangianness of a 2-face defined by facets \(F_i, F_j\) is a single equation \(\omega(n_i, n_j) = 0\), which defines a codimension 1 submanifold. Thus the set of polytopes with at least one Lagrangian 2-face is a finite union of such codimension 1 submanifolds, and its complement, the set of polytopes with no Lagrangian 2-faces, is open and dense.
+///
+
+/// admonition | Conjecture
+    type: conjecture
+    attrs: { name: "conj-generic-0-faces" }
+Generically, there's at least one minimum action closed characteristic that does not pass through any 0-faces.
+///
+
+
+
+
 
 ## Generalized closed characteristics on polytopes
 
