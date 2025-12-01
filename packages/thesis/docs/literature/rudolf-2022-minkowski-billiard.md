@@ -5,20 +5,22 @@
 - Goal: generalize Artstein–Avidan & Ostrover’s smooth result to all convex bodies, enabling polytope algorithms.
 
 ## Claims Checked
-- Main equivalence for convex bodies $K, T \subset \mathbb{R}^n$:
-  $ c_{EHZ}(K\times T)=\min_{q\in F_{n+1}^{cp}(K)} \ell_T(q)=\min_{p\in F_{n+1}^{cp}(T)} \ell_K(p)=\min_{q\in M_{n+1}(K,T)} \ell_T(q)$.
+- Main equivalence for convex bodies \((K, T) \subset \mathbb{R}^n\):
+  \[
+  c_{EHZ}(K\times T)=\min_{q\in F_{n+1}^{cp}(K)} \ell_T(q)=\min_{p\in F_{n+1}^{cp}(T)} \ell_K(p)=\min_{q\in M_{n+1}(K,T)} \ell_T(q).
+  \]
 - No smoothness or strict convexity required; statement covers polytopes.
-- The minimal closed characteristic on $K\times T$ corresponds to a shortest $T$-Minkowski billiard trajectory in $K$.
+- The minimal closed characteristic on \(K\times T\) corresponds to a shortest \(T\)-Minkowski billiard trajectory in \(K\).
 
 ## Key Equations / Source TeX
 Source TeX (lines near title block):
 ```
 c_{EHZ}(K\times T) = \min_{q\in F_{n+1}^{cp}(K)}\ell_T(q) = \min_{p\in F_{n+1}^{cp}(T)}\ell_K(p) = \min_{q \in M_{n+1}(K,T)} \ell_T(q).
 ```
-Operationally: compute minimal $T$-length over closed $(K,T)$-billiard trajectories; for polytopes, restrict to combinatorial candidates.
+Operationally: compute minimal \(T\)-length over closed \((K,T)\)-billiard trajectories; for polytopes, restrict to combinatorial candidates.
 
 ## Caveats / Scope
-- Uses Minkowski billiard length $\ell_T$; we need an implementation for polytopes. Our current Rust/Python stacks must mirror their length convention.
+- Uses Minkowski billiard length \(\ell_T\); we need an implementation for polytopes. Our current Rust/Python stacks must mirror their length convention.
 - Equality holds for all convex bodies; numerical robustness still depends on how billiard paths are enumerated.
 
 ## How We Reuse

@@ -1,0 +1,22 @@
+/* Custom admonition accents for math statements. */
+.admonition.theorem,
+.admonition.lemma,
+.admonition.proposition,
+.admonition.definition,
+.admonition.proof,
+.admonition.corollary {
+  border-left-width: 4px;
+}
+
+.admonition.theorem { border-left-color: #4f46e5; }
+.admonition.lemma { border-left-color: #7c3aed; }
+.admonition.proposition { border-left-color: #2563eb; }
+.admonition.definition { border-left-color: #0f766e; }
+.admonition.proof { border-left-color: #6b7280; }
+.admonition.corollary { border-left-color: #9333ea; }
+
+/* Keep images responsive. */
+figure img { max-width: 100%; }
+
+/* Code blocks rounding to match original minimal tweaks. */
+.md-typeset pre code { border-radius: 6px; }

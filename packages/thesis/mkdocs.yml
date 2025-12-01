@@ -1,0 +1,54 @@
+site_name: Probing Viterbo's Conjecture – Thesis
+site_dir: site
+docs_dir: docs
+use_directory_urls: true
+
+nav:
+  - Project: 01-project.md
+  - Math Background: 02-math.md
+  - Standard Counterexample: 02.1-standard-counterexample.md
+  - Algorithm: 03-algorithm.md
+  - Experiments: 04-experiments.md
+  - Conjectures: 05-conjectures.md
+  - Appendices:
+      - Lean Library: 10-lean-library.md
+      - Rust Library: 11-rust-library.md
+      - Detailed Experiments: 12-detailed-experiments.md
+      - AI Agents: 13-ai-agents.md
+      - Style Guide: STYLE.md
+  - Literature:
+      - Index: literature/README.md
+      - Overview: 05-literature-overview.md
+      - HK 2019: literature/haim-kislev-2019.md
+      - HK&O 2024: literature/haim-kislev-ostrover-2024-counterexample.md
+      - Rudolf 2022: literature/rudolf-2022-minkowski-billiard.md
+  - References: references.md
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+
+plugins:
+  - search
+  - autorefs
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+      tex_inline_wrap: ['\\(', '\\)']
+      tex_block_wrap: ['\\[', '\\]']
+
+extra_javascript:
+  - overrides/assets/mathjax-config.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js
+  - assets/js/plotly-hydrate.js
+  - https://cdn.plot.ly/plotly-2.35.2.min.js
+
+extra_css:
+  - overrides/assets/extra.css
+  - assets/css/thesis.css
