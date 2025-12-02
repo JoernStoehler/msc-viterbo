@@ -1,4 +1,5 @@
 # Probing Viterbo's Conjecture
+[![thesis pages](https://img.shields.io/website?url=https%3A%2F%2Fjoernstoehler.github.io%2Fmsc-viterbo%2Fthesis%2F01-project%2F&label=thesis%20pages&logo=github)](https://joernstoehler.github.io/msc-viterbo/thesis/01-project/)
 
 This repo contains the full code, experiments, proofs, tooling, and writeup for my MSc thesis **"Probing Viterbo's Conjecture"**.
 
