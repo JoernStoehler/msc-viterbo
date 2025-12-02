@@ -1,0 +1,47 @@
+name: thesis-pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: thesis-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Build thesis
+        run: packages/thesis/scripts/build-site.sh
+      - name: Save site
+        run: cp -r packages/thesis/site /tmp/thesis-site
+      - name: Checkout gh-pages
+        run: |
+          git fetch origin gh-pages
+          git checkout gh-pages
+      - name: Update thesis artifacts
+        run: |
+          mkdir -p thesis
+          rsync -a --delete /tmp/thesis-site/ thesis/
+      - name: Commit and push
+        env:
+          GIT_AUTHOR_NAME: github-actions
+          GIT_AUTHOR_EMAIL: github-actions@github.com
+          GIT_COMMITTER_NAME: github-actions
+          GIT_COMMITTER_EMAIL: github-actions@github.com
+        run: |
+          git add thesis
+          git commit -m "docs: publish $(date -u +%Y-%m-%dT%H:%M:%SZ)" || exit 0
+          git push origin gh-pages
