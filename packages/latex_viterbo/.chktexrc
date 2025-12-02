@@ -1,0 +1,15 @@
+# Keep chktex noise low; enable only useful checks
+# 1: Command terminated with space
+# 8: Missing \item
+# 18: Double space at sentence start
+# 25: \item without preceding list
+# 38: Bad math punctuation
+IgnoreWarnings 2
+IgnoreWarnings 6
+IgnoreWarnings 11
+IgnoreWarnings 13
+IgnoreWarnings 17
+IgnoreWarnings 24
+IgnoreWarnings 36
+IgnoreWarnings 40
+

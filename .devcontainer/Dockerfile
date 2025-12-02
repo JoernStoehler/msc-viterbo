@@ -16,7 +16,7 @@ SHELL ["/bin/bash", "-lc"]
 #   than in postCreate, so they are baked into the image.
 # -----------------------------------------------------------------------------
 
-# Base system dependencies (rarely change; heavy but shared by all tools)
+# Base system dependencies (rarely change; heavy but shared by all tools).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
@@ -29,14 +29,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
- 
-# Quarto (for thesis docs) — pinned version for reproducibility.
-RUN QUARTO_DEB="quarto-1.8.26-linux-amd64.deb" \
-    && cd /tmp \
-    && wget -q "https://github.com/quarto-dev/quarto-cli/releases/download/v1.8.26/${QUARTO_DEB}" \
-    && dpkg -i "${QUARTO_DEB}" \
-    && rm -f "${QUARTO_DEB}"
 
+# TeX toolchain (slim) for PDF builds; HTML conversion will use system latexml.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-bibtex-extra \
+    texlive-pictures \
+    texlive-science \
+    texlive-xetex \
+    texlive-luatex \
+    latexmk \
+    biber \
+    chktex \
+    lacheck \
+    ghostscript \
+    imagemagick \
+    python3-pygments \
+    latexml \
+    && rm -rf /var/lib/apt/lists/*
+
+ 
 # Common CLI tools used by agents (cheap to adjust; comes after base deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ripgrep \
@@ -44,7 +59,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gh \
     universal-ctags \
     tree \
+    inotify-tools \
+    entr \
     && rm -rf /var/lib/apt/lists/*
+
+# VS Code tunnel CLI (bake into image to avoid slow postCreate download)
+RUN set -eux; \
+    tmpdir="$(mktemp -d)"; \
+    curl -fsSL "https://update.code.visualstudio.com/latest/cli-linux-x64/stable" -o "$tmpdir/vscode-cli.tar.gz"; \
+    tar -xzf "$tmpdir/vscode-cli.tar.gz" -C "$tmpdir"; \
+    install -m 0755 "$tmpdir/code" /usr/local/bin/code-tunnel; \
+    rm -rf "$tmpdir"
 
 # Node.js 22.x (npm included) for Codex CLI and other JS tooling.
 # We keep this in the image so that npm is always available for postCreate
@@ -55,20 +80,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && rm -rf /var/lib/apt/lists/* \
     && node -v && npm -v
 
-# Install uv (Python packaging/runner) globally.
-# uv is used as the canonical way to manage Python environments and deps.
-ENV UV_INSTALL_DIR=/usr/local/bin
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+# Install uv (Python packaging/runner) globally. Pin for reproducibility.
+# The installer appends "/bin" to UV_INSTALL_DIR, so point it at /usr/local to land in /usr/local/bin.
+ENV UV_INSTALL_DIR=/usr/local
+ENV UV_VERSION=0.4.20
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
     && uv --version
-
-# VS Code CLI (headless, includes `tunnel`) for remote access.
-RUN CLI_TMP="$(mktemp -d)" \
-    && pushd "$CLI_TMP" >/dev/null \
-    && curl -fsSL https://update.code.visualstudio.com/latest/cli-linux-x64/stable -o vscode-cli.tar.gz \
-    && tar -xzf vscode-cli.tar.gz \
-    && install -m 0755 code /usr/local/bin/code-tunnel \
-    && popd >/dev/null \
-    && rm -rf "$CLI_TMP"
 
 # Switch to dev user for language toolchains.
 # Toolchains live in the dev user's HOME so that cargo/elan behave normally.

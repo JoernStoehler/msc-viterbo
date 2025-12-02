@@ -24,6 +24,10 @@
     "source=/srv/devhome/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
     "source=/srv/devhome/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
+    "source=/srv/devhome/.cache/sccache,target=/home/vscode/.cache/sccache,type=bind,consistency=cached",
+    "source=/srv/devhome/.texlive2023,target=/home/vscode/.texlive2023,type=bind,consistency=cached",
+    "source=/srv/devhome/.texmf-var,target=/home/vscode/.texmf-var,type=bind,consistency=cached",
+    "source=/srv/devhome/.texmf-config,target=/home/vscode/.texmf-config,type=bind,consistency=cached",
     "source=/srv/devhome/.bash_history_dir,target=/home/vscode/.bash_history_dir,type=bind,consistency=cached",
     "source=/srv/devhome/.lake,target=/home/vscode/.lake,type=bind,consistency=cached",
     "source=/srv/devworktrees/msc-viterbo/worktrees,target=/workspaces/worktrees,type=bind,consistency=cached"

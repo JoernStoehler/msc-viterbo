@@ -1,0 +1,29 @@
+We recall a standard inequality that will be useful.
+
+\begin{definition}
+A function $f:\mathbb{R}^n \to \mathbb{R}$ is \emph{Lipschitz} with constant $L$ if
+\[
+  \lvert f(x) - f(y) \rvert \leq L \|x-y\| \quad\text{for all } x,y\in\mathbb{R}^n.
+\]
+\end{definition}
+
+\begin{theorem}[Triangle inequality]
+For any $x,y\in\mathbb{R}^n$, $\|x+y\| \le \|x\| + \|y\|$.
+\end{theorem}
+\begin{proof}
+This follows from Cauchy--Schwarz; see, e.g., \cite{rudin1987real}.
+\end{proof}
+
+We also keep a small code listing to exercise the `listings` package:
+
+\begin{lstlisting}[language=Python,caption={Gradient step snippet}]
+import numpy as np
+
+def step(x, grad, lr=1e-2):
+    # simple gradient descent step
+    return x - lr * grad
+
+x = np.array([1.0, 2.0])
+grad = np.array([0.5, -0.1])
+print(step(x, grad))
+\end{lstlisting}

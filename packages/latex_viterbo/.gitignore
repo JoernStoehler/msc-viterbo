@@ -1,0 +1,15 @@
+build/
+dist/
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.aux
+*.toc
+*.log
+*.out
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+print.flag
+includeonly.tex

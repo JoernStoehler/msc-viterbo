@@ -40,8 +40,7 @@ main() {
   prepare_python
   prepare_lean
   prepare_rust
-  prepare_mkdocs
-
+  prepare_latex
   log "worktree prep complete"
 }
 
@@ -112,15 +111,12 @@ prepare_rust() {
   CARGO_TARGET_DIR="$target_dir" cargo build --manifest-path packages/rust_viterbo/Cargo.toml
 }
 
-prepare_mkdocs() {
-  if have uv && [[ -d docs/mkdocs_viterbo ]]; then
-    log "mkdocs_viterbo: uv sync --locked --extra dev"
-    (cd docs/mkdocs_viterbo && uv sync --locked --extra dev)
-    log "mkdocs_viterbo: uv run mkdocs build"
-    (cd docs/mkdocs_viterbo && uv run mkdocs build)
-  else
-    log "mkdocs_viterbo prep skipped (uv missing or package absent)"
+prepare_latex() {
+  if [[ ! -d packages/latex_viterbo ]]; then
+    log "latex_viterbo prep skipped (package absent)"
+    return
   fi
+  log "latex_viterbo: nothing to prepare (use scripts/build.sh when needed)"
 }
 
 main "$@"

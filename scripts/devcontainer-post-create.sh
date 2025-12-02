@@ -4,16 +4,24 @@ set -euo pipefail
 REPO_ROOT="/workspaces/msc-viterbo"
 
 # Ensure various directories exist and are owned by the non-root user
-mkdir -p \
+# Bind mounts may be root-owned; create them with sudo, fix ownership, then add nested dirs.
+sudo mkdir -p \
   "${HOME}/.config" \
   "${HOME}/.local" \
   "${HOME}/.cache" \
-  "${HOME}/.lake"
-sudo chown -R $USER:$USER \
+  "${HOME}/.lake" \
+  "${HOME}/.texlive2023" \
+  "${HOME}/.texmf-var" \
+  "${HOME}/.texmf-config"
+sudo chown -R "${USER}:${USER}" \
   "${HOME}/.config" \
   "${HOME}/.local" \
   "${HOME}/.cache" \
-  "${HOME}/.lake"
+  "${HOME}/.lake" \
+  "${HOME}/.texlive2023" \
+  "${HOME}/.texmf-var" \
+  "${HOME}/.texmf-config"
+mkdir -p "${HOME}/.cache/LaTeXML"
 
 # Ensure the /workspaces/worktrees mount exists; fail fast if not
 WORKTREES_DIR="/workspaces/worktrees"
@@ -30,30 +38,14 @@ if command -v npm >/dev/null 2>&1; then
   npm i -g @openai/codex || true
 fi
 
-# Ensure VS Code tunnel CLI is present inside the container
-install_code_tunnel() {
-  if command -v code-tunnel >/dev/null 2>&1; then
-    echo "code-tunnel already installed ($(code-tunnel --version 2>/dev/null || true))"
-    return 0
-  fi
+echo "code-tunnel baked into image: $(code-tunnel --version 2>/dev/null || true)"
 
-  local url="https://update.code.visualstudio.com/latest/cli-linux-x64/stable"
-  local tmpdir
-  tmpdir="$(mktemp -d)"
+# Sanity-check LaTeX tooling baked into the image
+latexmk --version >/dev/null 2>&1 || true
 
-  echo "Installing VS Code CLI (tunnel) from ${url}"
-  curl -fsSL "${url}" -o "${tmpdir}/vscode-cli.tar.gz"
-  tar -xzf "${tmpdir}/vscode-cli.tar.gz" -C "${tmpdir}"
-
-  if command -v sudo >/dev/null 2>&1; then
-    sudo install -m 0755 "${tmpdir}/code" /usr/local/bin/code-tunnel
-  else
-    install -m 0755 "${tmpdir}/code" /usr/local/bin/code-tunnel
-  fi
-
-  rm -rf "${tmpdir}"
-}
-
-install_code_tunnel
+# Pre-warm TeX formats in user tree if missing (speeds first latexmk run)
+if [ ! -d "${HOME}/.texlive2023/texmf-var/web2c" ]; then
+  TEXMFVAR="${HOME}/.texlive2023/texmf-var" fmtutil-user --all >/dev/null 2>&1 || true
+fi
 
 echo "Devcontainer post-create setup complete."

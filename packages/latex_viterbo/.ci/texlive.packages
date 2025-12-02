@@ -1,0 +1,13 @@
+collection-basic
+collection-latexrecommended
+collection-latexextra
+collection-fontsrecommended
+collection-bibtexextra
+collection-pictures
+collection-science
+latexmk
+biber
+chktex
+lacheck
+luatex
+xetex

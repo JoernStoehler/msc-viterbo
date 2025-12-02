@@ -1,0 +1,59 @@
+name: Build and Deploy LaTeX (latex_viterbo)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-latex_viterbo
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/latex_viterbo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up cached TeX Live
+        uses: paolobrasolin/setup-texlive-action@v1
+        with:
+          profile-path: packages/latex_viterbo/.ci/texlive.profile
+          package-list-path: packages/latex_viterbo/.ci/texlive.packages
+
+      - name: Install latexml
+        run: sudo apt-get update && sudo apt-get install -y latexml
+
+      - name: Lint
+        run: ./scripts/lint.sh
+
+      - name: Build production artifacts
+        run: ./scripts/build.sh --production
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/latex_viterbo/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,77 @@
+\documentclass[11pt]{memoir}
+
+% Basic packages
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{margin=1.1in}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Optional include-only control without editing main.tex (create includeonly.tex)
+\IfFileExists{includeonly.tex}{\input{includeonly}}{}
+
+% Print flag via sentinel file (created by build-production for print version)
+\newif\ifprintversion
+\IfFileExists{print.flag}{\printversiontrue}{}
+
+% Hyperref profile; printable version hides link colors but keeps layout
+\ifprintversion
+  \hypersetup{hidelinks}
+\else
+  \hypersetup{
+    colorlinks=true,
+    linkcolor=MidnightBlue,
+    citecolor=ForestGreen,
+    urlcolor=RoyalBlue
+  }
+\fi
+
+% Listings style for quick sanity checks
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{RoyalBlue}\bfseries,
+  commentstyle=\color{ForestGreen},
+  stringstyle=\color{BrickRed},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false
+}
+
+% Theorem setup
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\title{Hello, Viterbo}
+\author{MSc Thesis Scaffold}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This is a tiny scaffold to exercise the LaTeX toolchain (PDF + HTML). It includes math, theorems, and a code listing.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Introduction}
+\label{chap:intro}
+\input{chapters/intro}
+
+\appendix
+\chapter{Supplement}
+A short appendix for pagination sanity.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
