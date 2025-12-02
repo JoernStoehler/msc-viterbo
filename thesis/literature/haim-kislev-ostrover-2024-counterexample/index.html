@@ -14,30 +14,20 @@
       
         <link rel="next" href="../rudolf-2022-minkowski-billiard/">
       
-      
-        
-      
-      
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.1.11">
     
     
       
-        <title>Haim–Kislev & Ostrover (2024) — Counterexample to Viterbo via Lagrangian Pentagons - Probing Viterbo's Conjecture – Thesis</title>
+        <title>HK&O 2024 - Probing Viterbo's Conjecture – Thesis</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
-      
-        
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
       
       
 
-
     
-    
-      
     
     
       
@@ -49,28 +39,25 @@
       
     
     
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+      <link rel="stylesheet" href="../../overrides/assets/extra.css">
     
       <link rel="stylesheet" href="../../assets/css/thesis.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
+    
   </head>
   
   
-    
-    
-      
-    
-    
-    
-    
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+    <body dir="ltr">
   
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -78,7 +65,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#context" class="md-skip">
+        <a href="#haimkislev-ostrover-2024-counterexample" class="md-skip">
           Skip to content
         </a>
       
@@ -97,12 +84,11 @@
     <a href="../.." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-header__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -114,58 +100,37 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Haim–Kislev & Ostrover (2024) — Counterexample to Viterbo via Lagrangian Pentagons
+              HK&O 2024
             
           </span>
         </div>
       </div>
     </div>
     
-      
-        <form class="md-header__option" data-md-component="palette">
-  
     
     
-    
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
-    
-  
-</form>
-      
-    
-    
-      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
-    
-    
-    
-      
-      
-        <label class="md-header__button md-icon" for="__search">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        </label>
-        <div class="md-search" data-md-component="search" role="dialog">
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -176,7 +141,6 @@
     </div>
   </div>
 </div>
-      
     
     
   </nav>
@@ -201,13 +165,12 @@
                     
 
 
-
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-nav__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
 
     </a>
     Probing Viterbo's Conjecture – Thesis
@@ -217,26 +180,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../01-research-question/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Research Question
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../01-project/" class="md-nav__link">
+        Project
       </a>
     </li>
   
@@ -244,26 +195,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../02-algorithms-overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Algorithms Overview
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../02-math/" class="md-nav__link">
+        Math Background
       </a>
     </li>
   
@@ -271,26 +210,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../01-algorithm/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Capacity Algorithm
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../02.1-standard-counterexample/" class="md-nav__link">
+        Standard Counterexample
       </a>
     </li>
   
@@ -298,26 +225,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../02-geometry/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Geometry Foundations
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../03-algorithm/" class="md-nav__link">
+        Algorithm
       </a>
     </li>
   
@@ -325,26 +240,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../03-data-science-experiments/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Science Experiments
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../04-experiments/" class="md-nav__link">
+        Experiments
       </a>
     </li>
   
@@ -352,26 +255,14 @@
     
       
       
-  
+      
+
   
   
   
     <li class="md-nav__item">
-      <a href="../../04-thesis-and-ai-agents/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Thesis and AI Agents
-  
-
-    
-  </span>
-  
-  
-
+      <a href="../../05-conjectures/" class="md-nav__link">
+        Conjectures
       </a>
     </li>
   
@@ -379,119 +270,195 @@
     
       
       
+      
+
   
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Appendices
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Appendices
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-lean-library/" class="md-nav__link">
+        Lean Library
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-rust-library/" class="md-nav__link">
+        Rust Library
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-detailed-experiments/" class="md-nav__link">
+        Detailed Experiments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-ai-agents/" class="md-nav__link">
+        AI Agents
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Literature</a>
+          
+            <label for="__nav_8">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Literature
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
   
   
   
     <li class="md-nav__item">
       <a href="../../05-literature-overview/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Literature Overview
-  
-
-    
-  </span>
-  
-  
-
+        Overview
       </a>
     </li>
   
 
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
-        
+            
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Literature Digests
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_8">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Literature Digests
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
             
               
-                
-  
   
   
   
     <li class="md-nav__item">
       <a href="../haim-kislev-2019/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Haim-Kislev 2019
-  
-
-    
-  </span>
-  
-  
-
+        HK 2019
       </a>
     </li>
   
 
-              
+            
+          
             
               
-                
   
   
     
-  
   
   
     <li class="md-nav__item md-nav__item--active">
@@ -499,40 +466,16 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Haim-Kislev & Ostrover 2024
-  
-
-    
-  </span>
-  
-  
-
+          HK&O 2024
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Haim-Kislev & Ostrover 2024
-  
-
-    
-  </span>
-  
-  
-
+        HK&O 2024
       </a>
       
         
@@ -540,6 +483,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -550,55 +495,35 @@
       
         <li class="md-nav__item">
   <a href="#context" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Context
-      
-    </span>
+    Context
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#claims-checked" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Claims Checked
-      
-    </span>
+    Claims Checked
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#key-equations-source-tex" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Equations / Source TeX
-      
-    </span>
+    Key Equations / Source TeX
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#caveats-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caveats / Scope
-      
-    </span>
+    Caveats / Scope
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#how-we-reuse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How We Reuse
-      
-    </span>
+    How We Reuse
   </a>
   
 </li>
@@ -610,39 +535,39 @@
     </li>
   
 
-              
+            
+          
             
               
-                
-  
   
   
   
     <li class="md-nav__item">
       <a href="../rudolf-2022-minkowski-billiard/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Rudolf 2022 Minkowski Billiard
-  
-
-    
-  </span>
-  
-  
-
+        Rudolf 2022
       </a>
     </li>
   
 
-              
             
-          </ul>
-        </nav>
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
       
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        References
+      </a>
     </li>
   
 
@@ -664,6 +589,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -673,55 +600,35 @@
       
         <li class="md-nav__item">
   <a href="#context" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Context
-      
-    </span>
+    Context
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#claims-checked" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Claims Checked
-      
-    </span>
+    Claims Checked
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#key-equations-source-tex" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Equations / Source TeX
-      
-    </span>
+    Key Equations / Source TeX
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#caveats-scope" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caveats / Scope
-      
-    </span>
+    Caveats / Scope
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#how-we-reuse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How We Reuse
-      
-    </span>
+    How We Reuse
   </a>
   
 </li>
@@ -736,28 +643,28 @@
           
           
             <div class="md-content" data-md-component="content">
-              
               <article class="md-content__inner md-typeset">
                 
                   
 
 
-
-  <h1>Haim-Kislev & Ostrover 2024</h1>
-
-<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<h1 id="haimkislev-ostrover-2024-counterexample">Haim–Kislev &amp; Ostrover 2024 Counterexample</h1>
+<h2 id="context">Context</h2>
 <ul>
 <li>Source: <code>packages/thesis/build/arxiv/2405.16513v2/main.tex</code> (TeX from arXiv v2). Avoid PDF.</li>
 <li>Shows Viterbo’s conjecture fails already in <span class="arithmatex">\(\mathbb{R}^4\)</span> using a Lagrangian product of rotated pentagons; extends to all <span class="arithmatex">\(n\ge2\)</span> via product tricks.</li>
 </ul>
-<h2 id="claims-checked">Claims Checked<a class="headerlink" href="#claims-checked" title="Permanent link">&para;</a></h2>
+<h2 id="claims-checked">Claims Checked</h2>
 <ul>
 <li>Theorem (label <code>counterexample_thm</code>): Viterbo’s conjecture fails for every <span class="arithmatex">\(n\ge 2\)</span>.</li>
-<li>Proposition <code>counterexample_prop</code>: for <span class="arithmatex">\(K\)</span> a unit regular pentagon and <span class="arithmatex">\(T=R_{90^\circ}K\)</span>,
-  $ c_{EHZ}(K\times T)=2\cos(\tfrac{\pi}{10})(1+\cos(\tfrac{\pi}{5})) $, achieved by a 2-bounce <span class="arithmatex">\(T\)</span>-billiard along a diagonal.</li>
-<li>Volume computation gives <span class="arithmatex">\(\mathrm{sys}(K\times T)=1.04721\dots&gt;1\)</span> (used in our literature overview).</li>
+<li>Proposition <code>counterexample_prop</code>: for <span class="arithmatex">\(K\)</span> a unit regular pentagon and <span class="arithmatex">\(T=R_{90^\circ}K\)</span>,</li>
 </ul>
-<h2 id="key-equations-source-tex">Key Equations / Source TeX<a class="headerlink" href="#key-equations-source-tex" title="Permanent link">&para;</a></h2>
+<p>[
+  c_{EHZ}(K\times T)=2\cos(\tfrac{\pi}{10})(1+\cos(\tfrac{\pi}{5})),
+  ]</p>
+<p>achieved by a 2-bounce <span class="arithmatex">\(T\)</span>-billiard along a diagonal.
+- Volume computation gives <span class="arithmatex">\(\mathrm{sys}(K\times T)=1.04721\dots&gt;1\)</span> (used in our literature overview).</p>
+<h2 id="key-equations-source-tex">Key Equations / Source TeX</h2>
 <p>Source TeX (lines ~85–110):
 <div class="highlight"><pre><span></span><code>\begin{theorem}
 \label{counterexample_thm}
@@ -771,12 +678,12 @@ Viterbo&#39;s conjecture fails for every n \ge 2.
  c_{EHZ}(K \times T) = 2 \cos(\tfrac{\pi}{10}) (1 + \cos(\tfrac{\pi}{5})).
 \end{proposition}
 </code></pre></div></p>
-<h2 id="caveats-scope">Caveats / Scope<a class="headerlink" href="#caveats-scope" title="Permanent link">&para;</a></h2>
+<h2 id="caveats-scope">Caveats / Scope</h2>
 <ul>
 <li>Construction is specific: Lagrangian product of 2D polygons. Equality examples exist where capacities coincide; not every product gives a violation.</li>
 <li>Numerical value depends on the chosen normalization of the pentagon (circumradius 1 in the TeX source).</li>
 </ul>
-<h2 id="how-we-reuse">How We Reuse<a class="headerlink" href="#how-we-reuse" title="Permanent link">&para;</a></h2>
+<h2 id="how-we-reuse">How We Reuse</h2>
 <ul>
 <li>Regression test instance for our algorithms (must reproduce the 2-bounce orbit and capacity value).</li>
 <li>Benchmark for pruning logic: minimum-action orbit uses a Lagrangian 2-face; keep the fallback search path.</li>
@@ -787,22 +694,11 @@ Viterbo&#39;s conjecture fails for every n \ge 2.
 
 
 
-
-
-  
-  
-
-
-
-
-
-
                 
               </article>
             </div>
           
           
-<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
       </main>
@@ -830,22 +726,20 @@ Viterbo&#39;s conjecture fails for every n \ge 2.
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
+      <script src="../../assets/javascripts/bundle.fac441b0.min.js"></script>
       
+        <script src="../../overrides/assets/mathjax-config.js"></script>
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
-    
-    
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
-        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-      
-        <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
       
         <script src="../../assets/js/plotly-hydrate.js"></script>
+      
+        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
       
     
   </body>

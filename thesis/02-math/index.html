@@ -1,0 +1,1163 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../01-project/">
+      
+      
+        <link rel="next" href="../02.1-standard-counterexample/">
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.1.11">
+    
+    
+      
+        <title>Math Background - Probing Viterbo's Conjecture – Thesis</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../overrides/assets/extra.css">
+    
+      <link rel="stylesheet" href="../assets/css/thesis.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#math-background" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-header__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Probing Viterbo's Conjecture – Thesis
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Math Background
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Probing Viterbo&#39;s Conjecture – Thesis" class="md-nav__button md-logo" aria-label="Probing Viterbo's Conjecture – Thesis" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Probing Viterbo's Conjecture – Thesis
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-project/" class="md-nav__link">
+        Project
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Math Background
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Math Background
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#standard-symplectic-mathbbr4" class="md-nav__link">
+    Standard Symplectic \(\mathbb{R}^4\)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#convex-bodies-and-polytopes" class="md-nav__link">
+    Convex Bodies and Polytopes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correspondence-of-combinatorial-and-smooth-settings" class="md-nav__link">
+    Correspondence of Combinatorial and Smooth Settings
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hamiltonian-dynamics" class="md-nav__link">
+    Hamiltonian Dynamics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reeb-dynamics-and-closed-characteristics" class="md-nav__link">
+    Reeb Dynamics and Closed Characteristics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-ehz-capacity-and-systolic-ratio" class="md-nav__link">
+    Action, EHZ Capacity, and Systolic Ratio
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viterbo-conjecture-falsified" class="md-nav__link">
+    Viterbo Conjecture (falsified)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-reeb-orbits-on-polytopes" class="md-nav__link">
+    Behavior of Reeb Orbits on Polytopes
+  </a>
+  
+    <nav class="md-nav" aria-label="Behavior of Reeb Orbits on Polytopes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generic-behavior" class="md-nav__link">
+    Generic Behavior
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#degeneracies-of-the-action" class="md-nav__link">
+    Degeneracies of the Action
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clarkes-dual-action-principle" class="md-nav__link">
+    Clarke's Dual Action Principle
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hkch-combinatorial-capacity-formula-4d" class="md-nav__link">
+    HK/CH combinatorial capacity formula (4D)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forward-use" class="md-nav__link">
+    Forward use
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02.1-standard-counterexample/" class="md-nav__link">
+        Standard Counterexample
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-algorithm/" class="md-nav__link">
+        Algorithm
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-experiments/" class="md-nav__link">
+        Experiments
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-conjectures/" class="md-nav__link">
+        Conjectures
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Appendices
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Appendices
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-lean-library/" class="md-nav__link">
+        Lean Library
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-rust-library/" class="md-nav__link">
+        Rust Library
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12-detailed-experiments/" class="md-nav__link">
+        Detailed Experiments
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../13-ai-agents/" class="md-nav__link">
+        AI Agents
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../literature/">Literature</a>
+          
+            <label for="__nav_8">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          Literature
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-literature-overview/" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/haim-kislev-2019/" class="md-nav__link">
+        HK 2019
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/haim-kislev-ostrover-2024-counterexample/" class="md-nav__link">
+        HK&O 2024
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/rudolf-2022-minkowski-billiard/" class="md-nav__link">
+        Rudolf 2022
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../references/" class="md-nav__link">
+        References
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#standard-symplectic-mathbbr4" class="md-nav__link">
+    Standard Symplectic \(\mathbb{R}^4\)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#convex-bodies-and-polytopes" class="md-nav__link">
+    Convex Bodies and Polytopes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correspondence-of-combinatorial-and-smooth-settings" class="md-nav__link">
+    Correspondence of Combinatorial and Smooth Settings
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hamiltonian-dynamics" class="md-nav__link">
+    Hamiltonian Dynamics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reeb-dynamics-and-closed-characteristics" class="md-nav__link">
+    Reeb Dynamics and Closed Characteristics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#action-ehz-capacity-and-systolic-ratio" class="md-nav__link">
+    Action, EHZ Capacity, and Systolic Ratio
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viterbo-conjecture-falsified" class="md-nav__link">
+    Viterbo Conjecture (falsified)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-reeb-orbits-on-polytopes" class="md-nav__link">
+    Behavior of Reeb Orbits on Polytopes
+  </a>
+  
+    <nav class="md-nav" aria-label="Behavior of Reeb Orbits on Polytopes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generic-behavior" class="md-nav__link">
+    Generic Behavior
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#degeneracies-of-the-action" class="md-nav__link">
+    Degeneracies of the Action
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clarkes-dual-action-principle" class="md-nav__link">
+    Clarke's Dual Action Principle
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hkch-combinatorial-capacity-formula-4d" class="md-nav__link">
+    HK/CH combinatorial capacity formula (4D)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#forward-use" class="md-nav__link">
+    Forward use
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="math-background">Math Background</h1>
+<p>This chapter sets notation and definitions for the rest of the thesis. We follow primarily @ChaidezHutchings2021 and secondarily @HaimKislev2017, @HaimKislev2024 in our choice of notation.<br />
+We assume the reader is already familiar with basic symplectic geometry in a smooth setting, as per a master's level course (Reeb vector fields, contact forms, symplectic capacities, Hamiltonian dynamics).</p>
+<h2 id="standard-symplectic-mathbbr4">Standard Symplectic <span class="arithmatex">\(\mathbb{R}^4\)</span></h2>
+<p>We work in the standard <span class="arithmatex">\(\mathbb R^4\)</span> setting:</p>
+<dl>
+<dt>Coordinates</dt>
+<dd>
+<p><span class="arithmatex">\(z=(q_1,q_2,p_1,p_2)\)</span></p>
+</dd>
+<dt>Inner product</dt>
+<dd>
+<p><span class="arithmatex">\(\langle x,y\rangle = x^T y\)</span></p>
+</dd>
+<dt>Norm</dt>
+<dd>
+<p><span class="arithmatex">\(|x|=\sqrt{\langle x,x\rangle}\)</span></p>
+</dd>
+<dt>Volume form</dt>
+<dd>
+<p><span class="arithmatex">\(\mathrm{vol} = \prod_{i=1}^2 dq_i \wedge dp_i\)</span></p>
+</dd>
+<dt>Almost complex structure</dt>
+<dd>
+<p><span class="arithmatex">\(J = \begin{pmatrix}0 &amp; -I_2 \\ I_2 &amp; 0\end{pmatrix} ,\quad J^2 = -I_4\)</span></p>
+</dd>
+<dt>Symplectic form</dt>
+<dd>
+<p><span class="arithmatex">\(\omega = \sum_{i=1}^2 dq_i \wedge dp_i ,\quad \omega(x,y)=\langle Jx,y\rangle\)</span></p>
+</dd>
+<dt>Liouville 1‑form</dt>
+<dd>
+<p><span class="arithmatex">\(\lambda = \tfrac12 \sum_{i=1}^2 (q_i\,dp_i - p_i\,dq_i) ,\quad \lambda_z(\dot z) = \tfrac12 \langle J z, \dot z\rangle ,\quad d\lambda = \omega\)</span></p>
+</dd>
+<dt>Lagrangian 2-plane</dt>
+<dd>
+<p>An affine 2-plane <span class="arithmatex">\(L\subset\mathbb R^4\)</span> is Lagrangian iff <span class="arithmatex">\(\omega|_L \equiv 0\)</span>.</p>
+</dd>
+</dl>
+<h2 id="convex-bodies-and-polytopes">Convex Bodies and Polytopes</h2>
+<dl>
+<dt>Half-space</dt>
+<dd>
+<p>For <span class="arithmatex">\(n\in\mathbb R^4\)</span>, <span class="arithmatex">\(|n|=1\)</span>, and <span class="arithmatex">\(h \in \mathbb R\)</span>, the half-space <span class="arithmatex">\(\{x: \langle x,n\rangle \le h\}\)</span> has a boundary hyperplane <span class="arithmatex">\(\{x: \langle x,n\rangle = h\}\)</span> and outward unit normal <span class="arithmatex">\(n\)</span>. Iff <span class="arithmatex">\(h&gt;0\)</span> the half-space contains <span class="arithmatex">\(0\)</span> in its interior, and we call it positive.</p>
+</dd>
+<dt>Admissable, aka Bounded Convex Star-Shaped</dt>
+<dd>
+<p>A set <span class="arithmatex">\(K\subset\mathbb R^4\)</span> is called bounded, convex in the usual sense, and star-shaped iff it contains <span class="arithmatex">\(0\)</span> in its interior. Due to convexity, every ray from <span class="arithmatex">\(0\)</span> through a boundary point cuts the boundary transversely and exactly once. Any star-shaped body is full-dimensional since it contains a neighborhood of <span class="arithmatex">\(0\)</span>. We abbreviate "bounded convex star-shaped body" as "admissable body". Any bounded convex body with non-empty interior can be translated to an admissable body.</p>
+</dd>
+<dt>Irredundant H-representation</dt>
+<dd>
+<p>Any admissable polytope <span class="arithmatex">\(K\)</span> has a unique representation as the intersection of finitely many positive half-spaces, with minimal number of half-spaces. Writing the outward unit normals and heights as <span class="arithmatex">\((n_i,h_i)_{i=1}^F\)</span>, <span class="arithmatex">\(|n_i|=1\)</span>, <span class="arithmatex">\(h_i&gt;0\)</span>, we have <span class="arithmatex">\(K = \bigcap_{i=1}^F \{x: \langle x,n_i\rangle \le h_i\}\)</span>. Any such representation with bounded <span class="arithmatex">\(K\)</span> defines an admissable polytope.</p>
+</dd>
+<dt>Boundary of a Convex Body</dt>
+<dd>
+<p>We write <span class="arithmatex">\(\partial K\)</span> for the boundary of a convex body <span class="arithmatex">\(K\subset\mathbb R^4\)</span>.</p>
+</dd>
+<dt>Facets and Faces</dt>
+<dd>
+<p>For an admissable polytope <span class="arithmatex">\(K\)</span> the boundary decomposes into finitely many facets (aka 3-faces) <span class="arithmatex">\(F_i = K \cap \{x: \langle x,n_i\rangle = h_i\}\)</span>. We take our facets to be closed sets relative to the hyperplane topology. Where multiple hyperplanes meet, we have lower-dimensional 2-, 1-, and 0-faces. It's important to note that due to irredundancy, every 2-face is the intersection of two unique facets. For 1-faces and 0-faces, unboundedly many facets may meet. We call the <span class="arithmatex">\(n_i, h_i\)</span> the facet normals and heights.</p>
+</dd>
+<dt>Support</dt>
+<dd>
+<p>For an admissable body <span class="arithmatex">\(K\subset\mathbb R^4\)</span> the support function is <span class="arithmatex">\(h_K(v) = \max_{x\in K} \langle x,v\rangle\)</span>. For polytopes, for any facet <span class="arithmatex">\(F_i\)</span> we have <span class="arithmatex">\(h_K(n_i) = h_i\)</span>.</p>
+</dd>
+<dt>Gauge</dt>
+<dd>
+<p>For an admissable body <span class="arithmatex">\(K\subset\mathbb R^4\)</span> the gauge function is <span class="arithmatex">\(g_K(v) = \min\{r&gt;0: v\in rK\}\)</span>. On the boundary <span class="arithmatex">\(x \in \partial K\)</span> we have <span class="arithmatex">\(g_K(x)=1\)</span>.</p>
+</dd>
+<dt>Polar</dt>
+<dd>
+<p>For an admissable body <span class="arithmatex">\(K\subset\mathbb R^4\)</span> the polar body is <span class="arithmatex">\(K^\circ = \{y: h_K(y) \le 1\}\)</span>. For admissable polytopes, the polar is again an admissable polytope with vertices at the points <span class="arithmatex">\(n_i/h_i\)</span> for every facet <span class="arithmatex">\(F_i\)</span> of <span class="arithmatex">\(K\)</span>.</p>
+</dd>
+</dl>
+<h2 id="correspondence-of-combinatorial-and-smooth-settings">Correspondence of Combinatorial and Smooth Settings</h2>
+<p>The reason we are interested in admissable polytopes is that they approximate any bounded convex star-shaped body arbitrarily well in the Hausdorff metric, and other metrics of interest. Understanding the polytope case is a key step towards understanding general convex bodies.</p>
+<p>We will in several places make statements that the "combinatorial" definition of some symplectic data on polytopes is indeed the limit of the symplectic data for smoothings of the polytope, which are <span class="arithmatex">\(C^{1}\)</span> admissable bodies.</p>
+<dl>
+<dt><span class="arithmatex">\(\varepsilon\)</span>-Smoothings</dt>
+<dd>
+<p>For an admissable polytope <span class="arithmatex">\(K\)</span> and <span class="arithmatex">\(\varepsilon&gt;0\)</span>, the <span class="arithmatex">\(\varepsilon\)</span>-smoothing <span class="arithmatex">\(K_\varepsilon := \{x \in \mathbb R^4 : \mathrm{dist}(x,K) \le \varepsilon\}\)</span> is an admissable body with <span class="arithmatex">\(C^{1,1}\)</span> boundary. Any sequence of admissable bodies that converges to <span class="arithmatex">\(K\)</span> in the Hausdorff metric is contained in a sequence of <span class="arithmatex">\(\varepsilon\)</span>-smoothings with <span class="arithmatex">\(\varepsilon \to 0\)</span>.</p>
+</dd>
+</dl>
+<h2 id="hamiltonian-dynamics">Hamiltonian Dynamics</h2>
+<dl>
+<dt>Standard Hamiltonian</dt>
+<dd>
+<p>For our interests any choice of Hamiltonian <span class="arithmatex">\(H: \mathbb R^4 \to \mathbb R\)</span> with regular level set <span class="arithmatex">\(H^{-1}(1) = \partial K\)</span> and some sufficient regularity will do. We fix a standard Hamiltonian that will later be useful for computations and for applying a Clarke dual principle. We set <span class="arithmatex">\(H = g_K^2\)</span>, the square of the gauge function of <span class="arithmatex">\(K\)</span>. This is 2-homogeneous, convex, and piecewise quadratic for polytopes. Derivatives exist everywhere except on the rays through the <span class="arithmatex">\(2\)</span>-faces of <span class="arithmatex">\(K\)</span>.</p>
+</dd>
+<dt>Hamiltonian vector field (Regular case)</dt>
+<dd>
+<p>For <span class="arithmatex">\(H \in C^1(\mathbb R^4)\)</span> the Hamiltonian vector field <span class="arithmatex">\(X_H \in \Gamma^0(T\mathbb R^4)\)</span> is defined by <span class="arithmatex">\(\omega(X_H,\cdot) = dH(\cdot)\)</span>, or equivalently <span class="arithmatex">\(X_H = J \nabla H\)</span>.</p>
+</dd>
+<dt>Hamiltonian flow, trajectories (Regular case)</dt>
+<dd>
+<p>We can define a flow <span class="arithmatex">\(\phi_H^t: \mathbb R^4 \to \mathbb R^4\)</span> generated by <span class="arithmatex">\(X_H\)</span> via the ODE <span class="arithmatex">\(\dot x(t) = X_H(x(t))\)</span>. The trajectories <span class="arithmatex">\(x(t) = \phi_H^t(x_0)\)</span> with initial condition <span class="arithmatex">\(x(0)=x_0\)</span> exist and, for some conditions on <span class="arithmatex">\(H\)</span> we don't discuss here, are unique for all time. The flow preserves level sets of <span class="arithmatex">\(H\)</span>, so in particular <span class="arithmatex">\(\partial K\)</span> is invariant under the flow.</p>
+</dd>
+<dt>Combinatorial Hamiltonian dynamics (Polytope case)</dt>
+<dd>
+<p>For admissable polytopes <span class="arithmatex">\(K\)</span> the Hamiltonian <span class="arithmatex">\(H=g_K^2\)</span> is not differentiable everywhere, so the standard Hamiltonian vector field and flow are not defined globally. Instead we work with generalized Hamiltonian dynamics via differential inclusions, as in @HaimKislev2017. We use the subdifferential <span class="arithmatex">\(\partial H(x)\)</span> in place of the gradient <span class="arithmatex">\(\nabla H(x)\)</span> to define a Hamiltonian inclusion <span class="arithmatex">\(\dot x(t) \in J \partial H(x(t)) \, \text{a.e.}\)</span>. Solutions in <span class="arithmatex">\(W^{1,2}(\mathbb R, \mathbb R^4)\)</span> exist for any initial condition and all time, but need not be unique. We still have that <span class="arithmatex">\(\partial K\)</span> is invariant under the generalized flow, i.e. any solution with initial condition in <span class="arithmatex">\(\partial K\)</span> remains in <span class="arithmatex">\(\partial K\)</span> for all time.</p>
+</dd>
+<dt>Combinatorial Hamiltonian orbits (Polytope case)</dt>
+<dd>
+<p>We call a periodic solution <span class="arithmatex">\(\gamma \in W^{1,2}(\mathbb T, \partial K)\)</span> of the Hamiltonian inclusion a Hamiltonian orbit, where <span class="arithmatex">\(\mathbb T = \mathbb R / T \mathbb Z\)</span> for some minimal period <span class="arithmatex">\(T&gt;0\)</span>. Not all solutions need be periodic. We exclude stationary solutions <span class="arithmatex">\(\gamma \equiv \text{const}\)</span> by the <span class="arithmatex">\(T &gt; 0\)</span> requirement, since they will not be interesting for us later on.</p>
+</dd>
+<dt>Subdifferential</dt>
+<dd>
+<p>For a convex function <span class="arithmatex">\(f: \mathbb R^n \to \mathbb R\)</span> the subdifferential at <span class="arithmatex">\(x\)</span> is the set of subgradients <span class="arithmatex">\(\partial f(x) = \{v \in \mathbb R^n : f(y) \ge f(x) + \langle v, y - x \rangle \text{ for all } y \in \mathbb R^n\}\)</span>. So <span class="arithmatex">\(\partial f(x)\)</span> is the set of slopes of affine functions that globally underestimate <span class="arithmatex">\(f\)</span> and touch <span class="arithmatex">\(f\)</span> at <span class="arithmatex">\(x\)</span>. If <span class="arithmatex">\(f\)</span> is differentiable at <span class="arithmatex">\(x\)</span>, then <span class="arithmatex">\(\partial f(x) = \{\nabla f(x)\}\)</span>.</p>
+</dd>
+<dt>Subdifferential of <span class="arithmatex">\(H = g_K^2\)</span></dt>
+<dd>
+<p>At any <span class="arithmatex">\(x \in \partial K\)</span> for an admissable polytope <span class="arithmatex">\(K\)</span> we have subgradients for every facet <span class="arithmatex">\(F_i\)</span> containing <span class="arithmatex">\(x\)</span>. In fact, we can easily see that the underestimating affine functions are the half-spaces containing <span class="arithmatex">\(K\)</span>, and their slopes are the convex combinations of the facet normals at <span class="arithmatex">\(x\)</span>. Thus <span class="arithmatex">\(\partial H(x) = 2 g_K(x) \, \partial g_K(x) = \mathrm{conv}\{(2/h_i) \, n_i : x \in F_i\}\)</span>.</p>
+</dd>
+<dt>Facet velocities</dt>
+<dd>
+<p>We define the facet velocities <span class="arithmatex">\(p_i = (2/h_i) \, J n_i\)</span> for each facet <span class="arithmatex">\(F_i\)</span> of an admissable polytope <span class="arithmatex">\(K\)</span>. The Hamiltonian inclusion on <span class="arithmatex">\(\partial K\)</span> can then be written as <span class="arithmatex">\(\dot x(t) \in \mathrm{conv}\{p_i : x(t) \in F_i\} \, \text{a.e.}\)</span>. And in the interior of a facet <span class="arithmatex">\(F_i\)</span> we have the unique velocity <span class="arithmatex">\(\dot x(t) = p_i\)</span>.</p>
+</dd>
+</dl>
+<h2 id="reeb-dynamics-and-closed-characteristics">Reeb Dynamics and Closed Characteristics</h2>
+<dl>
+<dt>Contact form and Reeb vector field (Regular case)</dt>
+<dd>
+<p>Let <span class="arithmatex">\(\partial K\)</span> be a <span class="arithmatex">\(C^1\)</span> boundary of an admissable body. It is a contact-type hypersurface with contact form <span class="arithmatex">\(\alpha = \lambda|_{\partial K}\)</span>. The Reeb vector field defined by <span class="arithmatex">\(\alpha(R) = 1\)</span>, <span class="arithmatex">\(d\alpha(R,\cdot) = 0\)</span> can be explicitly given. For a point <span class="arithmatex">\(x \in \partial K\)</span>, with outwards unit normal <span class="arithmatex">\(n_x \in \mathbb R^4\)</span>, <span class="arithmatex">\(|n_x| = 1\)</span>, we have that any direction <span class="arithmatex">\(v \in T_x \partial K\)</span> satisfies <span class="arithmatex">\(\langle J v, J n_x \rangle = \langle v, n_x \rangle = 0\)</span>. Thus <span class="arithmatex">\(J n_x \in \mathrm{ker}(d\alpha_x)\)</span>. Normalizing to <span class="arithmatex">\(\alpha(R) = 1\)</span> gives <span class="arithmatex">\(R(x) = (2 / \langle x, n_x \rangle) \, J n_x\)</span>.</p>
+</dd>
+<dt>Reeb flow and Reeb orbits (Regular case)</dt>
+<dd>
+<p>Just like in the Hamiltonian case, we can define a flow and ODE, this time only on <span class="arithmatex">\(\partial K\)</span>, via <span class="arithmatex">\(\dot x(t) = R(x(t))\)</span>. The flow preserves <span class="arithmatex">\(\alpha\)</span> and <span class="arithmatex">\(d\alpha\)</span>. Periodic solutions are called Reeb orbits.</p>
+</dd>
+<dt>Closed characteristics (Regular case)</dt>
+<dd>
+<p>If we relax the ODE and only demand that some loop <span class="arithmatex">\(\gamma: S^1 \to \partial K\)</span> have its tangent vector <span class="arithmatex">\(\dot\gamma(t)\)</span> be parallel with same orientation to the Reeb vector field, i.e. <span class="arithmatex">\(\dot\gamma(t) \in \mathrm{ker}(d\alpha_{\gamma(t)}) \land \alpha(\dot\gamma(t)) &gt; 0\)</span> for all <span class="arithmatex">\(t\)</span>, we call such loops closed characteristics. On admissable bodies with enough regularity, closed characteristics coincide with Reeb orbits up to orientation-preserving reparametrization. We can also turn the Reeb flow for some contact form (\alpha) into a Hamiltonian flow near <span class="arithmatex">\(\partial K\)</span> and vice versa, with some caveats on regularity, so basically closed characteristics and Reeb orbits and Hamiltonian orbits on <span class="arithmatex">\(\partial K\)</span> all give us the same geometric information.</p>
+</dd>
+<dt>Reeb orbits, Closed characteristics, Hamiltonian orbits (Polytope case)</dt>
+<dd>
+<p>For admissable polytopes <span class="arithmatex">\(K\)</span> we instantly spot that on the interior of facets the (well-defined) Reeb vector field equals the Hamiltonian velocity. So the generalized Reeb orbits for the standard contact form are just the generalized Hamiltonian orbits on <span class="arithmatex">\(\partial K\)</span> for our choice of Hamiltonian <span class="arithmatex">\(H = g_K^2\)</span>. The generalized closed characteristics are then defined as the loops <span class="arithmatex">\(\gamma \in W^{1,2}(S^1, \partial K)\)</span> whose tangent vectors satisfy the inclusion <span class="arithmatex">\(\dot\gamma(t) \in \mathrm{cone}\{p_i : \gamma(t) \in F_i\}\, \text{a.e.}\)</span>. Note that the cone for us here only contains combinations with nonnegative and not-all-zero coefficients. We again basically have equivalence of the three notions of orbits, up to orientation-preserving reparametrizations.</p>
+</dd>
+</dl>
+<h2 id="action-ehz-capacity-and-systolic-ratio">Action, EHZ Capacity, and Systolic Ratio</h2>
+<p>The notion of closed characteristics allows us to define a symplectic capacity <span class="arithmatex">\(c_{\mathrm{EHZ}}\)</span> on admissable bodies with enough regularity. Since we already defined generalized closed characteristics on polytopes, we can define <span class="arithmatex">\(c_{\mathrm{EHZ}}\)</span> there as well. By continuity of all symplectic capacities with respect to the Hausdorff metric, it's easy to see that the capacity defined on polytopes coincides with the limit of the capacities of their smoothings.</p>
+<dl>
+<dt>Action</dt>
+<dd>
+<p>For a curve <span class="arithmatex">\(\gamma\)</span> in <span class="arithmatex">\(\mathbb R^4\)</span>, the action is defined as <span class="arithmatex">\(A(\gamma) = \int_\gamma \lambda = \int_0^T \lambda_{\gamma(t)}(\dot\gamma(t))\,dt = \tfrac12 \int_0^T \langle J \gamma(t), \dot\gamma(t) \rangle\, dt\)</span>. This definition is independent of the choice of orientation-preserving reparametrization, and the action changes sign if we reverse orientation. This definition works for <span class="arithmatex">\(W^{1,2}\)</span> curves already.</p>
+</dd>
+<dt>EHZ Capacity</dt>
+<dd>
+<p>For an admissable body <span class="arithmatex">\(K\)</span> with enough regularity, there is a closed characteristic <span class="arithmatex">\(\gamma\)</span> on <span class="arithmatex">\(\partial K\)</span> that minimizes the action among all closed characteristics. The minimum action, which equals the Ekeland–Hofer-Zehnder capacity <span class="arithmatex">\(c_{\mathrm{EHZ}}(K) = \min\{A(\gamma) : \gamma \text{ closed characteristic on } \partial K\}\)</span>, defines a symplectic capacity. In the polytope case we use the same definition with generalized closed characteristics.</p>
+</dd>
+<dt>Systolic Ratio</dt>
+<dd>
+<p>The systolic ratio <span class="arithmatex">\(\mathrm{sys}(K) = c_{\mathrm{EHZ}}(K)^2 / (2 \, \mathrm{vol}(K))\)</span> is a dimensionless quantity. It is scale invariant and translation invariant. The systolic ratio of the ball and cylinder of radius <span class="arithmatex">\(r\)</span> is <span class="arithmatex">\(\mathrm{sys}(B(r)) = \mathrm{sys}(Z(r)) = 1\)</span>.</p>
+</dd>
+</dl>
+<h2 id="viterbo-conjecture-falsified">Viterbo Conjecture (falsified)</h2>
+<p>We can now finally state the famous Viterbo's conjecture, which was long believed by many to be true, but has recently been falsified by @HaimKislev2024.</p>
+<div class="admonition conjecture" name="conj-viterbo">
+<p class="admonition-title">Conjecture (Viterbo's conjecture)</p>
+<p>For any admissable body <span class="arithmatex">\(K \subset \mathbb R^4\)</span>, the systolic ratio satisfies <span class="arithmatex">\(\mathrm{sys}(K) \le 1\)</span>.</p>
+</div>
+<div class="admonition example" name="ex-counterexample-viterbo">
+<p class="admonition-title">Counterexample (Viterbo's conjecture)</p>
+<p>From @HaimKislev2024, there exists an admissable polytope <span class="arithmatex">\(K \subset \mathbb R^4\)</span> with <span class="arithmatex">\(\mathrm{sys}(K) &gt; 1\)</span>, thus falsifying Viterbo's conjecture.</p>
+</div>
+<p>Goal of this master's thesis is to probe the landscape of admissable polytopes further, to find more counterexamples, and conjecture or even prove mathematically interesting statements about when Viterbo's conjecture does or does not hold.</p>
+<p>The existing literature already covers a few interesting statements:</p>
+<div class="admonition theorem" name="thm-simplex-viterbo">
+<p class="admonition-title">Theorem (Master Thesis Haim-Kislev)</p>
+<p>For simplices, which if they are star-shaped are automatically admissable polytopes, Viterbo's conjecture holds with an even stronger bound: <span class="arithmatex">\(\mathrm{sys}(K) \le 3/4 &lt; 1\)</span>. Equality is taken only for the orthonormal simplex with vertices <span class="arithmatex">\(\{0, e_1, e_2, e_3, e_4\}\)</span> and its symplectomorphic images, i.e. translations and linear symplectic maps.</p>
+</div>
+<div class="admonition theorem" name="thm-mahler-2d-viterbo">
+<p class="admonition-title">Theorem (Mahler-Conjecture in 2D)</p>
+<p>The Mahler Conjecture in 2D is known to hold: for any centrally symmetric convex polygon <span class="arithmatex">\(P = - P \subset \mathbb R^2\)</span> we have <span class="arithmatex">\(\mathrm{area}(P) \, \mathrm{area}(P^\circ) \ge 8\)</span>, with equality for parallelograms. It turns out that the Mahler conjecture is equivalent to Viterbo's conjecture for <span class="arithmatex">\(K = P \times P^\circ \subset \mathbb R^4\)</span>, where <span class="arithmatex">\(P^\circ\)</span> is the polar of <span class="arithmatex">\(P\)</span>, and equality is preserved. Thus Viterbo's conjecture holds for such <span class="arithmatex">\(K\)</span>.</p>
+</div>
+<p>We can trivially construct a family of counterexamples to Viterbo's conjecture by using the 2024 counterexample as base and applying scalings, symplectomorphisms, and by doing small continuous deformations. Since the systolic ratio is continuous in the Hausdorff metric, small perturbations of a counterexample remain counterexamples.</p>
+<p>We are interested in finding more counterexamples that are not trivially derived from the known one. For that, we need a way to probe different polytopes systematically, and computationally, rather than calculating the systolic ratio by hand, using ad-hoc methods, for hand-picked polytopes.</p>
+<p>The first major result of this thesis is to develop such a computational method that is applicable to all admissable polytopes, and is performant enough to be used for data science and machine learning methods that require large datasets of polytopes and their symplectic data.</p>
+<p>Before we dive into discussing the computational methods, we need to discuss the behavior of the Reeb orbits (or Hamiltonian orbits) on polytopes in more detail.</p>
+<h2 id="behavior-of-reeb-orbits-on-polytopes">Behavior of Reeb Orbits on Polytopes</h2>
+<p>Fix now an admissable polytope <span class="arithmatex">\(K \subset \mathbb R^4\)</span> with irredundant H-representation via facet normals and heights <span class="arithmatex">\((n_i, h_i)_{i=1}^F\)</span>, <span class="arithmatex">\(|n_i| = 1\)</span>, <span class="arithmatex">\(h_i &gt; 0\)</span>.
+Recall the facet velocities <span class="arithmatex">\(p_i = (2/h_i) \, J n_i\)</span>.</p>
+<p>The main result we want to recall from the previous sections is that</p>
+<div class="admonition theorem">
+<p class="admonition-title">Fact</p>
+<p>Any closed characteristic <span class="arithmatex">\(\gamma\)</span> corresponds to a Reeb orbit, which also is a Hamiltonian orbit for the Hamiltonian <span class="arithmatex">\(H = g_K^2\)</span>. It is parametrized uniquely then as <span class="arithmatex">\(\gamma \in W^{1,2}(\mathbb T, \partial K)\)</span> with period <span class="arithmatex">\(T &gt; 0\)</span> such that 
+<span class="arithmatex">\(
+\dot\gamma(t) \in \mathrm{conv}\{p_i : \gamma(t) \in F_i\} \, \text{a.e.}
+\)</span></p>
+</div>
+<p>In the interior of a facet <span class="arithmatex">\(F_i\)</span> the velocity is constant <span class="arithmatex">\(\dot\gamma(t) = p_i\)</span>, and so the orbit has a linear segment there. </p>
+<div class="admonition lemma" name="lem-facet-flow">
+<p class="admonition-title">Lemma (Flow on Facets)</p>
+<p>If the orbit <span class="arithmatex">\(\gamma\)</span> touches the interior of a facet <span class="arithmatex">\(F_i\)</span>, then it does so as part of a closed linear segment with velocity <span class="arithmatex">\(p_i\)</span>, which starts and ends at the boundary of <span class="arithmatex">\(F_i\)</span> after finite time, i.e. at a 2-face, 1-face, or 0-face.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>Trivial.</p>
+</details>
+<p>At the intersections of facets, i.e. at lower-dimensional faces, we have more complicated behavior.</p>
+<p>If the orbit <span class="arithmatex">\(\gamma\)</span> touches a (closed, non-empty) 2-face <span class="arithmatex">\(F_{ij} = F_i \cap F_j\)</span>, we have two cases to consider: either the 2-face is Lagrangian, i.e. lies in a Lagrangian plane, or it is non-Lagrangian.</p>
+<div class="admonition lemma" name="lem-lagrangian-2face">
+<p class="admonition-title">Lemma (Flow on Lagrangian 2-Faces)</p>
+<p>If <span class="arithmatex">\(F_{ij}\)</span> is Lagrangian, then both facet velocities <span class="arithmatex">\(p_i\)</span> and <span class="arithmatex">\(p_j\)</span> lie in the tangent plane of <span class="arithmatex">\(F_{ij}\)</span>. Locally, the Reeb orbit may a-priori slide along <span class="arithmatex">\(F_{ij}\)</span> with any <span class="arithmatex">\(W^{1,2}\)</span> velocity in <span class="arithmatex">\(\mathrm{conv}\{p_i, p_j\}\)</span>, and need not be piecewise linear. The orbit enters and exits <span class="arithmatex">\(F_{ij}\)</span> after finite time in its boundary, i.e. in a 1-face or 0-face.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>The basic idea is that since <span class="arithmatex">\(p_i, p_j\)</span> both are parallel to <span class="arithmatex">\(F_{ij}\)</span>, the Reeb orbit cannot enter from the interior of the 3-faces into the interior of the 2-face. It must pass through the boundary instead. Also <span class="arithmatex">\(0 \notin \mathrm{conv}\{p_i, p_j\}\)</span>, so the 1-form <span class="arithmatex">\(\alpha\)</span> is constant and non-zero along the 2-face, integrates to a potential on the 2-face, and thus the orbit cannot stay in the 2-face forever.</p>
+</details>
+<div class="admonition lemma" name="lem-nonlagrangian-2face">
+<p class="admonition-title">Lemma (Flow through Non-Lagrangian 2-Faces)</p>
+<p>If <span class="arithmatex">\(F_{ij}\)</span> is non-Lagrangian, then there's a direction <span class="arithmatex">\(i \to j\)</span> or <span class="arithmatex">\(j \to i\)</span> such that the Reeb orbit touches the interior of <span class="arithmatex">\(F_{ij}\)</span> only at isolated times, crossing directly from one facet to the other along the position-independent direction. The direction is determined by the sign of <span class="arithmatex">\(\omega(n_i, n_j)\)</span>: if <span class="arithmatex">\(\omega(n_i, n_j) &gt; 0\)</span>, then the orbit crosses from <span class="arithmatex">\(F_i\)</span> to <span class="arithmatex">\(F_j\)</span>; if <span class="arithmatex">\(\omega(n_i, n_j) &lt; 0\)</span>, then it crosses from <span class="arithmatex">\(F_j\)</span> to <span class="arithmatex">\(F_i\)</span>.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>Key idea is that <span class="arithmatex">\(\langle J n_i, n_j \rangle = - \langle J n_j, n_i \rangle = \omega(n_i, n_j)\)</span>. The value is zero iff the 2-face is Lagrangian. The inner product tells us whether <span class="arithmatex">\(p_i\)</span> points into or out of the half-space defined by <span class="arithmatex">\(F_j\)</span>, and thus into or out of <span class="arithmatex">\(K\)</span> and the facet <span class="arithmatex">\(F_i\)</span>.
+Locally, around an interior point of <span class="arithmatex">\(F_{ij}\)</span>, the orbit consists of two linear segments, one in <span class="arithmatex">\(F_i\)</span> with velocity <span class="arithmatex">\(p_i\)</span> and one in <span class="arithmatex">\(F_j\)</span> with velocity <span class="arithmatex">\(p_j\)</span>. So we get that the touching time is isolated, and the crossing direction is as claimed.</p>
+</details>
+<p>For 1-faces, there is a unique direction, but not necessarily a unique velocity.</p>
+<div class="admonition lemma" name="lem-1face-flow">
+<p class="admonition-title">Lemma (Flow on 1-Faces)</p>
+<p>If the orbit <span class="arithmatex">\(\gamma\)</span> touches the interior of a 1-face <span class="arithmatex">\(F = \bigcap_{k=1}^m F_{i_k}\)</span>, which is an intersection of <span class="arithmatex">\(m \ge 3\)</span> facets, then there is a unique direction along which the orbit may flow along <span class="arithmatex">\(F\)</span>. There is a-priori no additional statement we can make about the velocity, and the orbit may enter and exit <span class="arithmatex">\(F\)</span> both in the boundary 0-faces and interior points of <span class="arithmatex">\(F\)</span>. So we don't know much, only that the orbit enters and exits through an adjacent 0-face, or through the interior of an adjacent 2- or 3-face.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>Key idea is to use the convexity of <span class="arithmatex">\(K\)</span> to view the local neighborhood as an intersection of half-spaces. This implies the normals don't convexly combine to zero, as then the intersection would be empty. Thus the velocities <span class="arithmatex">\(p_{i_k}\)</span> also don't convexly combine to zero, and there is a unique half-line the convex span lies in. This gives the unique direction of flow along the 1-face.
+If we look at trajectories instead of orbits, then we can indeed give examples of polytopes where trajectories enter and exit 1-faces in all the fashions described.</p>
+</details>
+<div class="admonition lemma" name="lem-0face-flow">
+<p class="admonition-title">Lemma (Flow on 0-Faces)</p>
+<p>Nothing to be said about 0-faces.</p>
+</div>
+<h3 id="generic-behavior">Generic Behavior</h3>
+<p>One potentially interesting question is what of the above behavior is just an edge case, i.e. whether there's some generic property that simplifies the behavior of closed characteristics on polytopes.</p>
+<div class="admonition lemma" name="lem-nonlagrangian-generic">
+<p class="admonition-title">Lemma (Non-Lagrangianness is Generic)</p>
+<p>The set of admissable polytopes with at no Lagrangian 2-faces is "open" and "dense" in some reasonable sense.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>For a fixed number of vertices, or fixed number of facets, the set of admissable polytopes can be viewed as an open subset of <span class="arithmatex">\(\mathbb R^{4F}\)</span> or <span class="arithmatex">\(\mathbb R^{4V}\)</span> respectively, parametrized by the facet normals and heights or vertex coordinates respectively. The Lagrangianness of a 2-face defined by facets <span class="arithmatex">\(F_i, F_j\)</span> is a single equation <span class="arithmatex">\(\omega(n_i, n_j) = 0\)</span>, which defines a codimension 1 submanifold. Thus the set of polytopes with at least one Lagrangian 2-face is a finite union of such codimension 1 submanifolds, and its complement, the set of polytopes with no Lagrangian 2-faces, is open and dense.</p>
+</details>
+<div class="admonition conjecture" name="conj-generic-0-faces">
+<p class="admonition-title">Conjecture</p>
+<p>For a "generic" admissable polytope, no closed characteristic passes through a 0-face.</p>
+</div>
+<details class="note" open="open">
+<summary>Note</summary>
+<p>This conjecture was voiced by @ChaidezHutchings2021. Quote:</p>
+<blockquote>
+<p>"We expect that Type 2 combinatorial Reeb orbits do not exist for generic polytopes; see Conjecture 1.26 below." (p.7)</p>
+</blockquote>
+</details>
+<p>Besides asking about generic properties, we can also try to classify degeneracies. In particular, we care about degeneracies of multiple closed characteristics having the same action, since that also may complicate finding the minimal action, depending on our algorithmic approach.</p>
+<h3 id="degeneracies-of-the-action">Degeneracies of the Action</h3>
+<div class="admonition definition" name="def-piecewise-constant-velocity">
+<p class="admonition-title">Definition (Polygonal Orbit)</p>
+<p>A Reeb/Hamiltonian orbit is <strong>polygonal</strong> if we can partition time into finitely many open intervals, such that during each interval the orbit does not change what facets it lies on, and has constant velocity equal to one of the incident facet velocities <span class="arithmatex">\(p_i\)</span>. Note that the velocity is no longer a convex combination. Note that we don't require the orbit to lie only on 3-faces, or intervals to correspond to changes in the incident facet set. Breakpoints may occur anywhere.</p>
+</div>
+<div class="admonition theorem" name="thm-homotopy-pl">
+<p class="admonition-title">Theorem (Homotopy to Polygonal Orbit)</p>
+<p>Any Hamiltonian/Reeb orbit <span class="arithmatex">\(\gamma\)</span> is homotopic through Hamiltonian/Reeb orbits of the same action to a polygonal orbit <span class="arithmatex">\(\gamma'\)</span>.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>There is a proof in @HaimKislev2017 using Clarke's dual principle. Here we use our previous observations about the flow on facets and faces to give a more geometric proof. </p>
+<p>Let <span class="arithmatex">\(\gamma\)</span> be a Hamiltonian/Reeb orbit with period <span class="arithmatex">\(T&gt;0\)</span>. </p>
+<p>First we consider the map from time into the face lattice of <span class="arithmatex">\(K\)</span>, sending <span class="arithmatex">\(t\)</span> to the minimal face containing <span class="arithmatex">\(\gamma(t)\)</span>. We previously discussed all the ways an orbit can change faces, and know that it happens on isolated times only. By compactness, we get a finite partition into open intervals, where we drop faces that are crossed instantaneously through their interior, e.g. non-Lagrangian 2-faces, 0-faces, and perhaps some 1-faces, but never Lagrangian 2-faces or 3-faces.</p>
+<p>In the case of 3-faces, the velocity is already constant.</p>
+<p>In remains to consider the case of Lagrangian 2-faces and of 1-faces with positive length intervals.</p>
+<p>For the Lagrangian 2-face, the two facet velocities <span class="arithmatex">\(p_i, p_j\)</span> form a basis(quick check from convexity of the polytope). 
+We restrict to the interval, and split <span class="arithmatex">\(\dot\gamma(t) = a(t) p_i + b(t) p_j\)</span> and integrate to get total contributions <span class="arithmatex">\(A = \int a(t) dt\)</span>, <span class="arithmatex">\(B = \int b(t) dt\)</span>.
+We can homotope <span class="arithmatex">\(\gamma\)</span> using mixtures that leave <span class="arithmatex">\(A,B\)</span> constant, to a path where <span class="arithmatex">\(a(t) = 1_{[0,A]}(t)\)</span>, <span class="arithmatex">\(b(t) = 1_{[A,A+B]}(t)\)</span>. This gives a polygonal path segment.
+The linearity of the action functional implies:
+<span class="arithmatex">\(A(\gamma) = \int \tfrac12 \langle J \gamma(t), \dot\gamma(t) \rangle dt = + \int \tfrac12 \langle \gamma(t), a(t) J p_i + b(t) J p_j \rangle dt\)</span>.
+However, since <span class="arithmatex">\(J p_i, J p_j\)</span> are both perpendicular to the 2-face and any possible velocities along it, we have that <span class="arithmatex">\(\langle \gamma(t), J p_i \rangle = \text{const}\)</span>, and so that <span class="arithmatex">\(A(\gamma)\)</span> only depends on <span class="arithmatex">\(\int a(t) dt\)</span> and <span class="arithmatex">\(\int b(t) dt\)</span>, which we kept constant. Thus the action is preserved, and we don't even have to change the interval length.</p>
+<p>For the 1-face case, may have convex combinations of three or more velocities. Just like before however the action functional is linear and the 1-face is perpendicular to all <span class="arithmatex">\(J p_i\)</span>, so we can again homotope to a polygonal path segment without changing the action.</p>
+<p>Putting everything together, we get a homotopy of <span class="arithmatex">\(\gamma\)</span> to a polygonal orbit <span class="arithmatex">\(\gamma'\)</span>, along Reeb/Hamiltonian orbits of the same action.</p>
+</details>
+<div class="admonition definition" name="def-simple-orbit-2">
+<p class="admonition-title">Definition (Simple Orbit)</p>
+<p>A polygonal Hamiltonian/Reeb orbit is <strong>simple</strong> if every facet velocity <span class="arithmatex">\(p_i\)</span> is used at most once. Note that breakpoints may still lie in the interior of 2-faces or 1-faces.</p>
+</div>
+<div class="admonition theorem" name="thm-min-action-simple">
+<p class="admonition-title">Theorem (Homotopy to Simple Orbit)</p>
+<p>Any Hamiltonian/Reeb orbit has a homotopy through Hamiltonian/Reeb orbits to a simple orbit where the action is non-increasing along the homotopy.</p>
+</div>
+<details class="proof" open="open">
+<summary>Proof</summary>
+<p>Omitted. There is a similar theorem with proof in @HaimKislev2017 that uses Clarke's dual principle. It doesn't show a homotopy, only that for any orbit there's a simple orbit with less or equal action.</p>
+</details>
+<div class="admonition corollary" name="cor-simple-min-action">
+<p class="admonition-title">Corollary (Simple Minimum Action Orbit)</p>
+<p>There is a minimum action Hamiltonian/Reeb orbit that is simple.</p>
+</div>
+<p>While we have shown that any minimum action orbit is homotopic to a simple orbit, we have made no statement that all minimum action orbits are homotopic to each other.</p>
+<div class="admonition example" name="ex-viterbo-degeneracy">
+<p class="admonition-title">Example (Viterbo Counterexample Degeneracy)</p>
+<p>The counterexample to Viterbo's conjecture from @HaimKislev2024 has multiple distinct minimum action closed characteristics, which are all homotopic to each other.</p>
+<p>See @HaimKislev2024 for details, e.g. Figure 4. The basic idea is that in the two-bounce orbits we can move one bounce point along a pentagon edge while the other stays at a vertex. Then we can switch and move the point that we previously kept still along an edge. This way all two-bounce orbits can be homotoped. Three-bounce orbits can be homotoped into a two-bounce orbit by moving two bounce points that neighbor the same vertex towards the vertex together, until they both reach the vertex at the same time.</p>
+</div>
+<h2 id="clarkes-dual-action-principle">Clarke's Dual Action Principle</h2>
+<p>Fenchel duality yields</p>
+<div class="arithmatex">\[
+ g_K(x)^2 = \sup_y \big( \langle x,y\rangle - \tfrac14 h_K(y)^2 \big),\qquad
+ \tfrac14 h_K(y)^2 = \sup_x \big( \langle x,y\rangle - g_K(x)^2 \big),
+\]</div>
+<p>with equality iff <span class="arithmatex">\(y\in\partial g_K^2(x)\)</span> iff <span class="arithmatex">\(x\in\partial(\tfrac14 h_K^2)(y)\)</span>. This identifies supporting facets and contact points via Legendre duality.</p>
+<p>Clarke’s dual action principle (specialized to convex bodies) considers</p>
+<div class="arithmatex">\[
+E = \Big\{ z\in W^{1,2}([0,1],\mathbb R^4): \int_0^1 \dot z = 0,\ \int_0^1 \langle -J\dot z,z\rangle dt = 1 \Big\},
+\qquad
+I_K(z)=\tfrac14\int_0^1 h_K^2(-J\dot z(t))\,dt.
+\]</div>
+<p>Critical points of <span class="arithmatex">\(I_K\)</span> correspond to generalized characteristics, and</p>
+<div class="arithmatex">\[
+ c_{\mathrm{EHZ}}(K) = \inf_{z\in E} I_K(z).
+\]</div>
+<p>For polytopes <span class="arithmatex">\(h_K\)</span> is piecewise linear, so <span class="arithmatex">\(I_K\)</span> is piecewise quadratic in <span class="arithmatex">\(\dot z\)</span>; minimizers can be taken piecewise affine, leading to the combinatorial model below [@HK2017].</p>
+<h2 id="hkch-combinatorial-capacity-formula-4d">HK/CH combinatorial capacity formula (4D)</h2>
+<p>Let <span class="arithmatex">\((n_i,h_i)_{i=1}^F\)</span> be the outward unit normals and heights of an admissible polytope <span class="arithmatex">\(K\subset\mathbb R^4\)</span>. Define coefficients <span class="arithmatex">\(\beta_i\ge0\)</span> with</p>
+<div class="arithmatex">\[
+\sum_i \beta_i h_i = 1,\qquad \sum_i \beta_i n_i = 0.
+\]</div>
+<p>For a permutation <span class="arithmatex">\(\sigma\in S_F\)</span>, set</p>
+<div class="arithmatex">\[
+Q(\sigma,\beta)=\sum_{j&lt;i} \beta_{\sigma(i)}\,\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)}).
+\]</div>
+<div class="admonition theorem" name="thm-hk-combinatorial">
+<p class="admonition-title">Theorem (HK combinatorial formula, 4D)</p>
+<p>Haim‑Kislev’s formula gives</p>
+<div class="arithmatex">\[
+c_{\mathrm{EHZ}}(K) = \frac{1}{2}\Big[\max_{\sigma,\beta} Q(\sigma,\beta)\Big]^{-1}.
+\]</div>
+<p>In the centrally symmetric case the factor becomes <span class="arithmatex">\(\tfrac14\)</span> with paired normals. The maximizer encodes a simple action‑minimizing orbit: velocities appear in the order <span class="arithmatex">\(\sigma\)</span> with normalized time weights <span class="arithmatex">\(\beta_{\sigma(i)}\)</span> as in the definition of simple orbits. Chaidez–Hutchings show that for non‑Lagrangian polytopes any minimizer has combinatorial rotation number <span class="arithmatex">\(\rho\le2\)</span>, giving a finite search set for algorithms [@CH2021].</p>
+</div>
+<h2 id="forward-use">Forward use</h2>
+<p>This chapter fixes conventions and the variational/combinatorial tools used in later chapters. The forthcoming Chapter 02.1 will work out the HK2024 counterexample and other explicit polytopes using these conventions. Algorithms and Lean formalisations will cite the definitions, facet dynamics, duality, and the HK/CH formula established here.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.indexes"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fac441b0.min.js"></script>
+      
+        <script src="../overrides/assets/mathjax-config.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+      
+        <script src="../assets/js/plotly-hydrate.js"></script>
+      
+        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+      
+    
+  </body>
+</html>
