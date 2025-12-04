@@ -9,29 +9,33 @@
 	],
 	"settings": {
 		"git.autoRepositoryDetection": "openEditors",
-		"git.ignoredRepositories": [
-			"/workspaces/worktrees/shared/lean/packages"
-		],
-		"git.ignoreLimitWarning": true,
-		"mdmath.delimiters": "brackets",
-		"mdmath.theme": "publication"
+		"git.ignoredRepositories": [],
+		"git.ignoreLimitWarning": true
 	},
 	"extensions": {
 		"recommendations": [
+			// python
 			"ms-python.python",
 			"charliermarsh.ruff",
 			"ms-python.vscode-pylance",
+			// rust
 			"rust-lang.rust-analyzer",
 			"vadimcn.vscode-lldb",
-			"leanprover.lean4",
+			// latex
+			"James-Yu.latex-workshop",
+			// javascript, typescript
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",
+			// other file formats
 			"tamasfe.even-better-toml",
 			"redhat.vscode-yaml",
+			// ai
 			"openai.chatgpt",
 			"github.copilot",
 			"github.copilot-chat",
+			// github
 			"github.vscode-pull-request-github",
+			// UI
 			"usernamehw.errorlens",
 			"github.github-vscode-theme",
 			"miguelsolorio.symbols"

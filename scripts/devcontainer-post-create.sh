@@ -9,7 +9,6 @@ sudo mkdir -p \
   "${HOME}/.config" \
   "${HOME}/.local" \
   "${HOME}/.cache" \
-  "${HOME}/.lake" \
   "${HOME}/.texlive2023" \
   "${HOME}/.texmf-var" \
   "${HOME}/.texmf-config"
@@ -17,7 +16,6 @@ sudo chown -R "${USER}:${USER}" \
   "${HOME}/.config" \
   "${HOME}/.local" \
   "${HOME}/.cache" \
-  "${HOME}/.lake" \
   "${HOME}/.texlive2023" \
   "${HOME}/.texmf-var" \
   "${HOME}/.texmf-config"

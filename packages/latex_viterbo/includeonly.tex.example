@@ -1,0 +1,3 @@
+% Copy to includeonly.tex to speed up draft builds by selecting chapters.
+% Example:
+% \includeonly{chapters/introduction,chapters/background}

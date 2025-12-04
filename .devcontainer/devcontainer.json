@@ -29,7 +29,6 @@
     "source=/srv/devhome/.texmf-var,target=/home/vscode/.texmf-var,type=bind,consistency=cached",
     "source=/srv/devhome/.texmf-config,target=/home/vscode/.texmf-config,type=bind,consistency=cached",
     "source=/srv/devhome/.bash_history_dir,target=/home/vscode/.bash_history_dir,type=bind,consistency=cached",
-    "source=/srv/devhome/.lake,target=/home/vscode/.lake,type=bind,consistency=cached",
     "source=/srv/devworktrees/msc-viterbo/worktrees,target=/workspaces/worktrees,type=bind,consistency=cached"
   ],
   "customizations": {
@@ -46,8 +45,6 @@
         // rust
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
-        // lean4
-        "leanprover.lean4",
         // javascript, typescript
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",

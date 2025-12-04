@@ -12,7 +12,7 @@ SHELL ["/bin/bash", "-lc"]
 # - Install heavyweight, rarely changing dependencies in earlier layers so they
 #   are cached across rebuilds.
 # - Install more frequently tweaked tools (Node/npm, uv) after base deps.
-# - Install language toolchains (Rust, Lean) once for the dev user here rather
+# - Install language toolchains (Rust) once for the dev user here rather
 #   than in postCreate, so they are baked into the image.
 # -----------------------------------------------------------------------------
 
@@ -91,19 +91,12 @@ RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
 # Toolchains live in the dev user's HOME so that cargo/elan behave normally.
 USER vscode
 ENV HOME=/home/vscode
-ENV PATH="$HOME/.cargo/bin:$HOME/.elan/bin:$HOME/.local/bin:$PATH"
+ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
 # Install Rust (rustup + basic components).
 # We install rustfmt/clippy up front so agents can rely on them everywhere.
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
     && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true \
     && "$HOME/.cargo/bin/cargo" install sccache || true
-
-# Install Lean4 toolchain manager (elan).
-# The specific toolchain is controlled by the lean_viterbo/lean-toolchain file
-# and can be refined later via elan configuration.
-RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
-    | bash -s -- -y \
-    && "$HOME/.elan/bin/elan" --version || true
 
 WORKDIR /workspaces/msc-viterbo
