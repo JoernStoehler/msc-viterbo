@@ -28,7 +28,10 @@
 			{ "name": "Production (build.sh --production)", "tools": ["build-production"] }
 		],
 		"latex-workshop.latex.outDir": "build",
-		"latex-workshop.view.pdf.viewer": "tab"
+		"latex-workshop.view.pdf.viewer": "browser",
+		"workbench.editorAssociations": {
+			"*.pdf": "pdfViewer.PDFEdit"
+		}
 	},
 	"extensions": {
 		"recommendations": [
@@ -41,6 +44,7 @@
 			"vadimcn.vscode-lldb",
 			// latex
 			"James-Yu.latex-workshop",
+			"AdamRaichu.pdf-viewer",
 			// javascript, typescript
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",

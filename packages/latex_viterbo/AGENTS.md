@@ -6,8 +6,8 @@
 ## Build and Serve
 Scripts
 - Lint: `scripts/lint.sh` (chktex + draft compile + latexml sanity)
-- Build: `scripts/build.sh [--production] [--pdf-only] [--html-only]` (draft -> build/, production -> dist/)
-- Serve: `scripts/serve.sh [--production] [--watch]`
+- Build: `scripts/build.sh [--production] [--pdf-only] [--html-only]` (single-shot; draft -> build/, production -> dist/)
+- Serve: `scripts/serve.sh [--production] [--watch] [--pdf-only] [--html-only]` (rebuilds on change; can skip HTML or PDF for faster preview)
 Notes
 - Use `includeonly.tex` (copy from includeonly.tex.example) for faster draft cycles.
 

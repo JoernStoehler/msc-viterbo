@@ -3,23 +3,28 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/serve.sh [--production] [--watch] [--port PORT]
+Usage: scripts/serve.sh [--production] [--watch] [--pdf-only] [--html-only] [--port PORT]
 
 Serves the built thesis (HTML + PDF) via a local HTTP server.
-- By default builds a preview into build/ and serves it.
-- --production builds into dist/ using the production build script.
-- --watch (if `entr` is available) rebuilds on source changes.
+ - By default builds a preview into build/ (PDF+HTML) and serves it.
+ - --production builds into dist/ using the production build script.
+ - --watch rebuilds on source changes (requires inotifywait).
+ - --pdf-only builds and serves only the PDF (skips HTML).
+ - --html-only builds and serves only the HTML (skips PDF).
 EOF
 }
 
 PORT=8000
 MODE=preview
 WATCH=false
+BUILD_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --production) MODE=production; shift ;;
     --watch) WATCH=true; shift ;;
+    --pdf-only) BUILD_ARGS+=(--pdf-only); shift ;;
+    --html-only) BUILD_ARGS+=(--html-only); shift ;;
     --port) PORT=${2:-}; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown arg: $1" >&2; usage >&2; exit 64 ;;
@@ -31,10 +36,10 @@ cd "$ROOT_DIR"
 
 if [[ $MODE == production ]]; then
   OUTDIR=dist
-  BUILD_CMD=("$ROOT_DIR/scripts/build.sh" --production)
+  BUILD_CMD=("$ROOT_DIR/scripts/build.sh" --production "${BUILD_ARGS[@]}")
 else
   OUTDIR=build
-  BUILD_CMD=("$ROOT_DIR/scripts/build.sh")
+  BUILD_CMD=("$ROOT_DIR/scripts/build.sh" "${BUILD_ARGS[@]}")
 fi
 
 # Initial build
