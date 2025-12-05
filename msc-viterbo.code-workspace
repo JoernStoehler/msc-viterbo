@@ -11,24 +11,8 @@
 		"git.autoRepositoryDetection": "openEditors",
 		"git.ignoredRepositories": [],
 		"git.ignoreLimitWarning": true,
-		"latex-workshop.latex.tools": [
-			{
-				"name": "latexmk-build",
-				"command": "latexmk",
-				"args": ["-pdf", "-synctex=1", "-interaction=nonstopmode", "-output-directory=build", "%DOC%"]
-			},
-			{
-				"name": "build-production",
-				"command": "/bin/bash",
-				"args": ["-lc", "scripts/build.sh --production"]
-			}
-		],
-		"latex-workshop.latex.recipes": [
-			{ "name": "Preview (latexmk → build/)", "tools": ["latexmk-build"] },
-			{ "name": "Production (build.sh --production)", "tools": ["build-production"] }
-		],
-		"latex-workshop.latex.outDir": "build",
-		"latex-workshop.view.pdf.viewer": "browser",
+		"texlab.chktex.onOpenAndSave": true,
+		"texlab.chktex.onEdit": false,
 		"workbench.editorAssociations": {
 			"*.pdf": "pdfViewer.PDFEdit"
 		}
@@ -43,7 +27,8 @@
 			"rust-lang.rust-analyzer",
 			"vadimcn.vscode-lldb",
 			// latex
-			"James-Yu.latex-workshop",
+			//"James-Yu.latex-workshop",
+			"efoerster.texlab",
 			"AdamRaichu.pdf-viewer",
 			// javascript, typescript
 			"dbaeumer.vscode-eslint",
