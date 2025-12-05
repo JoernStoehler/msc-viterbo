@@ -1,3 +1,57 @@
-% Custom macros, environments, and styling live here.
-% Keep this minimal and arXiv-friendly.
-% Add new macros here rather than in chapters to keep conventions centralized.
+% Centralized macros and theorem setup (arXiv-friendly, widely expected commands).
+
+% Math helpers
+\numberwithin{equation}{chapter}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\T}{\mathbb{T}}
+
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\abs}[1]{\lvert #1\rvert}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Id}{\mathrm{Id}}
+\newcommand{\op}[1]{\operatorname{#1}}
+
+% Symplectic shorthand
+\newcommand{\omegaform}{\omega}
+\newcommand{\lambdaform}{\lambda}
+\newcommand{\Jmat}{J}
+\newcommand{\Ham}{H}
+\newcommand{\Reeb}{R}
+\newcommand{\cEHZ}{c_{\mathrm{EHZ}}}
+\newcommand{\sys}{\mathrm{sys}}
+\newcommand{\gauge}{g}
+\newcommand{\support}{h}
+\newcommand{\polar}{\circ}
+
+% Theorem styles
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% Cleveref names
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\crefname{fact}{Fact}{Facts}
+\crefname{conjecture}{Conjecture}{Conjectures}
+\crefname{definition}{Definition}{Definitions}
+\crefname{example}{Example}{Examples}
+\crefname{remark}{Remark}{Remarks}
+\crefname{equation}{Equation}{Equations}

@@ -10,7 +10,25 @@
 	"settings": {
 		"git.autoRepositoryDetection": "openEditors",
 		"git.ignoredRepositories": [],
-		"git.ignoreLimitWarning": true
+		"git.ignoreLimitWarning": true,
+		"latex-workshop.latex.tools": [
+			{
+				"name": "latexmk-build",
+				"command": "latexmk",
+				"args": ["-pdf", "-synctex=1", "-interaction=nonstopmode", "-output-directory=build", "%DOC%"]
+			},
+			{
+				"name": "build-production",
+				"command": "/bin/bash",
+				"args": ["-lc", "scripts/build.sh --production"]
+			}
+		],
+		"latex-workshop.latex.recipes": [
+			{ "name": "Preview (latexmk → build/)", "tools": ["latexmk-build"] },
+			{ "name": "Production (build.sh --production)", "tools": ["build-production"] }
+		],
+		"latex-workshop.latex.outDir": "build",
+		"latex-workshop.view.pdf.viewer": "tab"
 	},
 	"extensions": {
 		"recommendations": [

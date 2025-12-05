@@ -1,21 +1,29 @@
-\documentclass[11pt]{memoir}
+% Standard class that both pdfTeX and LaTeXML support; oneside/openany avoids
+% blank pages that memoir/openright would insert, keeping arXiv-friendly output.
+\documentclass[11pt,oneside,openany]{book}
 
 % Basic packages
 \usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{geometry}
 \geometry{margin=1.1in}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
 \usepackage{hyperref}
 \usepackage{cleveref}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage[dvipsnames]{xcolor}
+
+% Minimal abstract environment compatible with book class and LaTeXML
+\newenvironment{abstract}{\chapter*{Abstract}}{}
 
 % Optional include-only control without editing main.tex (create includeonly.tex)
 \IfFileExists{includeonly.tex}{\input{includeonly}}{}
+
+% Project macros and theorem setup
+\input{preamble}
 
 % Print flag via sentinel file (created by build-production for print version)
 \newif\ifprintversion
@@ -44,21 +52,15 @@
   showstringspaces=false
 }
 
-% Theorem setup
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
-\theoremstyle{definition}
-\newtheorem{definition}{Definition}
-
-\title{Hello, Viterbo}
-\author{MSc Thesis Scaffold}
+\title{Probing Viterbo's Conjecture for Convex Polytopes}
+\author{J\"orn St\"ohler}
 \date{\today}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This is a tiny scaffold to exercise the LaTeX toolchain (PDF + HTML). It includes math, theorems, and a code listing.
+Draft thesis text migrated from the MkDocs notes into the LaTeX toolchain. The current content fixes notation and recalls the symplectic/polytope background; later chapters outline the algorithmic and experimental program for probing Viterbo's conjecture in convex polytopes.
 \end{abstract}
 
 \tableofcontents
@@ -67,10 +69,49 @@ This is a tiny scaffold to exercise the LaTeX toolchain (PDF + HTML). It include
 \label{chap:intro}
 \input{chapters/intro}
 
-\appendix
-\chapter{Supplement}
-A short appendix for pagination sanity.
+\chapter{Math Background}
+\label{chap:math}
+\input{chapters/math}
 
+\chapter{Standard Counterexample}
+\label{chap:counterexample}
+\input{chapters/counterexample}
+
+\chapter{Algorithm Design}
+\label{chap:algorithm}
+\input{chapters/algorithm}
+
+\chapter{Experiments}
+\label{chap:experiments}
+\input{chapters/experiments}
+
+\chapter{Conjectures}
+\label{chap:conjectures}
+\input{chapters/conjectures}
+
+\appendix
+
+\chapter{Lean Library}
+\label{app:lean}
+\input{chapters/appendix-lean}
+
+\chapter{Rust Library}
+\label{app:rust}
+\input{chapters/appendix-rust}
+
+\chapter{Detailed Experiments}
+\label{app:detailed-experiments}
+\input{chapters/appendix-detailed-experiments}
+
+\chapter{AI Agents}
+\label{app:ai-agents}
+\input{chapters/appendix-ai-agents}
+
+\chapter{Literature Digests}
+\label{app:literature}
+\input{chapters/appendix-literature}
+
+% Plain style is arXiv-friendly and supported by latexml bindings
 \bibliographystyle{plain}
 \bibliography{references}
 
