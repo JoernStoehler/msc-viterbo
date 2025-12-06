@@ -1,0 +1,14 @@
+# -*- mode: Perl -*-
+# /=====================================================================\ #
+# |  deluxe.sty.ltxml                                                   | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+# Alias for deluxetable, see for example arXiv:astro-ph/0002014
+RequirePackage('deluxetable');
+
+1;

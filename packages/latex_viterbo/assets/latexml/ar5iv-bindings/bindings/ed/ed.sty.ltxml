@@ -1,0 +1,14 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  ed.sty                                                             | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+DefMacro('\ednote[]{}', '');
+
+1;

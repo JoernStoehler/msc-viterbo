@@ -1,0 +1,16 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  jpc.sty                                                            | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#Source: https://arxiv.org/macros/jpc.sty
+
+# nothing of latexml substance really...
+
+1;

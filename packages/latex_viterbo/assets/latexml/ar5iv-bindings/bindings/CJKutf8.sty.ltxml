@@ -1,0 +1,21 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  CJKutf8.sty                                                        | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+RequirePackage('ifpdf');
+RawTeX('\RequirePackage[utf8]{inputenc}');
+RequirePackage('CJK');
+RequirePackage('fontenc');
+
+#**********************************************************************
+
+1;

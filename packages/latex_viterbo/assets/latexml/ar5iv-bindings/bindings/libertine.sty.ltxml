@@ -1,0 +1,19 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  libertine.sty                                                      | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+RequirePackage('ifxetex');
+RequirePackage('ifluatex');
+RequirePackage('xkeyval');
+RequirePackage('textcomp');
+
+1;

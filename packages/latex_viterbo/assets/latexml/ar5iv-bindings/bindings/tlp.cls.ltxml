@@ -1,0 +1,17 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  tlp.cls                                                            | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+LoadClass('OmniBus');
+
+InputDefinitions('tlp',type=>'cls',noltxml=>1);
+DefMacro('\citeauthoryear{}{}{}','#2 #3');
+
+1;

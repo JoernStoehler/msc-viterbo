@@ -1,0 +1,25 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  hobby.code.tex                                                     | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+Warn('missing_file', 'hobby.code.tex', $STATE->getStomach->getGullet,
+  'hobby.code.tex is not implemented and will not be interpreted raw.');
+
+#**********************************************************************
+
+# Forbid loading this package, even locally, until we get our LaTeX 3
+# support ready to handle 2111.02755
+#InputDefinitions('hobby.code', type => 'tex', noltxml => 1);
+
+#**********************************************************************
+
+1;

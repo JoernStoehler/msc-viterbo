@@ -1,0 +1,25 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  ifdraft.sty                                                        | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+# for now always final - respect the package options for official latexml support.
+DefConditional('\if@draft',      sub { 0; });
+DefConditional('\if@option@draft', sub { 0; });
+DefConditional('\if@option@final', sub { 1; });
+
+DefMacro('\ifdraft','\if@draft\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi');
+DefMacro('\ifoptiondraft','\if@option@draft\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi');
+DefMacro('\ifoptionfinal','\if@option@final\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi');
+
+#**********************************************************************
+
+1;

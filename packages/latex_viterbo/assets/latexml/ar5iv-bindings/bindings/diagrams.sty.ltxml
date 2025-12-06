@@ -1,0 +1,14 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  diagrams.tex                                                       | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+InputDefinitions('diagrams',type=>'tex');
+
+1;

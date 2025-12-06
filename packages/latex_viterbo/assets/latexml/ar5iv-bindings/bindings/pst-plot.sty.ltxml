@@ -1,0 +1,24 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  pst-plot.sty                                                       | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+Warn('missing_file', 'pst-plot.sty', $STATE->getStomach->getGullet, 'pst-plot.sty is not implemented and will not be interpreted raw.');
+
+#**********************************************************************
+
+# Forbid loading this package, even locally, until we get good enough at
+# reusing the internals for good SVG
+#InputDefinitions('pst-plot', type => 'sty', noltxml => 1);
+
+#**********************************************************************
+
+1;

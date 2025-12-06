@@ -1,0 +1,21 @@
+# -*- CPERL -*-
+# /=====================================================================\ #
+# |  xr.sty                                                       | #
+# | Implementation for LaTeXML                                          | #
+# |=====================================================================| #
+
+package LaTeXML::Package::Pool;
+use strict;
+use warnings;
+use LaTeXML::Package;
+
+#**********************************************************************
+
+Warn('missing_file', 'xr.sty', $STATE->getStomach->getGullet,
+  'xr.sty is not implemented and will not be interpreted raw.');
+
+DefMacro('\externaldocument[]{}',Tokens());
+DefMacro('\externalcitedocument[]{}',Tokens());
+#**********************************************************************
+
+1;
