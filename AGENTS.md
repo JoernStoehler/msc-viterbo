@@ -10,8 +10,8 @@
 - Project management: GitHub Issues and PRs, git worktrees for isolated environments.
 
 ## Onboarding
+- Mandatory first step: run `bash -lc scripts/hello.sh` when you enter a fresh devcontainer/worktree; it prints the repo map and basic sanity info.
 - We use progressive disclosure, agents can triage their own onboarding by reading files they find relevant to their task.
-- Use `bash -lc scripts/hello.sh` to get started, it prints basic info and lists the repository structure.
 - Most information as always can be learned from the repo files themselves. Extra explicit information about workflows, conventions, and context can be found in `AGENTS.md`, `agent_docs/`, `packages/*/AGENTS.md`, and `packages/*/agent_docs/`.
 - Convience scripts are in `scripts/` and `packages/*/scripts/`. They support `--help` for extra info.
 

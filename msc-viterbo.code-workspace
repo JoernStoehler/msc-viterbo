@@ -11,11 +11,18 @@
 		"git.autoRepositoryDetection": "openEditors",
 		"git.ignoredRepositories": [],
 		"git.ignoreLimitWarning": true,
+		"files.autoSave": "off",
 		"texlab.chktex.onOpenAndSave": true,
 		"texlab.chktex.onEdit": false,
 		"workbench.editorAssociations": {
-			"*.pdf": "pdfViewer.PDFEdit"
-		}
+			"*.pdf": "pdf.view",
+			"*.copilotmd": "vscode.markdown.preview.editor"
+		},
+		"liveServer.settings.port": 3000,
+		"liveServer.settings.NoBrowser": true,
+		"liveServer.settings.useWebExt": true,
+		"liveServer.settings.root": "/packages/latex_viterbo/build/html",
+		"liveServer.settings.multiRootWorkspaceName": "msc-viterbo",
 	},
 	"extensions": {
 		"recommendations": [
@@ -29,7 +36,9 @@
 			// latex
 			//"James-Yu.latex-workshop",
 			"efoerster.texlab",
-			"AdamRaichu.pdf-viewer",
+			//"AdamRaichu.pdf-viewer",
+			"mathematic.vscode-pdf",
+			"ms-vscode.live-server",
 			// javascript, typescript
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",
