@@ -12,8 +12,18 @@
 		"git.ignoredRepositories": [],
 		"git.ignoreLimitWarning": true,
 		"files.autoSave": "off",
+		
 		"texlab.chktex.onOpenAndSave": true,
 		"texlab.chktex.onEdit": false,
+		"texlab.hover.symbols": "glyph",
+		"texlab.inlayHints.labelDefinitions": true,
+		"texlab.inlayHints.labelReferences": true,
+		"texlab.inlayHints.maxLength": null,
+		"texlab.latexFormatter": "latexindent",
+		"texlab.formatterLineLength": 80,
+		"texlab.build.forwardSearchAfter": true,
+		"texlab.forwardSearch.executable": null,
+
 		"workbench.editorAssociations": {
 			"*.pdf": "pdf.view",
 			"*.copilotmd": "vscode.markdown.preview.editor"
@@ -34,11 +44,12 @@
 			"rust-lang.rust-analyzer",
 			"vadimcn.vscode-lldb",
 			// latex
-			//"James-Yu.latex-workshop",
+			//broken on vscode.dev: "James-Yu.latex-workshop",
 			"efoerster.texlab",
-			//"AdamRaichu.pdf-viewer",
+			//broken on vscode.dev: "AdamRaichu.pdf-viewer",
 			"mathematic.vscode-pdf",
-			"ms-vscode.live-server",
+			//broken on vscode.dev: "ms-vscode.live-server",
+			"ritwickdey.LiveServer",
 			// javascript, typescript
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",

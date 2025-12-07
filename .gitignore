@@ -7,8 +7,9 @@
 .env.*
 !.env.example
 # Editor/IDE state that should never be shared
-.vscode/
+.vscode/*
 !.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 .code-workspace
 
