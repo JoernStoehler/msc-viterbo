@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-science \
     texlive-xetex \
     texlive-luatex \
+    texlive-extra-utils \
     latexmk \
     biber \
     chktex \

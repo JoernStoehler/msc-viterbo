@@ -44,12 +44,12 @@
 			"rust-lang.rust-analyzer",
 			"vadimcn.vscode-lldb",
 			// latex
-			//broken on vscode.dev: "James-Yu.latex-workshop",
-			"efoerster.texlab",
-			//broken on vscode.dev: "AdamRaichu.pdf-viewer",
-			"mathematic.vscode-pdf",
-			//broken on vscode.dev: "ms-vscode.live-server",
-			"ritwickdey.LiveServer",
+			"James-Yu.latex-workshop", // broken on vscode.dev
+			"efoerster.texlab", // works on vscode.dev
+			"AdamRaichu.pdf-viewer", // broken on vscode.dev
+			"mathematic.vscode-pdf", // works on vscode.dev
+			//"ms-vscode.live-server", // broken on multi-root workspaces
+			"ritwickdey.LiveServer", // works on multi-root workspaces
 			// javascript, typescript
 			"dbaeumer.vscode-eslint",
 			"esbenp.prettier-vscode",
