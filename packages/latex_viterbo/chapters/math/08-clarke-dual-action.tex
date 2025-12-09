@@ -1,0 +1,62 @@
+% !TeX root = ../../main.tex
+\section{Clarke's dual action principle}
+We will below always consider the cases of a bounded strictly convex body with smooth boundary, or a polytope. We often skip explicitly tracking the inclusion relations for polytope dynamics, and instead focus on equality on strictly convex smooth bodies; the polytope case then works algebraically analogously.
+
+\begin{theorem}[Fenchel duality for gauge and support functions]\label{thm-fenchel-duality}
+Recall the gauge and support functions:
+\[
+  \gauge_K(x) = \min\{r>0: x \in rK\},\qquad
+  \support_K(y) = \max_{x\in K} \inner{x}{y}.
+\]
+They are dual norms on \(\R^4\):
+\[
+  \gauge_K^2(x) = \sup_{y \in \R^4} \big( \inner{x}{y} - \tfrac14 \support_K(y)^2 \big),\qquad
+  \tfrac14 \support_K^2(y) = \sup_{x \in \R^4} \big( \inner{x}{y} - \gauge_K(x)^2 \big).
+\]
+Thus
+\[
+  \gauge_K^2(x) + \tfrac14 \support_K^2(y) \ge \inner{x}{y},
+\]
+with equality iff \(y\in\partial \gauge_K^2(x)\) iff \(x\in\partial(\tfrac14 \support_K^2)(y)\).
+In the polytope case this identifies supporting facets and contact points by Legendre duality:
+\[
+  \partial \gauge_K^2(x \in F) = \operatorname{conv}\Big\{ \frac{2}{h_i} n_i : x \in F_i \Big\},
+\]
+\[
+  \partial (\tfrac14 \support_K^2)(y \in \dots) = F
+\]
+\end{theorem}
+\begin{proof}
+  Calculation.
+\end{proof}
+
+\paragraph{Clarke's dual action principle.}
+
+To set up Clarke's dual action principle, we work in the Sobolev space \(W^{1,2}([0,T],\R^4)\) of absolutely continuous curves with square-integrable weak derivative and period \(T>0\).
+We consider the following functionals
+\begin{align*}
+  A(z) &= \tfrac12 \int_0^T \inner{-\Jmat\dot z(t)}{z(t)}\,dt, \\
+  I_g(z) &= \frac{1}{T} \int_0^T \gauge_K^2(-\Jmat\dot z(t))\,dt, \\
+  I_h(z) &= T \int_0^T \tfrac14 \support_K^2(-\Jmat\dot z(t))\,dt, \\
+\end{align*}
+The functionals are all quadratic in spatial scaling, constant in time scaling. The functionals \(A,I_h\) are constant under spatial translation.
+
+An interesting observation is that the Hamiltonian orbits on \(\R^4\) now correspond to the critical points of \(A - T I_g\). This can also be understood as \(T\) serving as a Lagrange multiplier, yielding critical points of \(A\) constrained to level sets of \(\gauge_K\). Intuitively, this again tells us that Hamiltonian orbits and Reeb orbits correspond.
+
+One problem we have with this formulation is that \(I_g\) does not give us much freedom to homotope orbits. On the other hand \(I_h\) only depends on how much time is spent on each velocity, so even full rearrangement of velocities is possible without changing \(I_h\). In this sense, \(I_h\) is a useful framework to find new homotopies of orbits, that \(I_g\) does not show us.
+
+\begin{theorem}[Clarke's dual action principle]\label{thm-clarke-dual}
+Critical points of \(A - T I_g\) correspond to Hamiltonian orbits in \(\R^4\). The lagrange multiplier \(T\) can be used to fix the level set. Critical points of \(A - T I_h\) correspond to Hamiltonian orbits as well, but with a potential time and spatial scaling. The lagrange multiplier \(T\) can be used to fix the level set.
+\end{theorem}
+
+
+Clarke's dual action principle (specialized to convex bodies) considers
+\[
+  E = \Big\{ z\in W^{1,2}([0,1],\R^4): \int_0^1 \dot z = 0,\ \int_0^1 \inner{-\Jmat\dot z}{z}\,dt = 1 \Big\},\qquad
+  I_K(z)=\tfrac14\int_0^1 \support_K^2(-\Jmat\dot z(t))\,dt.
+\]
+Critical points of \(I_K\) correspond to generalized characteristics and
+\[
+  \cEHZ(K) = \inf_{z\in E} I_K(z).
+\]
+For polytopes \(\support_K\) is piecewise linear, so \(I_K\) is piecewise quadratic in \(\dot z\); minimizers can be taken piecewise affine, leading to the combinatorial model below \cite{HK2017}.

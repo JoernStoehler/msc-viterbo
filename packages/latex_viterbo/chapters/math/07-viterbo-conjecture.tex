@@ -1,0 +1,24 @@
+% !TeX root = ../../main.tex
+\section{Viterbo conjecture (falsified)}
+
+\begin{conjecture}[Viterbo]\label{conj-viterbo}
+For any bounded convex body \(K \subset \R^4\), the systolic ratio satisfies \(\sys(K) \le 1\).
+\end{conjecture}
+
+\begin{example}[Counterexample]\label{ex-counterexample-viterbo}
+\cite{HK2024} constructs a polytope \(K \subset \R^4\) with \(\sys(K) > 1\), falsifying \cref{conj-viterbo}.
+\end{example}
+
+The existing literature includes further statements:
+
+\begin{theorem}[Simplex case]\label{thm-simplex-viterbo}
+For simplices \(\sys(K) \le 3/4 < 1\). Equality holds only for the orthonormal simplex with vertices \(\{0, e_1, e_2, e_3, e_4\}\) and its symplectomorphic images (translations and linear symplectic maps).
+%TODO Cite: master thesis of Haim-Kislev.
+\end{theorem}
+
+\begin{theorem}[Mahler conjecture in 2D]\label{thm-mahler-2d-viterbo}
+For centrally symmetric convex polygons \(P = -P \subset \R^2\) we have \(\mathrm{area}(P)\,\mathrm{area}(P^{\polar}) \ge 8\), with equality for parallelograms. Then \(K = P \times P^{\polar} \subset \R^4\) satisfies \(\sys(K)\le1\), with equality preserved.
+%TODO: Cite
+\end{theorem}
+
+Trivial families of counterexamples arise from scaling, symplectomorphisms, and small perturbations of known counterexamples, since \(\sys\) is continuous in the Hausdorff metric. We seek nontrivial counterexamples and a systematic computational search.

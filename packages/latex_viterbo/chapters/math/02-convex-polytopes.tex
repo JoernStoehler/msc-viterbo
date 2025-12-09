@@ -1,0 +1,18 @@
+% !TeX root = ../../main.tex
+\section{Convex bodies and polytopes}
+
+We are generally interested in bounded, convex, star-shaped bodies \(K\subset\R^4\) containing the origin in their interior. In particular, for us polytopes are always bounded, convex, and, unless mentioned otherwise, star-shaped with respect to the origin. We will in the following drop the explicit mention of these properties and simply call such sets \emph{bodies} or \emph{polytopes}.
+
+For an outward unit normal \(n\in\R^4\), \(\abs{n}=1\), and height \(h\in\R\), the half-space \(\{x: \inner{x}{n} \le h\}\) has boundary hyperplane \(\{x: \inner{x}{n}=h\}\). If \(h>0\) the half-space contains the origin; we then call it \emph{positive}.
+
+\paragraph{Irredundant H-representation.} Any polytope \(K\) has a unique irredundant representation with minimal cardinality as the intersection of finitely many positive half-spaces. Writing the outward unit normals and heights as \((n_i,h_i)_{i=1}^F\), \(\abs{n_i}=1\), \(h_i>0\), we have
+\[
+  K = \bigcap_{i=1}^F \{x: \inner{x}{n_i} \le h_i\}.
+\]
+Any such representation with bounded \(K\) defines a polytope.
+
+\paragraph{Faces.} We write \(\partial K\) for the boundary. Facets (3-faces) are \(F_i = K \cap \{x: \inner{x}{n_i}=h_i\}\). Where multiple hyperplanes meet we have 2-, 1-, and 0-faces. By irredundancy, every 2-face is the intersection of two unique facets. We don't have an upper bound on how many facets may meet at a 1- or 0-face. The half-space normal and height also are called the facet normal and height.
+
+\paragraph{Support and gauge.} For a body \(K\subset\R^4\), the support function is \(\support_K(v) = \max_{x\in K} \inner{x}{v}\). For polytopes, \(\support_K(n_i) = h_i\). The gauge is \(\gauge_K(v) = \min\{r>0: v \in rK\}\), so \(\gauge_K(x)=1\) on \(\partial K\).
+
+\paragraph{Polar body.} The polar body is \(K^{\polar} = \{y: \support_K(y) \le 1\}\). For polytopes, the polar is a polytope with vertices at the points \(n_i/h_i\).

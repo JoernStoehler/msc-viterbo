@@ -1,0 +1,9 @@
+% !TeX root = ../../main.tex
+\section{Smooth vs.~combinatorial viewpoints}
+Polytopes approximate any bounded convex star-shaped body arbitrarily well in the Hausdorff metric, and are simpler to compute with algorithmically.
+However, polytopes have nonsmooth boundaries, which requires us to define Hamiltonian and Reeb dynamics in a generalized sense, replacing equations with inclusion relations on lower-dimensional faces.
+We want our definitions to be compatible with the smooth case, in the sense that if smooth bodies converge wrt the Hausdorff metric to a polytope, the dynamics should converge as well.
+Often, it's sufficient to consider sequences \(K \subset B_n \subset K_{\varepsilon_n}\) with \(\varepsilon_n \to 0\) where \(B_n\) are smooth bodies approximating the polytope \(K\) from the outside, and \(K_{\varepsilon}\) is the largest body within Hausdorff distance \(\varepsilon\) of \(K\), called an \(\varepsilon\)-smoothing.
+Often, it's then sufficient to prove statements for the limit of smoothings, and other sequences follow by continuity arguments.
+
+\paragraph{\(\varepsilon\)-smoothings.} For a polytope \(K\) and \(\varepsilon>0\), set \(K_\varepsilon := \{x \in \R^4 : \mathrm{dist}(x,K) \le \varepsilon\}\). Then \(K_\varepsilon\) is a bounded convex star-shaped body with \(C^{1,1}\) boundary.
