@@ -19,4 +19,6 @@ else
   mapfile -t targets < <(find . -maxdepth 2 -type f -name '*.tex' \( -path './chapters/*' -o -name 'main.tex' -o -name 'preamble.tex' \) | sort)
 fi
 
+echo "[format.sh] latexindent -w on ${#targets[@]} file(s)"
 latexindent -w "${targets[@]}"
+echo "[format.sh] formatted ${#targets[@]} file(s)"

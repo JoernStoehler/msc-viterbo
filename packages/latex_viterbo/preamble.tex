@@ -51,9 +51,9 @@
 \crefname{remark}{Remark}{Remarks}
 \crefname{equation}{Equation}{Equations}
 
-% WIP references: \todoref{label} shows a visible TODO while the label
-% does not exist yet; once the label exists (i.e. on a later run where
-% \r@<label> is defined), this raises a LaTeX error to force cleanup.
+% WIP references: \todoref{label} and \todocref{label} show visible TODOs
+% while the label does not exist yet; once the label exists (i.e. on a later
+% run where \r@<label> is defined), these raise a LaTeX error to force cleanup.
 \makeatletter
 \newcommand{\todoref}[1]{%
   \ifcsname r@#1\endcsname
@@ -64,5 +64,15 @@
        This macro is only intended for temporary, forward references.}%
   \else
     \textbf{[TODO ref: #1]}%
+  \fi}
+\newcommand{\todocref}[1]{%
+  \ifcsname r@#1\endcsname
+    \PackageError{todocref}%
+      {Label `#1' exists; replace \string\todocref\space with \string\cref}%
+      {You are using \string\todocref\space with a label that already has a real reference.\MessageBreak
+       Replace \string\todocref\space by \string\cref\space (or a related cleveref command).\MessageBreak
+       This macro is only intended for temporary, forward references.}%
+  \else
+    \textbf{[TODO cref: #1]}%
   \fi}
 \makeatother

@@ -43,10 +43,12 @@ mkdir -p "$OUTDIR"
 
 if [[ $MODE == production ]]; then
   # Clean old outputs for a fresh production build
+  echo "[build.sh] latexmk -C"
   latexmk -C
 fi
 
 if $DO_PDF; then
+  echo "[build.sh] latexmk -pdf -output-directory=\"$OUTDIR\" \"$MAIN\""
   latexmk -pdf "${LATEX_OPTS[@]}" \
     -output-directory="$OUTDIR" \
     "$MAIN"
@@ -63,6 +65,7 @@ if $DO_HTML; then
   cp -f "$SKIN_DIR"/ar5iv.0.8.4.css "$OUTDIR/html/" || true
   cp -f "$SKIN_DIR"/arxiv-html-papers-theme-20250916.css "$OUTDIR/html/" || true
 
+  echo "[build.sh] latexmlc -> $OUTDIR/html/index.html"
   latexmlc \
     --preload='[nobibtex,rawstyles,nobreakuntex,magnify=1.3,zoomout=1.3,tokenlimit=249999999,iflimit=3999999,absorblimit=1299999,pushbacklimit=599999]latexml.sty' \
     --preload=ar5iv.sty \
@@ -80,6 +83,7 @@ if $DO_HTML; then
     "$MAIN"
 
   # Postprocess: move TOC as first child of ltx_page_main (flex layout like arXiv)
+  echo "[build.sh] python3 postprocess HTML TOC"
   python3 - "$OUTDIR/html/index.html" <<'PY'
 import pathlib, sys
 
@@ -115,4 +119,5 @@ path.write_text(html)
 PY
 fi
 
-echo "build.sh: artifacts in $OUTDIR";
+echo "[build.sh] artifacts in $OUTDIR"
+echo "[build.sh] SUCCESS (mode=$MODE, pdf=$DO_PDF, html=$DO_HTML)"

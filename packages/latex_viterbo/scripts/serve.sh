@@ -43,15 +43,19 @@ else
 fi
 
 # Initial build
+echo "[serve.sh] build: ${BUILD_CMD[*]}"
 "${BUILD_CMD[@]}"
 
 SERVE_DIR="$ROOT_DIR/$OUTDIR"
 
 # Start server
+echo "[serve.sh] starting http server in $SERVE_DIR on port $PORT"
 ( cd "$SERVE_DIR" && python3 -m http.server "$PORT" --bind 127.0.0.1 ) &
 SERVER_PID=$!
 cleanup() { kill $SERVER_PID 2>/dev/null || true; rm -f "${WATCH_LIST:-}"; }
 trap cleanup EXIT
+
+echo "[serve.sh] serving from $SERVE_DIR on http://127.0.0.1:$PORT (mode=$MODE, watch=$WATCH)"
 
 if $WATCH; then
   if ! command -v inotifywait >/dev/null 2>&1; then
@@ -71,10 +75,14 @@ if $WATCH; then
     exit 1
   fi
 
+  echo "[serve.sh] watching paths: ${WATCH_TARGETS[*]}"
   inotifywait -m -r -e close_write,move,create,delete --format '%w%f' "${WATCH_TARGETS[@]}" \
     | while read -r _; do
+        echo "[serve.sh] change detected; rebuilding…"
+        echo "[serve.sh] build: ${BUILD_CMD[*]}"
         "${BUILD_CMD[@]}"
       done
 else
   wait $SERVER_PID
+  echo "[serve.sh] server exited; goodbye"
 fi
