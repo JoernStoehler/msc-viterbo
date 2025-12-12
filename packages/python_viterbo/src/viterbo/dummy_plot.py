@@ -58,7 +58,7 @@ def save_static_plot(samples: list[float], y_values: list[float], png_path: Path
 
 def default_output_dir() -> Path:
     repo_root = Path(__file__).resolve().parents[4]
-    return repo_root / "packages" / "thesis" / "src" / "assets" / "figures" / "demo"
+    return repo_root / "packages" / "latex_viterbo" / "assets" / "demo"
 
 
 def save_dummy_plot(output_dir: Path | None = None) -> Tuple[Path, Path]:

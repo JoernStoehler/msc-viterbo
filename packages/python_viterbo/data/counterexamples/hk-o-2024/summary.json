@@ -1,0 +1,10 @@
+{
+  "capacity": 3.440954801177934,
+  "volume": 5.653178107421709,
+  "systolic_ratio": 1.0472135954999582,
+  "formula": {
+    "capacity": "2*cos(pi/10)*(1+cos(pi/5))",
+    "volume": "area(K)*area(T), area = (5/2)*sin(2pi/5)",
+    "systolic_ratio": "(sqrt(5)+3)/5"
+  }
+}
