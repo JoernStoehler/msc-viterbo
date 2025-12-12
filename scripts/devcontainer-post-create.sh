@@ -36,6 +36,11 @@ if command -v npm >/dev/null 2>&1; then
   npm i -g @openai/codex || true
 fi
 
+# Configure git credentials via GitHub CLI (if available) so pushes work without manual setup.
+if command -v gh >/dev/null 2>&1; then
+  gh auth setup-git || true
+fi
+
 echo "code-tunnel baked into image: $(code-tunnel --version 2>/dev/null || true)"
 
 # Sanity-check LaTeX tooling baked into the image
