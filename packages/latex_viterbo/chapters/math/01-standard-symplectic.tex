@@ -6,8 +6,8 @@ We work in the standard \(\R^4\) setting. Let
   \item[Inner product] \(\inner{x}{y} = x^T y\).
   \item[Norm] \(\abs{x}=\sqrt{\inner{x}{x}}\).
   \item[Volume form] \(\vol = \prod_{i=1}^2 dq_i \wedge dp_i\).
-  \item[Almost complex structure] \(\Jmat = \begin{pmatrix}0 & -I_2 \\ I_2 & 0\end{pmatrix}\) so that \(\Jmat^2 = -I_4\) and \(J z = (-p_1,-p_2,q_1,q_2)\).
-  \item[Symplectic form] \(\omegaform = \sum_{i=1}^2 dq_i \wedge dp_i\), equivalently \(\omegaform(x,y)=\tfrac12 \inner{\Jmat x}{y}\).
-  \item[Liouville 1-form] \(\lambdaform = \tfrac12 \sum_{i=1}^2 (q_i\,dp_i - p_i\,dq_i)\), so \(\lambdaform_z(\dot z) = \tfrac12 \inner{\Jmat z}{\dot z}\) and \(d\lambdaform = \omegaform\).
-  \item[Lagrangian 2-plane] An affine 2-plane \(L\subset\R^4\) is Lagrangian iff \(\omegaform|_L \equiv 0\).
+  \item[Almost complex structure] \(J = \begin{pmatrix}0 & -I_2 \\ I_2 & 0\end{pmatrix}\) so that \(J^2 = -I_4\) and \(J z = (-p_1,-p_2,q_1,q_2)\).
+  \item[Symplectic form] \(\omega = \sum_{i=1}^2 dq_i \wedge dp_i\), equivalently \(\omega(x,y)=\tfrac12 \inner{J x}{y}\).
+  \item[Liouville 1-form] \(\lambda = \tfrac12 \sum_{i=1}^2 (q_i\,dp_i - p_i\,dq_i)\), so \(\lambdaform_z(\dot z) = \tfrac12 \inner{J z}{\dot z}\) and \(d\lambda = \omega\).
+  \item[Lagrangian 2-plane] An affine 2-plane \(L\subset\R^4\) is Lagrangian iff \(\omega|_L \equiv 0\).
 \end{description}

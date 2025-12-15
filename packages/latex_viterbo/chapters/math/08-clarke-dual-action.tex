@@ -35,9 +35,9 @@ In the polytope case this identifies supporting facets and contact points by Leg
 To set up Clarke's dual action principle, we work in the Sobolev space \(W^{1,2}([0,T],\R^4)\) of absolutely continuous curves with square-integrable weak derivative and period \(T>0\).
 We consider the following functionals
 \begin{align*}
-  A(z) &= \tfrac12 \int_0^T \inner{-\Jmat\dot z(t)}{z(t)}\,dt, \\
-  I_g(z) &= \frac{1}{T} \int_0^T \gauge_K^2(-\Jmat\dot z(t))\,dt, \\
-  I_h(z) &= T \int_0^T \tfrac14 \support_K^2(-\Jmat\dot z(t))\,dt, \\
+  A(z) &= \tfrac12 \int_0^T \inner{-J\dot z(t)}{z(t)}\,dt, \\
+  I_g(z) &= \frac{1}{T} \int_0^T \gauge_K^2(-J\dot z(t))\,dt, \\
+  I_h(z) &= T \int_0^T \tfrac14 \support_K^2(-J\dot z(t))\,dt, \\
 \end{align*}
 The functionals are all quadratic in spatial scaling, constant in time scaling. The functionals \(A,I_h\) are constant under spatial translation.
 
@@ -52,8 +52,8 @@ Critical points of \(A - T I_g\) correspond to Hamiltonian orbits in \(\R^4\). T
 
 Clarke's dual action principle (specialized to convex bodies) considers
 \[
-  E = \Big\{ z\in W^{1,2}([0,1],\R^4): \int_0^1 \dot z = 0,\ \int_0^1 \inner{-\Jmat\dot z}{z}\,dt = 1 \Big\},\qquad
-  I_K(z)=\tfrac14\int_0^1 \support_K^2(-\Jmat\dot z(t))\,dt.
+  E = \Big\{ z\in W^{1,2}([0,1],\R^4): \int_0^1 \dot z = 0,\ \int_0^1 \inner{-J\dot z}{z}\,dt = 1 \Big\},\qquad
+  I_K(z)=\tfrac14\int_0^1 \support_K^2(-J\dot z(t))\,dt.
 \]
 Critical points of \(I_K\) correspond to generalized characteristics and
 \[

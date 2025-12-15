@@ -1,0 +1,14 @@
+% !TeX root = ../main.tex
+\chapter{Algorithms for Symplectic Geometry on Polytopes}
+\label{ch:algorithm}
+
+% Jörn:
+% Plan is to populate the algorithms.tex chapter with
+% - a brief recap of the basic data on polytopes and how we define the types conceptually (no Rust code!)
+% - a brief recap of what's needed for probing Viterbo's conjecture, and basic algorithms we didn't spend much time on bc they are known/easy problems (e.g. volume of a polytope, H-rep <-> V-rep conversion)
+% - a detailed description of the CH2021 algorithm, including a pseudocode listing, and a discussion of the modular structure (e.g. the search-tree can be walked in different ways)
+% - a detailed description of the HK2017 algorithm (for 4d), including a pseudocode listing and a discussion of the modular structure (e.g. the QP/LP/search-tree solvers can be swapped out so we don't specify)
+% - we are ok with only stating one main candidate for e.g. a search-tree walker as pseudocode, and refer to the code or to literature for alternatives
+% - a detailed description of our own algorithm based on CH2021, including a pseudocode listing, a discussion of the modular structure; we do present profiling+benchmark+ablation information here to justify design decisions that we made based on empirical feedback i.e. we want to document in some part our process of algorithm engineering
+% - we also discuss again the requirements for probing Viterbo's conjecture, but this time from an empirical standpoint: bottlenecks for large data science experiments, decisions to create a dataset, random sampling of polytope families, embarrassingly parallel dataset creation, etc.
+

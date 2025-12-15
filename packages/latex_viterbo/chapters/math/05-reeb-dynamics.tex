@@ -1,12 +1,12 @@
 % !TeX root = ../../main.tex
 \section{Reeb dynamics and closed characteristics}
-We next consider the Reeb dynamics in the polytope case. Again we assume familiarity with contact topology in the smooth case. The 1-form we are interested in is \(\alpha = \lambdaform|_{\partial K}\). We for now do not assume that \(\partial K\) is of contact type, i.e. we allow that \(\alpha|_{F_i \cap F_j} = 0\) on some 2-faces \(F_i \cap F_j\) (Lagrangian 2-faces). We are slightly more general here than \cite{CH2021}, who assume no Lagrangian 2-faces.
+We next consider the Reeb dynamics in the polytope case. Again we assume familiarity with contact topology in the smooth case. The 1-form we are interested in is \(\alpha = \lambda|_{\partial K}\). We for now do not assume that \(\partial K\) is of contact type, i.e. we allow that \(\alpha|_{F_i \cap F_j} = 0\) on some 2-faces \(F_i \cap F_j\) (Lagrangian 2-faces). We are slightly more general here than \cite{CH2021}, who assume no Lagrangian 2-faces.
 
-\paragraph{Regular case.} At \(x\in\partial K\) with outward unit normal \(n_x\), any \(v\in T_x\partial K\) satisfies \(\inner{\Jmat v}{\Jmat n_x}=\inner{v}{n_x}=0\). Normalizing to \(\alpha(R)=1\) gives
+\paragraph{Regular case.} At \(x\in\partial K\) with outward unit normal \(n_x\), any \(v\in T_x\partial K\) satisfies \(\inner{J v}{J n_x}=\inner{v}{n_x}=0\). Normalizing to \(\alpha(R)=1\) gives
 \[
-  \Reeb(x) = \frac{2}{\inner{x}{n_x}}\, \Jmat n_x.
+  R(x) = \frac{2}{\inner{x}{n_x}}\, J n_x.
 \]
-The Reeb flow \(\dot x = \Reeb(x)\) preserves \(\alpha\) and \(d\alpha\). Periodic solutions are Reeb orbits. Closed characteristics are loops \(\gamma\) with \(\dot\gamma(t) \in \R_+ \Reeb(\gamma(t))\) for all \(t\).
+The Reeb flow \(\dot x = R(x)\) preserves \(\alpha\) and \(d\alpha\). Periodic solutions are Reeb orbits. Closed characteristics are loops \(\gamma\) with \(\dot\gamma(t) \in \R_+ R(\gamma(t))\) for all \(t\).
 
 \paragraph{Polytope case.} On facet interiors the Reeb vector field matches the facet velocity. Generalized closed characteristics are loops \(\gamma \in W^{1,2}(\T,\partial K)\) with
 \[
@@ -35,10 +35,10 @@ Since \(p_i,p_j\) are tangent, the orbit cannot enter from facet interiors; it p
 \end{proof}
 
 \begin{lemma}[Flow through non-Lagrangian 2-faces]\label{lem-nonlagrangian-2face}
-If \(F_{ij}\) is non-Lagrangian, then the orbit crosses \(F_{ij}\) from one facet to the other at isolated times. The direction is determined by \(\omegaform(n_i,n_j)\): if \(\omegaform(n_i,n_j) > 0\) the orbit crosses from \(F_i\) to \(F_j\); if \(\omegaform(n_i,n_j)<0\) it crosses from \(F_j\) to \(F_i\).
+If \(F_{ij}\) is non-Lagrangian, then the orbit crosses \(F_{ij}\) from one facet to the other at isolated times. The direction is determined by \(\omega(n_i,n_j)\): if \(\omega(n_i,n_j) > 0\) the orbit crosses from \(F_i\) to \(F_j\); if \(\omega(n_i,n_j)<0\) it crosses from \(F_j\) to \(F_i\).
 \end{lemma}
 \begin{proof}
-We use \(\inner{\Jmat n_i}{n_j} = - \inner{\Jmat n_j}{n_i} = \omegaform(n_i,n_j)\). Its sign determines whether \(p_i\) points into or out of the half-space defined by \(F_j\). Locally the orbit consists of linear segments with velocities \(p_i\) and \(p_j\); touching times are isolated and the crossing direction follows the sign.
+We use \(\inner{J n_i}{n_j} = - \inner{J n_j}{n_i} = \omega(n_i,n_j)\). Its sign determines whether \(p_i\) points into or out of the half-space defined by \(F_j\). Locally the orbit consists of linear segments with velocities \(p_i\) and \(p_j\); touching times are isolated and the crossing direction follows the sign.
 \end{proof}
 
 \begin{lemma}[Flow on 1-faces]\label{lem-1face-flow}
@@ -63,7 +63,7 @@ We will use the term "generic" formally, i.e. dense and open subset of configura
 For a fixed number of facets (or vertices), polytopes with no Lagrangian 2-faces form an open dense set in the parameter space of facet normals/heights (respectively vertices).
 \end{lemma}
 \begin{proof}
-Lagrangianness of \(F_{ij}\) is the single equation \(\omegaform(n_i,n_j)=0\), a codimension-one condition. A finite union of such subsets has complement open dense.
+Lagrangianness of \(F_{ij}\) is the single equation \(\omega(n_i,n_j)=0\), a codimension-one condition. A finite union of such subsets has complement open dense.
 \end{proof}
 
 \begin{conjecture}\label{conj-generic-0faces}

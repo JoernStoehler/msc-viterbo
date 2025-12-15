@@ -12,6 +12,29 @@
 		"git.ignoredRepositories": [],
 		"git.ignoreLimitWarning": true,
 		"files.autoSave": "off",
+		"editor.wordWrap": "on",
+
+		"latex-workshop.latex.outDir": "%DIR%/build",
+		"latex-workshop.latex.recipes": [
+			{
+				"name": "latexmk (build/)",
+				"tools": ["latexmk-builddir"]
+			}
+		],
+		"latex-workshop.latex.tools": [
+			{
+				"name": "latexmk-builddir",
+				"command": "latexmk",
+				"args": [
+					"-synctex=1",
+					"-interaction=nonstopmode",
+					"-file-line-error",
+					"-pdf",
+					"-output-directory=build",
+					"%DOC%"
+				]
+			}
+		],
 		
 		"texlab.chktex.onOpenAndSave": true,
 		"texlab.chktex.onEdit": false,

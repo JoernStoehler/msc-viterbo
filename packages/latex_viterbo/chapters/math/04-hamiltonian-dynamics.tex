@@ -3,7 +3,7 @@
 Now fix a polytope \(K\) with irredundant data \((n_i,h_i)_{i=1}^F\).
 We assume the reader is familiar with Hamiltonian vector fields, flows, and orbits in the smooth case.
 
-\paragraph{Standard Hamiltonian.} We set \(\Ham = \gauge_K^2\), the square of the gauge. It is 2-homogeneous, convex, and piecewise quadratic for polytopes. Derivatives fail on rays through the 2-faces of \(K\). On the polytope boundary \(\partial K\) we have \(\Ham \equiv 1\), and on the interior of a facet \(F_i\) we have
+\paragraph{Standard Hamiltonian.} We set \(H = \gauge_K^2\), the square of the gauge. It is 2-homogeneous, convex, and piecewise quadratic for polytopes. Derivatives fail on rays through the 2-faces of \(K\). On the polytope boundary \(\partial K\) we have \(H \equiv 1\), and on the interior of a facet \(F_i\) we have
 \[
   \nabla H(x) = \frac{2}{h_i} n_i
 \]
@@ -13,19 +13,19 @@ so that the subdifferential in general is
 \]
 We define facet "velocities"
 \[
-  p_i := \frac{2}{h_i} \Jmat n_i.
+  p_i := \frac{2}{h_i} J n_i.
 \]
 
-\paragraph{Regular case.} For \(\Ham\in C^1(\R^4)\), the Hamiltonian vector field satisfies \(\omegaform(X_\Ham,\cdot) = - d\Ham(\cdot)\), equivalently \(X_\Ham = 2 \Jmat \nabla \Ham\). The flow \(\dot x = X_\Ham(x)\) preserves level sets of \(\Ham\).
+\paragraph{Regular case.} For \(H\in C^1(\R^4)\), the Hamiltonian vector field satisfies \(\omega(X_H,\cdot) = - dH(\cdot)\), equivalently \(X_H = 2 J \nabla H\). The flow \(\dot x = X_H(x)\) preserves level sets of \(H\).
 \begin{proof}
   Quick sign check:
   \[
-    \omegaform(X_H,v) = \tfrac12 \inner{\Jmat X_H}{v} = -dH(v) = \inner{-\nabla H}{v} \implies X_H = 2 \Jmat \nabla H.
+    \omega(X_H,v) = \tfrac12 \inner{J X_H}{v} = -dH(v) = \inner{-\nabla H}{v} \implies X_H = 2 J \nabla H.
   \]
 \end{proof}
 
-\paragraph{Polytope case.} For polytopes \(\Ham\) is not differentiable everywhere; we use the subdifferential \(\partial \Ham(x)\) and the inclusion
+\paragraph{Polytope case.} For polytopes \(H\) is not differentiable everywhere; we use the subdifferential \(\partial H(x)\) and the inclusion
 \[
-  \dot x(t) \in 2 \Jmat \partial \Ham(x(t)) \quad \text{a.e.}
+  \dot x(t) \in 2 J \partial H(x(t)) \quad \text{a.e.}
 \]
 Solutions in \(W^{1,2}(\R,\R^4)\) exist for any initial condition and all time but need not be unique. The boundary \(\partial K\) is invariant.
