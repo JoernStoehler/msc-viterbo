@@ -40,6 +40,7 @@ done
 [[ "$DO_PDF" == false && "$DO_HTML" == false ]] && { echo "Nothing to build (pdf-only/html-only both false)" >&2; exit 64; }
 
 if [[ -z "$OUTDIR" ]]; then
+  # Default directories: preview builds stay under build/, production artifacts go to dist/ (CI picks these up for Pages).
   if [[ $MODE == production ]]; then
     OUTDIR=dist
   else
@@ -48,6 +49,7 @@ if [[ -z "$OUTDIR" ]]; then
 fi
 
 mkdir -p "$OUTDIR"
+echo "[build.sh] writing outputs to $OUTDIR (mode=$MODE)"
 
 if [[ $MODE == production ]]; then
   # Clean old outputs for a fresh production build
