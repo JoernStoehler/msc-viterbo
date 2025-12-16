@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-OUTDIR=${OUTDIR:-build}
+OUTDIR=${OUTDIR:-}
 MAIN=main.tex
 DO_PDF=true
 DO_HTML=true
@@ -38,6 +38,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ "$DO_PDF" == false && "$DO_HTML" == false ]] && { echo "Nothing to build (pdf-only/html-only both false)" >&2; exit 64; }
+
+if [[ -z "$OUTDIR" ]]; then
+  if [[ $MODE == production ]]; then
+    OUTDIR=dist
+  else
+    OUTDIR=build
+  fi
+fi
 
 mkdir -p "$OUTDIR"
 
