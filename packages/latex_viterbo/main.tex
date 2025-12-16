@@ -62,8 +62,21 @@
 \maketitle
 
 \begin{abstract}
-Draft thesis text migrated from the MkDocs notes into the LaTeX toolchain. The current content fixes notation and recalls the symplectic/polytope background; later chapters outline the algorithmic and experimental program for probing Viterbo's conjecture in convex polytopes.
+Draft thesis, in migration.
+
+Viterbo's strong conjecture states that on any convex body \(K \subset \R^{2n}\) all symplectic capacities coincide. A weaker version gives an explicit inequality for one capacity, the Ekeland--Hofer--Zehnder capacity \(\cEHZ(K)\), in terms of the volume of \(K\). This weaker version, and thus also the strong version, was recently falsified by Haim-Kislev and Ostrover 2024 via an explicit counterexample. The counterexample is a highly symmetric convex polytope in dimension 4, and was found by manual case-by-case analysis and good intuition. Previous work by Haim-Kislev 2017 and Chadez--Hutchings 2021 looked into computational search methods for counterexamples but were unsuccessful, in part due to computational limitations. 
+
+We develop a high-performance library for symplectic geometry on polytopes, and probe Viterbo's conjecture using modern data science techniques. 
+We extend the algorithm by Chadez--Hutchings 2021 to full generality, improve numerical stability and performance, and compare the known algorithms from the literature. 
+Using this library, we both find new families of counterexamples that are not derivates of the one published counterexample. We also formulate several conjectures about the behavior of the symplectic capacity \(\cEHZ(K)\), some of which we falsify and prove.
+
+As a main result TODO.
 \end{abstract}
+
+\cleardoublepage
+\chapter*{AI Use Disclosure}
+AI tooling assisted parts of the research, coding, data analysis, and drafting. The author reviewed and approved all content and remains fully responsible for its correctness.
+\addcontentsline{toc}{chapter}{AI Use Disclosure}
 
 \tableofcontents
 
@@ -93,10 +106,6 @@ Draft thesis text migrated from the MkDocs notes into the LaTeX toolchain. The c
 
 \appendix
 
-\chapter{Lean Library}
-\label{app:lean}
-\input{chapters/appendix-lean}
-
 \chapter{Rust Library}
 \label{app:rust}
 \input{chapters/appendix-rust}
@@ -108,10 +117,6 @@ Draft thesis text migrated from the MkDocs notes into the LaTeX toolchain. The c
 \chapter{AI Agents}
 \label{app:ai-agents}
 \input{chapters/appendix-ai-agents}
-
-\chapter{Literature Digests}
-\label{app:literature}
-\input{chapters/appendix-literature}
 
 % Plain style is arXiv-friendly and supported by latexml bindings
 \bibliographystyle{plain}
