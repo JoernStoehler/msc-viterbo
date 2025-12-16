@@ -1,14 +1,407 @@
 % !TeX root = ../main.tex
-\chapter{Algorithms for Symplectic Geometry on Polytopes}
-\label{ch:algorithm}
 
-% Jörn:
-% Plan is to populate the algorithms.tex chapter with
-% - a brief recap of the basic data on polytopes and how we define the types conceptually (no Rust code!)
-% - a brief recap of what's needed for probing Viterbo's conjecture, and basic algorithms we didn't spend much time on bc they are known/easy problems (e.g. volume of a polytope, H-rep <-> V-rep conversion)
-% - a detailed description of the CH2021 algorithm, including a pseudocode listing, and a discussion of the modular structure (e.g. the search-tree can be walked in different ways)
-% - a detailed description of the HK2017 algorithm (for 4d), including a pseudocode listing and a discussion of the modular structure (e.g. the QP/LP/search-tree solvers can be swapped out so we don't specify)
-% - we are ok with only stating one main candidate for e.g. a search-tree walker as pseudocode, and refer to the code or to literature for alternatives
-% - a detailed description of our own algorithm based on CH2021, including a pseudocode listing, a discussion of the modular structure; we do present profiling+benchmark+ablation information here to justify design decisions that we made based on empirical feedback i.e. we want to document in some part our process of algorithm engineering
-% - we also discuss again the requirements for probing Viterbo's conjecture, but this time from an empirical standpoint: bottlenecks for large data science experiments, decisions to create a dataset, random sampling of polytope families, embarrassingly parallel dataset creation, etc.
+This chapter describes the algorithms developed in the literature and as part of this thesis in order to do symplectic geometry on polytopes, and in particular to compute the Ekeland--Hofer--Zehnder capacity \(\cEHZ(K)\) and systolic ratio \(\sys(K)\) for polytopes \(K \subset \R^4\).
+We start by briefly describing how we algorithmically represent basic symplectic data about polytopes.
+Then, we present the three main algorithmic approaches to computing \(\cEHZ(K)\) for polytopes \(K\) from the literature:
+\begin{itemize}
+  \item the HK2017 algorithm, which we specialize from dimension \(2n\) to dimension \(4\),
+  \item the CH2021 algorithm, which assumes a generic property about the polytope \(K\), and
+  \item the Minkowski Billiard algorithm, partially discussed in HK2024, which only applies to lagrangian products of 2-dim polygons.
+\end{itemize}
+We improve upon the literature algorithms, mainly CH2021, to cover all edge cases and achieve sufficient numerical stability and performance to investigate some polytope families of interest for Viterbo's conjecture.
+Finally, we present empirical results from benchmarking the different algorithms using our own implementations, and discuss practical considerations for running large-scale experiments to probe Viterbo's conjecture.
 
+The main subroutine of interest is the capacity computation, the rest is rather straightforward, so we focus on that.
+The input to this subroutine is in general a convex polytope \(K \subset \R^4\) in some simple representation, and the output is an approximative statement about \(\cEHZ(K)\) together with a certificate that allows to verify the statement. We mostly discuss the following approximative statements:
+\begin{itemize}
+  \item assuming infinite precision in representing reals/rationals, compute the exact value of \(\cEHZ(K)\),
+  \item under finite precision, compute a single output value, such that stochastically the output has good quantiative error bounds.
+  \item under finite precision, compute an interval output, such that stochastically the interval contains the true value with high probability.
+\end{itemize}
+We understand the problem as stochastically wrt a random input polytope with an ``appropriate'' probability distribution, e.g. for massive data experiments we may sample random polytopes from some family.
+
+It's not that common that this kind of detailed error analysis is done. We have two reasons to put in the effort, and readers may skip the numerical sections unless interested in verifying the results or learning from the analysis methodology. The first reason is that we want to target enumerative proofs using our library, in which case we need proven statements about the algorithm's actual behavior, without waving away numerical rounding errors that impact threshold control flow or that blow up in other ways.
+The second reason is that we want to be able to use our library of algorithm implementations to form conjectures, and avoid misleading signals from erroneous outputs that we misinterpret as either too imprecise (leading to fewer interesting conjectures) or too accurate (leading to more false conjectures).
+The numerical analysis does not really tell us much of interest about the symplectic geometry, perhaps some extra motivation to look into degeneracies and local behavior of \(\cEHZ\) in the polytope space, but mostly it is just a necessary engineering step to get reliable outputs from the algorithms.
+
+\section{Representation of Polytopes and Basic Symplectic Data}\label{sec:algo-representations}
+
+\paragraph{Half-space Representation of Polytopes}
+The main representation of a convex polytope \(K \subset \R^4\) used in the algorithms is via its unique irredundant half-space representation (H-rep):
+\begin{description}
+  \item[Facet count] \(n \in \Z_{\ge 5}\) is the number of facets \((F_i)_{i=1}^n\) of \(K\). At least 5 facets are needed to enclose a bounded volume in \(\R^4\).
+  \item[Facet normals] For each facet we have an outward normal vector \(n_i \in \R^4\) with \(\norm{n_i} = 1\).
+  \item[Facet heights] For each facet we have a support number \(h_i \in \R_{>0}\) such that the origin is contained in the interior of \(K\).
+  \item[Polytope definition] The polytope is then defined as the intersection of the half-spaces:
+    \[
+      K = \bigcap_{i=1}^n \{ z \in \R^4 : \inner{n_i}{z} \le h_i \}.
+    \]
+  \item[Constraints] We have to assume boundedness and irredundancy as extra constraint, i.e. not every normal and height set defines a bounded polytope irredundantly.
+\end{description}
+
+\paragraph{Vertex Representation of Polytopes}
+We sometimes convert to the vertex/extreme point representation (V-rep) as needed, using off-the-shelf algorithms.
+\begin{description}
+  \item[Vertex count] \(n_V \in \Z_{\ge 5}\) is the number of vertices of \(K\). No simple correspondence to \(n\) exists in general.
+  \item[Vertices] The vertices are points \(v_j \in \R^4\) for \(j \in \{1, \ldots, n_V\}\) such that
+    \[
+      K = \conv\{ v_j : j = 1, \ldots, n_V \}.
+    \]
+  \item[Constraints] We have to assume that \(0 \in \interior(K)\) as an extra constraint, as well as again irredundancy, i.e. no vertex can be removed without changing \(K\).
+\end{description}
+
+\paragraph{Polytope Faces}
+We also need to represent the skeleton of the polytope for some algorithms.
+Any of the non-empty \(k\)-Faces of \(K\) for \(k \in \{0,1,2,3\}\) can be represented as a lower-dimensional convex bounded non-empty polytope in a \(k\)-dimensional affine subspace of \(\R^4\) that is the intersection of several hyperplanes defining facets of \(K\).
+Each \(k\)-Face \(F\) has a unique representation using
+\begin{description}
+  \item[Half-space Hyperplane Set] The maximal index set \(I \subset \{1, \ldots, n\}\) of the hyperplanes whose intersection defines the affine subspace containing \(F\). We picked the unique maximum instead of an arbitrary minimal set, to allow us to match data to the \(\ge k+1\)-faces containing \(F\) easily.
+  \item[Half-space Inequalities] The maximal index set \(J \subset \{1, \ldots, n\}\) with \(I \subset J\) of sharp half-space inequalities that define \(F\). We picked the sharp inequalities to easily talk about the \(\le k-1\)-faces contained in \(F\). Unsharp inequalities are redundant not just for \(F\) but all sub-faces, and so we omit them.
+    \[
+      F = \bigcap_{i \in J} \{ z \in \R^4 : \inner{n_i}{z} \le h_i \} \subset \bigcap_{i \in I} \{ z \in \R^4 : \inner{n_i}{z} = h_i \} \cong \R^k.
+    \]
+  \item[Face Vertices] Indices \(L \subset \{1, \ldots, n_V\}\) of the vertices of \(K\) that are the extreme points of \(F\). We have
+    \[
+      F = \conv\{ v_l : l \in L \}.
+    \]
+\end{description}
+
+From the irredundancy of polytope representations we immediately get that 3-faces aka facets have one hyperplane, and that 2-faces have two hyperplanes. For 1-faces and 0-faces we only know the lower bound from dimension counting of three, respectively four, hyperplanes, but no upper bound. Arbitrary many facets can come together to meet in a 0-face or 1-face.
+Dimension arguments also tell us that 1-faces have two inequalities and two vertices, and 0-faces have no inequalities and one vertex.
+
+The intersection of two faces \(F,G\) is either
+\begin{itemize}
+  \item if \(F=G\) then \(F \cap G = F = G\),
+  \item if \(F \subset G\) or \(G \subset F\) then \(F \cap G\) is the smaller face,
+  \item potentially empty \(F \cap G = \emptyset\),
+  \item or a third, lower-dimensional face \(F \cap G = H\), \(\dim H < \min(\dim F, \dim G)\).
+\end{itemize}
+This allows us to define the face lattice of \(K\) as the set of all faces ordered by inclusion, and with a precomputed intersection operation.
+
+\paragraph{Polygonal Reeb Orbits}
+We represent polygonal Reeb orbits and trajectories on the boundary of \(K\), using combinatorial and geometric data.
+We decidedly don't bother designing a computational representation of non-polygonal \(W^{1,2}\) Reeb orbits, since all our search algorithms skip them anyway.
+
+\begin{description}
+  \item[Breakpoints and Breaktimes] A polygonal orbit/trajectory with \(m\) breakpoints is represented by the ordered list of breakpoints \(b_1, \ldots, b_m \in \partial K \subset \R^4\). For closed orbits we have \(b_{m+1} = b_1\) as a notational convention. The breakpoints occur at times \(0=t_1 < \dots < t_m < t_{m+1} = T\) along the orbit/trajectory.
+  \item[Velocities and Facet Times] Each straight segment between breakpoints \(b_k\) and \(b_{k+1}\) has a facet Reeb vector as velocity \(v_k = \frac{2}{h_{i_k}} J n_{i_k}\) for some facet index \(i_k \in \{1, \ldots, N\}\). The velocity is constant along the segment, so \(b_{k+1} = b_k + (t_{k+1}-t_k) v_k\). The time spent on the segment is also denoted \(\tau_k = t_{k+1}-t_k\). Note that the segment may lie in lower-dimensional faces of \(K\), and thus on several facets at once, and the change in velocity at breakpoints may or may not correspond to a change in what facet the orbit is on. In the simple orbit case, we call the segment times also facet times, \(T_{i_k} = \tau_k\) with \(T_i = 0\) if facet velocity \(i\) is not used. Note that the facet may be visited on lower-dimensional faces, it's just that the velocity is never used for the Reeb orbit.
+  \item[Facet Sequence] The ordered list of facet indices \(\sigma = (i_1, \ldots, i_m)\) visited by the orbit/trajectory. We only do irredundant orbits where \(i_k \neq i_{k+1}\) for all \(k\). For simple orbits, we even know that all indices are distinct, i.e. \(\sigma\) is a subset of \(\{1, \ldots, N\}\) with cyclic order.
+\end{description}
+
+The HK2017 algorithm is formulated originally as a search over valid facet time vectors \((T_i)_{i=1}^N\) and facet sequences completed to permutations \(\sigma \in S_N\).
+The CH2021 algorithm is formulated as an outer search over valid facet sequences \(\sigma\), under adjacency constraints, and an inner fixed-point solver for the facet times \(T_i\) given \(\sigma\).
+The Minkowski Billiard algorithm deviates in that it does not consider polygonal Reeb orbits with facet velocities, but allows convex velocity combinations on the lagrangian 2-faces, and reformulates the search space over segment lengths in one 2-dim lagrangian factor, wrt the dual norm induced by the other lagrangian factor.
+
+If \(K = Q \times_L P\) is a lagrangian product of two bounded convex star-shaped wrt 0 sets \(P,Q \subset \R^2\), then we can represent billiard trajectories on \(\partial K\) as follows:
+\begin{description}
+  \item[Billiard] A number of bounces \(m\) corresponding to \(2m\) (potentially coinciding) breakpoints in \(\R^4\). The segments alternate between lagrangian factors, i.e. wlog. odd segments \([b_{2k}, b_{2k+1}] \subset \R^2_q \times \{p\}\) and even segments \([b_{2k+1}, b_{2k+2}] \subset \{q\} \times \R^2_p\).
+  \item[Segment Length] The \(P^\polar\)-length of an odd segment \([b_{2k}, b_{2k+1}] \subset \R^2_q \times \{p\}\) is \(\ell^P_k = \support_P(b_{2k+1} - b_{2k})\).
+\end{description}
+
+\section{Basic Symplectic Subroutines}\label{sec:algo-subroutines}
+
+We generally omit descriptions of the straightforward subroutine algorithms, and refer to the project codebase instead for these non-central details.
+An overview of the main subroutines the library provides is given in table \ref{tab:algo-subroutines}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Main subroutines used in the algorithms.}
+  \label{tab:algo-subroutines}
+  %%% DATA: (source of truth: comments, latex is formatted below; keep source of truth updated on edits)
+  % symbol(s), description, main algorithm pick, computational bottleneck
+  % to_vrep\\to_hrep, convert H-rep and V-rep, cddlib, NO
+  % is_valid, validate H-rep or V-rep, trivial, NO
+  % face_lattice, face lattice and face representation construction, custom, NO
+  % volume, volume computation, cddlib, YES
+  % systolic_ratio, systolic ratio from volume and capacity, standard normalization convention per Viterbo, NO
+  % is_valid, validate polygonal orbit, custom, NO
+  % action, action of a polygonal orbit, custom, NO
+  % capacity_hk2017, HK2017 capacity algorithm, choices from HK2017, YES
+  % capacity_ch2021, CH2021 capacity algorithm, choices from CH2021, YES
+  % capacity_billiard, Minkowski Billiard capacity algorithm, choices from HK2024, YES
+  % capacity_sc2026, our capacity algorithm, see chapter \ref{chap:algorithms}, YES
+  % ridge_graph, 2-face graph construction, custom, NO
+  % new_tube, initialize a zero-step tube, custom, YES
+  % extend_tube, extend by one 2-face transition, custom, YES
+  % resolve_tube, find fixed point of trajectory tube, custom, YES
+  % tube_extensions, enumerate 2-face extensions with a heuristic ordering, custom, YES
+
+  %TODO table 
+\end{table}
+
+One main choice we made was to use the optimized third-party ``cddlib'' library for doing non-symplectic euklidean geometry with polytopes.
+
+\section{Algorithm of Haim-Kislev 2017 in Dimension Four}\label{sec:algo-hk2017}
+% TODO: Present the first algorithm for capacity computation from the literature.
+
+\section{Algorithm of Chadez--Hutchings 2021}\label{sec:algo-ch2021}
+% TODO: Present the second algorithm for capacity computation from the literature.
+
+\section{Algorithm of Minkowski Billiards}\label{sec:algo-billiards}
+% TODO: Present the third algorithm for capacity computation from the literature.
+
+\section{Algorithm Developed in This Thesis}\label{sec:algo-ours}
+
+Our algorithm extends the CH2021 algorithm to cover all edge cases and to achieve sufficient numerical stability and performance to investigate some polytope families of interest for Viterbo's conjecture.
+We describe our algorithm in detail, without requiring the reader to be familiar with the algorithms of CH2021 or HK2017.
+
+We start by focusing on the case of a search over orbits that do not involve any lagrangian 2-faces, e.g. because the polytope contains no lagrangian 2-faces, which is only slightly more general than in CH2021. We afterwards cover the second case of a search over orbits that do involve at least one lagrangian 2-face, which is new compared to CH2021, and together gives us full generality.
+
+\subsection{Case: Orbits Without Lagrangian 2-Faces}
+Let \(K \subset \R^4\) be a convex polytope.
+Let \((F_i)_{i=1}^n\) be the set of facets of \(K\). The number of facets is \(n \ge 5\).
+
+\begin{definition}[2-Face]
+  An intersection \(F_i \cap F_j\) of two facets \(F_i, F_j\) is called a 2-face of \(K\) if it has non-empty interior.
+  So we exclude degenerate intersections that are 1-faces or 0-faces.
+  It is called lagrangian, iff its tangent space is a lagrangian subspace of \(\R^4\) wrt the standard symplectic form, i.e. iff \(\omega|_{F_i \cap F_j} \equiv 0\).
+\end{definition}
+
+We want to calculate a modified version of \(\cEHZ(K)\) by searching for the minimum action over all closed Reeb orbits on \(\partial K\) that do not cross or flow along any lagrangian 2-faces.
+For simplicity, one can imagine a polytope without any lagrangian 2-faces, in which case all closed Reeb orbits are considered, and we compute the actual \(\cEHZ(K)\).
+By \todoref{thm:simple-min-action-reeb-orbit} and \todoref{thm:cz-index} we know that it is enough to consider those Reeb orbits that are simple polygonal, and have rotation \(\leq 2\pi\). In particular, we can ignore Reeb orbits that flow along 1-faces as they have rotation \(\rho = +\infty\).
+
+We will see that we can group these orbits (redundantly) into combinatorial classes. Our algorithm then searches over all combinatorial classes, and all orbits in each class, to find the minimum action closed Reeb orbit.
+We can expand the definition to also classify non-closed finite-length trajectories. This then gives the combinatorial classes a tree structure, and we can do a more efficient branch-and-bound search over the tree.
+
+\begin{definition}
+  Let \(\gamma: [0,T] \to \partial K\) be a Reeb trajectory of finite length \(T > 0\).
+  Let the trajectory be polygonal with break times \((t_k)_{k=1}^{m+1}\) and break points \(\gamma(t_k) = b_k\).
+  Let the trajectory flow never along a 1-face or a lagrangian 2-face of \(K\) and never cross a lagrangian 2-face.
+  As a consequence, the segments \(\gamma|_{(t_k, t_{k+1})}\) all lie in the interior of a facet \(F_{i_k}\), with associated Reeb vector as velocity.
+  The inner break points lie on the intersection of two facets, but that needn't be a 2-face, since the intersection can be degenerate (e.g. a 1-face or 0-face).
+  We can in this case however insert (non-uniquely determined) indices with zero-duration segments and additional break points to ensure that all facet changes happen on 2-faces.
+  Let the trajectory further be maximal, i.e. it cannot be extended further without introducing a new inner break point. Then it must start and end on the boundary of \(F_1\) and \(F_m\) respectively.
+  We can introduce a (not necessarily unique) index \(i_0\) such that the \(F_{i_0} \cap F_{i_1}\) is a 2-face, and the break point \(b_1\) lies on the closed 2-face (not necessarily in the interior).
+  Similarly define an index \(i_{m+1}\) for the end break point \(b_{m+1}\).
+  All in all we now have a sequence \((i_0, i_1, \ldots, i_m, i_{m+1})\), such that the trajectory \(\gamma\) starts on the closed 2-face \(F_{i_0} \cap F_{i_1}\), flows through the facets \(F_{i_1}, \ldots, F_{i_m}\) crossing the 2-faces \(F_{i_k} \cap F_{i_{k+1}}\) for \(k=1, \ldots, m-1\), and ends on the closed 2-face \(F_{i_m} \cap F_{i_{m+1}}\).
+  We then say that \(\gamma\) is of combinatorial class \((i_0, i_1, \ldots, i_m, i_{m+1})\).
+  Note that \(\gamma\) may belong to multiple combinatorial classes, since we may have multiple choices for the zero-duration segments we insert or prepend/append.
+\end{definition}
+
+\begin{definition}
+  Let \(i_0, \ldots, i_{m+1}\) be a sequence of facet indices.
+  We then call the set of all Reeb trajectories of combinatorial class \((i_0, \ldots, i_m, i_{m+1})\) the tubular trajectory set (short: tube) of the class.
+\end{definition}
+
+\begin{lemma}
+  It's easy to see that in order to be the class of any trajectory, the sequence must satisfy the following necessary but not sufficient adjacency conditions:
+  \begin{itemize}
+    \item For all \(k=0, \ldots, m\), the intersection \(F_{i_k} \cap F_{i_{k+1}}\) is a 2-face of \(K\), i.e. has non-empty interior and is non-lagrangian.
+    \item For all \(k=0, \ldots, m\), the Reeb flow crosses the 2-face \(F_{i_k} \cap F_{i_{k+1}}\) from facet \(F_{i_k}\) into facet \(F_{i_{k+1}}\).
+  \end{itemize}
+  Furthermore, if we only look for simple closed Reeb orbits, then it is sufficient to look at sequences with
+  \begin{itemize}
+    \item All indices \(i_k\) are distinct, except optionally \(i_0 = i_{m}\) and/or \(i_{1} = i_{m+1}\) if the trajectory starts and ends on the same 2-face.
+  \end{itemize}
+
+  We can enumerate the facet index sequences satisfying these three conditions by building a search tree (or rather, a forest) as follows:
+  \begin{itemize}
+    \item The root nodes are all 2-faces \((i_0, i_1)\).
+    \item We go from a node \(i_0, \ldots, i_k\) to a node \(i_0, \ldots, i_k, i_{k+1}\) if the sequence satisfies still the adjacency conditions and simplicity condition.
+    \item We mark nodes of the form \(i_0, i_1, \ldots, i_m = i_0, i_{m+1} = i_1\) as ``closeable'', since searching them covers the search over all simple closed Reeb orbits.
+    \item We drop leaf nodes that are not closeable, i.e. where no next facet and implied 2-face can be picked without violating the adjacency or simplicity conditions, and yet the sequence didn't end on the 2-face it started on.
+  \end{itemize}
+\end{lemma}
+
+There are three useful pruning lemmas that allow us to skip large parts of the tree during the search for minimum action closed Reeb orbits.
+
+\begin{lemma}[Pruning]
+  Consider the tube at node \(i_0, \ldots, i_k\).
+  The following properties now hold for the entire subtree rooted at that node, if they hold for the node already:
+  \begin{itemize}
+    \item If the tube is empty, then all tubes in the subtree rooted at that node are empty as well.
+    \item If the tube has rotation \(\rho > 2\pi\), then all tubes in the subtree rooted at that node have rotation \(> 2\pi\) as well.
+    \item If the tube has minimum action \(> c\), then all tubes in the subtree rooted at that node have minimum action \(> c\) as well.
+  \end{itemize}
+
+  The main argument for all three cases is that the trajectory in a child tube restricts to a trajectory in the parent tube, and that rotation and action are monotone under restriction.
+\end{lemma}
+
+Of course, we need to be able to compute the tubes, their emptiness, rotation, and minimum action efficiently.
+We again use how the child tube has trajectories that restrict to trajectories in the parent tube, and derive an iterative computation scheme.
+
+\begin{theorem}[Iterative Tube Data Computation]
+  Consider the tube at node \(i_0, \ldots, i_k\).
+  We attach the following data to the tube, and assume it is computed already:
+  \begin{description}
+    \item[Set of start and endpoints] Let \(P_{start} \subset F_{i_0} \cap F_{i_1}\) be the closed convex polygon of all possible start points of the trajectories, and let \(P_{end} \subset F_{i_k} \cap F_{i_{k+1}}\) be the closed convex polygon of all possible endpoints of the trajectories.
+    \item[Action] Let \(A: P_{end} \to \R_{\ge 0}\) be the action of the trajectories as a function on the endpoints.
+    \item[Rotation] Let \(\rho \in \R_{\ge 0}\) be the total rotation of all the trajectories. To avoid definitional issues, we take the rotation of infinitesimally shortened trajectory \(\gamma|_{[\varepsilon, T-\varepsilon]}\).
+    \item[Flow map] Let \(\psi: P_{start} \cong P_{end}\) be the flow map that maps any start point to the corresponding endpoint of the trajectory.
+  \end{description}
+  We used in the definition above that the flow map is a composition of affine maps, and thus itself affine. The composed functions come from the Reeb flow on each facet, which affinely maps points from one 2-face to the next, as long as the trajectory of course crosses both closed 2-faces.
+  The action increments equal the time increments, which are also affine. The added action is thus affine in the start or end point.
+  The rotation increments occur at the inner break points, and so are constant wrt which trajectory in the tube we pick.
+
+  Above considerations directly tell us how to compute the tube data at node \(i_0, \ldots, i_{k+1}\) from the tube data at node \(i_0, \ldots, i_k\).
+  We only need the affine maps
+  \begin{align*}
+    \phi: \mathrm{affine}(F_{i_k} \cap F_{i_{k+1}}) \to \mathrm{affine}(F_{i_{k+1}} \cap F_{i_{k+2}}) \\
+    A_{inc}: \mathrm{affine}(F_{i_k} \cap F_{i_{k+1}}) \to \R_{\ge 0} \\
+  \end{align*}
+  describing the flow along the facet \(F_{i_{k+1}}\), namely the map between 2-faces, and the associated duration/action increment. And the rotation increment at the new break point:
+  \[
+    \rho(F_{i_k} \cap F_{i_{k+1}}).
+  \]
+  Then:
+  \begin{align*}
+    P_{end}^\prime & = \phi(P_{end}) \cap (F_{i_{k+1}} \cap F_{i_{k+2}}) \\
+    A^\prime(z) & = (A + A_{inc})(\phi^{-1}(z)) \\
+    \rho^\prime & = \rho + \rho(F_{i_k} \cap F_{i_{k+1}}) \\
+    \psi^\prime(z) & = \phi(\psi(z))
+  \end{align*}
+\end{theorem}
+
+Note: In the final implementation, we slightly change the data definitions to increase performance further by a constant factor, but the above is conceptually cleaner.
+
+As a start, we briefly state the tube data at the root nodes.
+\begin{lemma}[Root Tube Data]
+  Consider the root node \(i_0, i_1\) corresponding to a 2-face \(F_{i_0} \cap F_{i_1}\).
+  The tube at that node consists of all zero-length \(T=0\) trajectories on the 2-face.
+  Thus, the set of start and endpoints is the entire closed 2-face:
+  \[
+    P_{start} = P_{end} = F_{i_0} \cap F_{i_1}.
+  \]
+  The action is zero everywhere:
+  \[
+    A = 0.
+  \]
+  There are no inner break points, so the rotation is
+  \[
+    \rho = 0.
+  \]
+  The flow map is the identity:
+  \[
+    \psi = \Id.
+  \]  
+\end{lemma}
+
+As an end, we now need to look in the closeable tubes for minimum action closed Reeb orbits.
+\begin{definition}[Closing a Closeable Tube]
+  Consider a closeable tube at node \(i_0, \ldots, i_m = i_0, i_{m+1} = i_1\).
+  We want to find closed Reeb orbits in the tube, i.e. trajectories that start and end at the same point, not just the same 2-face.
+  For this we can use the flow map \(\psi: P_{start} \cong P_{end}\).
+  We look for fixed points of the flow map, i.e. points \(z \in F_{i_0} \cap F_{i_1} = F_{i_m} \cap F_{i_{m+1}}\) with \(\psi(z) = z\).
+  In an unconstrained affine subspace setting, an affine map has no, one, a line, or a plane of fixed points.
+  Here, we have the additional constraint that the fixed points must lie in the polygon \(P_{end}\), as otherwise it corresponds to no trajectory in the tube.
+  The result is thus again a polytope (possibly empty, possibly degenerate) of closed Reeb orbit endpoints.
+  Calculating the local minimum action is straightforward, we minimize an affine function over a convex polygon.
+\end{definition}
+
+We can now present the full branch-and-bound algorithm to compute \(\cEHZ(K)\).
+
+\begin{theorem}[Branch-and-Bound Capacity Algorithm]
+  Let \(K \subset \R^4\) be a convex polytope. We want to compute \(\cEHZ(K)\), either assuming \(K\) has no lagrangian 2-faces, or calculating only the upper bound that comes from going over the Reeb orbits that do not cross or flow along lagrangian 2-faces.
+  Either way, in the following we ignore all trajectories and classes that involve lagrangian 2-faces.
+
+  We start by initializing a global variable with an upper bound on \(\cEHZ(K)\), e.g. from an enclosing ellipsoid.
+
+  We can walk the previously defined tree of combinatorial classes in a depth-first manner.
+  We update the upper bound global variable whenever we encounter a closeable tube with a closed Reeb orbit of lower action than the current upper bound.
+  The depth-first approach allows us to use iterative tube data computation and pruning of subtrees.
+
+  In the end, regardless of traversal order, or whether we are strictly depth-first or use other heuristics, the global upper bound variable will have reached \(\cEHZ(K)\) and is returned as the result.
+\end{theorem}
+
+One major difficulty is of course coming up with heuristics for the traversal order that lead to fast convergence of the upper bound variable to \(\cEHZ(K)\), and thus fast pruning of the remaining tree.
+We have experimented with several heuristics:
+
+\begin{itemize}
+  \item Outer loop over root nodes, then skip already fully explored 2-faces in later subtrees. This is equivalent to deleting/outlawing the 2-face from the polytope, which is fine since all trajectories going through it are already explored.
+  \item Use graph shortest cycle search, i.e. find closeable tubes with few inner break points, and explore those first.
+  \item Use a different algorithm to guess a tighter upper bound on \(\cEHZ(K)\), e.g. monte carlo sampling of trajectories.
+  \item Randomize to reduce correlation in exploration, s.t. the upper bound vs time curve initially drops faster, and is in total shorter bc we can prune more subtrees earlier.
+  \item Use a weighted graph cycle search, where the weights guesstimate the average/minimum action of trajectories going along a facet.
+\end{itemize}
+
+We assess the experimented heuristics by plotting the upper bound vs number of closeable tubes explored / vs wall time, and by looking at the total time taken to return the verified result.
+
+\subsection{Case: Polytopes With Lagrangian 2-Faces}
+
+Previously we excluded polytopes with lagrangian 2-faces, or rather, we excluded orbits that cross or flow along lagrangian 2-faces.
+We can now present a fallback algorithm that explores all Reeb orbits that do cross or flow along lagrangian 2-faces, to get an upper bound on \(\cEHZ(K)\) in that case as well.
+The true minimum action capacity is then the minimum of the two cases.
+
+Let \(K \subset \R^4\) be a convex polytope with at least one lagrangian 2-face.
+Let \((F_i)_{i=1}^n\) be the set of facets of \(K\). The number of facets is \(n \ge 5\).
+
+Just like before, we can define combinatorial classes of Reeb trajectories.
+
+\begin{definition}
+  Let \(\gamma: [0,T] \to \partial K\) be a Reeb trajectory of finite length \(T > 0\).
+  Let the trajectory be polygonal with break times \((t_k)_{k=1}^{m+1}\) and break points \(\gamma(t_k) = b_k\).
+  Let the trajectory flow never along a 1-face of \(K\).
+  Let the trajectory description include zero-length segments at break points as needed, such that all \(F_{i_k} \cap F_{i_{k+1}}\) are 2-faces, for \(k=0, \ldots, m\).
+  Let the trajectory be maximal: it cannot be extended further without introducing a new inner break point where the velocity changes. Then it must start and end on \(F_0 \cap F_1\) and \(F_m \cap F_{m+1}\) respectively. Note that we slightly use a trick here, since for lagrangian 2-faces two possible Reeb velocities exist. We can ensure a point \(b_1\) on a lagrangian 2-face stays the start point of the \(F_{i_1}\) velocity segment by picking a zero-duration segment with velocity from \(F_{i_0}\), s.t. extending backwards only happens with the other velocity.
+  As a result, we can further assume that the trajectory starts on the boundary of a lagrangian 2-face, i.e. a 1-face or 0-face.
+  We do not have the guarantee that the segments \(\gamma|_{(t_k, t_{k+1})}\) all lie in the interior of a facet \(F_{i_k}\), since they may instead lie on the interior of a lagrangian 2-face.
+  The break points need not signify a change in face, since break points can lie on the interior of 2-faces.
+
+  We can still define the combinatorial class \((i_0, i_1, \ldots, i_m, i_{m+1})\) of the trajectory \(\gamma\) as before, and just have to keep track of the degrees of freedom due to interior breakpoints inside lagrangian 2-faces when we compute the tubes.
+
+  We have that \(\gamma\) starts on the boundary of a lagrangian 2-face, i.e. on some closed 1-face given by \(F_{i_0} \cap F_{i_1} \cap F_{i_2}\), then flows potentially with zero duration along \(i_1)\) and then a finite duration along \(i_2\), before reaching the next 1-face \(F_{i_1} \cap F_{i_2} \cap F_{i_3}\), from where it may enter the interior of a 3-face, cross through zero duration non-lagrangian 2-faces, or flow along another lagrangian 2-face. No statement is made about the end-point, i.e. it may lie in the interior of a lagrangian 2-face or a crossing point on a closed non-lagrangian 2-face.
+\end{definition}
+
+\begin{definition}
+  Let \(i_0, \ldots, i_{m+1}\) be a sequence of facet indices. As before we require the same adjacency conditions to hold.
+  \begin{itemize}
+    \item For all \(k=0, \ldots, m\), the intersection \(F_{i_k} \cap F_{i_{k+1}}\) is a 2-face of \(K\), i.e. has non-empty interior.
+    \item For all \(k=0, \ldots, m\), either the Reeb flow crosses the non-lagrangian 2-face \(F_{i_k} \cap F_{i_{k+1}}\) from facet \(F_{i_k}\) into facet \(F_{i_{k+1}}\), or the 2-face is lagrangian in which case no unique order of facets exists.
+    \item If we only look for simple closed Reeb orbits, then all indices \(i_k\) are distinct, except optionally \(i_0 = i_{m}\) and/or \(i_{1} = i_{m+1}\) if the trajectory starts and ends on the same 2-face.
+  \end{itemize}
+
+  We can enumerate the facet index sequences satisfying these three conditions by building a search tree (or rather, a forest) as follows:
+  \begin{itemize}
+    \item The root node is a 1-face of the chosen lagrangian 2-face, i.e. \((i_0, i_1, i_2)\) where \(F_{i_1} \cap F_{i_2}\) is the chosen lagrangian 2-face.
+    \item We go from a node \(i_0, \ldots, i_k\) to a node \(i_0, \ldots, i_k, i_{k+1}\) if the sequence satisfies still the adjacency conditions and simplicity condition.
+    \item We mark nodes of the form \(i_0, i_1, \ldots, i_m = i_0, i_{m+1} = i_1\) as ``closeable'', since searching them covers the search over all simple closed Reeb orbits.
+    \item We drop leaf nodes that are not closeable, i.e. where no next facet and implied 2-face can be picked without violating the adjacency or simplicity conditions, and yet the sequence didn't end on the 2-face it started on.
+  \end{itemize}
+\end{definition}
+
+TODO:
+\begin{itemize}
+  \item Potentially the algorithm I planned performs worse than just introducing a small perturbation to make the polytope generic, especially if we are careful about how we then pick basis representations of the 2-faces to avoid numeric instability.
+  \item I decided to stop here, and write up the rest (defining and enumerating parameterized tubes) later if it turns out to be actually useful/numerically stable.
+\end{itemize}
+
+
+\section{Numerical Considerations}\label{sec:algo-numerics}
+
+TODO:
+\begin{itemize}
+  \item Instead of a theoretical start, we should begin with empirical analysis here, e.g. show concrete examples and exact moments where our algorithms fail numerically, and then build up / motivate from there an analysis of how to fix these issues.
+  \item Main fixes: soft cutoffs and control flow. We'd rather overestimate the tube endpoint set, allow extra classes, and have tolerances in the rotation and action cutoffs (though only in the action cutoff if we want to enumerate all simple polygonal Reeb orbits with bounded rotation).
+  \item Main case: lagrangian 2-faces are most problematic, as are nearly-lagrangian 2-faces, as are near-degeneracies e.g. relatively tiny facets, or facets with low or large angles between them.
+\end{itemize}
+
+\section{Performance and Output Metrics}\label{sec:algo-metrics}
+
+TODO
+\begin{itemize}
+  \item Run and write up benchmarks for the different algorithms (HK2017, CH2021, ours), on a common set of polytopes.
+  \item Profile our algorithm, and justify the effort we put into optimizing only some hotspots.
+  \item Ablate different features/implementation choices and compare performance to measure impact of our work.
+  \item Maybe compare to a OG python implementation as well, or to matlab code if we get it working, to show the performance gain of picking a professional software development approach.
+\end{itemize}
+
+\section{Data Science Pipeline}\label{sec:algo-datapipeline}
+
+Based on the algorithms we implemented, we want to probe Viterbo's conjecture using the tool box of a data scientist.
+Basically, we throw lots of standard techniques at the problem, and see what sticks.
+This kind of approach has become feasable due to the capabilities of modern AI agents, which can near-autonomously carry out simple standard data science tasks, freeing up human time to inspect the results the ai agents prepares and hands back.
+
+The main ingredients we set up by hand to faciliate an environment where ai agents can work effectively are:
+\begin{itemize}
+  \item A high performance rust library for symplectic geometry on polytopes, including systolic ratio computation, and including random sampling or enumeration of polytope families of interest.
+  \item A large dataset of polytopes of interest, including computed systolic ratios and other data about single polytopes.
+  \item A standard scaffolding in Python, for isolated data science experiments that mostly are independent of each other, or have explicit dependencies on each other's artifacts.
+  \item Proper development practices and tools for data provisioning, i.e. tracking our experiments in detail, and for reproducibility, i.e. all our data can be rederived from scratch using e.g. deterministic pseudorandom generators (though as usual, we cannot exclude changes in behavior due to machine architecture or software stack changes beyond our control).
+\end{itemize}
+
+\section{Summary}\label{sec:algo-summary}
+We presented in detail our algorithm for computing \(\cEHZ(K)\) of a convex polytope \(K \subset \R^4\), extending the CH2021 algorithm to full generality and improving numerical stability and performance sufficiently to investigate some polytope families of interest for Viterbo's conjecture using massive data science techniques, rather than low-throughput manual case-by-case analysis.
+We further gave an overview of the other algorithms from the literature we implemented, and of the main symplectic geometry subroutines we used as building blocks.
+
+The results from running data science experiments based on this symplectic geometry library and basic scaffolding are presented in chapter \ref{chap:experiments}.

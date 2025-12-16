@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ ${1:-} == "--help" ]]; then
+  cat <<'EOF'
+Usage: scripts/hello.sh [--full]
+  --full   Show the entire tree (no collapsing)
+EOF
+  exit 0
+fi
+
+FULL_TREE=0
+if [[ ${1:-} == "--full" ]]; then
+  FULL_TREE=1
+fi
+
 echo "[hello] pwd"
 pwd
 
@@ -13,10 +26,14 @@ printf '%s\n' "$PWD"
 
 python3 - <<'PY'
 from pathlib import Path
+import os
 
 skip_names = {".git", ".venv", "build", "dist", "site-packages", "site", "target"}
 skip_paths = {"packages/thesis"}
 hide_names = {"__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache"}
+
+full_tree = os.environ.get("HELLO_FULL", "0") == "1"
+collapse_threshold = None if full_tree else 120  # collapse dirs with more than this many descendants
 
 root = Path(".").resolve()
 
@@ -57,6 +74,29 @@ def collapse(rel: Path):
     return "/".join(parts) + "/", current
 
 
+counts = {}
+
+
+def descendant_count(rel: Path, use_threshold: bool = True):
+    key = (rel, use_threshold)
+    if key in counts:
+        return counts[key]
+    abs_path = root / rel
+    files = dirs = 0
+    if abs_path.is_dir():
+        for p in abs_path.rglob("*"):
+            if p.name in hide_names:
+                continue
+            if p.is_dir():
+                dirs += 1
+            else:
+                files += 1
+            if use_threshold and collapse_threshold and (files + dirs) > collapse_threshold:
+                break
+    counts[key] = (files, dirs)
+    return counts[key]
+
+
 lines = []
 
 
@@ -64,6 +104,22 @@ def render(rel: Path, prefix: str, last: bool):
     abs_path = root / rel
     is_dir = abs_path.is_dir()
     label, end_rel = collapse(rel) if is_dir else (rel.name, rel)
+    collapsed = False
+    reason = None
+    if is_dir and is_skip(end_rel):
+        collapsed = True
+        reason = "skip rule"
+        files, dirs = descendant_count(end_rel, use_threshold=False)
+    elif is_dir and collapse_threshold and sum(descendant_count(end_rel)) > collapse_threshold:
+        collapsed = True
+        reason = f"> {collapse_threshold} items"
+        files, dirs = descendant_count(end_rel)
+
+    if collapsed:
+        connector = "└── " if last else "├── "
+        lines.append(f"{prefix}{connector}{label} (collapsed: {dirs} dirs, {files} files; {reason})")
+        return
+
     children = [] if (not is_dir or is_skip(end_rel)) else list_children(end_rel)
     empty = is_dir and not children and not is_skip(end_rel)
     suffix = " (skipped)" if is_skip(rel) else (" (empty)" if empty else "")
