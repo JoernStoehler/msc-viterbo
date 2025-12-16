@@ -37,6 +37,9 @@ jobs:
         run: ./scripts/lint.sh
 
       - name: Build production artifacts
+        env:
+          # build.sh default OUTDIR=build; set dist here so upload step finds artifacts.
+          OUTDIR: dist
         run: ./scripts/build.sh --production
 
       - name: Upload artifact
