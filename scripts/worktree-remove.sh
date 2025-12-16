@@ -20,7 +20,7 @@ force="${2:-}"
 
 cd "$repo_root"
 
-if [[ ! -d "$path/.git" ]]; then
+if [[ ! -e "$path/.git" ]]; then
   echo "Worktree $path does not look like a git worktree" >&2
   exit 1
 fi
