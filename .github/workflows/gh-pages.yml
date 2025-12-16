@@ -24,37 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache TeX Live tree
-        id: cache-texlive
-        # Cache uses actions/cache@v4 (non-deprecated) to keep installs fast across runs.
-        uses: actions/cache@v4
-        with:
-          path: /opt/texlive
-          key: texlive-2023-${{ runner.os }}-${{ hashFiles('packages/latex_viterbo/.ci/texlive.packages') }}
-
-      - name: Install TeX Live (scheme-small + needed collections)
-        if: steps.cache-texlive.outputs.cache-hit != 'true'
-        # Installs into /opt/texlive using our repo profile + package list.
-        # Reference on texlive profile installs: https://tug.org/texlive/doc/install-tl.html
+      - name: Install TeX Live toolchain + latexml
+        # Simple, no cache-v2 dependencies; --no-install-recommends keeps it reasonably fast (~few minutes).
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget perl
-          curl -sSL http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz
-          TL_DIR="$(find . -maxdepth 1 -type d -name 'install-tl-*' | head -n1)"
-          PROFILE_PATH="$PWD/.ci/texlive.profile"
-          PKG_LIST="$PWD/.ci/texlive.packages"
-          sudo mkdir -p /opt/texlive
-          sudo "$TL_DIR"/install-tl -profile "$PROFILE_PATH" -no-interaction
-          sudo /opt/texlive/bin/x86_64-linux/tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet
-          sudo /opt/texlive/bin/x86_64-linux/tlmgr install $(tr '\n' ' ' < "$PKG_LIST")
-
-      - name: Add TeX Live to PATH
-        run: echo "/opt/texlive/bin/x86_64-linux" >> "$GITHUB_PATH"
-
-      - name: Install latexml
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y latexml
+          sudo apt-get install -y --no-install-recommends \
+            latexmk biber chktex latexml \
+            texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
+            texlive-bibtex-extra texlive-science texlive-pictures texlive-luatex texlive-xetex
 
       - name: Lint
         run: ./scripts/lint.sh
