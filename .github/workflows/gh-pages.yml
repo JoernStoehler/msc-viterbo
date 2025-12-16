@@ -24,14 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up cached TeX Live
-        uses: paolobrasolin/setup-texlive-action@v1
-        with:
-          profile-path: packages/latex_viterbo/.ci/texlive.profile
-          package-list-path: packages/latex_viterbo/.ci/texlive.packages
-
-      - name: Install latexml
-        run: sudo apt-get update && sudo apt-get install -y latexml
+      - name: Install TeX Live toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            texlive-full \
+            latexml
 
       - name: Lint
         run: ./scripts/lint.sh
