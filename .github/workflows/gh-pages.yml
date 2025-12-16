@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      # Prebuilt TeX Live image (same base as latex-action); avoids deprecated cache v2 and keeps setup predictable.
+      image: ghcr.io/xu-cheng/texlive-full:20231201
     defaults:
       run:
         working-directory: packages/latex_viterbo
@@ -24,14 +27,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install TeX Live toolchain + latexml
-        # Simple, no cache-v2 dependencies; --no-install-recommends keeps it reasonably fast (~few minutes).
+      - name: Install latexml (for HTML build)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            latexmk biber chktex latexml \
-            texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
-            texlive-bibtex-extra texlive-science texlive-pictures texlive-luatex texlive-xetex
+          apt-get update
+          apt-get install -y --no-install-recommends latexml
 
       - name: Lint
         run: ./scripts/lint.sh
