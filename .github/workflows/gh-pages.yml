@@ -41,8 +41,8 @@ jobs:
           sudo apt-get install -y wget perl
           curl -sSL http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz
           TL_DIR="$(find . -maxdepth 1 -type d -name 'install-tl-*' | head -n1)"
-          sudo "$TL_DIR"/install-tl -profile packages/latex_viterbo/.ci/texlive.profile
-          sudo /opt/texlive/bin/x86_64-linux/tlmgr install $(tr '\n' ' ' < packages/latex_viterbo/.ci/texlive.packages)
+          sudo "$TL_DIR"/install-tl -profile .ci/texlive.profile
+          sudo /opt/texlive/bin/x86_64-linux/tlmgr install $(tr '\n' ' ' < .ci/texlive.packages)
 
       - name: Add TeX Live to PATH
         run: echo "/opt/texlive/bin/x86_64-linux" >> "$GITHUB_PATH"
