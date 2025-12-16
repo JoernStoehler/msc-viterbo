@@ -1,0 +1,17 @@
+build/
+dist/
+version.tex
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.aux
+*.toc
+*.nav
+*.snm
+*.vrb
+*.log
+*.out
+*.bbl
+*.blg
+*.bcf
+*.run.xml
