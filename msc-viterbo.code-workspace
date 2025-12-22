@@ -67,7 +67,6 @@
 			"rust-lang.rust-analyzer",
 			"vadimcn.vscode-lldb",
 			// latex
-			"James-Yu.latex-workshop", // broken on vscode.dev
 			"efoerster.texlab", // works on vscode.dev
 			"AdamRaichu.pdf-viewer", // broken on vscode.dev
 			"mathematic.vscode-pdf", // works on vscode.dev

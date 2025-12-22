@@ -8,7 +8,7 @@ Usage: scripts/hello.sh
 Flags:
   -h, --help  Show this help text
 
-Prints pwd, git status -sb, and a compact repo tree. See inline CONFIG comments
+Prints pwd, git status (porcelain v2), and a compact repo tree. See inline CONFIG comments
 for skip/hide/collapse rules.
 EOF
   exit 0
@@ -22,8 +22,9 @@ fi
 echo "[hello] pwd"
 pwd
 
-echo "[hello] git status -sb"
-git status -sb || true
+echo "[hello] git status --porcelain=v2 -b"
+# Porcelain v2 makes staged vs. unstaged unambiguous (e.g., "1 M." vs "1 .M").
+git status --porcelain=v2 -b || true
 
 # show the file tree (compact, simple)
 echo "[hello] compact tree"
