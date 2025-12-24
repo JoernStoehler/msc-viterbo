@@ -43,7 +43,9 @@ def build_dummy_figure(samples: list[float], y_values: list[float]) -> go.Figure
     return figure
 
 
-def save_static_plot(samples: list[float], y_values: list[float], png_path: Path) -> None:
+def save_static_plot(
+    samples: list[float], y_values: list[float], png_path: Path
+) -> None:
     """Render the static PNG version via matplotlib."""
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.plot(samples, y_values, color="#4C6EF5", linewidth=2.2, marker="o", markersize=3)

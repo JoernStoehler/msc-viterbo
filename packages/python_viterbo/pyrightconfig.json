@@ -5,7 +5,6 @@
   "reportMissingTypeStubs": "warning",
   "typeCheckingMode": "basic",
   "reportUnnecessaryTypeIgnoreComment": "warning",
-  "reportAny": "warning",
   "reportUnknownMemberType": "none",
   "reportUnknownArgumentType": "none",
   "reportUntypedFunctionDecorator": "none",

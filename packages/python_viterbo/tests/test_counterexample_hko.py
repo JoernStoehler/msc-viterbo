@@ -4,7 +4,12 @@ import json
 import math
 from pathlib import Path
 
-from viterbo.experiments.counterexample_hko.stage_build import DATA_DIR, capacity_values, write_json, build_facets
+from viterbo.experiments.counterexample_hko.stage_build import (
+    DATA_DIR,
+    capacity_values,
+    write_json,
+    build_facets,
+)
 
 
 def test_capacity_formula_matches_closed_form() -> None:

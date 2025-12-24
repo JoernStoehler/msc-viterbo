@@ -29,8 +29,12 @@ def repo_root() -> Path:
 
 
 REPO_ROOT = repo_root()
-DATA_DIR = REPO_ROOT / "packages" / "python_viterbo" / "data" / "counterexamples" / "hk-o-2024"
-ASSET_DIR = REPO_ROOT / "packages" / "latex_viterbo" / "assets" / "counterexamples" / "hko-2024"
+DATA_DIR = (
+    REPO_ROOT / "packages" / "python_viterbo" / "data" / "counterexamples" / "hk-o-2024"
+)
+ASSET_DIR = (
+    REPO_ROOT / "packages" / "latex_viterbo" / "assets" / "counterexamples" / "hko-2024"
+)
 
 
 @dataclass
@@ -39,15 +43,22 @@ class Facet:
     height: float
 
 
-def regular_polygon_vertices(n: int, radius: float = 1.0, phase: float = 0.0) -> List[Tuple[float, float]]:
+def regular_polygon_vertices(
+    n: int, radius: float = 1.0, phase: float = 0.0
+) -> List[Tuple[float, float]]:
     """Return CCW vertices of a regular n-gon on the circle of given radius."""
     return [
-        (radius * math.cos(phase + 2 * math.pi * k / n), radius * math.sin(phase + 2 * math.pi * k / n))
+        (
+            radius * math.cos(phase + 2 * math.pi * k / n),
+            radius * math.sin(phase + 2 * math.pi * k / n),
+        )
         for k in range(n)
     ]
 
 
-def edge_normals(vertices: List[Tuple[float, float]]) -> List[Tuple[float, float, float]]:
+def edge_normals(
+    vertices: List[Tuple[float, float]],
+) -> List[Tuple[float, float, float]]:
     """Compute outward unit normals and heights for a convex CCW polygon with origin inside."""
     normals_heights: List[Tuple[float, float, float]] = []
     m = len(vertices)

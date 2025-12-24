@@ -159,7 +159,7 @@ Let \((F_i)_{i=1}^n\) be the set of facets of \(K\). The number of facets is \(n
 
 We want to calculate a modified version of \(\cEHZ(K)\) by searching for the minimum action over all closed Reeb orbits on \(\partial K\) that do not cross or flow along any lagrangian 2-faces.
 For simplicity, one can imagine a polytope without any lagrangian 2-faces, in which case all closed Reeb orbits are considered, and we compute the actual \(\cEHZ(K)\).
-By \todoref{thm:simple-min-action-reeb-orbit} and \todoref{thm:cz-index} we know that it is enough to consider those Reeb orbits that are simple polygonal, and have rotation \(\leq 2\pi\). In particular, we can ignore Reeb orbits that flow along 1-faces as they have rotation \(\rho = +\infty\).
+By \todoref{thm:simple-min-action-reeb-orbit} and \todoref{thm:cz-index} we know that it is enough to consider those Reeb orbits that are simple polygonal, and have combinatorial rotation number \(\rho \le 2\) in the sense of Chaidez--Hutchings \cite{CH2021} (measured in turns, i.e. \(1 = 2\pi\)). In particular, we can ignore Reeb orbits that flow along 1-faces as they have rotation \(\rho = +\infty\).
 
 We will see that we can group these orbits (redundantly) into combinatorial classes. Our algorithm then searches over all combinatorial classes, and all orbits in each class, to find the minimum action closed Reeb orbit.
 We can expand the definition to also classify non-closed finite-length trajectories. This then gives the combinatorial classes a tree structure, and we can do a more efficient branch-and-bound search over the tree.
@@ -211,7 +211,7 @@ There are three useful pruning lemmas that allow us to skip large parts of the t
   The following properties now hold for the entire subtree rooted at that node, if they hold for the node already:
   \begin{itemize}
     \item If the tube is empty, then all tubes in the subtree rooted at that node are empty as well.
-    \item If the tube has rotation \(\rho > 2\pi\), then all tubes in the subtree rooted at that node have rotation \(> 2\pi\) as well.
+    \item If the tube has rotation \(\rho > 2\), then all tubes in the subtree rooted at that node have rotation \(> 2\) as well.
     \item If the tube has minimum action \(> c\), then all tubes in the subtree rooted at that node have minimum action \(> c\) as well.
   \end{itemize}
 
@@ -227,7 +227,7 @@ We again use how the child tube has trajectories that restrict to trajectories i
   \begin{description}
     \item[Set of start and endpoints] Let \(P_{start} \subset F_{i_0} \cap F_{i_1}\) be the closed convex polygon of all possible start points of the trajectories, and let \(P_{end} \subset F_{i_k} \cap F_{i_{k+1}}\) be the closed convex polygon of all possible endpoints of the trajectories.
     \item[Action] Let \(A: P_{end} \to \R_{\ge 0}\) be the action of the trajectories as a function on the endpoints.
-    \item[Rotation] Let \(\rho \in \R_{\ge 0}\) be the total rotation of all the trajectories. To avoid definitional issues, we take the rotation of infinitesimally shortened trajectory \(\gamma|_{[\varepsilon, T-\varepsilon]}\).
+    \item[Rotation] Let \(\rho \in \R_{\ge 0}\) be the combinatorial rotation number of the trajectories in the sense of Chaidez--Hutchings \cite{CH2021}, measured in turns (i.e. \(1 = 2\pi\)).
     \item[Flow map] Let \(\psi: P_{start} \cong P_{end}\) be the flow map that maps any start point to the corresponding endpoint of the trajectory.
   \end{description}
   We used in the definition above that the flow map is a composition of affine maps, and thus itself affine. The composed functions come from the Reeb flow on each facet, which affinely maps points from one 2-face to the next, as long as the trajectory of course crosses both closed 2-faces.

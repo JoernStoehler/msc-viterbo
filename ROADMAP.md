@@ -6,6 +6,20 @@ This roadmap is the in-repo source of truth for planning. GitHub issues mirror a
 - Deliver a reproducible computational study of Viterbo’s conjecture on convex polytopes in \(\mathbb{R}^4\), with code, datasets, and thesis write-up shipped together.
 - Primary outcomes: (a) validated capacity-computation and polytope sampling pipeline; (b) catalog of data science experiments and counterexamples to our own hypotheses and investigative methodology; (c) complete thesis PDF and HTML; (d) Rust library in a clean, trusted state and Python experiments in a hacky-but-checked, extensible state.
 
+## Locked constraints (owner-approved, 2025-12-22)
+- Research scope: \(\mathbb{R}^4\) only (toy tests in lower dimensions are ok).
+- Lean: out of scope permanently.
+- Replication target: HK&O via **our tube-based** algorithm; main goal is correctness of the produced value/orbit.
+- Lagrangian polytopes (MVP): if \(K\) has any Lagrangian 2-faces, perturb one or both adjacent facet normals (heights fixed) before running the tube algorithm.
+- Rotation pruning (MVP): use CH2021 combinatorial rotation number in **turns** (1 = \(2\pi\)); keep \(\rho_{\mathrm{comb}} \le 2\), discard only if \(\rho_{\mathrm{comb}} > 2 + \varepsilon_{\mathrm{rot}}\) to avoid numerical errors.
+
+## Explicitly deferred decisions (track so we don’t forget)
+- Perturbation scheme details: concrete epsilon schedule (single epsilon vs sweep + stability check).
+- Numerical tolerances: concrete `eps_lagr` and geometry tolerances beyond “calibrate after first runs”.
+- Dataset size + compute budgets: to be discussed later with the owner; current rough guess is “~1 min for tests, up to ~24h for big runs” (not locked).
+- “Distance metric” / landscape analysis: to be developed later (owner has ideas; not committed yet).
+- Replication/unit-test tolerances: calibrate once the first implementation runs (“we’ll know when we see it”).
+
 ## Workstreams and Status
 
 ### A. Thesis Write-up (LaTeX)
@@ -22,8 +36,10 @@ This roadmap is the in-repo source of truth for planning. GitHub issues mirror a
 
 ### B. Capacity Algorithm (Rust core + FFI)
 - [partial] Toolchain builds; unit tests; PyO3/maturin bindings; crates `geom`, `algorithm`, `ffi` have placeholders. Benchmarks/profiling still TODO.
-- Dependency: implement HK2017/CH2021/our algorithm only after the algorithm spec is finalized (see `packages/rust_viterbo/agent_docs/algorithm-spec.md`).
-- [todo] Concrete implementations of HK2017, CH2021, and our algorithm.
+- Dependency: implement the tube algorithm only after the algorithm contract is owner-approved (see `packages/rust_viterbo/agent_docs/algorithm-spec.md`).
+- [todo] Owner-approved algorithm contract for the tube algorithm (including rotation pruning + perturb-if-Lagrangian policy).
+- [todo] Concrete implementation of the tube algorithm (branch-and-bound + pruning + witness orbit output).
+- [todo] (Deferred) Decide whether implementing HK2017 / CH2021 algorithms in Rust adds enough validation value to justify the cost.
 - [todo] Types for polytopes, 2-faces, helpers; encode lemmas/contracts alongside code.
 - [todo] Pseudorandom sampling/enumeration of polytope families.
 - [todo] FFI bindings for Python interop.
@@ -68,21 +84,18 @@ This roadmap is the in-repo source of truth for planning. GitHub issues mirror a
 
 ### D. Tooling / DevOps / Coordination
 - [done] Devcontainer, shared caches, GitHub Pages build for LaTeX, issue/PR templates, worktree scripts.
-  - [todo] LaTeX CI currently failing due to `actions/cache@v2` deprecation (see issue #16); needs fix.
+  - [todo] Verify LaTeX CI status; issue #16 may be stale (update/close once verified).
 - [todo] Onboarding note: Rust/Python GitHub Actions CI intentionally absent; run local lint/test before PRs.
 - [todo] Keep ROADMAP.md current and referenced from root AGENTS.md.
 - [todo] Conventions (coords (q1,q2,p1,p2), \(J(q,p)=(-p,q)\), assets under `packages/latex_viterbo/assets/`) are defined in AGENTS; keep code/docs consistent.
 
 ## Scheduled Milestones
-- [todo] Soft target 2025-12-11: finalize ROADMAP.md.
-- [todo] Soft target 2025-12-11: finalize algorithm spec `packages/rust_viterbo/agent_docs/algorithm-spec.md`.
-- [todo] Soft target 2025-12-11: finish LaTeX chapters
-  - [todo] preliminary math `math.tex` (extend Reeb on polytopes; CZ index/rotation smooth + polytope cases, including undefined cases),
-  - [todo] algorithms `algorithms.tex` (rename from current `algorithm.tex`),
-  - [todo] HK2017 proof appendix `appendix-theorem-simple-action-minimizer.tex` (new).
-- [todo] Soft target 2025-12-11: schedule new milestones, mostly delegable to agents (e.g., implement symplectic types, algorithms, FFI, polytope families/sampling, dataset generation, e2e sanity, FFI unit tests, benchmarks/profiling/ablations, dataset stats, asset automation, visualization experiments, LaTeX write-ups).
+- [todo] Target finish: 2026-03-14 (soft target).
+- [todo] Hard end: 2026-04-14.
+- [todo] Printing/shipping buffer: ~1 week.
+- [todo] Replace deprecated 2025-12-11 “soft target” milestones with a current milestone breakdown (owner + PM).
 
 ---
 Please keep this file updated when milestones shift; mirror actionable items into GitHub issues for agent pickup. The roadmap should always be edited under tight interaction with the project owner (Jörn); agents rely on its literal correctness.
 
-_Last updated: 2025-12-11. Review (Jörn): sounds good enough, we are so forgetting something, but this is a base we can use to actually prioritize and make progress fast_
+_Last updated: 2025-12-22. Review (Jörn): pending_
