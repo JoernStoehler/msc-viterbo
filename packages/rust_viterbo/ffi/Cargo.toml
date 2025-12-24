@@ -7,5 +7,6 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+rust_viterbo_algorithm = { path = "../algorithm" }
 rust_viterbo_geom = { path = "../geom" }
 pyo3 = { version = "0.22", features = ["extension-module"] }
