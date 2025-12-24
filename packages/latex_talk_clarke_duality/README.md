@@ -5,7 +5,7 @@ This package is intentionally short-lived.
 If this package is deleted from `main`, find the frozen source state via the git tag:
 - `talk-clarke-duality-YYYY-MM-DD`
 
-After the talk, follow `CHECKLIST_TEARDOWN.md`.
+After the talk, follow `docs/teardown.md`.
 
 ## Commands
 - Build: `./scripts/build.sh`

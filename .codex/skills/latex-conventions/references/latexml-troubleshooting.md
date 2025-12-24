@@ -3,21 +3,21 @@
 Curated links for diagnosing LaTeXML/latexmlc build issues, HTML output problems, and environment choices. Keep this link-heavy; minimal prose.
 
 ## Core resources
-- Official repo (issues, releases, bindings): https://github.com/brucemiller/LaTeXML  citeturn1search0
-- Official manual (0.8.8, Feb 26 2024): https://math.nist.gov/~BMiller/LaTeXML/manual/  citeturn1search9
-- Release notes 0.8.8 (breaking changes, MathML tweaks): https://newreleases.io/project/github/brucemiller/LaTeXML/release/v0.8.8  citeturn1search1
-- Contacts/support page (mailing list, issue tracker): https://math.nist.gov/~BMiller/LaTeXML/contact.html  citeturn1search4
+- Official repo (issues, releases, bindings): https://github.com/brucemiller/LaTeXML
+- Official manual (0.8.8, Feb 26 2024): https://math.nist.gov/~BMiller/LaTeXML/manual/
+- Release notes 0.8.8 (breaking changes, MathML tweaks): https://newreleases.io/project/github/brucemiller/LaTeXML/release/v0.8.8
+- Contacts/support page (mailing list, issue tracker): https://math.nist.gov/~BMiller/LaTeXML/contact.html
 
 ## Docker images / environments
-- kjarosh/latex-docker (Alpine TL2025 variants; easy `docker cp` for fresh latexml/tex binaries): https://github.com/kjarosh/latex-docker  citeturn1search2
-- xu-cheng/latex-docker (TL latest + historic tags on Debian/Alpine): https://github.com/xu-cheng/latex-docker  citeturn1search6
-- dante-ev/docker-texlive (full TL images with extras): https://github.com/dante-ev/docker-texlive  citeturn1search7
-- maxkratz/docker_texlive (versioned TL 2016–2025 images): https://github.com/maxkratz/docker_texlive  citeturn1search8
-- arXiv compiler/converter image (archived 2025-01-28; ECR-gated but documents layout): https://github.com/arXiv/arxiv-compiler  citeturn0search4
+- kjarosh/latex-docker (Alpine TL2025 variants; easy `docker cp` for fresh latexml/tex binaries): https://github.com/kjarosh/latex-docker
+- xu-cheng/latex-docker (TL latest + historic tags on Debian/Alpine): https://github.com/xu-cheng/latex-docker
+- dante-ev/docker-texlive (full TL images with extras): https://github.com/dante-ev/docker-texlive
+- maxkratz/docker_texlive (versioned TL 2016–2025 images): https://github.com/maxkratz/docker_texlive
+- arXiv compiler/converter image (archived 2025-01-28; ECR-gated but documents layout): https://github.com/arXiv/arxiv-compiler
 
 ## HTML rendering stacks using LaTeXML
-- arXiv Vanity / Engrafo Docker image (LaTeXML-based HTML renderer): https://github.com/arxiv-vanity/engrafo  citeturn0search1
-- arXiv Vanity runner (uses engrafo image via docker-compose): https://github.com/arxiv-vanity/arxiv-vanity  citeturn0search3
+- arXiv Vanity / Engrafo Docker image (LaTeXML-based HTML renderer): https://github.com/arxiv-vanity/engrafo
+- arXiv Vanity runner (uses engrafo image via docker-compose): https://github.com/arxiv-vanity/arxiv-vanity
 
 ## Common failure points & quick checks
 - Class binding missing (e.g., `memoir`): verify binding list in manual’s Appendix B; consider `\iflatexml` class switch to `article` or ship a custom binding.
