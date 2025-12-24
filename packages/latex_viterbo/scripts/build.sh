@@ -77,7 +77,8 @@ if $DO_HTML; then
 
   echo "[build.sh] latexmlc -> $OUTDIR/html/index.html"
   latexmlc \
-    --preload='[nobibtex,rawstyles,nobreakuntex,magnify=1.3,zoomout=1.3,tokenlimit=249999999,iflimit=3999999,absorblimit=1299999,pushbacklimit=599999]latexml.sty' \
+    --bibtex \
+    --preload='[rawstyles,nobreakuntex,magnify=1.3,zoomout=1.3,tokenlimit=249999999,iflimit=3999999,absorblimit=1299999,pushbacklimit=599999]latexml.sty' \
     --preload=ar5iv.sty \
     --path=chapters \
     --path="$ROOT_DIR/assets/latexml/ar5iv-bindings/bindings" \

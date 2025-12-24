@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 try:
-    import rust_viterbo_ffi  # pyright: ignore[reportMissingImports]
+    import rust_viterbo_ffi
 except ImportError:  # pragma: no cover
     rust_viterbo_ffi = None
 
