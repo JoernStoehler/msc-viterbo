@@ -5,7 +5,10 @@
 - `cd packages/python_viterbo && uv run maturin develop --manifest-path ../rust_viterbo/Cargo.toml`
 - Test with: `cd packages/python_viterbo && uv run pytest -q tests/smoke`
 
-## FFI Contract (MVP, owner-approved 2025-12-22)
+## FFI Contract (MVP, working contract)
+
+Locked constraints were confirmed on **2025-12-22**; the **main input contract** was updated on
+**2025-12-24**.
 
 The FFI is intended to be a thin boundary around the Rust implementation. The main goals are:
 
@@ -15,19 +18,22 @@ The FFI is intended to be a thin boundary around the Rust implementation. The ma
 
 ### Main algorithm call
 
-Owner decision (KISS/YAGNI): the main capacity routine must require the caller to provide **both**
-representations of the polytope:
+Owner decision (2025-12-24): the main capacity routine takes **only** an irredundant H-rep:
 
-- irredundant H-rep: outward unit normals \(n_i \in \mathbb{R}^4\) and heights \(h_i>0\),
-- irredundant V-rep: vertices in \(\mathbb{R}^4\).
+- outward unit normals \(n_i \in \mathbb{R}^4\) and heights \(h_i>0\).
 
-Rationale: no “magic” conversions inside the called function; callers should consciously choose their
-pipeline and costs.
+The FFI entrypoint should be a wrapper that:
+
+1) validates inputs and conventions,  
+2) detects (numerically) Lagrangian 2-faces and applies a seeded perturbation (heights fixed) if needed,  
+3) runs the tube algorithm, and  
+4) returns `capacity + witness + diagnostics` including perturbation metadata.
 
 ### Optional helper calls
 
-Conversions between H-rep and V-rep are allowed as **separate** explicit FFI calls (or Python-side steps),
-but must not be performed implicitly by the main algorithm call.
+If conversions (H↔V) are needed for secondary computations (e.g. volume/systolic ratio) they may be
+implemented as internal Rust helpers or as separate explicit FFI calls. The main capacity call itself
+remains H-rep-only.
 
 ### Validation at the boundary
 

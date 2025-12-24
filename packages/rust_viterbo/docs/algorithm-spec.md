@@ -1,11 +1,15 @@
-# Capacity Algorithm Spec (tube algorithm, owner-approved contract)
+# Capacity Algorithm Spec (tube algorithm, working contract)
 
 This file is an **implementer-facing contract** for the Rust capacity algorithm.
 
 - Scope: computation in \(\mathbb{R}^4\) only (toy tests in lower dimensions are fine).
-- Non-goals: Lean formalization; “magic” conversions inside the main FFI algorithm call.
+- Non-goals: Lean formalization; requiring callers to provide multiple polytope representations.
 
-Owner-approved decisions in this spec were confirmed on **2025-12-22**.
+Status: this is a **living** contract. It captures decisions that are stable enough to delegate
+implementation against, but the algorithm and its numerical details will evolve as we learn.
+
+Locked constraints were confirmed on **2025-12-22**; the **main input contract** was updated on
+**2025-12-24**.
 
 ## 1) Goal
 
@@ -33,13 +37,13 @@ The intended replication target is the HK\&O counterexample via **our tube-based
 
 ### 3.1 Required polytope representations
 
-Owner decision (KISS/YAGNI for the main algorithm call):
+Owner decision (2025-12-24):
 
-- The main capacity routine (and its Python FFI entrypoint) requires **both**
-  - irredundant H-rep: `(normals, heights)`, and
-  - irredundant V-rep: `vertices`.
-- Converting between H-rep and V-rep can exist as separate explicit helper calls, but the
-  main algorithm call must not “silently” do conversions.
+- The main capacity routine (and its Python FFI entrypoint) accepts **only** an irredundant H-rep:
+  `(normals, heights)`.
+- No optional V-rep input.
+- If subroutines need V-rep (e.g. for volume/systolic ratio computations), Rust may compute it
+  internally (and should report relevant costs/metadata in diagnostics).
 
 ### 3.2 Geometry invariants
 
@@ -112,11 +116,12 @@ Definitions:
 - A 2-face \(F_i \cap F_j\) is Lagrangian iff \(\omega(n_i,n_j)=0\).
 - A polytope is treated as “Lagrangian” if it has **any** Lagrangian 2-faces (numerically, within a tolerance).
 
-Operational policy (owner-approved):
+Operational policy (owner-locked):
 
-- If \(K\) is non-Lagrangian: run tube algorithm directly.
-- If \(K\) has Lagrangian 2-faces: **perturb** one or both adjacent facet normals (heights fixed), then run
-  tube algorithm on the perturbed polytope.
+- Public/FFI entrypoints should detect whether \(K\) has (numerically) Lagrangian 2-faces and, if yes,
+  apply a seeded perturbation to facet normals (heights fixed) before running the tube algorithm.
+- The tube algorithm implementation itself keeps the same signature
+  (`H-rep -> capacity + witness + diagnostics`) regardless of whether perturbation was used.
 
 Deferred details (must be implemented, but not yet locked):
 
