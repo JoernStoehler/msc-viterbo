@@ -6,7 +6,10 @@ from typing import Any
 
 import pytest
 
-import rust_viterbo_ffi
+try:
+    import rust_viterbo_ffi  # pyright: ignore[reportMissingImports]
+except ImportError:  # pragma: no cover
+    rust_viterbo_ffi = None
 
 ffi: Any = rust_viterbo_ffi
 
@@ -21,6 +24,15 @@ def load_hko_facets() -> tuple[list[list[float]], list[float]]:
     )
     data = json.loads(data_path.read_text())
     return data["normals"], data["heights"]
+
+
+@pytest.fixture(autouse=True)
+def require_ffi_installed() -> None:
+    if rust_viterbo_ffi is None:
+        pytest.skip(
+            "rust_viterbo_ffi is not installed. Build it with: "
+            "cd packages/python_viterbo && uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml"
+        )
 
 
 def test_hko_call_returns_not_implemented_with_metadata() -> None:
