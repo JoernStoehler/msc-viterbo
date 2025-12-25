@@ -54,7 +54,9 @@ fn tube_capacity_hrep(
     let polytope = PolytopeHRep::new(normals_vec, heights);
     polytope.validate(unit_tol).map_err(map_validation_error)?;
 
-    let lagrangian_detection = detect_near_lagrangian(&polytope.normals, eps_lagr);
+    let eps_feas = 1e-9;
+    let eps_dedup = 1e-8;
+    let lagrangian_detection = detect_near_lagrangian(&polytope, eps_lagr, eps_feas, eps_dedup);
     let (polytope, perturbation) = if lagrangian_detection.detected {
         let outcome = perturb_polytope_normals(&polytope, seed, eps_perturb);
         (outcome.polytope, Some(outcome.metadata))
