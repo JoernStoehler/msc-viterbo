@@ -123,6 +123,16 @@ Operational policy (owner-locked):
 - The tube algorithm implementation itself keeps the same signature
   (`H-rep -> capacity + witness + diagnostics`) regardless of whether perturbation was used.
 
+Implementation note (status as of **2025-12-25**):
+
+- Lagrangian detection is implemented in `rust_viterbo_geom` as **adjacency-only** detection:
+  it enumerates non-empty 2-faces \(F_i\cap F_j\) from the H-rep and only tests \(\omega(n_i,n_j)\)
+  for those adjacent facet pairs.
+- This introduces two additional numerical parameters in the detection path:
+  - `eps_feas`: feasibility slack for halfspace checks (`n·x <= h + eps_feas`) and facet equalities,
+  - `eps_dedup`: vertex deduplication tolerance when enumerating face vertices.
+- Current FFI wiring uses fixed `eps_feas/eps_dedup` internally (until we decide whether to expose them).
+
 Deferred details (must be implemented, but not yet locked):
 
 - concrete perturbation scheme and epsilon schedule,
