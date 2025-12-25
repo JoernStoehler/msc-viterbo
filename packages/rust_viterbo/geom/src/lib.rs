@@ -2,7 +2,7 @@
 //!
 //! Conventions (locked): coordinates (q1,q2,p1,p2) and J(q,p)=(-p,q).
 
-use nalgebra::Vector4;
+use nalgebra::{Matrix4, Vector4};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use std::fmt;
@@ -24,6 +24,13 @@ pub fn symplectic_form(x: SymplecticVector, y: SymplecticVector) -> f64 {
 pub struct PolytopeHRep {
     pub normals: Vec<SymplecticVector>,
     pub heights: Vec<f64>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TwoFace {
+    pub i: usize,
+    pub j: usize,
+    pub vertices: Vec<SymplecticVector>,
 }
 
 #[derive(Clone, Debug)]
@@ -144,6 +151,51 @@ impl PolytopeHRep {
 
         Ok(())
     }
+
+    pub fn two_faces(&self, eps_feas: f64, eps_dedup: f64) -> Vec<TwoFace> {
+        let facet_count = self.normals.len();
+        if facet_count < 4 {
+            return Vec::new();
+        }
+
+        let mut faces = Vec::new();
+        for i in 0..facet_count {
+            for j in (i + 1)..facet_count {
+                let mut vertices = Vec::new();
+                for k in 0..facet_count {
+                    if k == i || k == j {
+                        continue;
+                    }
+                    for l in (k + 1)..facet_count {
+                        if l == i || l == j {
+                            continue;
+                        }
+                        if let Some(candidate) =
+                            solve_vertex(&self.normals, &self.heights, i, j, k, l)
+                        {
+                            if is_vertex_feasible(
+                                &self.normals,
+                                &self.heights,
+                                candidate,
+                                i,
+                                j,
+                                eps_feas,
+                            ) {
+                                push_dedup_vertex(&mut vertices, candidate, eps_dedup);
+                            }
+                        }
+                    }
+                }
+
+                if vertices.len() >= 3 {
+                    order_face_vertices(&mut vertices, self.normals[i], self.normals[j]);
+                    faces.push(TwoFace { i, j, vertices });
+                }
+            }
+        }
+
+        faces
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -160,17 +212,27 @@ pub struct LagrangianDetection {
     pub witness: Option<LagrangianWitness>,
 }
 
-pub fn detect_near_lagrangian(normals: &[SymplecticVector], eps_lagr: f64) -> LagrangianDetection {
-    for (i, ni) in normals.iter().enumerate() {
-        for (j, nj) in normals.iter().enumerate().skip(i + 1) {
-            let omega = symplectic_form(*ni, *nj);
-            if omega.abs() <= eps_lagr {
-                return LagrangianDetection {
-                    detected: true,
-                    eps_lagr,
-                    witness: Some(LagrangianWitness { i, j, omega }),
-                };
-            }
+pub fn detect_near_lagrangian(
+    polytope: &PolytopeHRep,
+    eps_lagr: f64,
+    eps_feas: f64,
+    eps_dedup: f64,
+) -> LagrangianDetection {
+    let faces = polytope.two_faces(eps_feas, eps_dedup);
+    for face in faces {
+        let ni = polytope.normals[face.i];
+        let nj = polytope.normals[face.j];
+        let omega = symplectic_form(ni, nj);
+        if omega.abs() <= eps_lagr {
+            return LagrangianDetection {
+                detected: true,
+                eps_lagr,
+                witness: Some(LagrangianWitness {
+                    i: face.i,
+                    j: face.j,
+                    omega,
+                }),
+            };
         }
     }
     LagrangianDetection {
@@ -178,6 +240,124 @@ pub fn detect_near_lagrangian(normals: &[SymplecticVector], eps_lagr: f64) -> La
         eps_lagr,
         witness: None,
     }
+}
+
+fn solve_vertex(
+    normals: &[SymplecticVector],
+    heights: &[f64],
+    i: usize,
+    j: usize,
+    k: usize,
+    l: usize,
+) -> Option<SymplecticVector> {
+    let ni = normals[i];
+    let nj = normals[j];
+    let nk = normals[k];
+    let nl = normals[l];
+    let a = Matrix4::new(
+        ni.x, ni.y, ni.z, ni.w, nj.x, nj.y, nj.z, nj.w, nk.x, nk.y, nk.z, nk.w, nl.x, nl.y, nl.z,
+        nl.w,
+    );
+    let b = SymplecticVector::new(heights[i], heights[j], heights[k], heights[l]);
+    let lu = a.lu();
+    lu.solve(&b)
+}
+
+fn is_vertex_feasible(
+    normals: &[SymplecticVector],
+    heights: &[f64],
+    candidate: SymplecticVector,
+    i: usize,
+    j: usize,
+    eps_feas: f64,
+) -> bool {
+    let slack_i = normals[i].dot(&candidate) - heights[i];
+    let slack_j = normals[j].dot(&candidate) - heights[j];
+    if slack_i.abs() > eps_feas || slack_j.abs() > eps_feas {
+        return false;
+    }
+    for (m, normal) in normals.iter().enumerate() {
+        let slack = normal.dot(&candidate) - heights[m];
+        if slack > eps_feas {
+            return false;
+        }
+    }
+    true
+}
+
+fn push_dedup_vertex(
+    vertices: &mut Vec<SymplecticVector>,
+    candidate: SymplecticVector,
+    eps_dedup: f64,
+) {
+    if vertices
+        .iter()
+        .any(|existing| (existing - candidate).norm() <= eps_dedup)
+    {
+        return;
+    }
+    vertices.push(candidate);
+}
+
+fn order_face_vertices(
+    vertices: &mut [SymplecticVector],
+    n_i: SymplecticVector,
+    n_j: SymplecticVector,
+) {
+    if vertices.len() < 3 {
+        return;
+    }
+    let Some((u, v)) = face_basis(n_i, n_j) else {
+        return;
+    };
+    let mut centroid = SymplecticVector::zeros();
+    for vertex in vertices.iter() {
+        centroid += vertex;
+    }
+    centroid /= vertices.len() as f64;
+    vertices.sort_by(|a, b| {
+        let da = *a - centroid;
+        let db = *b - centroid;
+        let angle_a = da.dot(&v).atan2(da.dot(&u));
+        let angle_b = db.dot(&v).atan2(db.dot(&u));
+        angle_a
+            .partial_cmp(&angle_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+}
+
+fn face_basis(
+    n_i: SymplecticVector,
+    n_j: SymplecticVector,
+) -> Option<(SymplecticVector, SymplecticVector)> {
+    let basis = [
+        SymplecticVector::new(1.0, 0.0, 0.0, 0.0),
+        SymplecticVector::new(0.0, 1.0, 0.0, 0.0),
+        SymplecticVector::new(0.0, 0.0, 1.0, 0.0),
+        SymplecticVector::new(0.0, 0.0, 0.0, 1.0),
+    ];
+    let mut u = None;
+    for e in basis {
+        let mut candidate = e - n_i.scale(e.dot(&n_i)) - n_j.scale(e.dot(&n_j));
+        if candidate.norm() > 1e-10 {
+            candidate = candidate.normalize();
+            u = Some(candidate);
+            break;
+        }
+    }
+    let u = u?;
+    let mut v = None;
+    for e in basis {
+        let mut candidate =
+            e - n_i.scale(e.dot(&n_i)) - n_j.scale(e.dot(&n_j)) - u.scale(e.dot(&u));
+        if candidate.norm() > 1e-10 {
+            candidate = candidate.normalize();
+            v = Some(candidate);
+            break;
+        }
+    }
+    let v = v?;
+    Some((u, v))
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -282,5 +462,64 @@ mod tests {
             assert!((normal.norm() - 1.0).abs() < 1e-8);
         }
         assert_eq!(first.polytope.normals, second.polytope.normals);
+    }
+
+    fn cube_polytope() -> PolytopeHRep {
+        let normals = vec![
+            SymplecticVector::new(1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(-1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, -1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, -1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, 1.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, -1.0),
+        ];
+        let heights = vec![1.0; normals.len()];
+        PolytopeHRep::new(normals, heights)
+    }
+
+    #[test]
+    fn cube_two_faces_are_squares() {
+        let polytope = cube_polytope();
+        let eps_feas = 1e-9;
+        let eps_dedup = 1e-8;
+        let faces = polytope.two_faces(eps_feas, eps_dedup);
+        assert_eq!(faces.len(), 24);
+        for face in &faces {
+            assert_eq!(face.vertices.len(), 4);
+            for vertex in &face.vertices {
+                for (normal, height) in polytope.normals.iter().zip(polytope.heights.iter()) {
+                    let slack = normal.dot(vertex) - height;
+                    assert!(slack <= eps_feas);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn cube_lagrangian_faces_match_expectations() {
+        let polytope = cube_polytope();
+        let eps_lagr = 1e-12;
+        let eps_feas = 1e-9;
+        let eps_dedup = 1e-8;
+        let faces = polytope.two_faces(eps_feas, eps_dedup);
+        let lagrangian_faces = faces
+            .iter()
+            .filter(|face| {
+                let omega = symplectic_form(polytope.normals[face.i], polytope.normals[face.j]);
+                omega.abs() <= eps_lagr
+            })
+            .count();
+        assert_eq!(lagrangian_faces, 16);
+        assert_eq!(faces.len() - lagrangian_faces, 8);
+
+        let detection = detect_near_lagrangian(&polytope, eps_lagr, eps_feas, eps_dedup);
+        assert!(detection.detected);
+        let witness = detection.witness.expect("expected a witness");
+        assert!(faces.iter().any(|face| {
+            (face.i == witness.i && face.j == witness.j)
+                || (face.i == witness.j && face.j == witness.i)
+        }));
     }
 }
