@@ -2,6 +2,9 @@
 
 Goal: make it easy to give feedback by editing a file instead of answering in chat.
 
+Follow-ups / clarifications (after first pass):
+- `docs/feedback_followup_questionnaire.md`
+
 Guidelines
 - Short answers are great (single letter `a/b/c`, plus 1–2 words nuance if needed).
 - If you are unsure, leave blank; I’ll interpret blanks as “default guess is OK for now”.

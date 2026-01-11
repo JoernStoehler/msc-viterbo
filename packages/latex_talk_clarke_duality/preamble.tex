@@ -18,6 +18,26 @@
 \newcommand{\gauge}{g}
 \newcommand{\support}{h}
 \newcommand{\polar}{\circ}
+\newcommand{\sys}{\operatorname{sys}}
+
+% Talk authoring helpers
+\newcommand{\NeedsCheck}[1]{\textcolor{red}{#1}}
+\newcommand{\VariantLabel}[1]{{\color{gray}(#1)}}
+
+% Hand-drawn figure placeholder:
+% - If the file exists, include it.
+% - Otherwise, show a big rectangular box with the file path inside.
+\newcommand{\DraftImage}[2]{%
+  \IfFileExists{#1}{%
+    \includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}%
+  }{%
+    \fbox{%
+      \begin{minipage}[c][#2][c]{\linewidth}%
+        \centering\texttt{#1}%
+      \end{minipage}%
+    }%
+  }%
+}
 
 % Beamer theorem blocks (numbered)
 \setbeamertemplate{theorems}[numbered]

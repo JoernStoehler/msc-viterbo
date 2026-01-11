@@ -1,0 +1,525 @@
+% math_scratch.tex
+% -----------------------------------------------------------------------------
+% PURPOSE
+% - Scratch / notes-only LaTeX file for the Clarke duality talk.
+% - Not intended to be compiled or rendered.
+% - Collects the exact math objects we need: definitions, constants, theorem statements,
+%   and a proof skeleton with "no mistakes" conventions.
+%
+% SOURCES CONSULTED (local repo cache):
+% - HK2017 (arXiv:1712.03494v3): /workspaces/worktrees/shared/arxiv-store/1712.03494v3/EHZ-polytopes.tex
+% - Thesis draft: packages/latex_viterbo/chapters/math/06-action-capacity-systolic.tex
+%               packages/latex_viterbo/chapters/math/08-clarke-dual-action.tex
+%               packages/latex_viterbo/chapters/math/09-hk-ch-formula.tex
+%
+% Every place where I am uncertain is marked with:
+%   %TODO(Joern): ...
+% -----------------------------------------------------------------------------
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+
+% Minimal macros (explicit, no “semantic magic”)
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\T}{\mathbb{T}}
+\newcommand{\inner}[2]{\langle #1,#2\rangle}
+\newcommand{\abs}[1]{\lvert #1\rvert}
+\newcommand{\conv}{\operatorname{conv}}
+
+\newcommand{\cEHZ}{c_{\mathrm{EHZ}}}
+\newcommand{\support}{h} % support function
+\newcommand{\gauge}{g}   % gauge / Minkowski functional
+\newcommand{\polar}{\circ}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\section*{0. Setup: standard symplectic data}
+
+We work in \(\R^{2n}\) with the standard Euclidean inner product \(\inner{\cdot}{\cdot}\).
+Let \(J\) be the standard complex structure (matrix) and define the standard symplectic form
+\[
+  \omega(u,v) := \inner{Ju}{v}.
+\]
+The standard Liouville 1-form is
+\[
+  \lambda := \tfrac12 \inner{Jx}{dx}.
+\]
+For a (piecewise \(W^{1,2}\)) loop \(\gamma:[0,T]\to\R^{2n}\), define the action
+\[
+  A(\gamma) := \int_\gamma \lambda
+  = \tfrac12 \int_0^T \inner{J\gamma(t)}{\dot\gamma(t)}\,dt
+  = \tfrac12 \int_0^T \inner{-J\dot\gamma(t)}{\gamma(t)}\,dt.
+\]
+
+%TODO(Joern): Confirm we keep exactly this \lambda and action normalization on slides.
+%             (This matches HK2017 Eqn in prelims: A(\gamma)=1/2 \int <J\gamma,\dot\gamma>.)
+
+\section*{1. Convex-analytic dictionary (support, gauge, polar)}
+
+Let \(K\subset\R^{2n}\) be a convex body (compact, convex, non-empty interior).
+
+\begin{definition}[Support and gauge]
+The \emph{support function} of \(K\) is
+\[
+  \support_K(y) := \sup_{x\in K} \inner{x}{y}.
+\]
+The \emph{gauge} (Minkowski functional) is
+\[
+  \gauge_K(x) := \inf\{r>0:\ x\in rK\}.
+\]
+\end{definition}
+
+The \emph{polar body} is
+\[
+  K^{\polar} := \{y\in\R^{2n}:\ \support_K(y)\le 1\}.
+\]
+
+\begin{theorem}[Fenchel duality: \(\gauge_K^2\) vs \(\tfrac14\support_K^2\) (thesis)]
+One has
+\[
+  \gauge_K^2(x) = \sup_{y\in\R^{2n}}\big(\inner{x}{y} - \tfrac14 \support_K(y)^2\big),
+  \qquad
+  \tfrac14 \support_K^2(y) = \sup_{x\in\R^{2n}}\big(\inner{x}{y} - \gauge_K(x)^2\big),
+\]
+and therefore the pointwise inequality
+\[
+  \gauge_K^2(x) + \tfrac14 \support_K^2(y) \ge \inner{x}{y},
+\]
+with equality iff \(y\in\partial \gauge_K^2(x)\) iff \(x\in\partial(\tfrac14 \support_K^2)(y)\).
+\end{theorem}
+
+%TODO(Joern): In the talk, do you want to include the full duality identities (sup formulas),
+%             or only the inequality + equality characterization?
+%             (Your questionnaire suggests: definitions + geometric meaning, with subgradients as “technical tool”.)
+
+\section*{2. Closed characteristics and the EHZ capacity}
+
+\subsection*{2.1 Smooth boundary: geometric definition (for intuition)}
+
+If \(\Sigma\subset\R^{2n}\) is a smooth domain, the characteristic line field on \(\partial\Sigma\)
+is \(\ker(\omega|_{T\partial\Sigma})\). A \emph{closed characteristic} is a closed embedded curve
+\(\gamma\subset \partial\Sigma\) tangent to that line field.
+
+Equivalently (in the smooth strictly convex case), closed characteristics are Reeb orbits for the
+contact form \(\alpha=\lambda|_{\partial\Sigma}\), up to \emph{positive} reparametrization.
+
+\begin{definition}[Reeb orbits (talk-primary object)]
+Given a contact form \(\alpha\) on \(\partial\Sigma\), the Reeb vector field \(R\) is defined by
+\[
+  \iota_R d\alpha = 0,
+  \qquad
+  \alpha(R)=1.
+\]
+A \emph{Reeb orbit} is a \(T\)-periodic solution \(\gamma:[0,T]\to\partial\Sigma\) of
+\(\dot\gamma(t)=R(\gamma(t))\).
+\end{definition}
+
+\begin{remark}[Period \(=\) action for Reeb parameterization]
+For a Reeb orbit \(\gamma\) with \(\dot\gamma=R\), we have \(\lambda(\dot\gamma)=\alpha(R)=1\) and therefore
+\[
+  A(\gamma)=\int_0^T \alpha(\dot\gamma)\,dt = \int_0^T 1\,dt = T.
+\]
+\end{remark}
+
+%TODO(Joern): The talk will include a slide comparing:
+%   - closed characteristics (unparameterized),
+%   - Reeb orbits (parameterized, period = action),
+%   - Hamiltonian orbits (parameterized, for H = g_K^2, with inclusions on polytopes).
+% Please confirm the exact phrasing you want on that comparison slide.
+
+\subsection*{2.2 Polytopes: generalized closed characteristics (HK2017)}
+
+Assume \(K\subset\R^{2n}\) is a convex polytope with non-empty interior.
+Let its \((2n-1)\)-dimensional facets be \(\{F_i\}_{i=1}^{F}\), with \emph{unit outward} normals \(n_i\).
+Define the outward normal cone at \(x\in\partial K\):
+\[
+  N_K(x) := \R_{+}\,\conv\{n_i:\ x\in F_i\}.
+\]
+
+\begin{definition}[Closed characteristic on a polytope (HK2017 Def.\ 2.1)]
+A \emph{closed characteristic} on \(\partial K\) is a closed loop
+\(\gamma\in W^{1,2}([0,T],\R^{2n})\) (for some \(T>0\)) such that \(\mathrm{Im}(\gamma)\subset\partial K\) and
+\[
+  \dot\gamma(t)\in J\,N_K(\gamma(t))
+  \quad\text{for a.e. }t\in[0,T].
+\]
+\end{definition}
+
+\begin{remark}
+The inclusion \(\dot\gamma(t)\in JN_K(\gamma(t))\) is invariant under positive reparametrization
+of time (``unparameterized''). Scaling the generators of the cone by positive constants does not
+change the cone.
+\end{remark}
+
+\begin{definition}[EHZ capacity (HK2017, smooth case; extended by continuity)]
+For a smooth convex body \(K\subset\R^{2n}\),
+\[
+  \cEHZ(K) := \min\{A(\gamma): \gamma \text{ closed characteristic on }\partial K\}.
+\]
+For non-smooth convex bodies (including polytopes) this is extended by continuity; it can still be
+described as a minimum action over generalized closed characteristics.
+\end{definition}
+
+%TODO(Joern): Insert the exact theorem/reference you want for:
+%   - “EHZ extends continuously under Hausdorff convergence”
+%   - “generalized closed characteristics = limits of smooth ones (e.g. smoothings K_\varepsilon)”
+% I can currently cite HK2017’s statement “see singular_capacity / singular_survey_2”, but I don’t
+% have the exact theorem name/number in this repo cache.
+
+\section*{3. Clarke dual action principle (talk conventions + HK2017 reference)}
+
+\subsection*{3.1 Dual functional (fixed) and constraint sets (two equivalent normalizations)}
+
+We follow the HK2017 setup, but we will \emph{present} it with a free period \(T\) and an explicit centering condition,
+because that makes “period/action bookkeeping” easier in a live talk.
+
+\paragraph{Dual functional (any period \(T\)).}
+For a loop \(z\in W^{1,2}([0,T],\R^{2n})\), define
+\[
+  I_K(z) := \frac14 \int_0^T \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt.
+\]
+It depends only on the velocity \(\dot z\), and is invariant under translation \(z\mapsto z+b\).
+
+\paragraph{Talk normalization (preferred).}
+For \(T>0\), define
+\[
+  \mathcal{E}_T^{\mathrm{talk}}
+  :=
+  \Big\{
+    z\in W^{1,2}([0,T],\R^{2n}):
+    z(0)=z(T),\
+    \int_0^T z(t)\,dt=0,\
+    A(z)=T
+  \Big\}.
+\]
+Here \(A(z)=\tfrac12\int_0^T \inner{-J\dot z(t)}{z(t)}\,dt\) is the action.
+
+Intuition: the constraint \(A(z)=T\) fixes a \emph{Reeb-like} parameterization (period \(=\) action),
+and \(\int z=0\) fixes the translation ambiguity of the Euler--Lagrange equation.
+
+%TODO(Joern): You wrote “centering avoids trouble with uniqueness of z given \dot z, and helps variational arguments”.
+%             Please confirm: do you want centering as part of the official statement, or as a “we can assume wlog” remark?
+
+\paragraph{HK2017 normalization (reference).}
+HK2017 instead fixes the time interval \([0,1]\) and uses the constraint
+\[
+  \mathcal{E}^{\mathrm{HK}}
+  :=
+  \Big\{
+    z\in W^{1,2}([0,1],\R^{2n}):
+    \int_0^1 \dot z(t)\,dt=0,\
+    \int_0^1 \inner{-J\dot z(t)}{z(t)}\,dt = 1
+  \Big\}.
+\]
+No centering constraint is imposed there (translation invariance is handled implicitly).
+
+%TODO(Joern): In the talk you said you “dislike the domain=[0,1] normalization”.
+%             We can still cite HK2017 in this form, but present (and compute with) the \mathcal{E}^{talk}_T variant.
+%             Confirm this split is acceptable.
+
+\subsection*{3.2 Weak critical points and correspondence}
+
+HK2017 defines the set of weak critical points
+\[
+  \mathcal{E}^{\dagger}
+  :=
+  \Big\{
+    z\in\mathcal{E}^{\mathrm{HK}}:\ \exists \alpha\in\R^{2n}\ \text{s.t.}\ 8 I_K(z)\,z + \alpha \in \partial \support_K^2(-J\dot z)
+  \Big\}.
+\]
+
+\begin{lemma}[Dual bijection (HK2017, Lemma “dual\_bijection”; wording)]
+There is a correspondence between closed characteristics \(\gamma\) on \(\partial K\) and
+elements \(z\in\mathcal{E}^{\dagger}\). Under this correspondence there exist \(\lambda>0\) and \(b\in\R^{2n}\) such that
+\[
+  z = \lambda \gamma + b,
+  \qquad
+  A(\gamma) = 2\,I_K(z).
+\]
+In particular, minimizers of \(I_K\) on \(\mathcal{E}^{\mathrm{HK}}\) correspond to minimum-action closed characteristics.
+\end{lemma}
+
+\begin{theorem}[Capacity as a dual minimum (HK2017)]
+\[
+  \cEHZ(K) = \min_{z\in\mathcal{E}^{\mathrm{HK}}} 2\,I_K(z).
+\]
+\end{theorem}
+
+%TODO(Joern): IMPORTANT consistency check with the current slide draft:
+%   - In packages/latex_talk_clarke_duality/main.tex, the “Clarke dual action principle” slide currently says
+%       c_EHZ(K) = min_{z\in E} I_K(z)
+%     but later slides use A(\gamma)=2 I_K(z).
+%   - HK2017 uses c_EHZ(K) = min_{z\in \mathcal{E}^{HK}} 2 I_K(z).
+% Your follow-up questionnaire says you want talk-specific conventions (free period T, no [0,1] normalization),
+% but still contradiction-free. We should update slides to match one convention set.
+
+\subsection*{3.2.1 Talk-friendly normalization: put the minimizer on \([0,T]\) with \(A=I_K=T\)}
+
+Your follow-up preference is:
+\begin{itemize}
+\item avoid the fixed \([0,1]\) domain on slides,
+\item avoid HK-style “extra constant \(c\) everywhere” bookkeeping,
+\item keep a single symbol \(T\) that is both “the number we minimize” and “a period/action scale”.
+\end{itemize}
+
+One clean way to achieve this while still relying on HK2017 is:
+
+\begin{enumerate}
+\item Start with a minimizer \(z_0\in\mathcal{E}^{\mathrm{HK}}\) of \(I_K\) on \([0,1]\).
+\item Define \(T := 2\,I_K(z_0)\). Then \(T=\cEHZ(K)\) by the theorem above.
+\item Define a rescaled loop \(z_T:[0,T]\to\R^{2n}\) by
+  \[
+    z_T(t) := \sqrt{2T}\,z_0\!\left(\frac{t}{T}\right).
+  \]
+  (Optionally, translate to enforce centering: replace \(z_T\) by \(z_T-\frac1T\int_0^T z_T\).)
+\end{enumerate}
+
+Then the two key identities are:
+\[
+  A(z_T)=T,
+  \qquad
+  I_K(z_T)=T.
+\]
+
+Sketch check:
+\begin{itemize}
+\item The “area constraint” integral is reparametrization invariant and scales quadratically in space:
+  \[
+    2A(z_T)=\int_0^T \inner{-J\dot z_T}{z_T}\,dt
+    = (2T)\int_0^1 \inner{-J\dot z_0}{z_0}\,ds
+    = 2T.
+  \]
+\item For \(I_K\), use 2-homogeneity of \(\support_K^2\) and the derivative scaling \(\dot z_T=(\sqrt{2T}/T)\dot z_0\):
+  \[
+    I_K(z_T)
+    = \frac14\int_0^T \support_K^2\!\Bigl(-J\frac{\sqrt{2T}}{T}\dot z_0\Bigr)\,dt
+    = \frac14\cdot\frac{2T}{T}\cdot T\int_0^1 \support_K^2(-J\dot z_0)\,ds
+    = 2I_K(z_0)
+    = T.
+  \]
+\end{itemize}
+
+%TODO(Joern): This normalization is my proposed “talk-specific convention set”.
+%             Please sanity-check the scaling formulas above (especially the I_K scaling) and confirm you like this.
+
+\subsection*{3.3 (Optional) Abbondandolo-style formulation via the polar body (HK2017 Remark)}
+
+HK2017 also quotes an alternative expression (attributed to Abbondandolo, using Clarke duality):
+\[
+  \cEHZ(K)
+  =
+  \frac12\left[
+    \sup_{z\in\widetilde{\mathcal{E}}} \int_0^1 \inner{-J\dot z(t)}{z(t)}\,dt
+  \right]^{-1},
+\]
+where
+\[
+  \widetilde{\mathcal{E}}
+  :=
+  \Big\{
+    z\in W^{1,2}([0,1],\R^{2n}):
+    \int_0^1 \dot z(t)\,dt = 0,\ 
+    \dot z(t)\in K^{\polar}\ \text{a.e.}
+  \Big\},
+  \qquad
+  K^{\polar}=\{y:\ \inner{x}{y}\le 1\ \forall x\in K\}.
+\]
+
+%TODO(Joern): Decide if we want to mention this \widetilde{\mathcal{E}} formulation at all.
+%             It is a nice intermediate viewpoint (“polar constraint on velocities”), but it may be a distraction.
+
+\subsection*{3.4 Proof skeleton of Clarke dual action principle (high level)}
+
+This is \emph{not} a complete proof; it is the minimum set of inequalities/equalities we need to not get lost
+when presenting the “gears level” idea.
+
+\begin{itemize}
+\item Start from Fenchel inequality (pointwise in \(\R^{2n}\)):
+  \[
+    \gauge_K^2(x) + \tfrac14 \support_K^2(y) \ge \inner{x}{y}.
+  \]
+\item Plug \(x=z(t)\), \(y=-J\dot z(t)\) and integrate:
+  \[
+    \int_0^T \gauge_K^2(z(t))\,dt + \frac14\int_0^T \support_K^2(-J\dot z(t))\,dt
+    \ \ge\
+    \int_0^T \inner{z(t)}{-J\dot z(t)}\,dt.
+  \]
+  The RHS is \(2A(z)\) (for loops, modulo constant conventions).
+\item In HK2017 one fixes the scale by the constraint \(\int_0^1 \inner{-J\dot z}{z}=1\), i.e. \(z\in\mathcal{E}^{\mathrm{HK}}\).
+\item In the talk-preferred normalization, we instead reparameterize/scale so that \(A(z)=T\) and (for the minimizer) also \(I_K(z)=T\)
+  as in Section 3.2.1.
+\end{itemize}
+
+%TODO(Joern): This proof skeleton is intentionally vague. If you really want a 10–15min proof on slides (M5.5),
+%             we should lock down:
+%   - which functional is minimized on which constraint set (and with which scaling invariances),
+%   - where exactly the Euler–Lagrange/subgradient inclusion appears,
+%   - and the precise statement we are proving (HK2017 uses the correspondence via \mathcal{E}^\dagger).
+
+\section*{4. Polytope specializations (facet normals, heights, velocities)}
+
+Assume \(K=\bigcap_{i=1}^{F}\{x:\ \inner{x}{n_i}\le h_i\}\) is an irredundant half-space description,
+with \(\abs{n_i}=1\) and \(h_i=\support_K(n_i)>0\).
+
+\begin{definition}[Facet velocities (HK2017)]
+Assume \(0\in K\) (translation invariance allows this).
+For each facet \(F_i\), define
+\[
+  p_i := J\,\partial \gauge_K^2|_{F_i} = \frac{2}{h_i}\,J n_i.
+\]
+\end{definition}
+
+%TODO(Joern): On slides, do we call p_i a “facet Reeb vector”, “facet velocity”, or “Hamiltonian velocity”?
+%             It is a canonical generator for the cone, but depends on the chosen Hamiltonian normalization.
+
+\begin{proposition}[Constant-speed property of \(I_K\) on faces (HK2017 Prop.\ 4.1)]
+Let \(c>0\) and \(z\in\mathcal{E}^{\mathrm{HK}}\).
+Assume that for almost every \(t\in[0,1]\) there exists a non-empty face
+\(F_{j_1}\cap\cdots\cap F_{j_\ell}\neq\emptyset\) such that
+\[
+  \dot z(t) \in c\cdot \conv\{p_{j_1},\ldots,p_{j_\ell}\}.
+\]
+Then
+\[
+  I_K(z)=c^2.
+\]
+\end{proposition}
+
+Proof idea (HK2017): compute \(h_K(-J\dot z(t))\) explicitly:
+\[
+  \dot z = c\sum a_i p_{j_i}
+  \ \Rightarrow\
+  -J\dot z = 2c \sum \frac{a_i}{h_{j_i}}\,n_{j_i}
+  \ \Rightarrow\
+  h_K(-J\dot z)=2c.
+\]
+
+\section*{5. The “simple minimizer / facet-once” theorem (HK2017 main structural result)}
+
+\begin{theorem}[Existence of a simple minimum-action orbit (HK2017 Thm.\ 1.2; talk form)]
+For every convex polytope \(K\subset\R^{2n}\), there exists a closed characteristic
+\(\gamma:[0,T]\to\partial K\) with minimal action (for some \(T>0\)) such that \(\dot\gamma\) is piecewise constant:
+there exist vectors \((w_1,\ldots,w_m)\) and \(0=\tau_0<\cdots<\tau_m=T\) with
+\[
+  \dot\gamma(t)=w_i\quad\text{for }\tau_{i-1}<t<\tau_i.
+\]
+Moreover:
+\begin{itemize}
+\item For each \(j\) there exists a facet index \(i\) with \(w_j=C_j J n_i\) for some \(C_j>0\).
+\item For each facet \(i\), the set \(\{t:\ \exists C>0,\ \dot\gamma(t)=C J n_i\}\) is connected.
+\end{itemize}
+Hence \(\gamma\) visits the interior of each facet at most once (and \(\dot\gamma\) has \(\le F\) discontinuities).
+\end{theorem}
+
+\begin{remark}[About the choice of \(T\)]
+The differential inclusion defining closed characteristics is invariant under constant time rescaling.
+So one may state the theorem on \([0,1]\) as in HK2017, or on \([0,T]\) for any \(T>0\).
+In particular, in the smooth Reeb setting one can choose the Reeb parameterization where \(T=A(\gamma)=\cEHZ(K)\).
+\end{remark}
+
+%TODO(Joern): If you want to emphasize “period = action” as a theme, we can consistently denote
+%             \(T:=\cEHZ(K)\) after we have introduced the minimizer, and then work on \([0,T]\) thereafter.
+
+\begin{remark}[Multiplicity/degeneracy]
+HK2017 notes examples where there exist minimizing closed characteristics that \emph{do not} have this property
+(e.g. polytopes with Lagrangian faces), but there still exists at least one minimizer with the facet-once property.
+\end{remark}
+
+%TODO(Joern): You used “homotopic to” language in the questionnaire.
+%             HK2017 theorem statement is an existence statement.
+%             Decide what strength we claim on slides: existence vs “one can simplify a minimizer”.
+
+\section*{6. Combinatorial formula for \(\cEHZ\) (HK2017)}
+
+Let \(K\subset\R^{2n}\) be a convex polytope with facets \(F_i\) and unit outward normals \(n_i\).
+Let \(h_i := \support_K(n_i)\).
+Let \(S_F\) be the symmetric group.
+Define
+\[
+  M(K) := \Big\{(\beta_i)_{i=1}^{F}:\ \beta_i\ge 0,\ \sum_i \beta_i h_i = 1,\ \sum_i \beta_i n_i = 0\Big\}.
+\]
+
+\begin{theorem}[HK2017 combinatorial formula (HK2017 Thm.\ 1.1)]
+\[
+  \cEHZ(K)
+  =
+  \frac12\left[
+    \max_{\sigma\in S_F,\ \beta\in M(K)}
+      \sum_{1\le j<i\le F} \beta_{\sigma(i)}\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)})
+  \right]^{-1}.
+\]
+\end{theorem}
+
+\begin{remark}[Where the \(\beta\)’s come from (HK2017 proof sketch)]
+For a simple loop, one has segment lengths \(T_i=|I_i|\) and \(p_{\sigma(i)}=\frac{2}{h_{\sigma(i)}}Jn_{\sigma(i)}\).
+Setting \(\beta_{\sigma(i)}:=\frac{T_i}{h_{\sigma(i)}}\) converts the “\(p_i\) / times” constraints into the formula above.
+\end{remark}
+
+%TODO(Joern): For the 4D talk, do you want to present the full formula, or only the “finite combinatorial search space”
+%             interpretation (facet order + segment lengths + constraints)?
+
+\section*{7. Proof ingredients (for talk-proof sketch)}
+
+The HK2017 proof of the simple-loop theorem is built from:
+
+\subsection*{7.1 Piecewise affine approximation}
+
+\begin{lemma}[Approximation inside a convex hull (HK2017 Lem.\ 4.2)]
+Fix vectors \(v_1,\ldots,v_k\in\R^{2n}\). If \(z\in W^{1,2}([0,1],\R^{2n})\) satisfies
+\(\dot z(t)\in\conv\{v_1,\ldots,v_k\}\) a.e., then for every \(\varepsilon>0\) there exists a
+piecewise affine \(\zeta\) with \(\|z-\zeta\|_{1,2}<\varepsilon\) and \(\dot\zeta(t)\in\conv\{v_1,\ldots,v_k\}\) a.e.
+\end{lemma}
+
+\subsection*{7.2 Action constraint for piecewise constant velocities}
+
+If \(z\) is a closed loop with piecewise constant velocity
+\[
+  \dot z(t)=\sum_{i=1}^m \mathbf{1}_{I_i}(t)\,w_i
+  \qquad
+  (I_i=(\tau_{i-1},\tau_i)),
+\]
+then HK2017 proves the identity
+\[
+  \int_0^1 \inner{-J\dot z(t)}{z(t)}\,dt
+  =
+  \sum_{1\le j<i\le m} |I_i|\,|I_j|\,\omega(w_i,w_j).
+\]
+
+\subsection*{7.3 Two simplification operations}
+
+1) \emph{No linear combinations} (split a convex combination velocity into pure velocities)
+without decreasing \(\int\inner{-J\dot z}{z}\).
+
+2) \emph{One-speed / connectivity} (merge disjoint intervals with the same velocity into one block),
+choosing the order so that \(\int\inner{-J\dot z}{z}\) does not decrease.
+
+\subsection*{7.4 Rescaling back into \(\mathcal{E}^{\mathrm{HK}}\) (HK2017 proof step)}
+
+After rearrangements, the constraint \(\int_0^1 \inner{-J\dot z}{z}=1\) may become \(\ge 1\).
+Then divide \(z\) by \(A:=\sqrt{\int_0^1 \inner{-J\dot z}{z}}\) to return to \(\mathcal{E}^{\mathrm{HK}}\).
+By the constant-speed property, \(I_K(z)\) scales in the expected way, and minimality forces equality in the limit.
+
+Remark: centering \(\int z=0\) can be enforced at any time by translating \(z\mapsto z-\frac1T\int z\),
+and this does not change \(A\) or \(I_K\) for closed loops (because \(\int \dot z=0\)).
+
+\section*{8. Minimal “punchline package” (for the final slide)}
+
+\[
+  \text{Primal: } \cEHZ(K)=\min_{\gamma\subset\partial K,\ \dot\gamma\in JN_K} A(\gamma)
+  \quad\Longleftrightarrow\quad
+  \text{Dual (HK2017): } \cEHZ(K)=\min_{z\in\mathcal{E}^{\mathrm{HK}}} 2 I_K(z).
+\]
+On a polytope, \(I_K\) only sees the \emph{set and amount} of facet velocities, not their order.
+This enables rearrangement \(\Rightarrow\) existence of a minimum-action orbit visiting each facet at most once
+\(\Rightarrow\) finite/combinatorial optimization.
+
+%TODO(Joern): You answered F1 with “pipeline slide” (and a bibliography slide before it).
+%             Confirm: we should \emph{not} restate the full theorem on the last slide, only the pipeline.
+
+\end{document}

@@ -24,9 +24,18 @@
 % Math
 \usepackage{amsmath,amssymb,mathtools}
 
+% Tables / layout helpers
+\usepackage{booktabs}
+
 % Figures
 \usepackage{graphicx}
-\graphicspath{{assets/manual/}}
+
+% Drafting helpers:
+% - Red text marks items that need J\"orn to verify: \NeedsCheck{...}
+% - Slide variants are separate frames, tagged in code with: %variant: ...
+%   and visible in the PDF as a frame subtitle like "(Variant 5-B)".
+% - Hand-drawn image placeholders use \DraftImage{assets/manual/<file>.png}{<height>}
+%   which renders a big box if the file does not exist.
 
 % Links
 % (beamer loads hyperref; we just tune it)
@@ -55,208 +64,461 @@
 
 \maketitle
 
-\begin{frame}{Plan}
+%variant: 0-A
+\begin{frame}{Big picture}{\VariantLabel{Variant 0-A}}
+  \begin{itemize}
+    \item Thesis context: Viterbo-type questions reduce to understanding \emph{minimum-action} closed characteristics.
+    \item For polytopes, the dynamics is non-smooth and the ``minimize action'' problem has nasty constraints.
+    \item Clarke's dual action principle reframes the problem as a constrained minimization on loops
+      where the functional depends only on the \emph{velocity}.
+    \item This exposes a rearrangement argument \(\Rightarrow\) a surprisingly \emph{simple} minimum-action orbit:
+      polygonal, and each facet direction is used at most once.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Outline}
   \begin{enumerate}
-    \item Closed characteristics on polytopes and the action
-    \item Clarke's dual action principle (variational reformulation)
-    \item Why polytopes reduce to finitely many velocities
-    \item Rearrangement argument: a \emph{simple} minimum-action orbit
-    \item (Optional) combinatorial encoding
+    \item Notation refresh: Reeb vs Hamiltonian vs closed characteristics
+    \item Thesis context: Viterbo conjecture, and the HK2024 counterexample
+    \item Polytopes: generalized closed characteristics and why the primal problem is hard
+    \item Clarke dual action principle (full proof sketch)
+    \item Break
+    \item HK2017: rearrangement \(\Rightarrow\) facet-once minimizer (detailed proof sketch)
+    \item (Optional) computation takeaway
+    \item References \(\rightarrow\) pipeline takeaway
   \end{enumerate}
 \end{frame}
 
-\section{Motivation}
+\section{Module 1: Symplectic dynamics (refresh)}
 
-\begin{frame}{Motivation}
+\begin{frame}{Standard data and action (fix notation)}
   \begin{itemize}
-    \item For a smooth convex body \(K\subset(\R^{2n},\omega)\), the Ekeland--Hofer--Zehnder capacity
-      \(\cEHZ(K)\) equals the \emph{minimal action} of a closed characteristic on \(\partial K\).
-    \item For polytopes, closed characteristics are \emph{generalized} (velocity can jump / slide on lower faces),
-      but \(\cEHZ(K)\) is still a minimal action.
-    \item Clarke's dual action principle rewrites the minimum-action problem as a minimization of a convex functional
-      on a Sobolev loop space.
-    \item Computational goal: replace an infinite-dimensional minimization problem by a finite/combinatorial one.
-    \item Key structural fact (HK): an action-minimizing orbit can be chosen to visit each facet at most once.
+    \item Work in \((\R^4,\omega_0)\) with \(\omega_0(u,v)=\inner{Ju}{v}\) and \(\lambda_0=\tfrac12\inner{Jx}{dx}\).
+    \item For a loop \(\gamma:[0,T]\to\R^4\), define the action
+      \[
+        A(\gamma)=\int_\gamma \lambda_0
+        =\tfrac12\int_0^T \inner{J\gamma(t)}{\dot\gamma(t)}\,dt
+        =\tfrac12\int_0^T \inner{-J\dot\gamma(t)}{\gamma(t)}\,dt.
+      \]
+    \item (Remark) Most statements work in \(\R^{2n}\) similarly; we keep \(n=2\) in the talk.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{What Clarke duality buys us (one slide summary)}
+%variant: 1-A
+\begin{frame}{Energy surfaces and the Reeb flow}{\VariantLabel{Variant 1-A}}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{itemize}
+        \item Let \(\Sigma\subset\R^4\) be a smooth star-shaped hypersurface.
+        \item Contact form: \(\alpha=\lambda_0|_{\Sigma}\).
+        \item Reeb vector field \(R\) is defined by
+          \[
+            \iota_R d\alpha = 0,
+            \qquad
+            \alpha(R)=1.
+          \]
+        \item A Reeb orbit is \(\gamma:[0,T]\to\Sigma\) with \(\dot\gamma=R(\gamma)\), \(\gamma(0)=\gamma(T)\).
+        \item Then \(A(\gamma)=\int_0^T \alpha(\dot\gamma)\,dt = T\).
+      \end{itemize}
+
+    \column{0.48\textwidth}
+      % Purpose: remind the audience what “energy surface + flow line” means, and fix the Reeb normalization α(R)=1.
+      % Image suggestion: draw a 3D energy surface Σ (e.g. ellipsoid), a tangent arrow field R, and one periodic orbit γ.
+      % Annotate: α = λ|_Σ, α(R)=1, and a small “(3D mock)” tag.
+      \DraftImage{assets/manual/fig-energy-surface-reeb.png}{0.55\textheight}
+  \end{columns}
+\end{frame}
+
+%variant: 1-B (more explicit comparison table; choose 1-A or 1-B later)
+\begin{frame}{Three equivalent viewpoints (memorize this slide)}{\VariantLabel{Variant 1-B}}
+  \small
+  \begin{center}
+    \begin{tabular}{@{}p{0.30\textwidth}p{0.32\textwidth}p{0.32\textwidth}@{}}
+      \toprule
+      \textbf{Object} & \textbf{Equation (smooth case)} & \textbf{Notes} \\
+      \midrule
+      Closed characteristic
+      & \(\dot\gamma(t)\in \ker(\omega|_{T\Sigma})\)
+      & unparameterized (reparametrization-free) \\
+      \addlinespace[0.4em]
+      Reeb orbit
+      & \(\dot\gamma(t)=R(\gamma(t))\), \(\alpha(R)=1\)
+      & parameterized, period \(T\); \(A(\gamma)=T\) \\
+      \addlinespace[0.4em]
+      Hamiltonian orbit
+      & \(\dot\gamma(t)=J\nabla H(\gamma(t))\)
+      & on a level set \(H=\mathrm{const}\) \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+  \vspace{0.6em}
+  \small
+  On polytopes, \(\nabla\) becomes a subgradient \(\partial\) and equations become inclusions.
+\end{frame}
+
+\section{Module 1.5: Thesis context (Viterbo)}
+
+\begin{frame}{EHZ capacity and Viterbo's conjecture (in 4D)}
   \begin{itemize}
-    \item \textbf{Geometric problem:} minimize the action \(A(\gamma)\) over closed characteristics \(\gamma\subset\partial K\).
-    \item \textbf{Variational problem:} minimize \(I_K(z)=\tfrac14\int \support_K^2(-J\dot z)\) over a constraint set \(E\subset W^{1,2}\).
-    \item For polytopes, \(I_K\) becomes \emph{insensitive} to reordering/mixing facet velocities.
-    \item So we can simplify a minimizer by rearranging its velocity, and then rescale back into the constraint \(E\).
+    \item For a smooth convex body \(K\subset\R^4\), the EHZ capacity is the minimal action
+      \[
+        \cEHZ(K)=\min\{A(\gamma): \gamma \text{ closed characteristic on }\partial K\}.
+      \]
+    \item Define the systolic ratio (4D):
+      \[
+        \sys(K):=\frac{\cEHZ(K)^2}{2\,\mathrm{vol}(K)}.
+      \]
+    \item Viterbo's conjecture predicts \(\sys(K)\le 1\) for convex \(K\), with equality for the ball.
+  \end{itemize}
+
+  \small
+  (General dimension: replace the exponent \(2\) by \(n\) and \(2\) by \(n!\).)
+\end{frame}
+
+\begin{frame}{Strong Viterbo (very informal)}
+  \begin{itemize}
+    \item There are many symplectic capacities \(c(\cdot)\).
+    \item \textbf{Strong Viterbo (informal):} on convex bodies, all reasonable capacities agree.
+    \item In particular, a capacity becomes computable if we can compute \(\cEHZ\).
+  \end{itemize}
+
+  % Purpose: give the audience a mental hook that “this is not random — it’s a central conjecture theme”.
+  % Image suggestion: a “map” bubble diagram: Convex bodies → capacities → equal? → Viterbo/Mahler landscape.
+  \DraftImage{assets/manual/fig-viterbo-landscape.png}{0.38\textheight}
+\end{frame}
+
+\begin{frame}{Why polytopes? (computationally accessible)}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{itemize}
+        \item Polytopes approximate convex bodies arbitrarily well (Hausdorff metric).
+        \item They have finite combinatorial data: facets, normals, adjacency.
+        \item So: if we can describe minimizers combinatorially, we can compute with them.
+      \end{itemize}
+
+    \column{0.48\textwidth}
+      % Purpose: visualize “smooth body → polytope → smoothing K_ε” and convince that the polytope setting is not artificial.
+      % Image suggestion: 3 columns (or 2): smooth rounded body, a polytope approximation, and a slightly “inflated” smoothing K_ε.
+      \DraftImage{assets/manual/fig-polytope-approximation-smoothing.png}{0.55\textheight}
+  \end{columns}
+\end{frame}
+
+%variant: 1.5-A
+\begin{frame}{Counterexample exists (HK2024)}{\VariantLabel{Variant 1.5-A}}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{itemize}
+        \item HK2024 gives a counterexample polytope (in \(\R^4\)) with \(\sys(K)>1\).
+        \item For this talk, this is mainly a \textbf{hook}: the minimizer structure matters.
+        \item Side note: there can be multiple minimum-action generalized closed characteristics.
+      \end{itemize}
+
+    \column{0.48\textwidth}
+      % Purpose: give one concrete object for the audience to “anchor” the discussion, without diving into details.
+      % Image suggestion: schematic picture of the counterexample polytope (or product structure), plus a small label “HK2024”.
+      \DraftImage{assets/manual/fig-hk2024-counterexample.png}{0.55\textheight}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{What this talk focuses on}
+  \begin{itemize}
+    \item We \textbf{do not} focus on the full counterexample construction.
+    \item We focus on a reusable toolchain:
+      \[
+        \text{(primal) minimize action on }\partial K
+        \ \xRightarrow{\ \text{Clarke duality}\ }\ 
+        \text{(dual) minimize a convex velocity functional}
+        \ \xRightarrow{\ \text{rearrangement}\ }\ 
+        \text{simple minimizer}.
+      \]
+    \item This is exactly the kind of statement that turns geometry into computation.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Target statement (facet-once minimizer)}
-  \begin{block}{Theorem (Haim--Kislev, 2017)}
-    Let \(K\subset\R^{2n}\) be a convex polytope with facets \(\{F_i\}_{i=1}^F\) and outward unit normals \(n_i\).
-    Then there exists a \emph{minimum-action} closed characteristic \(\gamma\) on \(\partial K\) such that:
+\section{Module 2: Polytopes + generalized dynamics}
+
+\begin{frame}{Polytopes: facets, normals, heights, facet velocities}
+  \begin{itemize}
+    \item Write \(K\subset\R^4\) (full-dimensional, \(0\in\mathrm{int}(K)\)) as an irredundant intersection of halfspaces:
+      \[
+        K=\bigcap_{i=1}^F\{x:\ \inner{x}{n_i}\le h_i\},
+        \qquad
+        \abs{n_i}=1,\quad h_i=\support_K(n_i)>0.
+      \]
+    \item Facet \(F_i = \{x\in K:\ \inner{x}{n_i}=h_i\}\).
+    \item ``Facet Reeb velocity'' (HK2017):
+      \[
+        p_i := \frac{2}{h_i}\,J n_i.
+      \]
+  \end{itemize}
+
+  % Purpose: familiarize the symbols F_i, n_i, h_i, p_i and their geometric meaning (normal vs tangent velocity).
+  % Image suggestion: 3D mock polytope with 3 facets labeled F_1,F_2,F_3; outward unit normals n_i; tangent arrows p_i.
+  % Add a [3D mock] warning; on the side write p_i = (2/h_i) J n_i and “p_i ⟂ n_i”.
+  \DraftImage{assets/manual/fig-polytope-normals-reeb.png}{0.34\textheight}
+\end{frame}
+
+\begin{frame}{Generalized closed characteristics on a polytope}
+  \begin{itemize}
+    \item Normal cone at \(x\in\partial K\):
+      \[
+        N_K(x):=\R_+\,\conv\{n_i:\ x\in F_i\}.
+      \]
+    \item Allowed velocity cone at \(x\): \(J N_K(x)\).
+    \item A generalized closed characteristic is \(\gamma\in W^{1,2}\) with \(\gamma(t)\in\partial K\) and
+      \[
+        \dot\gamma(t)\in JN_K(\gamma(t))\quad\text{for a.e. }t.
+      \]
+  \end{itemize}
+
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \small
+      If \(\gamma(t)\in\mathrm{int}(F_i)\), then \(\dot\gamma(t)\) is a positive multiple of \(J n_i\) (equivalently \(p_i\)).
+      On lower faces, \(\dot\gamma(t)\) can be a convex combination of neighboring facet directions.
+
+    \column{0.48\textwidth}
+      % Purpose: remind the audience that on lower-dimensional faces we have a *cone* of allowed directions (and the orbit can “slide”).
+      % Image suggestion: mock polytope with two facets; draw the edge between them; at a point on the edge draw the convex cone of velocities.
+      % Also draw a path γ that goes across facet 1, then “slides” near the edge, then across facet 2. Mark [3D mock].
+      \DraftImage{assets/manual/fig-polytope-reeb-cone-and-orbit.png}{0.55\textheight}
+  \end{columns}
+\end{frame}
+
+%variant: 2-A
+\begin{frame}{Limits work out (not a focus today)}{\VariantLabel{Variant 2-A}}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
+      \begin{itemize}
+        \item If \(K_\varepsilon\) is a smoothing of a polytope \(K\), closed characteristics on \(\partial K_\varepsilon\)
+          converge (after subsequences) to generalized closed characteristics on \(\partial K\).
+        \item Capacities (and volume) are continuous under Hausdorff limits.
+        \item We will use this only as \textbf{sanity}: our generalized definitions are compatible with smooth geometry.
+      \end{itemize}
+
+    \column{0.48\textwidth}
+      % Purpose: show “smoothings K_ε → polytope K” and that orbits limit to generalized ones.
+      % Image suggestion: draw K, the offset body K_ε (rounded edges), and one orbit on K_ε converging to a broken orbit on K.
+      \DraftImage{assets/manual/fig-smoothing-limit-orbits.png}{0.55\textheight}
+  \end{columns}
+\end{frame}
+
+\section{Module 3: The primal minimization problem}
+
+\begin{frame}{The primal problem (hard constraints)}
+  \begin{block}{Primal minimization (geometric)}
+    \[
+      \cEHZ(K) = \min\{A(\gamma):\ \gamma\subset\partial K,\ \dot\gamma(t)\in JN_K(\gamma(t))\ \text{a.e.}\}.
+    \]
+  \end{block}
+
+  \begin{itemize}
+    \item Infinite-dimensional search space (\(W^{1,2}\)-loops).
+    \item Hard state constraint \(\gamma(t)\in\partial K\).
+    \item Differential inclusion + reparameterization freedom.
+    \item Naive local optimization wants to collapse to a point (action \(0\)), but that is not allowed.
+  \end{itemize}
+\end{frame}
+
+\section{Module 4: Legendre--Fenchel (the convex-analytic engine)}
+
+\begin{frame}{Support vs gauge: the key inequality}
+  \begin{itemize}
+    \item Support function: \(\support_K(y)=\sup_{x\in K}\inner{x}{y}\).
+    \item Gauge (Minkowski functional): \(\gauge_K(x)=\inf\{r>0:\ x\in rK\}\) (so \(\gauge_K\equiv 1\) on \(\partial K\)).
+    \item Fenchel inequality (pointwise in \(\R^4\)):
+      \[
+        \gauge_K^2(x)+\tfrac14\,\support_K^2(y)\ \ge\ \inner{x}{y}.
+      \]
+    \item Equality condition: \(y\in\partial \gauge_K^2(x)\) iff \(x\in\partial(\tfrac14\support_K^2)(y)\).
+  \end{itemize}
+
+  % Purpose: refresh Legendre–Fenchel duality intuition quickly (why “support” and “gauge” are dual).
+  % Image suggestion: 1D convex function picture: plot f and its Legendre transform f*, with a tangent line picture.
+  \DraftImage{assets/manual/fig-fenchel-1d-intuition.png}{0.28\textheight}
+\end{frame}
+
+\section{Module 5: Clarke dual action principle}
+
+%variant: 5-A (HK2017 reference normalization; safe, but not the talk's preferred viewpoint)
+\begin{frame}{Clarke dual action principle (HK2017 statement)}{\VariantLabel{Variant 5-A}}
+  \begin{itemize}
+    \item Constraint set (HK2017):
+      \[
+        \mathcal{E}^{HK}=\Big\{z\in W^{1,2}([0,1],\R^{2n}):\ \int_0^1 \dot z\,dt=0,\ \int_0^1 \inner{-J\dot z}{z}\,dt=1\Big\}.
+      \]
+    \item Dual functional:
+      \[
+        I_K(z)=\frac14\int_0^1 \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt.
+      \]
+  \end{itemize}
+
+  \begin{block}{Theorem (HK2017, Clarke dual action principle)}
+    \[
+      \cEHZ(K)=\min_{z\in \mathcal{E}^{HK}} \NeedsCheck{2}\,I_K(z).
+    \]
+    Minimizers correspond to minimum-action closed characteristics (up to translation + scaling).
+  \end{block}
+
+  \small
+  \textbf{Note:} I marked the factor \(\NeedsCheck{2}\) red so you can explicitly confirm it; HK2017 uses \(\cEHZ=\min 2I_K\).
+\end{frame}
+
+%variant: 5-B (talk-friendly normalization; free period T + centering)
+\begin{frame}{Talk normalization (free period \(T\) and centering)}{\VariantLabel{Variant 5-B}}
+  \begin{itemize}
+    \item Keep \(I_K\) as
+      \[
+        I_K(z)=\frac14\int_0^T \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt.
+      \]
+    \item We prefer to normalize so that
+      \[
+        A(z)=T,
+        \qquad
+        \int_0^T z(t)\,dt = 0
+        \quad(\text{fix translation}).
+      \]
+    \item Then (for minimizers) we can arrange the bookkeeping so that
+      \[
+        \NeedsCheck{I_K(z_{\min})=T=\cEHZ(K)}.
+      \]
+  \end{itemize}
+
+  \small
+  This avoids the \([0,1]\) normalization and helps keep ``\(T\)'' consistent throughout the talk.
+\end{frame}
+
+%variant: 5-C (explicit rescaling from HK2017 normalization to “A=I=T” normalization)
+\begin{frame}{Normalization check: rescale \(z_0\) on \([0,1]\) to \(z_T\) on \([0,T]\)}{\VariantLabel{Variant 5-C}}
+  \small
+  Start with a minimizer \(z_0\in\mathcal{E}^{HK}\) of \(I_K\) on \([0,1]\), and set
+  \[
+    T := \NeedsCheck{2\,I_K(z_0)} \quad (= \cEHZ(K)\ \text{in HK2017}).
+  \]
+  Define \(z_T:[0,T]\to\R^{2n}\) by
+  \[
+    z_T(t) := \NeedsCheck{\sqrt{2T}}\,z_0\!\Big(\frac{t}{T}\Big).
+  \]
+  Then one checks:
+  \[
+    A(z_T)=T,
+    \qquad
+    I_K(z_T)=T.
+  \]
+
+  \vspace{0.5em}
+  \footnotesize
+  % Purpose: make the scaling bookkeeping explicit so we can later freely talk on [0,T].
+  % No hand-drawn image needed here.
+  I marked the scaling constants in red so you can verify them once and then we can treat them as fixed.
+\end{frame}
+
+%variant: 5-D
+\begin{frame}{Proof idea: why duality is true (smooth case)}{\VariantLabel{Variant 5-D}}
+  \begin{itemize}
+    \item Start from Fenchel inequality:
+      \[
+        \gauge_K^2(x)+\tfrac14\,\support_K^2(y)\ \ge\ \inner{x}{y}.
+      \]
+    \item Plug \(x=z(t)\), \(y=-J\dot z(t)\), integrate over \([0,T]\):
+      \[
+        \int_0^T \gauge_K^2(z)\,dt + I_K(z)\ \ge\ 2A(z).
+      \]
+    \item For a Reeb orbit on \(\partial K\), we have \(\gauge_K\equiv 1\) \(\Rightarrow \int_0^T \gauge_K^2 = T\)
+      and (Reeb parameterization) \(A(z)=T\).
+    \item So \(T + I_K(z)\ge 2T\), hence \(I_K(z)\ge T\).
+    \item Equality \(\Leftrightarrow -J\dot z(t)\in \partial \gauge_K^2(z(t))\) a.e.\ \(\Leftrightarrow\) Hamiltonian/Reeb equation.
+  \end{itemize}
+\end{frame}
+
+%variant: 5-E (where subgradients enter; polytope caveat)
+\begin{frame}{Where non-smoothness enters (polytopes)}{\VariantLabel{Variant 5-E}}
+  \begin{itemize}
+    \item On polytopes, gradients do not exist everywhere.
+    \item Replace \(\nabla\) by the convex subdifferential \(\partial\).
+    \item Hamiltonian equation becomes the inclusion
+      \[
+        \dot\gamma(t)\in J\,\partial \gauge_K^2(\gamma(t))\quad\text{a.e.}
+      \]
+      and closed characteristics correspond to weak critical points of \(I_K\) on \(\mathcal{E}^{HK}\).
+  \end{itemize}
+
+  \small
+  (We will not drown in technicalities today; the rearrangement argument is the main focus.)
+\end{frame}
+
+%variant: break
+\begin{frame}{Break}{\VariantLabel{5--10 min}}
+  \begin{center}
+    \Large Break
+  \end{center}
+  \vspace{0.5em}
+  \small
+  After the break: HK2017 rearrangement proof \(\Rightarrow\) facet-once minimizer.
+\end{frame}
+
+\section{Module 6: Simple minimizer theorem (HK2017)}
+
+\begin{frame}{Main theorem (HK2017): a simple minimum-action orbit}
+  \begin{block}{Theorem (Haim--Kislev, arXiv:1712.03494)}
+    Let \(K\subset\R^{2n}\) be a convex polytope with facets \(F_i\) and outward unit normals \(n_i\).
+    Then there exists a minimum-action closed characteristic \(\gamma\) on \(\partial K\) such that:
     \begin{enumerate}
-      \item \(\dot\gamma\) is piecewise constant, hence \(\gamma\) is polygonal;
+      \item \(\dot\gamma\) is piecewise constant (so \(\gamma\) is polygonal);
       \item for each facet \(F_i\), the set \(\{t:\ \dot\gamma(t)\ \text{is a positive multiple of } Jn_i\}\) is connected.
     \end{enumerate}
     In particular, \(\gamma\) visits the interior of each facet at most once.
   \end{block}
 
-  \vspace{0.5em}
   \small
-  Here \(J\) is the standard complex structure and \(\omega(u,v)=\inner{Ju}{v}\).
+  This is an \textbf{existence} statement: there may be other minimizers that are not simple.
 \end{frame}
 
-\section{Setup}
-
-\begin{frame}{Setup and notation}
+%variant: 6-A (remark about homotopies; optional)
+\begin{frame}{Remark: the manipulations are homotopies}{\VariantLabel{Variant 6-A}}
   \begin{itemize}
-    \item Work in \((\R^{2n},\omega)\), \(\omega(u,v)=\inner{Ju}{v}\), \(\lambda=\tfrac12\inner{Jx}{dx}\).
-    \item Polytope via irredundant half-spaces:
-      \[
-        K=\bigcap_{i=1}^F\{x:\ \inner{x}{n_i}\le h_i\},\qquad \abs{n_i}=1,\ h_i=\support_K(n_i)>0.
-      \]
-    \item Facets: \(F_i = K \cap \{ \inner{x}{n_i}=h_i\}\).
-    \item Facet velocities (Reeb on facet interiors):
-      \[
-        p_i := \frac{2}{h_i}\,J n_i.
-      \]
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Convex-analytic dictionary (support, gauge, polar)}
-  \begin{itemize}
-    \item Support function: \(\support_K(y)=\sup_{x\in K}\inner{x}{y}\).
-    \item Gauge (Minkowski functional): \(\gauge_K(x)=\inf\{r>0:\ x\in rK\}\), so \(\gauge_K\equiv 1\) on \(\partial K\).
-    \item Polar body: \(K^{\polar}=\{y\in\R^{2n}:\support_K(y)\le 1\}\).
-  \end{itemize}
-
-  \begin{block}{Polytope specializations}
-    If \(K=\bigcap_i\{\inner{x}{n_i}\le h_i\}\) is irredundant, then \(\support_K(n_i)=h_i\),
-    and \(K^{\polar}\) is the polytope with vertices \(\{n_i/h_i\}\).
-  \end{block}
-\end{frame}
-
-\begin{frame}{Closed characteristics on a polytope}
-  \begin{itemize}
-    \item A (generalized) closed characteristic is a loop \(\gamma\in W^{1,2}(\T,\partial K)\) with
-      \[
-        \dot\gamma(t)\in \R_{>0}\,\conv\{p_i:\ \gamma(t)\in F_i\}
-        \qquad \text{for a.e. }t.
-      \]
-    \item If \(\gamma\) meets the interior of \(F_i\), then (for a.e. such \(t\)) we have \(\dot\gamma(t)=c\,p_i\) for some \(c>0\),
-      so \(\gamma\) runs along a \emph{straight segment} on that facet.
-    \item The action of a \(T\)-periodic loop \(\gamma\) is
-      \[
-        A(\gamma)=\int_\gamma\lambda=\frac12\int_0^T \inner{-J\dot\gamma(t)}{\gamma(t)}\,dt.
-      \]
-  \end{itemize}
-\end{frame}
-
-\section{Clarke duality}
-
-\begin{frame}{Dual action functional}
-  \begin{itemize}
-    \item Clarke's principle packages the dynamics into a constrained minimization problem on loops.
-    \item Define the constraint set
-      \[
-        E=\Big\{z\in W^{1,2}([0,1],\R^{2n}):\ \int_0^1 \dot z\,dt=0,\ \int_0^1 \inner{-J\dot z}{z}\,dt=1\Big\}.
-      \]
-    \item Define the \emph{dual action functional}
-      \[
-        I_K(z)=\frac14\int_0^1 \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt.
-      \]
-    \item \(I_K\) depends only on the velocity \(\dot z\) (not on \(z(0)\)), and is convex in \(\dot z\).
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Fenchel/Legendre duality: gauge vs support}
-  \begin{itemize}
-    \item For a convex body \(K\subset\R^{2n}\), define the gauge and support functions
-      \[
-        \gauge_K(x)=\inf\{r>0:\ x\in rK\},\qquad \support_K(y)=\sup_{x\in K}\inner{x}{y}.
-      \]
-    \item Their squares are Fenchel dual (up to the factor \(\tfrac14\)):
-      \[
-        \gauge_K^2(x) + \tfrac14\,\support_K^2(y)\ \ge\ \inner{x}{y}.
-      \]
-    \item Equality holds iff \(y\in\partial \gauge_K^2(x)\) (equivalently \(x\in\partial(\tfrac14\,\support_K^2)(y)\)).
+    \item In the proof we modify a dual minimizer \(z\) by:
+      approximation \(\rightarrow\) splitting \(\rightarrow\) rearrangement \(\rightarrow\) rescaling.
+    \item \NeedsCheck{Claim (informal):} each modification can be done continuously (as a homotopy through admissible loops),
+      so we do not ``teleport'' between disconnected minimizer components.
   \end{itemize}
 
   \small
-  This is the pointwise convex-analytic input behind Clarke's dual action principle and the \(z \leftrightarrow \gamma\) correspondence.
+  If you want, we can keep this only as a spoken comment (or remove it entirely).
 \end{frame}
 
-\begin{frame}{Clarke dual action principle (what we use)}
-  \begin{block}{Theorem (Clarke duality, specialized to convex bodies)}
-    For a convex body \(K\subset\R^{2n}\),
-    \[
-      \cEHZ(K)=\min_{z\in E} I_K(z).
-    \]
-    Any minimizer \(z\) corresponds to a minimum-action closed characteristic \(\gamma\) on \(\partial K\)
-    (up to translation and scaling).
-  \end{block}
-
-  \vspace{0.5em}
-  \small
-  For polytopes, ``corresponds'' is understood using subdifferentials / Hamiltonian inclusions.
-\end{frame}
-
-\begin{frame}{From minimizers to orbits (what “corresponds” means)}
-  \begin{itemize}
-    \item For smooth \(K\), critical points of \(I_K\) on \(E\) satisfy an Euler--Lagrange equation which is a Hamiltonian equation.
-    \item For polytopes, one uses the Hamiltonian \(\gauge_K^2\) and replaces \(\nabla\) by the convex subdifferential \(\partial\):
-      \[
-        \dot\gamma(t)\in J\,\partial \gauge_K^2(\gamma(t)) \quad \text{a.e.}
-      \]
-    \item (HK / Abbondandolo) There is a bijection between closed characteristics \(\gamma\) on \(\partial K\) and
-      critical points \(z\) of \(I_K\) on \(E\): there exist \(\lambda>0\), \(b\in\R^{2n}\) with
-      \[
-        z=\lambda\,\gamma + b,
-        \qquad
-        A(\gamma)=2\,I_K(z).
-      \]
-  \end{itemize}
-
-  \small
-  So: proving a structural statement for minimizers of \(I_K\) gives the same structural statement for minimum-action orbits.
-\end{frame}
-
-\begin{frame}{Why polytopes are special for \(I_K\)}
-  \begin{itemize}
-    \item On a polytope, \(\support_K\) is piecewise linear, so \(\support_K^2\) is piecewise quadratic.
-    \item Crucial constant-speed property (HK): if \(\dot z(t)\) stays in a velocity cone of a face, then \(I_K\) is \emph{constant}.
-  \end{itemize}
-
-  \begin{block}{Key observation (informal)}
-    If for a.e.\ \(t\) we have \(\dot z(t)\in c\,\conv\{p_{j_1},\ldots,p_{j_\ell}\}\) for some face \(F_{j_1}\cap\cdots\cap F_{j_\ell}\neq\emptyset\),
-    then \(\support_K(-J\dot z(t))=2c\) a.e., hence \(I_K(z)=c^2\).
+%variant: 6-B
+\begin{frame}{Key polytope input: \(I_K\) is constant on face-cones}{\VariantLabel{Variant 6-B}}
+  \begin{block}{Proposition (HK2017)}
+    If for a.e.\ \(t\) we have \(\dot z(t)\in c\,\conv\{p_{j_1},\ldots,p_{j_\ell}\}\) for some non-empty face
+    \(F_{j_1}\cap\cdots\cap F_{j_\ell}\neq\emptyset\),
+    then \(\support_K(-J\dot z(t))=2c\) a.e.\ and hence \(I_K(z)=c^2\).
   \end{block}
 
   \small
-  So: \(I_K\) does \emph{not} care how we mix/reorder facet velocities, as long as we keep the same scale \(c\).
+  This is the reason rearranging velocities is possible: \(I_K\) depends on \(\dot z\) only via the scale \(c\).
 \end{frame}
 
-\section{Proof idea (simple minimizer)}
-
-\begin{frame}{Step 0: reduce to piecewise affine loops}
-  \begin{itemize}
-    \item Let \(z\in E\) minimize \(I_K\). By the correspondence, \(\dot z(t)\) lies in a face cone:
-      \(\dot z(t)\in c\,\conv\{p_i:\ \text{incident facets at }t\}\) for some \(c>0\).
-    \item Approximate \(z\) in \(W^{1,2}\) by piecewise affine loops \(\zeta_N\) with the \emph{same velocity constraint}
-      \(\dot\zeta_N(t)\in c\,\conv\{p_1,\ldots,p_F\}\) a.e.
-    \item Goal: from each \(\zeta_N\), build a new loop that uses each \(p_i\) at most once, without increasing \(I_K\).
-  \end{itemize}
-
-  \small
-  This is where the rearrangement lemmas enter: they modify the velocity \(\dot z\) while keeping the average \(\int\dot z=0\).
+%variant: 6-C
+\begin{frame}{Proof roadmap (dual side)}{\VariantLabel{Variant 6-C}}
+  \begin{enumerate}
+    \item Start with a dual minimizer \(z\) (Clarke dual action principle).
+    \item Approximate by piecewise affine loops (same velocity cone condition).
+    \item Split convex combinations \(\Rightarrow\) only pure facet velocities remain.
+    \item Rearrange equal velocities to be in one connected time block.
+    \item Rescale to satisfy the constraint again; minimality forces we did not increase \(I_K\).
+    \item Take a limit \(\Rightarrow\) obtain a minimizer with the ``facet-once'' property.
+    \item Translate back to a minimum-action closed characteristic \(\gamma\) on \(\partial K\).
+  \end{enumerate}
 \end{frame}
 
-\begin{frame}{Action of a piecewise-constant loop}
+\begin{frame}{Action of a piecewise-constant loop (order matters)}
   \begin{itemize}
-    \item For the proof we approximate minimizers by loops with piecewise constant velocity.
-    \item Suppose \(\dot z(t)=w_i\) on intervals \(I_i=(\tau_{i-1},\tau_i)\) (a partition of \([0,1]\)).
+    \item Suppose \(z\) is a closed loop and \(\dot z(t)=w_i\) on intervals \(I_i=(\tau_{i-1},\tau_i)\) partitioning \([0,1]\).
   \end{itemize}
 
-  \begin{block}{Area / action formula}
+  \begin{block}{Area / action identity (HK2017)}
     \[
       \int_0^1 \inner{-J\dot z(t)}{z(t)}\,dt
       = \sum_{1\le j<i\le m} |I_i|\,|I_j|\,\omega(w_i,w_j).
@@ -264,169 +526,199 @@
   \end{block}
 
   \small
-  Consequence: the constraint \(\int\inner{-J\dot z}{z}=1\) \emph{does} depend on the \emph{order} of the velocities.
+  So: the constraint depends on the \emph{order} of segments, even though \(I_K\) does not.
 \end{frame}
 
-\begin{frame}{Step 1: break convex combinations (``linear combination'' lemma)}
+%variant: 6-D (uses existing HK2017 figure)
+\begin{frame}{Step 1: split convex combinations}{\VariantLabel{Variant 6-D (uses HK figure)}}
   \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
+    \column{0.58\textwidth}
       \begin{itemize}
-        \item Problem: on lower-dimensional faces, we may have \(\dot z(t)\) as a convex combination of facet velocities.
-        \item Fix \(v_1,\ldots,v_k\in\R^{2n}\). If \(\dot z(t)\in\conv\{v_1,\ldots,v_k\}\), replace a mixed interval by several pure ones.
+        \item On lower-dimensional faces, velocities can be convex combinations of facet velocities.
+        \item We replace a mixed segment by multiple pure segments.
       \end{itemize}
 
-      \begin{block}{Lemma (HK)}
-        There exists a piecewise-affine \(z'\) with \(\dot z'(t)\in\{v_1,\ldots,v_k\}\) a.e.\ and
+      \begin{block}{Lemma (HK2017)}
+        There exists a piecewise affine \(z'\) with \(\dot z'(t)\in\{v_1,\ldots,v_k\}\) a.e.\ and
         \[
           \int_0^1 \inner{-J\dot z'}{z'}\,dt \ \ge\ \int_0^1 \inner{-J\dot z}{z}\,dt.
         \]
       \end{block}
 
-      \small
-      Sketch: splitting adds an ``extra'' term \(\sum_{r < s} a_r a_s\,\omega(v_s,v_r)\); reversing the order flips its sign, so choose the better order.
-
-    \column{0.38\textwidth}
-      \vspace{-0.25em}
-      \begin{center}
-        \includegraphics[width=\textwidth]{linearcombination.pdf}
-
-        \scriptsize Break a convex combination into pure segments.
-      \end{center}
+    \column{0.42\textwidth}
+      \includegraphics[width=\linewidth]{assets/manual/linearcombination.pdf}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Step 2: group equal velocities (``one-speed'' lemma)}
+%variant: 6-E hand-drawn version of the same slide
+\begin{frame}{Step 1: split convex combinations}{\VariantLabel{Variant 6-E (hand-drawn)}} %variant: 6-E
   \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
+    \column{0.58\textwidth}
       \begin{itemize}
-        \item After Step 1, velocities lie in a \emph{finite} set \(\{v_1,\ldots,v_k\}\).
-        \item If the same velocity \(v_j\) appears in multiple disjoint time intervals, make those intervals adjacent.
+        \item Replace a ``mixed'' velocity segment (convex combination) by a sequence of pure segments.
+        \item Choose the order to ensure the action constraint does not decrease.
       \end{itemize}
 
-      \begin{block}{Lemma (HK)}
-        There exists a rearranged piecewise-affine loop \(z'\) such that for every \(j\),
-        \(\{t:\dot z'(t)=v_j\}\) is connected, and
-        \[
-          \int_0^1 \inner{-J\dot z'}{z'}\,dt \ \ge\ \int_0^1 \inner{-J\dot z}{z}\,dt.
-        \]
+      \begin{block}{Lemma (HK2017, informal)}
+        Splitting \(\dot z\in\conv\{v_i\}\) into pure \(v_i\)-segments can be done so that
+        \(\int \inner{-J\dot z}{z}\) does not decrease.
       \end{block}
 
-      \small
-      Sketch: merging two equal-velocity intervals can be done in two directions; the action changes by quantities of opposite sign, so one direction is non-decreasing.
-
-    \column{0.38\textwidth}
-      \vspace{-0.25em}
-      \begin{center}
-        \includegraphics[width=\textwidth]{reorder.pdf}
-
-        \scriptsize Rearrange segments to group equal velocities.
-      \end{center}
+    \column{0.42\textwidth}
+      % Purpose: visualize “convex combination velocity” → “sequence of pure velocities”, and that reversing order flips the sign of the extra term.
+      % Image suggestion: time axis with 1 mixed block labeled “a v_1 + (1-a) v_2”, then split into two blocks v_1 then v_2;
+      % show also the reversed order; annotate “order chosen to increase area constraint”.
+      \DraftImage{assets/manual/fig-lemma-split-convex-combination.png}{0.52\textheight}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Scaling trick: why this produces a minimizer}
-  \begin{itemize}
-    \item Start from a minimizer \(z\in E\) of \(I_K\).
-    \item Apply Step 1 + Step 2 to get \(\tilde z\) with the \emph{same} ``speed scale'' \(c\), hence the same \(I_K(\tilde z)\),
-      but with \(\int\inner{-J\dot{\tilde z}}{\tilde z}\) \emph{not smaller}.
-  \end{itemize}
+%variant: 6-F (uses existing HK2017 reorder figure)
+\begin{frame}{Step 2: group equal velocities}{\VariantLabel{Variant 6-F (uses HK figure)}}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+      \begin{itemize}
+        \item After splitting, velocities lie in a finite set \(\{v_1,\ldots,v_k\}\).
+        \item If the same \(v_j\) appears in disjoint intervals, merge them by rearrangement.
+      \end{itemize}
 
-  \begin{block}{Renormalize back to \(E\)}
-    Set \(A(\tilde z)=\int_0^1\inner{-J\dot{\tilde z}}{\tilde z}\,dt\) and \(z^*=\tilde z/\sqrt{A(\tilde z)}\).
-    Then \(z^*\in E\) and
-    \[
-      I_K(z^*)=\frac{I_K(\tilde z)}{A(\tilde z)}\ \le\ I_K(z).
-    \]
-  \end{block}
+      \begin{block}{Lemma (HK2017)}
+        There exists a rearranged loop \(z'\) so that \(\{t:\dot z'(t)=v_j\}\) is connected for each \(j\),
+        and \(\int \inner{-J\dot z'}{z'} \ge \int \inner{-J\dot z}{z}\).
+      \end{block}
+
+    \column{0.42\textwidth}
+      \includegraphics[width=\linewidth]{assets/manual/reorder.pdf}
+  \end{columns}
+\end{frame}
+
+%variant: 6-G hand-drawn version of the same slide
+\begin{frame}{Step 2: group equal velocities}{\VariantLabel{Variant 6-G (hand-drawn)}} %variant: 6-G
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+      \begin{itemize}
+        \item Reorder segments so each facet direction appears in one connected time block.
+        \item Choose the reorder direction that does not decrease the area constraint.
+      \end{itemize}
+
+    \column{0.42\textwidth}
+      % Purpose: show “same velocity appears twice” → “merge intervals” and that one merge direction increases the area constraint.
+      % Image suggestion: time axis with v_1, v_2, v_1 blocks; show two possible merges (remove left vs remove right) and mark “choose good sign”.
+      \DraftImage{assets/manual/fig-lemma-group-equal-velocities.png}{0.52\textheight}
+  \end{columns}
+\end{frame}
+
+%variant: 6-H
+\begin{frame}{Rescaling trick: why this preserves minimality}{\VariantLabel{Variant 6-H}}
+  \begin{itemize}
+    \item Starting from a dual minimizer \(z\), the lemmas produce \(\tilde z\) with:
+      \begin{itemize}
+        \item same ``speed scale'' \(c\) \(\Rightarrow\) same \(I_K(\tilde z)\),
+        \item \(\int_0^1 \inner{-J\dot{\tilde z}}{\tilde z}\,dt \ge 1\).
+      \end{itemize}
+    \item Renormalize:
+      \[
+        \alpha := \int_0^1 \inner{-J\dot{\tilde z}}{\tilde z}\,dt,
+        \qquad
+        z^* := \frac{\tilde z}{\sqrt{\alpha}}.
+      \]
+    \item Then \(z^*\in\mathcal{E}^{HK}\) and \(I_K(z^*)=I_K(\tilde z)/\alpha \le I_K(z)\).
+  \end{itemize}
 
   \small
-  Therefore there exists an \(I_K\)-minimizer whose velocity uses each facet velocity at most once.
+  So there exists a minimizer whose facet velocities appear at most once.
 \end{frame}
 
-\begin{frame}{Step 3: pass to a limiting simple minimizer}
+%variant: 6-I
+\begin{frame}{Compactness: extract a limiting simple minimizer}{\VariantLabel{Variant 6-I}}
   \begin{itemize}
-    \item After Step 1+2, each approximant can be written as
+    \item After simplification, each loop is encoded by:
       \[
-        \dot z_N(t)=c_N\,p_{\sigma_N(i)} \quad \text{on disjoint intervals }I^N_i,
+        (\sigma,(T_1,\ldots,T_F))\in S_F\times\Delta^{F-1},
       \]
-      where each facet velocity \(p_i\) appears at most once.
-    \item Such a loop is encoded by \((\sigma_N,(|I^N_1|,\ldots,|I^N_F|))\in S_F\times\Delta^{F-1}\)
-      (a permutation + a point in the simplex of time-lengths).
-    \item Since \(S_F\) is finite and \(\Delta^{F-1}\) is compact, take a convergent subsequence:
-      \(\sigma_N=\sigma\) eventually and \(|I^N_i|\to T_i\).
-    \item The limit yields a loop \(z^*\in E\) with the same structural properties and \(I_K(z^*)=\min_E I_K\).
+      where \(\sigma\) is the facet order and \(T_i\) are (normalized) segment lengths.
+    \item \(S_F\) is finite and \(\Delta^{F-1}\) is compact \(\Rightarrow\) take a convergent subsequence.
+    \item The limit loop is still in \(\mathcal{E}^{HK}\) and remains a minimizer by lower-semicontinuity/continuity.
   \end{itemize}
-
-  \small
-  Finally, apply the correspondence \(z^* \leftrightarrow \gamma\) to obtain a minimum-action orbit that visits each facet at most once.
 \end{frame}
 
-\begin{frame}{(Optional) combinatorial encoding (HK formula)}
+%variant: 6-J
+\begin{frame}{Back to geometry: facet-once minimum-action closed characteristic}{\VariantLabel{Variant 6-J}}
   \begin{itemize}
-    \item A simple minimizer has velocities \(c\,p_{\sigma(i)}\) on intervals of length \(T_i\ge0\).
-    \item Constraints become:
+    \item Clarke correspondence: a dual minimizer \(z^*\) produces a minimum-action closed characteristic \(\gamma\subset\partial K\)
+      (up to translation/scaling).
+    \item The connected-time-block property for velocities transfers to:
       \[
-        \sum_{i=1}^F T_i\,p_{\sigma(i)}=0
-        \quad\Longleftrightarrow\quad
-        \sum_{i=1}^F \beta_i\,n_i=0
-        \quad\text{with}\quad
-        \beta_{\sigma(i)}:=\frac{T_i}{h_{\sigma(i)}}.
-      \]
-    \item Action normalization gives a quadratic form in \(\beta\):
-      \[
-        Q(\sigma,\beta)=\sum_{1\le j<i\le F}\beta_{\sigma(i)}\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)}).
+        \gamma \text{ visits each facet interior at most once.}
       \]
   \end{itemize}
 
-  \begin{block}{Result}
-    \[
-      \cEHZ(K)=\frac{1}{2}\Big[\max_{\sigma,\beta} Q(\sigma,\beta)\Big]^{-1}
-      \qquad
-      (\beta_i\ge0,\ \sum\beta_i h_i=1,\ \sum\beta_i n_i=0).
-    \]
-  \end{block}
-\end{frame}
-
-\begin{frame}{Remarks / caveats}
-  \begin{itemize}
-    \item The theorem is an \emph{existence} statement: there may be other minimum-action orbits that revisit facets.
-    \item Degeneracies are common when \(K\) has Lagrangian 2-faces (velocity can slide in a cone).
-    \item Example: for the standard simplex in \(\R^4\), an action minimizer can switch between facet directions repeatedly on a Lagrangian face,
-      but there still exists a minimizer with the “facet-once” property.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Conclusion: a simple minimum-action orbit}
-  \begin{itemize}
-    \item By Clarke's correspondence, a minimizer \(z^*\in E\) yields a minimum-action closed characteristic \(\gamma\) on \(\partial K\).
-    \item For polytopes, \(\dot\gamma\) is piecewise constant with values \(c\,p_i\).
-    \item The connectivity property for \(\{t:\dot z^*(t)=c\,p_i\}\) translates to:
-      \(\gamma\) meets each facet interior at most once.
-  \end{itemize}
-
-  \begin{alertblock}{Main takeaway}
-    The minimum-action problem admits a \emph{combinatorial} minimizer: a polygonal orbit with \(\le F\) segments, one per facet at most.
+  \begin{alertblock}{Takeaway}
+    Minimum-action on a polytope admits a \emph{combinatorial} minimizer: a polygonal orbit with at most one segment per facet.
   \end{alertblock}
+\end{frame}
+
+\section{Module 7: Computational takeaway (optional)}
+
+%variant: 7-A (purely conceptual; recommended)
+\begin{frame}{Computation takeaway}{\VariantLabel{Variant 7-A}}
+  \begin{itemize}
+    \item After HK2017, the search space for a minimizer can be parameterized by:
+      \begin{itemize}
+        \item a facet order \(\sigma\) (combinatorial),
+        \item segment lengths / time weights \((T_i)\) (continuous, but finite-dimensional),
+      \end{itemize}
+      under constraints:
+      \begin{itemize}
+        \item closedness (sum of segment vectors \(=0\)),
+        \item area/action constraint (a quadratic constraint coming from \(\int\inner{-J\dot z}{z}\)).
+      \end{itemize}
+    \item This is ``almost'' a quadratic program once \(\sigma\) is fixed.
+  \end{itemize}
+\end{frame}
+
+%variant: 7-B more formula-heavy (only keep if you like it)
+\begin{frame}{Computation takeaway (more explicit)}{\VariantLabel{Variant 7-B}} %variant: 7-B
+  \small
+  For a simple loop with velocities \(p_{\sigma(i)}=\frac{2}{h_{\sigma(i)}}Jn_{\sigma(i)}\) and weights \(\beta_i\ge 0\) with
+  \[
+    \sum_i \beta_i h_i = 1,
+    \qquad
+    \sum_i \beta_i n_i = 0,
+  \]
+  define
+  \[
+    Q(\sigma,\beta)=\sum_{1\le j<i\le F}\beta_{\sigma(i)}\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)}).
+  \]
+  HK2017 gives
+  \[
+    \cEHZ(K)=\frac{1}{2}\Big[\max_{\sigma,\beta} Q(\sigma,\beta)\Big]^{-1}.
+  \]
+
+  \small
+  \NeedsCheck{If you keep this variant, I’ll align all constants with your final Clarke-duality normalization.}
 \end{frame}
 
 \section{Meta}
 
-\begin{frame}{References (minimal)}
+\begin{frame}{References (arXiv-first)}
   \footnotesize
   \begin{itemize}
-    \item F.\,H.\ Clarke (1979): \emph{A classical variational principle for periodic Hamiltonian trajectories}.
-    \item A.\ Abbondandolo, P.\ Majer (2015): \emph{A non-squeezing theorem for convex symplectic images of the Hilbert ball}.
-    \item P.\ Haim--Kislev (2017): \emph{On the symplectic size of convex polytopes} (arXiv:1712.03494).
-    \item S.\ Artstein-Avidan, Y.\ Ostrover (2014): \emph{Bounds for Minkowski billiard trajectories in convex bodies}.
+    \item P.\ Haim--Kislev, \emph{On the symplectic size of convex polytopes}, arXiv:\,1712.03494 (v3).
+    \item P.\ Haim--Kislev, Y.\ Ostrover, \emph{A Counterexample to Viterbo's Conjecture}, arXiv:\,2405.16513.
+    \item J.\ Chaidez, M.\ Hutchings, \emph{Computational methods for testing Viterbo's conjecture via combinatorial Reeb dynamics}, arXiv:\,2008.10111.
+    \item \NeedsCheck{F.\,H.\ Clarke (1979): original dual action principle reference (add exact journal info or drop).}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Build info}
-  \small
-  \begin{itemize}
-    \item Build date: \TalkBuildDate
-    \item Source commit: \texttt{\TalkGitCommit}
-  \end{itemize}
+%variant: Z-B
+\begin{frame}{Pipeline takeaway (final slide)}{\VariantLabel{Variant Z-B}}
+  \begin{enumerate}
+    \item Viterbo-type problems \(\Rightarrow\) need minimum-action closed characteristics \(\Rightarrow\) need \(\cEHZ(K)\).
+    \item Polytopes are computationally accessible, but the primal minimization is hard.
+    \item Clarke dual action principle: rewrite as a dual minimization where the functional depends only on \(\dot z\).
+    \item Polytope special: \(I_K\) is insensitive to mixing/reordering facet velocities.
+    \item Rearrangement \(\Rightarrow\) \textbf{existence of a facet-once minimizer} \(\Rightarrow\) finite/combinatorial search space.
+  \end{enumerate}
 \end{frame}
 
 \end{document}
