@@ -177,15 +177,19 @@
 \end{frame}
 
 \begin{frame}{Strong Viterbo (very informal)}
-  \begin{itemize}
-    \item There are many symplectic capacities \(c(\cdot)\).
-    \item \textbf{Strong Viterbo (informal):} on convex bodies, all reasonable capacities agree.
-    \item In particular, a capacity becomes computable if we can compute \(\cEHZ\).
-  \end{itemize}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.56\textwidth}
+      \begin{itemize}
+        \item There are many symplectic capacities \(c(\cdot)\).
+        \item \textbf{Strong Viterbo (informal):} on convex bodies, all reasonable capacities agree.
+        \item In particular, a capacity becomes computable if we can compute \(\cEHZ\).
+      \end{itemize}
 
-  % Purpose: give the audience a mental hook that “this is not random — it’s a central conjecture theme”.
-  % Image suggestion: a “map” bubble diagram: Convex bodies → capacities → equal? → Viterbo/Mahler landscape.
-  \DraftImage{assets/manual/fig-viterbo-landscape.png}{0.38\textheight}
+    \column{0.44\textwidth}
+      % Purpose: give the audience a mental hook that “this is not random — it’s a central conjecture theme”.
+      % Image suggestion: a “map” bubble diagram: Convex bodies → capacities → equal? → Viterbo/Mahler landscape.
+      \DraftImage{assets/manual/fig-viterbo-landscape.png}{0.62\textheight}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Why polytopes? (computationally accessible)}
@@ -239,24 +243,28 @@
 \section{Module 2: Polytopes + generalized dynamics}
 
 \begin{frame}{Polytopes: facets, normals, heights, facet velocities}
-  \begin{itemize}
-    \item Write \(K\subset\R^4\) (full-dimensional, \(0\in\mathrm{int}(K)\)) as an irredundant intersection of halfspaces:
-      \[
-        K=\bigcap_{i=1}^F\{x:\ \inner{x}{n_i}\le h_i\},
-        \qquad
-        \abs{n_i}=1,\quad h_i=\support_K(n_i)>0.
-      \]
-    \item Facet \(F_i = \{x\in K:\ \inner{x}{n_i}=h_i\}\).
-    \item ``Facet Reeb velocity'' (HK2017):
-      \[
-        p_i := \frac{2}{h_i}\,J n_i.
-      \]
-  \end{itemize}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+      \begin{itemize}
+        \item Write \(K\subset\R^4\) (full-dimensional, \(0\in\mathrm{int}(K)\)) as an irredundant intersection of halfspaces:
+          \[
+            K=\bigcap_{i=1}^F\{x:\ \inner{x}{n_i}\le h_i\},
+            \qquad
+            \abs{n_i}=1,\quad h_i=\support_K(n_i)>0.
+          \]
+        \item Facet \(F_i = \{x\in K:\ \inner{x}{n_i}=h_i\}\).
+        \item ``Facet Reeb velocity'' (HK2017):
+          \[
+            p_i := \frac{\NeedsCheck{2}}{h_i}\,J n_i.
+          \]
+      \end{itemize}
 
-  % Purpose: familiarize the symbols F_i, n_i, h_i, p_i and their geometric meaning (normal vs tangent velocity).
-  % Image suggestion: 3D mock polytope with 3 facets labeled F_1,F_2,F_3; outward unit normals n_i; tangent arrows p_i.
-  % Add a [3D mock] warning; on the side write p_i = (2/h_i) J n_i and “p_i ⟂ n_i”.
-  \DraftImage{assets/manual/fig-polytope-normals-reeb.png}{0.34\textheight}
+    \column{0.42\textwidth}
+      % Purpose: familiarize the symbols F_i, n_i, h_i, p_i and their geometric meaning (normal vs tangent velocity).
+      % Image suggestion: 3D mock polytope with 3 facets labeled F_1,F_2,F_3; outward unit normals n_i; tangent arrows p_i.
+      % Add a [3D mock] warning; on the side write p_i = (2/h_i) J n_i and “p_i ⟂ n_i”.
+      \DraftImage{assets/manual/fig-polytope-normals-reeb.png}{0.62\textheight}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Generalized closed characteristics on a polytope}
@@ -324,45 +332,89 @@
 \section{Module 4: Legendre--Fenchel (the convex-analytic engine)}
 
 \begin{frame}{Support vs gauge: the key inequality}
-  \begin{itemize}
-    \item Support function: \(\support_K(y)=\sup_{x\in K}\inner{x}{y}\).
-    \item Gauge (Minkowski functional): \(\gauge_K(x)=\inf\{r>0:\ x\in rK\}\) (so \(\gauge_K\equiv 1\) on \(\partial K\)).
-    \item Fenchel inequality (pointwise in \(\R^4\)):
-      \[
-        \gauge_K^2(x)+\tfrac14\,\support_K^2(y)\ \ge\ \inner{x}{y}.
-      \]
-    \item Equality condition: \(y\in\partial \gauge_K^2(x)\) iff \(x\in\partial(\tfrac14\support_K^2)(y)\).
-  \end{itemize}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+      \begin{itemize}
+        \item Support function: \(\support_K(y)=\sup_{x\in K}\inner{x}{y}\).
+        \item Gauge (Minkowski functional): \(\gauge_K(x)=\inf\{r>0:\ x\in rK\}\) (so \(\gauge_K\equiv 1\) on \(\partial K\)).
+        \item Fenchel inequality (pointwise in \(\R^4\)):
+          \[
+            \gauge_K^2(x)+\NeedsCheck{\tfrac14}\,\support_K^2(y)\ \ge\ \inner{x}{y}.
+          \]
+        \item Equality condition:
+          \(y\in\partial \gauge_K^2(x)\) iff \(x\in\partial(\NeedsCheck{\tfrac14}\support_K^2)(y)\).
+      \end{itemize}
 
-  % Purpose: refresh Legendre–Fenchel duality intuition quickly (why “support” and “gauge” are dual).
-  % Image suggestion: 1D convex function picture: plot f and its Legendre transform f*, with a tangent line picture.
-  \DraftImage{assets/manual/fig-fenchel-1d-intuition.png}{0.28\textheight}
+    \column{0.42\textwidth}
+      % Purpose: refresh Legendre–Fenchel duality intuition quickly (why “support” and “gauge” are dual).
+      % Image suggestion: 1D convex function picture: plot f and its Legendre transform f*, with a tangent line picture.
+      \DraftImage{assets/manual/fig-fenchel-1d-intuition.png}{0.62\textheight}
+  \end{columns}
 \end{frame}
 
 \section{Module 5: Clarke dual action principle}
 
-%variant: 5-A (HK2017 reference normalization; safe, but not the talk's preferred viewpoint)
-\begin{frame}{Clarke dual action principle (HK2017 statement)}{\VariantLabel{Variant 5-A}}
-  \begin{itemize}
-    \item Constraint set (HK2017):
-      \[
-        \mathcal{E}^{HK}=\Big\{z\in W^{1,2}([0,1],\R^{2n}):\ \int_0^1 \dot z\,dt=0,\ \int_0^1 \inner{-J\dot z}{z}\,dt=1\Big\}.
-      \]
-    \item Dual functional:
-      \[
-        I_K(z)=\frac14\int_0^1 \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt.
-      \]
-  \end{itemize}
+%variant: 5-A
+\begin{frame}{Clarke dual action principle: primal vs dual problems}{\VariantLabel{Variant 5-A}} %variant: 5-A
+  \begin{columns}[T,onlytextwidth]
+    \column{0.50\textwidth}
+      \begin{block}{Primal problem (geometry on \(\partial K\))}
+        \[
+          \cEHZ(K)
+          = \min\Bigl\{A(\gamma):\ \gamma\subset\partial K,\ \dot\gamma(t)\in JN_K(\gamma(t))\ \text{a.e.}\Bigr\}.
+        \]
+      \end{block}
 
-  \begin{block}{Theorem (HK2017, Clarke dual action principle)}
-    \[
-      \cEHZ(K)=\min_{z\in \mathcal{E}^{HK}} \NeedsCheck{2}\,I_K(z).
-    \]
-    Minimizers correspond to minimum-action closed characteristics (up to translation + scaling).
+      \begin{itemize}
+        \item Variable: \(\gamma:[0,T]\to\partial K\) (generalized closed characteristic / Reeb orbit).
+        \item Hard constraint: \(\gamma(t)\in\partial K\) for all \(t\).
+        \item Objective: minimize the symplectic action \(A(\gamma)=\int_\gamma \lambda_0\).
+      \end{itemize}
+
+    \column{0.50\textwidth}
+      \begin{block}{Dual problem (convex analysis on loops in \(\R^{2n}\))}
+        \[
+          I_K(z)=\NeedsCheck{\frac14}\int_0^1 \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt,
+          \qquad
+          z\in\mathcal{E}^{HK}.
+        \]
+        \[
+          \mathcal{E}^{HK}
+          =
+          \Bigl\{
+            z\in W^{1,2}([0,1],\R^{2n}):
+            \int_0^1 \dot z\,dt=0,\
+            \int_0^1 \inner{-J\dot z}{z}\,dt=1
+          \Bigr\}.
+        \]
+      \end{block}
+
+      \begin{itemize}
+        \item Variable: \(z:[0,1]\to\R^{2n}\) (not constrained to \(\partial K\)).
+        \item The functional depends only on the \emph{velocity} \(-J\dot z\).
+        \item The constraint \(\int\inner{-J\dot z}{z}=1\) prevents collapse to \(0\).
+      \end{itemize}
+  \end{columns}
+\end{frame}
+
+%variant: 5-A2
+\begin{frame}{Clarke dual action principle: critical points correspond}{\VariantLabel{Variant 5-A2}} %variant: 5-A2
+  \begin{block}{Theorem (Clarke dual action principle; HK2017 normalization)}
+    Let \(K\subset\R^{2n}\) be a convex body.
+    Then:
+    \begin{enumerate}
+      \item Critical points of \(I_K|_{\mathcal{E}^{HK}}\) correspond \textbf{1:1} to closed characteristics on \(\partial K\),
+        up to the natural symmetries (reparametrization and translation of \(z\)).
+      \item Minimizers correspond to \textbf{minimum-action} closed characteristics, and
+        \[
+          \cEHZ(K)=\min_{z\in \mathcal{E}^{HK}} \NeedsCheck{2}\,I_K(z).
+        \]
+    \end{enumerate}
   \end{block}
 
   \small
-  \textbf{Note:} I marked the factor \(\NeedsCheck{2}\) red so you can explicitly confirm it; HK2017 uses \(\cEHZ=\min 2I_K\).
+  \textbf{What to remember:} primal = hard constraint \(\gamma(t)\in\partial K\); dual = hard constraint is moved into
+  \(\mathcal{E}^{HK}\), while \(I_K\) becomes a velocity-only functional.
 \end{frame}
 
 %variant: 5-B (talk-friendly normalization; free period T + centering)
@@ -493,7 +545,7 @@
   \begin{block}{Proposition (HK2017)}
     If for a.e.\ \(t\) we have \(\dot z(t)\in c\,\conv\{p_{j_1},\ldots,p_{j_\ell}\}\) for some non-empty face
     \(F_{j_1}\cap\cdots\cap F_{j_\ell}\neq\emptyset\),
-    then \(\support_K(-J\dot z(t))=2c\) a.e.\ and hence \(I_K(z)=c^2\).
+    then \(\support_K(-J\dot z(t))=\NeedsCheck{2}c\) a.e.\ and hence \(I_K(z)=c^2\).
   \end{block}
 
   \small
