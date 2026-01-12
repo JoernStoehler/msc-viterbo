@@ -374,23 +374,24 @@
     \column{0.50\textwidth}
       \begin{block}{Dual problem (convex analysis on loops in \(\R^{2n}\))}
         \[
-          I_K(z)=\NeedsCheck{\frac14}\int_0^1 \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt,
+          I_K(z)=\NeedsCheck{\frac14}\int_0^T \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt,
           \qquad
-          z\in\mathcal{E}^{HK}.
+          z\in\mathcal{E}^{T}.
         \]
         \[
-          \mathcal{E}^{HK}
+          \mathcal{E}^{T}
           =
           \Bigl\{
-            z\in W^{1,2}([0,1],\R^{2n}):
-            \int_0^1 \dot z\,dt=0,\
-            \int_0^1 \inner{-J\dot z}{z}\,dt=1
+            z\in W^{1,2}([0,T],\R^{2n}):
+            z(0)=z(T),\
+            \int_0^T z\,dt=0,\
+            \int_0^T \inner{-J\dot z}{z}\,dt=1
           \Bigr\}.
         \]
       \end{block}
 
       \begin{itemize}
-        \item Variable: \(z:[0,1]\to\R^{2n}\) (not constrained to \(\partial K\)).
+        \item Variable: \(z:[0,T]\to\R^{2n}\) (not constrained to \(\partial K\)).
         \item The functional depends only on the \emph{velocity} \(-J\dot z\).
         \item The constraint \(\int\inner{-J\dot z}{z}=1\) prevents collapse to \(0\).
       \end{itemize}
@@ -399,22 +400,22 @@
 
 %variant: 5-A2
 \begin{frame}{Clarke dual action principle: critical points correspond}{\VariantLabel{Variant 5-A2}} %variant: 5-A2
-  \begin{block}{Theorem (Clarke dual action principle; HK2017 normalization)}
+  \begin{block}{Theorem (Clarke dual action principle; talk normalization on \([0,T]\))}
     Let \(K\subset\R^{2n}\) be a convex body.
     Then:
     \begin{enumerate}
-      \item Critical points of \(I_K|_{\mathcal{E}^{HK}}\) correspond \textbf{1:1} to closed characteristics on \(\partial K\),
-        up to the natural symmetries (reparametrization and translation of \(z\)).
+      \item Critical points of \(I_K|_{\mathcal{E}^{T}}\) correspond \textbf{1:1} to closed characteristics on \(\partial K\),
+        up to the natural symmetries (\NeedsCheck{time-shift/reparametrization?} and translation of \(z\)).
       \item Minimizers correspond to \textbf{minimum-action} closed characteristics, and
         \[
-          \cEHZ(K)=\min_{z\in \mathcal{E}^{HK}} \NeedsCheck{2}\,I_K(z).
+          \cEHZ(K)=\min_{z\in \mathcal{E}^{T}} \NeedsCheck{2}\,I_K(z).
         \]
     \end{enumerate}
   \end{block}
 
   \small
   \textbf{What to remember:} primal = hard constraint \(\gamma(t)\in\partial K\); dual = hard constraint is moved into
-  \(\mathcal{E}^{HK}\), while \(I_K\) becomes a velocity-only functional.
+  \(\mathcal{E}^{T}\), while \(I_K\) becomes a velocity-only functional.
 \end{frame}
 
 %variant: 5-B (talk-friendly normalization; free period T + centering)
