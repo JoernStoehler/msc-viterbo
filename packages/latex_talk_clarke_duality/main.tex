@@ -688,12 +688,11 @@
 \begin{frame}{Step 1: Approximation by piecewise affine loops}
   \begin{itemize}
     \item Start with a minimizer \(z\) of the dual problem.
-    \item Approximate \(z\) in \(W^{1,2}\) by piecewise affine loops \(z_N\) (polygonal in time).
+    \item Approximate \(z\) in \(W^{1,2}\) by piecewise affine loops \(z_N\).
     \item Ensure \(\dot z_N(t)\) stays in the same allowed cone:
       \[
         \dot z_N(t)\in \mathrm{conv}\{R_i\}\quad\text{a.e.}
       \]
-      (so we never leave the polytope-type dynamics).
     \item Then \(A(z_N)\to A(z)\) and \(I_K(z_N)\to I_K(z)\) by continuity of the integrals.
   \end{itemize}
 
@@ -706,17 +705,21 @@
 
 \begin{frame}{Step 2: Split convex combinations into pure facet velocities}
   \begin{itemize}
-    \item On lower-dimensional faces, we may have mixed velocities:
+    \item We may have mixed velocities (note that in the dual problem we do not track what facets \(z\) lies on).
       \[
-        \dot z_N(t)\in \mathrm{conv}\{R_{i_1},\ldots,R_{i_k}\}.
+        \dot z_N(t)\in \mathrm{conv}\{R_{1},\ldots,R_{F}\}.
       \]
     \item Replace each mixed segment by a concatenation of segments with \emph{pure} velocities \(R_{i_j}\).
     \item Choose the time order so that the action/area constraint does not decrease:
       \[
         A(z_N') \ge A(z_N).
       \]
-    \item Key input: on a face-cone, \(\support_K(-J\dot z)\) depends only on the scale,
-      so \(I_K\) does not get worse under splitting.
+    \item Possible since reversing the time order reverses the change in area.
+    \item For pure paths we have
+      \[
+        I_K(z_N') = T
+      \]
+      So the functional changed only slightly.
   \end{itemize}
 
   % TODO(Joern): blackboard: show the 2-segment "swap" identity (order matters for area).
@@ -734,7 +737,8 @@
       \[
         A(z_N'') \ge A(z_N').
       \]
-    \item The functional \(I_K\) is unchanged by this rearrangement (it depends only on the velocity scale / time spent).
+    \item Again possible since reversing the pair reverses the change in area.
+    \item The functional \(I_K\) is unchanged by this rearrangement (it depends only on the velocity / time spent).
   \end{itemize}
 
   % TODO(Joern): blackboard: draw the "time blocks" picture; explain why one direction increases the symplectic area.
@@ -747,13 +751,15 @@
 \begin{frame}{Step 4: Renormalize to restore the action constraint}
   \begin{itemize}
     \item After Steps 2--3, we may have increased the action:
-      \(\alpha := \frac{A(z_N'')}{T} \ge 1\).
-    \item Rescale to restore the constraint:
+      \(\frac{A(z_N'')}{T} \ge A(z_N)\)
+    \item Scale the time spent on each sigment by factor $\beta$ to restore the constraint:
       \[
-        z_N^* := \frac{1}{\sqrt{\alpha}}\,z_N''.
+        A(z_N''') = T_N''' = T \cdot \beta = A(z_N'') \beta^2
       \]
-    \item Then \(A(z_N^*)=T\), and \(I_K(z_N^*) = \frac{1}{\alpha} I_K(z_N'') \le I_K(z_N'')\).
-    \item By minimality, this shows we did not ``pay'' for simplification.
+      \[
+        \beta = T / A(z_N'')
+      \]
+    \item Then \(A(z_N''')=T'''\), and \(I_K(z_N''') = \beta I_K(z_N'') = \beta T = T_N''' \)
   \end{itemize}
 
   % TODO(Joern): blackboard: scaling laws: A(\lambda z)=\lambda^2 A(z), I_K(\lambda z)=\lambda^2 I_K(z).
@@ -769,9 +775,9 @@
       \[
         (\text{facet order } \sigma,\ \text{segment lengths } (|I_i|)).
       \]
-    \item The order set is finite, and the normalized length simplex is compact.
-    \item Take a minimizing sequence of simple loops and extract a convergent subsequence.
-    \item The limit is still feasible and minimizes \(I_K\), hence gives a simple minimizer.
+    \item The order set is finite, and the set of segment lengths that fulfills our constraints is compact.
+    \item Take an approximation sequence, take their simple loops and extract a convergent subsequence.
+    \item We get by \(A(z_N)\to A(z)\) and \(I_K(z_N) \to I_K(z)\) and minimality of \(I_K(z)\) and by \(I_K(z_N''') = T^2 / A_(z_N'')\) that \(T^*=T\), \(I_K(z^*) = I_K(z)\), so we have found a simple minimum.
   \end{itemize}
 
   % TODO(Joern): say: "this is where functional-analytic details hide; we use standard compactness + l.s.c."
