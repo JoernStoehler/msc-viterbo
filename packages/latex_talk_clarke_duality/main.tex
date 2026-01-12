@@ -714,41 +714,24 @@
 
 %variant: 7-A (purely conceptual; recommended)
 \begin{frame}{Computation takeaway}{\VariantLabel{Variant 7-A}}
+  \small
+  \begin{block}{Precursor (what we actually optimize)}
+    We optimize the dual functional
+    \[
+      I_K(z)=\NeedsCheck{\frac14}\int_0^T \support_K^2\!\bigl(-J\dot z(t)\bigr)\,dt
+    \]
+    over loops \(z:[0,T]\to\R^{2n}\) with \(z(0)=z(T)\) and \(\int_0^T z(t)\,dt=0\),
+    subject to the action constraint
+    \[
+      A(z)=\frac12\int_0^T \inner{-J\dot z(t)}{z(t)}\,dt \;=\; T.
+    \]
+  \end{block}
+
   \begin{itemize}
-    \item After HK2017, the search space for a minimizer can be parameterized by:
-      \begin{itemize}
-        \item a facet order \(\sigma\) (combinatorial),
-        \item segment lengths / time weights \((T_i)\) (continuous, but finite-dimensional),
-      \end{itemize}
-      under constraints:
-      \begin{itemize}
-        \item closedness (sum of segment vectors \(=0\)),
-        \item area/action constraint (a quadratic constraint coming from \(\int\inner{-J\dot z}{z}\)).
-      \end{itemize}
-    \item This is ``almost'' a quadratic program once \(\sigma\) is fixed.
+    \item \textbf{One sentence:} dual minimizers correspond to minimum-action closed characteristics on \(\partial K\).
+    \item \textbf{Computation note:} HK2017 reduces the search to polygonal loops with velocities in a finite set
+      \(\{p_i\}\), so (after fixing a facet order) this becomes a finite-dimensional quadratic program.
   \end{itemize}
-\end{frame}
-
-%variant: 7-B more formula-heavy (only keep if you like it)
-\begin{frame}{Computation takeaway (more explicit)}{\VariantLabel{Variant 7-B}} %variant: 7-B
-  \small
-  For a simple loop with velocities \(p_{\sigma(i)}=\frac{2}{h_{\sigma(i)}}Jn_{\sigma(i)}\) and weights \(\beta_i\ge 0\) with
-  \[
-    \sum_i \beta_i h_i = 1,
-    \qquad
-    \sum_i \beta_i n_i = 0,
-  \]
-  define
-  \[
-    Q(\sigma,\beta)=\sum_{1\le j<i\le F}\beta_{\sigma(i)}\beta_{\sigma(j)}\,\omega(n_{\sigma(i)},n_{\sigma(j)}).
-  \]
-  HK2017 gives
-  \[
-    \cEHZ(K)=\frac{1}{2}\Big[\max_{\sigma,\beta} Q(\sigma,\beta)\Big]^{-1}.
-  \]
-
-  \small
-  \NeedsCheck{If you keep this variant, I’ll align all constants with your final Clarke-duality normalization.}
 \end{frame}
 
 \section{Meta}
