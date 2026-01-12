@@ -27,13 +27,17 @@
 % Hand-drawn figure placeholder (last-minute workflow):
 % - J\"orn draws directly into the final PDF (tablet markup).
 % - Therefore we always render a big empty box (no PNG include, no filepath text).
-% - The first argument is kept only to preserve call sites / allow searching in source.
-\newcommand{\DraftImage}[2]{%
+% - The label argument is kept only to preserve call sites / allow searching in source.
+% - Optional arg allows forcing the box width (useful if some environment shrinks \linewidth unexpectedly).
+\newcommand{\DraftImage}[3][\linewidth]{%
+  \begingroup%
+  \setlength{\fboxsep}{0pt}%
   \fbox{%
-    \begin{minipage}[c][#2][c]{\linewidth}%
+    \begin{minipage}[c][#3][c]{\dimexpr#1-2\fboxrule\relax}%
       \centering%
     \end{minipage}%
   }%
+  \endgroup%
 }
 
 % Beamer theorem blocks (numbered)

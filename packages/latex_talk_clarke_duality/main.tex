@@ -35,6 +35,7 @@
 % - Slide variants are separate frames, tagged in code with: %variant: ...
 %   and visible in the PDF as a frame subtitle like "(Variant 5-B)".
 % - Hand-drawn image placeholders use \DraftImage{<label>}{<height>}
+%   (or \DraftImage[<width>]{<label>}{<height>} if a slide needs a forced width)
 %   which renders a big empty box (J\"orn draws directly into the PDF).
 
 % Links
@@ -228,7 +229,7 @@
     \item Recently (2024), a counterexample in \(\R^4\) was found
   \end{itemize}
   %TODO
-  \begin{block}{Theorem (Haim--Kislev 2024, TODO published citation)}
+  \begin{block}{Theorem (Haim--Kislev 2024)}
     For the lagrangian product polytope \(K = P_5 \times_L 90^\circ \, P_5\) where \(P_5\) is the regular pentagon, and \(90^\circ \, P_5\) is its rotation by \(90^\circ\), we have 
     \[
       \sys(K) = \frac{\cEHZ(K)^2}{2!\,\mathrm{vol}(K)} = \frac{\sqrt{5}+3}{5} > 1.
@@ -243,7 +244,9 @@
   %   arrowed lines, thick dots, both are numbered so that we can match the left side with the right
   %   each left line (q-space) corresponds to a right dot (p-space) and vice versa
   \centering
-  \DraftImage{HANDDRAWN: hk2024-billiard-trajectory-on-P5xP5}{0.78\textheight}
+  \vfill
+  \DraftImage[\textwidth]{HANDDRAWN: hk2024-billiard-trajectory-on-P5xP5}{0.90\textheight}
+  \vfill
 \end{frame}
 
 \begin{frame}{Thesis Topic}
@@ -679,7 +682,6 @@
       doi:\,10.1007/s00039-019-00486-4. (arXiv:\,1712.03494)
     \item P.\ Haim-Kislev, Y.\ Ostrover, \emph{A Counterexample to Viterbo's Conjecture},
       arXiv:\,2405.16513v3 (2025). doi:\,10.48550/arXiv.2405.16513.
-      \NeedsCheck{TODO(J\"orn): replace by final journal citation if published/known.}
     \item J.\ Chaidez, M.\ Hutchings, \emph{Computing Reeb dynamics on four-dimensional convex polytopes},
       \emph{J.\ Comput.\ Dyn.} 8(4):403--445 (2021). doi:\,10.3934/jcd.2021016. (arXiv:\,2008.10111)
   \end{itemize}
