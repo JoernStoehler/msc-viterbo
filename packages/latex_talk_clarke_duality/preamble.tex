@@ -24,25 +24,6 @@
 \newcommand{\NeedsCheck}[1]{\textcolor{red}{#1}}
 \newcommand{\VariantLabel}[1]{{\color{gray}(#1)}}
 
-% Insert an empty drawing slide after every slide.
-% This doubles the PDF pages, giving J\"orn room for last-minute tablet markup.
-% The recursion guard prevents adding a blank slide after the blank slide itself.
-\usepackage{etoolbox}
-\newif\ifAfterFrameBlank
-\AfterFrameBlankfalse
-\AtEndEnvironment{frame}{%
-  \ifAfterFrameBlank%
-  \else%
-    \AfterFrameBlanktrue%
-    \begin{frame}[plain,noframenumbering]
-      \vfill
-      % Intentionally empty: draw anywhere on the page.
-      \vfill
-    \end{frame}%
-    \AfterFrameBlankfalse%
-  \fi%
-}
-
 % Hand-drawn figure placeholder (last-minute workflow):
 % - J\"orn draws directly into the final PDF (tablet markup).
 % - Therefore we always render a big empty box (no PNG include, no filepath text).
