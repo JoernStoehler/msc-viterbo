@@ -24,18 +24,15 @@
 \newcommand{\NeedsCheck}[1]{\textcolor{red}{#1}}
 \newcommand{\VariantLabel}[1]{{\color{gray}(#1)}}
 
-% Hand-drawn figure placeholder:
-% - If the file exists, include it.
-% - Otherwise, show a big rectangular box with the file path inside.
+% Hand-drawn figure placeholder (last-minute workflow):
+% - J\"orn draws directly into the final PDF (tablet markup).
+% - Therefore we always render a big empty box (no PNG include, no filepath text).
+% - The first argument is kept only to preserve call sites / allow searching in source.
 \newcommand{\DraftImage}[2]{%
-  \IfFileExists{#1}{%
-    \includegraphics[width=\linewidth,height=#2,keepaspectratio]{#1}%
-  }{%
-    \fbox{%
-      \begin{minipage}[c][#2][c]{\linewidth}%
-        \centering\texttt{#1}%
-      \end{minipage}%
-    }%
+  \fbox{%
+    \begin{minipage}[c][#2][c]{\linewidth}%
+      \centering%
+    \end{minipage}%
   }%
 }
 

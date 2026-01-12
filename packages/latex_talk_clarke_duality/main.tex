@@ -163,6 +163,10 @@
 
 \begin{frame}
   % TODO: handdrawn image that shows a smooth hypersurface \Sigma in R^3, with two curves \gamma,\tilde\gamma on it with arrows for directions.
+  % Purpose: show that a closed characteristic is an unparameterized orbit (reparametrization freedom).
+  % Suggestion: draw Σ as a surface, and two parameterizations of the same geometric curve (same image, different arrows/param ticks).
+  \centering
+  \DraftImage{HANDDRAWN: closed-characteristics-on-surface}{0.78\textheight}
 \end{frame}
 
 \section{Viterbo's Conjecture}
@@ -238,6 +242,8 @@
   % shows a Billiard trajectory in red:
   %   arrowed lines, thick dots, both are numbered so that we can match the left side with the right
   %   each left line (q-space) corresponds to a right dot (p-space) and vice versa
+  \centering
+  \DraftImage{HANDDRAWN: hk2024-billiard-trajectory-on-P5xP5}{0.78\textheight}
 \end{frame}
 
 \begin{frame}{Thesis Topic}
@@ -541,21 +547,99 @@
 
 \begin{frame}
   %TODO: handdrawn image
+  % Purpose: visualize the "split + rearrange" operations on a piecewise affine loop.
+  % Suggestion: time axis with colored blocks (velocities), and show before/after for Step 2 and Step 3.
+  \centering
+  \DraftImage{HANDDRAWN: proof-operations-time-axis}{0.72\textheight}
 \end{frame}
 
-\begin{frame}{Proof: Existence of Simple Minimizers}
+\begin{frame}{Proof outline: existence of a simple minimizer}
+  \begin{enumerate}
+    \item \textbf{Approximate:} replace \(z\) by piecewise affine \(z_N\).
+    \item \textbf{Split:} convex-combination velocities \(\to\) pure facet velocities.
+    \item \textbf{Rearrange:} group equal velocities (``grow+shrink'').
+    \item \textbf{Renormalize:} restore the action constraint by rescaling.
+    \item \textbf{Compactness:} take a limit in a finite-dimensional parameter space.
+  \end{enumerate}
+
+  % TODO(Joern): say one sentence per bullet, then move on fast.
+  % TODO(Joern): emphasize: Step 2+3 use the "area/action identity" and the fact that I_K depends only on the velocity scale.
+\end{frame}
+
+\begin{frame}{Step 1: Approximation by piecewise affine loops}
   \begin{itemize}
-    \item Start from any minimizer \(z\) of the dual problem.
-    \item Step 1: Approximate \(z\) by piecewise affine functions \(z_N\) with regards to \(W^{1,2}\) norm, such that \(\dot z_N\) stays in the convex hull of Reeb vectors. This approximates \(I_K\) and \(A\).
-    \item Step 2: Split the convex combinations into pure Reeb vector segments. Reverse the splitting's time-order if necessary, so that the action grows: \(A(z_N^\prime) \ge A(z_N)\). For pure piecewise affine functions, we have \(I_K(z_N^\prime)=T\).
-    \item Step 3: Grow+shrink duplicate segments. Invert which segments are grown/shrunk if necessary, so that the action grows: \(A(z_N^{\prime\prime}) \ge A(z_N^\prime)\). The minimization target doesn't change under such reordering.
-    \item Step 4: Shrink segment times by \(T / A(z_N^{\prime\prime})\) to restore the action constraint \(A(z_N^{\prime\prime\prime}) = T_N^{\prime\prime\prime}\). This lowers the minimization target: \(I_K(z_N^{\prime\prime\prime}) \le I_K(z_N^{\prime})\).
-    \item Step 5: Since the space of simple piecewise affine functions is compact
+    \item Start with a minimizer \(z\) of the dual problem.
+    \item Approximate \(z\) in \(W^{1,2}\) by piecewise affine loops \(z_N\) (polygonal in time).
+    \item Ensure \(\dot z_N(t)\) stays in the same allowed cone:
       \[
-        \psi: z \mapsto (\text{facet order}, \text{segment times})
+        \dot z_N(t)\in \mathrm{conv}\{R_i\}\quad\text{a.e.}
       \]
-      we can take a converging subsequence to get a simple minimizer.
+      (so we never leave the polytope-type dynamics).
+    \item Then \(A(z_N)\to A(z)\) and \(I_K(z_N)\to I_K(z)\) by continuity of the integrals.
   \end{itemize}
+
+  % TODO(Joern): blackboard: state the approximation lemma you want to assume (HK2017-style).
+\end{frame}
+
+\begin{frame}{Step 2: Split convex combinations into pure facet velocities}
+  \begin{itemize}
+    \item On lower-dimensional faces, we may have mixed velocities:
+      \[
+        \dot z_N(t)\in \mathrm{conv}\{R_{i_1},\ldots,R_{i_k}\}.
+      \]
+    \item Replace each mixed segment by a concatenation of segments with \emph{pure} velocities \(R_{i_j}\).
+    \item Choose the time order so that the action/area constraint does not decrease:
+      \[
+        A(z_N') \ge A(z_N).
+      \]
+    \item Key input: on a face-cone, \(\support_K(-J\dot z)\) depends only on the scale,
+      so \(I_K\) does not get worse under splitting.
+  \end{itemize}
+
+  % TODO(Joern): blackboard: show the 2-segment "swap" identity (order matters for area).
+\end{frame}
+
+\begin{frame}{Step 3: Rearrange equal velocities (``grow+shrink'')}
+  \begin{itemize}
+    \item After splitting, \(\dot z\) takes values in a finite set \(\{R_1,\ldots,R_F\}\).
+    \item If some \(R_i\) appears in disjoint time intervals, we merge them by a rearrangement step.
+    \item One chooses the rearrangement direction so the action constraint does not decrease:
+      \[
+        A(z_N'') \ge A(z_N').
+      \]
+    \item The functional \(I_K\) is unchanged by this rearrangement (it depends only on the velocity scale / time spent).
+  \end{itemize}
+
+  % TODO(Joern): blackboard: draw the "time blocks" picture; explain why one direction increases the symplectic area.
+\end{frame}
+
+\begin{frame}{Step 4: Renormalize to restore the action constraint}
+  \begin{itemize}
+    \item After Steps 2--3, we may have increased the action:
+      \(\alpha := \frac{A(z_N'')}{T} \ge 1\).
+    \item Rescale to restore the constraint:
+      \[
+        z_N^* := \frac{1}{\sqrt{\alpha}}\,z_N''.
+      \]
+    \item Then \(A(z_N^*)=T\), and \(I_K(z_N^*) = \frac{1}{\alpha} I_K(z_N'') \le I_K(z_N'')\).
+    \item By minimality, this shows we did not ``pay'' for simplification.
+  \end{itemize}
+
+  % TODO(Joern): blackboard: scaling laws: A(\lambda z)=\lambda^2 A(z), I_K(\lambda z)=\lambda^2 I_K(z).
+\end{frame}
+
+\begin{frame}{Step 5: Compactness and taking a limit}
+  \begin{itemize}
+    \item A simple loop is encoded by finite data:
+      \[
+        (\text{facet order } \sigma,\ \text{segment lengths } (|I_i|)).
+      \]
+    \item The order set is finite, and the normalized length simplex is compact.
+    \item Take a minimizing sequence of simple loops and extract a convergent subsequence.
+    \item The limit is still feasible and minimizes \(I_K\), hence gives a simple minimizer.
+  \end{itemize}
+
+  % TODO(Joern): say: "this is where functional-analytic details hide; we use standard compactness + l.s.c."
 \end{frame}
 
 \begin{frame}{Remark: the manipulations are homotopies}
@@ -590,12 +674,14 @@
 \begin{frame}{References (arXiv-first)}
   \footnotesize
   \begin{itemize}
-    \item P.\ Haim-Kislev, \emph{On the symplectic size of convex polytopes}, arXiv:\,1712.03494
-      (submitted 2017; last revised 2019).
-    \item P.\ Haim-Kislev, Y.\ Ostrover, \emph{A counterexample to Viterbo's conjecture},
-      \emph{Annals of Mathematics} (to appear; accepted 2025-10-08).
+    \item P.\ Haim-Kislev, \emph{On the Symplectic Size of Convex Polytopes},
+      \emph{Geom.\ Funct.\ Anal.} 29(2):440--463 (2019).
+      doi:\,10.1007/s00039-019-00486-4. (arXiv:\,1712.03494)
+    \item P.\ Haim-Kislev, Y.\ Ostrover, \emph{A Counterexample to Viterbo's Conjecture},
+      arXiv:\,2405.16513v3 (2025). doi:\,10.48550/arXiv.2405.16513.
+      \NeedsCheck{TODO(J\"orn): replace by final journal citation if published/known.}
     \item J.\ Chaidez, M.\ Hutchings, \emph{Computing Reeb dynamics on four-dimensional convex polytopes},
-      \emph{Journal of Computational Dynamics} 8(4):403--445 (2021). doi:\,10.3934/jcd.2021016.
+      \emph{J.\ Comput.\ Dyn.} 8(4):403--445 (2021). doi:\,10.3934/jcd.2021016. (arXiv:\,2008.10111)
   \end{itemize}
 \end{frame}
 
