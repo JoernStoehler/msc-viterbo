@@ -28,12 +28,11 @@ if ! mountpoint -q "${WORKTREES_DIR}"; then
   exit 1
 fi
 
-# Install or update Codex CLI via npm (config and cache are volume-backed)
+# Configure npm paths (config and cache are volume-backed)
 if command -v npm >/dev/null 2>&1; then
   mkdir -p "${HOME}/.local/bin" "${HOME}/.cache/npm"
   npm config set prefix "${HOME}/.local"
   npm config set cache "${HOME}/.cache/npm"
-  npm i -g @openai/codex || true
 fi
 
 # Configure git credentials via GitHub CLI (if available) so pushes work without manual setup.

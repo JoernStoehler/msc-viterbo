@@ -43,4 +43,4 @@ labels: []
 - anything else to add in order to help agents interpret the above task body correctly?
 
 ---
-Written-by: codex agent running in worktree <path>
+Written-by: Claude Code agent running in worktree <path>

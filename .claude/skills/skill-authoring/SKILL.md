@@ -1,6 +1,6 @@
 ---
 name: skill-authoring
-description: Create or update repo skills under .codex/skills. Use when adding new skills, editing SKILL.md, or deciding what should be a skill vs a spec/doc.
+description: Create or update repo skills under .claude/skills. Use when adding new skills, editing SKILL.md, or deciding what should be a skill vs a spec/doc.
 ---
 
 # Skill Authoring (repo conventions)
@@ -12,12 +12,11 @@ description: Create or update repo skills under .codex/skills. Use when adding n
 
 ## Where skills live
 
-- Repo skills are committed under `.codex/skills/<skill-name>/SKILL.md`.
-- Do not modify `~/.codex/skills` (global).
+- Repo skills are committed under `.claude/skills/<skill-name>/SKILL.md`.
+- Do not modify `~/.claude/skills` (global).
 
 ## Authoring guidance
 
-- Follow `$skill-creator` for general skill design and front‑matter rules.
 - Keep SKILL.md lean; move large details into `references/`.
 - Avoid extra docs like README.md inside skills.
 

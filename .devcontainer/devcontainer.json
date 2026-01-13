@@ -3,8 +3,8 @@
   // Maintenance notes:
   // - Keep this file aligned with .devcontainer/Dockerfile; any new toolchain
   //   should first be baked into the image, then referenced here.
-  // - Bind mounts are the canonical way to persist caches (uv, gh auth, agentx
-  //   DB, worktrees). When you extend the environment, describe new mounts in
+  // - Bind mounts are the canonical way to persist caches (uv, gh auth, Claude
+  //   Code, worktrees). When you extend the environment, describe new mounts in
   //   this block so agents know what host paths they manipulate.
   // - postCreateCommand only wires scripts/devcontainer-post-create.sh; edit
   //   that script (with comments) when adding multi-step setup.
@@ -22,7 +22,7 @@
   // Bind mounts: host paths -> container paths. Adjust host prefixes in
   // scripts/devcontainer-post-create.sh if your machine differs.
   "mounts": [
-    "source=/srv/devhome/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
+    "source=/srv/devhome/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
     "source=/srv/devhome/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
     "source=/srv/devhome/.cache/sccache,target=/home/vscode/.cache/sccache,type=bind,consistency=cached",

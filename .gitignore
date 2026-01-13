@@ -6,6 +6,10 @@
 .env
 .env.*
 !.env.example
+
+# Claude Code local settings (gitignored by design)
+.claude/settings.local.json
+.claude/CLAUDE.local.md
 # Editor/IDE state that should never be shared
 .vscode/*
 !.vscode/settings.json

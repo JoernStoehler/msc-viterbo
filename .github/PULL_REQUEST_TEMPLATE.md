@@ -26,4 +26,4 @@
 - Any follow ups that become clear only during the work on the task? What generating ideas did you have?
 
 ---
-Written-by: codex agent running in worktree <path>
+Written-by: Claude Code agent running in worktree <path>

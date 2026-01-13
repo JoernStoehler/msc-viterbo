@@ -72,9 +72,9 @@ RUN set -eux; \
     install -m 0755 "$tmpdir/code" /usr/local/bin/code-tunnel; \
     rm -rf "$tmpdir"
 
-# Node.js 22.x (npm included) for Codex CLI and other JS tooling.
+# Node.js 22.x (npm included) for JS tooling.
 # We keep this in the image so that npm is always available for postCreate
-# steps (e.g. updating @openai/codex) without re-downloading Node on each run.
+# steps without re-downloading Node on each run.
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \

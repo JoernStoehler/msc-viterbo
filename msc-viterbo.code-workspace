@@ -56,6 +56,9 @@
 		"liveServer.settings.useWebExt": true,
 		"liveServer.settings.root": "/packages/latex_viterbo/build/html",
 		"liveServer.settings.multiRootWorkspaceName": "msc-viterbo",
+		"claudeCode.initialPermissionMode": "bypassPermissions",
+		"claudeCode.allowDangerouslySkipPermissions": true,
+		"claudeCode.respectGitIgnore": false,
 	},
 	"extensions": {
 		"recommendations": [
