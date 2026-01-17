@@ -20,7 +20,7 @@
 
 ## Environment Dependencies
 - **TexLive:** If `pdflatex` is not found, run `packages/latex_viterbo/scripts/install-texlive.sh` (~2 min install)
-- **Python packages:** Run `cd packages/python_viterbo && uv sync` to install dependencies (includes pytest, maturin, etc.)
+- **Python packages:** Run `cd packages/python_viterbo && uv sync --extra dev` to install dependencies (includes pytest, maturin, etc.)
 - **Rust:** Should be pre-installed in most environments. Check with `rustc --version`
 
 ## Communication with Project Owner
