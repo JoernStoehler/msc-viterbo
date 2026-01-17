@@ -29,8 +29,15 @@ This project supports two environments:
 - **Defined by**: Ubuntu 24.04 base with pre-installed language runtimes (see Claude Code docs)
 - **What it does**: Provides a clean environment accessible from anywhere via web browser
 - **What's pre-installed**: Rust, Python (with uv), Node.js, Git, build-essential
-- **What's NOT pre-installed**: TexLive, latexml (must install on-demand)
+- **What's NOT pre-installed**: TexLive, latexml
 - **Key difference**: No devcontainer files run, no bind mounts, no worktrees directory
+
+**Critical limitation (known bug as of Jan 2026):**
+- apt-get does NOT work in web environment (DNS blocked by proxy architecture)
+- See: [GitHub issue #14538](https://github.com/anthropics/claude-code/issues/14538)
+- **Consequence**: TexLive cannot be installed, LaTeX builds are local-only
+- **What works**: cargo, uv/pip, npm (HTTP proxy compatible)
+- **What doesn't work**: apt-get, dpkg, any system packages
 
 ---
 

@@ -90,7 +90,8 @@
 			// UI
 			"usernamehw.errorlens",
 			"github.github-vscode-theme",
-			"miguelsolorio.symbols"
+			"miguelsolorio.symbols",
+			"anthropic.claude-code"
 		]
 	}
 }
