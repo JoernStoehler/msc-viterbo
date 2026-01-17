@@ -8,6 +8,8 @@
   - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: The single development environment used by all agents and project owner. The environment is provided ready-to-use.
 - Developers: project owner, Claude Code agents
 - Project management: GitHub Issues + Milestones and PRs, git worktrees for isolated environments.
+- Research tracking: Research Ledger appendix in thesis (packages/latex_viterbo/chapters/appendix-research-ledger.tex)
+- Agent handoffs: This is a long-running project with many sequential/parallel agents. Always leave the repo ready for the next agent (see session-handoff skill).
 
 ## Onboarding
 - A SessionStart hook runs `scripts/hello.sh` automatically, printing the repo map and git status.
