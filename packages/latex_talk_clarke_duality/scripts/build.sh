@@ -39,6 +39,12 @@ fi
 
 mkdir -p "$OUTDIR"
 
+if ! command -v pdflatex >/dev/null 2>&1; then
+  echo "[build.sh] ERROR: pdflatex not found" >&2
+  echo "[build.sh] Please run: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+  exit 1
+fi
+
 echo "[build.sh] generating version.tex"
 ./scripts/gen-version.sh
 

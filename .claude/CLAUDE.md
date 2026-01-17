@@ -18,6 +18,11 @@
 - Convenience scripts are in `scripts/` and `packages/*/scripts/`. They support `--help` for extra info.
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
+## Environment Dependencies
+- **TexLive:** If `pdflatex` is not found, run `packages/latex_viterbo/scripts/install-texlive.sh` (~2 min install)
+- **Python packages:** Run `cd packages/python_viterbo && uv sync` to install dependencies (includes pytest, maturin, etc.)
+- **Rust:** Should be pre-installed in most environments. Check with `rustc --version`
+
 ## Communication with Project Owner
 - Jörn only reliably reads the final message of each turn. Structure accordingly: put decisions, questions, and summaries at the end, not interspersed with work updates.
 - Jörn is available for questions, especially questions about ambiguous phrasings and missing context.

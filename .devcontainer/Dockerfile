@@ -30,7 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# TeX toolchain (slim) for PDF builds; HTML conversion will use system latexml.
+# TeX toolchain for PDF and HTML builds (~2GB installed).
+# TexLive 2023 from Ubuntu apt repositories.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-latex-recommended \
     texlive-latex-extra \
@@ -94,8 +95,8 @@ USER vscode
 ENV HOME=/home/vscode
 ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
-# Install Rust (rustup + basic components).
-# We install rustfmt/clippy up front so agents can rely on them everywhere.
+# Install Rust (rustup + basic components) in this devcontainer image.
+# We install rustfmt/clippy here so they're available without additional setup.
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
     && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true \
     && "$HOME/.cargo/bin/cargo" install sccache || true

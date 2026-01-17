@@ -1,13 +1,8 @@
 {
   // Devcontainer definition for msc-viterbo.
   // Maintenance notes:
-  // - Keep this file aligned with .devcontainer/Dockerfile; any new toolchain
-  //   should first be baked into the image, then referenced here.
-  // - Bind mounts are the canonical way to persist caches (uv, gh auth, Claude
-  //   Code, worktrees). When you extend the environment, describe new mounts in
-  //   this block so agents know what host paths they manipulate.
-  // - postCreateCommand only wires scripts/devcontainer-post-create.sh; edit
-  //   that script (with comments) when adding multi-step setup.
+  // - Keep this file aligned with .devcontainer/Dockerfile
+  // - Edit scripts/devcontainer-post-create.sh for multi-step setup
   "name": "msc-viterbo",
   "dockerFile": "Dockerfile",
   "workspaceFolder": "/workspaces/msc-viterbo",
@@ -19,8 +14,7 @@
     "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
     "CARGO_TARGET_DIR": "/workspaces/worktrees/shared/target"
   },
-  // Bind mounts: host paths -> container paths. Adjust host prefixes in
-  // scripts/devcontainer-post-create.sh if your machine differs.
+  // Bind mounts: Jörn's specific host paths for cache persistence.
   "mounts": [
     "source=/srv/devhome/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",

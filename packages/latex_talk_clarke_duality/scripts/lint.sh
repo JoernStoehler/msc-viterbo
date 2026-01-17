@@ -11,6 +11,15 @@ mkdir -p "$OUTDIR"
 if command -v chktex >/dev/null 2>&1; then
   echo "[lint.sh] chktex -q -v0 \"$MAIN\""
   chktex -q -v0 "$MAIN" || true
+else
+  echo "[lint.sh] WARNING: chktex not found (skipping structural lint)" >&2
+  echo "[lint.sh] Install with: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+fi
+
+if ! command -v pdflatex >/dev/null 2>&1; then
+  echo "[lint.sh] ERROR: pdflatex not found" >&2
+  echo "[lint.sh] Please run: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+  exit 1
 fi
 
 echo "[lint.sh] generating version.tex"

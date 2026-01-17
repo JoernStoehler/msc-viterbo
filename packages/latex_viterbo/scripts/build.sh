@@ -58,6 +58,11 @@ if [[ $MODE == production ]]; then
 fi
 
 if $DO_PDF; then
+  if ! command -v pdflatex >/dev/null 2>&1; then
+    echo "[build.sh] ERROR: pdflatex not found" >&2
+    echo "[build.sh] Please run: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+    exit 1
+  fi
   echo "[build.sh] latexmk -pdf -output-directory=\"$OUTDIR\" \"$MAIN\""
   latexmk -pdf "${LATEX_OPTS[@]}" \
     -output-directory="$OUTDIR" \
@@ -67,7 +72,9 @@ fi
 if $DO_HTML; then
   mkdir -p "$OUTDIR/html"
   if ! command -v latexmlc >/dev/null 2>&1; then
-    echo "latexmlc not installed; install latexml (apt) inside the devcontainer" >&2
+    echo "[build.sh] ERROR: latexmlc not found" >&2
+    echo "[build.sh] latexml is not available via apt-get on Ubuntu" >&2
+    echo "[build.sh] HTML builds require latexml installation or GitHub Actions" >&2
     exit 1
   fi
   SKIN_DIR="$ROOT_DIR/assets/html/css"

@@ -21,10 +21,11 @@ sudo chown -R "${USER}:${USER}" \
   "${HOME}/.texmf-config"
 mkdir -p "${HOME}/.cache/LaTeXML"
 
-# Ensure the /workspaces/worktrees mount exists; fail fast if not
+# Ensure the /workspaces/worktrees mount exists; fail fast if not.
 WORKTREES_DIR="/workspaces/worktrees"
 if ! mountpoint -q "${WORKTREES_DIR}"; then
-  echo "Expected ${WORKTREES_DIR} to be a host bind mount. Check devcontainer mounts." >&2
+  echo "ERROR: ${WORKTREES_DIR} is not mounted." >&2
+  echo "This devcontainer requires a bind mount configured in devcontainer.json." >&2
   exit 1
 fi
 
@@ -42,7 +43,7 @@ fi
 
 echo "code-tunnel baked into image: $(code-tunnel --version 2>/dev/null || true)"
 
-# Sanity-check LaTeX tooling baked into the image
+# Verify LaTeX tooling is available (baked into the devcontainer image)
 latexmk --version >/dev/null 2>&1 || true
 
 # Pre-warm TeX formats in user tree if missing (speeds first latexmk run)
