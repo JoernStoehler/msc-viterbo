@@ -1,5 +1,5 @@
 # Shared Cargo target dir across all worktrees to avoid rebuilding artifacts.
-# Absolute path so worktrees in /workspaces/worktrees/* and main /workspaces/msc-viterbo
-# both resolve identically.
+# In local devcontainer, CARGO_TARGET_DIR env var points to /workspaces/worktrees/shared/target.
+# In web environment, uses default target/ directory (no worktrees).
 [build]
-target-dir = "/workspaces/worktrees/shared/target"
+# target-dir intentionally not set here - use CARGO_TARGET_DIR env var in local devcontainer
