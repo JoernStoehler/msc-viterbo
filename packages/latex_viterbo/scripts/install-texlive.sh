@@ -23,13 +23,18 @@ When to run this script:
   The script checks if pdflatex is already available and exits if it is.
 
 What this installs:
-  - texlive-latex-base (core LaTeX)
+  - texlive-latex-recommended (recommended LaTeX packages)
   - texlive-latex-extra (additional packages like beamer)
   - texlive-fonts-recommended (standard fonts)
+  - texlive-fonts-extra (extended font collection)
   - texlive-science (math/science packages)
   - texlive-bibtex-extra (bibliography support)
   - texlive-pictures (tikz and diagram packages)
+  - texlive-xetex (XeTeX engine)
+  - texlive-luatex (LuaTeX engine)
+  - texlive-extra-utils (extra utilities)
   - latexmk (build automation)
+  - biber (modern BibTeX replacement)
   - chktex (linting support)
 
 Note: This installs TexLive 2023 from Ubuntu apt repositories.
@@ -62,13 +67,18 @@ sudo apt-get update -qq 2>&1 | grep -v "Reading" || true
 # Install TexLive packages
 echo "→ Installing TexLive packages..."
 sudo apt-get install -y -qq \
-  texlive-latex-base \
+  texlive-latex-recommended \
   texlive-latex-extra \
   texlive-fonts-recommended \
+  texlive-fonts-extra \
   texlive-science \
   texlive-bibtex-extra \
   texlive-pictures \
+  texlive-xetex \
+  texlive-luatex \
+  texlive-extra-utils \
   latexmk \
+  biber \
   chktex 2>&1 | grep -E "(Setting up|Unpacking)" || true
 
 echo ""

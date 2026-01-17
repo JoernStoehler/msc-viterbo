@@ -15,13 +15,13 @@ if command -v chktex >/dev/null 2>&1; then
   chktex -q -v0 "$MAIN" || true
 else
   echo "[lint.sh] WARNING: chktex not found (skipping structural lint)" >&2
-  echo "[lint.sh] Install with: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+  echo "[lint.sh] Install from repo root: ./packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
 fi
 
 # 2) Fast draft compile for early errors (no PDF output)
 if ! command -v pdflatex >/dev/null 2>&1; then
   echo "[lint.sh] ERROR: pdflatex not found" >&2
-  echo "[lint.sh] Please run: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+  echo "[lint.sh] Please run from repo root: ./packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
   exit 1
 fi
 echo "[lint.sh] latexmk -pdf -output-directory=\"$OUTDIR\" \"$MAIN\" (lint)"

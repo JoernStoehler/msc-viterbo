@@ -40,7 +40,7 @@ This project supports two environments:
 
 **Level 1: Error messages tell you what to do**
 - Build/lint scripts check for dependencies and print install commands
-- Example: `pdflatex not found. Please run: packages/latex_viterbo/scripts/install-texlive.sh (~2 min)`
+- Example: `pdflatex not found. Please run from repo root: ./packages/latex_viterbo/scripts/install-texlive.sh (~2 min)`
 
 **Level 2: This skill (understanding)**
 - Explains environment architecture

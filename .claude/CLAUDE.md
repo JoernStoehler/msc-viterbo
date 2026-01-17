@@ -1,11 +1,11 @@
 # CLAUDE.md
 - Project: Jörn Stöhler's MSc Thesis at University of Augsburg.
 - Topic: Probing Viterbo's Conjecture for convex polytopes using computational methods.
-- Monorepo with 
+- Monorepo with
   - `packages/latex_viterbo`: Thesis write-up. Source of truth that the other packages are based on.
   - `packages/rust_viterbo`: Rust library for geometric computations, with FFI bindings.
   - `packages/python_viterbo`: Python experiments for data science, ML, and visualization.
-  - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: The single development environment used by all agents and project owner. The environment is provided ready-to-use.
+  - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: Local devcontainer configuration for project owner. Agents work in auto-provisioned environments and install dependencies on-demand via error messages.
 - Developers: project owner, Claude Code agents
 - Project management: GitHub Issues + Milestones and PRs, git worktrees for isolated environments.
 - Research tracking: Research Ledger appendix in thesis (packages/latex_viterbo/chapters/appendix-research-ledger.tex)
@@ -19,7 +19,7 @@
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
 ## Environment Dependencies
-- **TexLive:** If `pdflatex` is not found, run `packages/latex_viterbo/scripts/install-texlive.sh` (~2 min install)
+- **TexLive:** If `pdflatex` is not found, run from repo root: `./packages/latex_viterbo/scripts/install-texlive.sh` (~2 min install)
 - **Python packages:** Run `cd packages/python_viterbo && uv sync --extra dev` to install dependencies (includes pytest, maturin, etc.)
 - **Rust:** Should be pre-installed in most environments. Check with `rustc --version`
 
