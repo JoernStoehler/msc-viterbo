@@ -1,0 +1,76 @@
+% Research Ledger Appendix
+% This appendix tracks the evolution of research questions, experiments, and findings.
+% It serves as a handoff document between agents and as a historical record.
+
+\section*{Purpose and Usage}
+
+This ledger tracks active and completed research questions for the thesis project.
+It helps agents understand what has been explored, what is in progress, and what remains open.
+
+\textbf{For agents editing this ledger:}
+\begin{itemize}
+\item Add experiments when they are conceived, even without specifications or results
+\item Use placeholders sparingly; it's fine to have only number + name + research question
+\item Add specification and results sections as they become known
+\item Mark approval status: use comments like \verb|% approved by Jörn| or \verb|% unapproved proposal|
+\item Keep entries chronological within each section
+\item Reference data locations, GitHub issues, and related thesis sections
+\end{itemize}
+
+\section{Active Research Questions}
+
+% E1 is an example showing the format. Delete or adapt as needed.
+
+\subsection{E1: Dimension-5 Viterbo Probing}
+\label{ledger:e1}
+
+\textbf{Research question:} Does Viterbo's conjecture hold for convex polytopes in dimension 5, or can we find counterexamples using our computational methods?
+
+\textbf{Motivation:} The Haim-Kislev--Ostrover counterexample exists in dimension 4. It is unknown whether higher dimensions admit counterexamples or if the conjecture holds there.
+
+\textbf{Status:} Not started (placeholder for future work)
+
+\textbf{Related:} GitHub Issue \#TBD, planned for milestone ``Algorithm done (trusted v1)''
+
+% approved by Jörn
+
+\section{Completed Research Questions}
+
+\subsection{E0: Computational Validation of HK--O Counterexample}
+\label{ledger:e0}
+
+\textbf{Research question:} Can we computationally reproduce the Haim-Kislev--Ostrover 2024 counterexample and verify it violates Viterbo's conjecture?
+
+\textbf{Specification:} Implement the polytope from \cite{HaimKislevOstrover2024}, compute $\cEHZ(K)$ using the tube algorithm, and verify $\cEHZ(K) < \sqrt{\vol(K)}$.
+
+\textbf{Result:} Yes, confirmed. The polytope violates Viterbo with $\cEHZ(K) / \sqrt{\vol(K)} \approx 0.98$.
+
+\textbf{Data:} See \texttt{packages/python\_viterbo/data/counterexamples/hk-o-2024/}
+
+\textbf{Thesis section:} Chapter~\ref{chap:counterexample}
+
+\textbf{Related:} GitHub Issue \#32 (CLOSED)
+
+% approved by Jörn
+
+\section{Abandoned or Falsified Questions}
+
+% Placeholder for research directions that were explored but did not yield useful results.
+% Document what was tried and why it didn't work to save future agents time.
+
+% Example format:
+% \subsection{EX: Research Question Name}
+% \textbf{Research question:} What was investigated?
+% \textbf{Why abandoned:} Explain why this direction was not pursued further.
+
+\section{Notes for Future Agents}
+
+% Use this section for meta-observations about the research process, patterns noticed,
+% or strategic guidance for future explorations.
+
+\begin{itemize}
+\item When adding new experiments, always specify success/failure criteria upfront
+\item Preserve experimental data even for failed attempts; document why they failed
+\item Link experiments to specific GitHub issues for traceability
+\item Update this ledger before finalizing PRs or closing issues
+\end{itemize}
