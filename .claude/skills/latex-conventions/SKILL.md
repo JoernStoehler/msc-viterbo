@@ -7,6 +7,8 @@ description: Work on the LaTeX thesis or LaTeXML HTML output. Use for build/lint
 
 ## Build and serve (packages/latex_viterbo)
 
+**Note:** LaTeX builds require TexLive, which is only available in the local devcontainer (not in web environment).
+
 - Lint: `scripts/lint.sh` (chktex + draft compile + latexml sanity)
 - Build: `scripts/build.sh [--production] [--pdf-only] [--html-only]`
 - Serve: `scripts/serve.sh [--production] [--watch] [--pdf-only] [--html-only]`

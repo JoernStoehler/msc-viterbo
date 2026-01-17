@@ -19,7 +19,7 @@
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
 ## Environment Dependencies
-- **TexLive:** Local devcontainer only (apt-get blocked in web environment). If `pdflatex` not found locally, run: `./packages/latex_viterbo/scripts/install-texlive.sh`
+- **TexLive:** Local devcontainer only (apt-get blocked in web environment)
 - **Python packages:** Run `cd packages/python_viterbo && uv sync --extra dev` to install dependencies (includes pytest, maturin, etc.)
 - **Rust:** Should be pre-installed in most environments. Check with `rustc --version`
 

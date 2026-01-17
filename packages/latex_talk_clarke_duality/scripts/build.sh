@@ -40,8 +40,7 @@ fi
 mkdir -p "$OUTDIR"
 
 if ! command -v pdflatex >/dev/null 2>&1; then
-  echo "[build.sh] ERROR: pdflatex not found" >&2
-  echo "[build.sh] Please run from repo root: ./packages/latex_viterbo/scripts/install-texlive.sh (~2 min)" >&2
+  echo "[build.sh] ERROR: pdflatex not found (TexLive is local devcontainer only)" >&2
   exit 1
 fi
 

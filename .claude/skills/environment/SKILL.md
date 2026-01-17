@@ -46,8 +46,8 @@ This project supports two environments:
 ### Progressive Disclosure Strategy
 
 **Level 1: Error messages tell you what to do**
-- Build/lint scripts check for dependencies and print install commands
-- Example: `pdflatex not found. Please run from repo root: ./packages/latex_viterbo/scripts/install-texlive.sh (~2 min)`
+- Build/lint scripts check for dependencies and print clear errors
+- Example: `pdflatex not found (TexLive is local devcontainer only)`
 
 **Level 2: This skill (understanding)**
 - Explains environment architecture
@@ -55,21 +55,17 @@ This project supports two environments:
 
 **Level 3: Detailed implementation**
 - Devcontainer config files (`.devcontainer/*`)
-- Install scripts with `--help` (e.g., `packages/latex_viterbo/scripts/install-texlive.sh --help`)
 - Reference docs in `references/` subdirectory (if any)
 
-### Install Scripts
+### What's Available Where
 
-Install scripts live next to the code that uses them:
-- `packages/latex_viterbo/scripts/install-texlive.sh` - Installs TexLive via apt-get (~2 min, ~1.3GB)
-- `packages/python_viterbo/`: Dependencies via `uv sync` (maturin, pytest, etc.)
-- `packages/rust_viterbo/`: Rust toolchain should be pre-installed in both environments
-
-All install scripts:
-- Check if already installed (idempotent)
-- Print clear progress messages
-- Support `--help` flag
-- Document install time and disk usage
+| Dependency | Local Devcontainer | Web Environment |
+|------------|-------------------|-----------------|
+| TexLive (pdflatex, chktex) | Pre-installed in Dockerfile | NOT available (apt-get blocked) |
+| latexml | Pre-installed in Dockerfile | NOT available (apt-get blocked) |
+| Rust (cargo, rustc) | Pre-installed | Pre-installed |
+| Python + uv | Pre-installed | Pre-installed |
+| Python packages | `uv sync --extra dev` | `uv sync --extra dev` |
 
 ---
 
@@ -81,12 +77,12 @@ When you need to add dependencies or modify environment setup:
 - **CLAUDE.md**: Add one-line guidance ("If X fails, run Y")
 - **This skill**: Explain architecture changes if significant
 - **Config files**: Keep comments factual, avoid speculation
-- **Install scripts**: Include --help with details
 
-### 2. Use Install Scripts
-- Create `packages/X/scripts/install-Y.sh` for heavyweight dependencies
+### 2. Install Script Conventions
+If you create install scripts:
 - Make scripts idempotent (check before installing)
 - Print helpful messages about time/disk usage
+- Support `--help` flag
 - Point build/lint scripts to install script in error messages
 
 ### 3. Never Make False Claims
@@ -96,13 +92,13 @@ When you need to add dependencies or modify environment setup:
 - When uncertain, be explicit about what you don't know
 
 ### 4. Keep It Simple (KISS)
-- Follow standard patterns (apt-get, cargo, npm, pip/uv)
+- Follow standard patterns (cargo, npm, pip/uv; apt-get in local only)
 - Don't over-engineer for hypothetical future requirements
 - Don't add noise to config files that agents don't need
 
 ### 5. Maintain Both Environments
 - **Local devcontainer**: Bake dependencies into Dockerfile when reasonable
-- **Web environment**: Provide install scripts, assume nothing is pre-installed except base tools
+- **Web environment**: Only cargo/uv/npm work (no apt-get due to DNS bug)
 - Test changes in both environments (or document what's untested)
 
 ### 6. DRY - Don't Repeat Yourself
@@ -124,30 +120,16 @@ else
 fi
 ```
 
-### Adding a New Heavyweight Dependency
+### Adding a New Dependency
 
-1. **Create install script**: `packages/X/scripts/install-Y.sh`
-   - Make it idempotent
-   - Add --help flag
-   - Document time/disk usage
+**For Python packages** (works in both environments):
+1. Add to `packages/python_viterbo/pyproject.toml`
+2. Run `uv sync --extra dev`
 
-2. **Update build/lint scripts**: Add check with helpful error
-   ```bash
-   if ! command -v Y >/dev/null 2>&1; then
-     echo "[script] ERROR: Y not found" >&2
-     echo "[script] Please run: packages/X/scripts/install-Y.sh (~N min)" >&2
-     exit 1
-   fi
-   ```
-
+**For system dependencies** (local devcontainer only):
+1. Add to `.devcontainer/Dockerfile`
+2. Update build scripts to fail gracefully with clear error in web environment
 3. **Update CLAUDE.md**: Add one line to Environment Dependencies section
-
-4. **For local devcontainer**: Consider adding to Dockerfile if it's:
-   - Used frequently
-   - Heavyweight (benefits from caching)
-   - Stable (rarely changes)
-
-5. **Test in web environment**: Spawn a web agent and verify the install script works
 
 ### Fixing Environment-Specific Issues
 
@@ -166,5 +148,4 @@ Example: Rust builds depend on `CARGO_TARGET_DIR=/workspaces/worktrees/shared/ta
 - `.devcontainer/Dockerfile` - What's baked into local devcontainer image
 - `.devcontainer/devcontainer.json` - Local devcontainer configuration
 - `scripts/devcontainer-post-create.sh` - Local environment initialization
-- `packages/*/scripts/install-*.sh` - On-demand dependency installation
 - `.claude/CLAUDE.md` - Top-level environment guidance for agents
