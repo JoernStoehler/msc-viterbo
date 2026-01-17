@@ -5,8 +5,6 @@ description: Understanding and maintaining the development environments for this
 
 # Environment Skill
 
-**Purpose**: Understanding and maintaining the development environments for this thesis project.
-
 **When to use this skill**:
 - You need to understand the environment architecture (for troubleshooting, modifications, or curiosity)
 - You're modifying or extending the environment setup
