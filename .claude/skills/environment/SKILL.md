@@ -1,3 +1,8 @@
+---
+name: environment
+description: Understanding and maintaining the development environments for this thesis project. Use for environment architecture, troubleshooting, or modifying environment setup.
+---
+
 # Environment Skill
 
 **Purpose**: Understanding and maintaining the development environments for this thesis project.
