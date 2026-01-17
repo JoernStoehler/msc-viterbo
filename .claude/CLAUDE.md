@@ -15,7 +15,7 @@
 - A SessionStart hook runs `scripts/hello.sh` automatically, printing the repo map and git status.
 - We use progressive disclosure, agents can triage their own onboarding by reading files they find relevant to their task.
 - Most information as always can be learned from the repo files themselves. Extra explicit information about workflows, conventions, and context lives in `.claude/skills/`.
-- Convenience scripts are in `scripts/` and `packages/*/scripts/`. They support `--help` for extra info.
+- Convenience scripts are in `scripts/` and `packages/*/scripts/`. Many support `--help` for extra info.
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
 ## Environment Dependencies
