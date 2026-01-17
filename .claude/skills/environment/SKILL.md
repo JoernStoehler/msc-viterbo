@@ -8,8 +8,8 @@
 - You encounter environment-related errors and need deeper context than error messages provide
 
 **When NOT to use this skill**:
-- Normal thesis work (build, test, commit) - error messages guide you to install scripts automatically
-- You just need to install a missing dependency - follow the error message
+- Normal thesis work (build, test, commit) - error messages explain limitations
+- You encounter a "local devcontainer only" error - the error message is sufficient
 
 ---
 
@@ -45,7 +45,7 @@ This project supports two environments:
 
 ### Progressive Disclosure Strategy
 
-**Level 1: Error messages tell you what to do**
+**Level 1: Error messages explain the situation**
 - Build/lint scripts check for dependencies and print clear errors
 - Example: `pdflatex not found (TexLive is local devcontainer only)`
 
@@ -74,7 +74,7 @@ This project supports two environments:
 When you need to add dependencies or modify environment setup:
 
 ### 1. Document with Progressive Disclosure
-- **CLAUDE.md**: Add one-line guidance ("If X fails, run Y")
+- **CLAUDE.md**: Add one-line note to Environment Dependencies section
 - **This skill**: Explain architecture changes if significant
 - **Config files**: Keep comments factual, avoid speculation
 
@@ -104,7 +104,7 @@ If you create install scripts:
 ### 6. DRY - Don't Repeat Yourself
 - Information should live in ONE canonical place
 - Link to that place rather than duplicating
-- Exception: Error messages can duplicate install instructions for convenience
+- Exception: Error messages can repeat key info (like "local devcontainer only") for convenience
 
 ---
 

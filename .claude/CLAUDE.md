@@ -5,7 +5,7 @@
   - `packages/latex_viterbo`: Thesis write-up. Source of truth that the other packages are based on.
   - `packages/rust_viterbo`: Rust library for geometric computations, with FFI bindings.
   - `packages/python_viterbo`: Python experiments for data science, ML, and visualization.
-  - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: Local devcontainer configuration for project owner. Agents work in auto-provisioned environments and install dependencies on-demand via error messages.
+  - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: Local devcontainer configuration for project owner. Agents work in auto-provisioned environments; error messages explain what's available where.
 - Developers: project owner, Claude Code agents
 - Project management: GitHub Issues + Milestones and PRs, git worktrees for isolated environments.
 - Research tracking: Research Ledger appendix in thesis (packages/latex_viterbo/chapters/appendix-research-ledger.tex)
