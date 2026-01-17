@@ -117,7 +117,7 @@ If you create install scripts:
 ```bash
 # Web environment has this variable
 if [[ -n "${CLAUDE_CODE_REMOTE:-}" ]]; then
-  echo "Running in Claude Code web environment"
+  echo "Running in web environment"
 else
   echo "Running in local environment (or other)"
 fi
