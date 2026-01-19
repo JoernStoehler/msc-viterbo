@@ -1,0 +1,352 @@
+//! Main capacity computation and algorithm trait abstraction.
+//!
+//! This module contains:
+//! - `compute_capacity`: The branch-and-bound algorithm implementation
+//! - `CapacityAlgorithm`: Trait for comparing different algorithms
+//! - Algorithm implementations: TubeAlgorithm, HK2019Algorithm, MinkowskiBilliardAlgorithm
+
+use crate::polytope::{PolytopeData, EPS_FEAS, EPS_DEDUP, EPS_LAGR};
+use crate::result::{AlgorithmError, CapacityResult, Diagnostics};
+use crate::tube::{get_extensions, solve_closed_tube, ExtensionResult, Tube};
+use rust_viterbo_geom::{detect_near_lagrangian, perturb_polytope_normals, PolytopeHRep};
+use std::collections::BinaryHeap;
+
+/// Tolerance for rotation pruning (in turns)
+const EPS_ROT: f64 = 0.01;
+/// Maximum rotation before pruning (in turns)
+const MAX_ROTATION: f64 = 2.0;
+
+/// Compute the EHZ capacity of a 4-dimensional convex polytope.
+///
+/// Uses branch-and-bound search over tube compositions.
+/// See [algorithm-spec.md](../docs/algorithm-spec.md) for details.
+pub fn compute_capacity(hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError> {
+    // Step 1: Validate input
+    if let Err(e) = hrep.validate(1e-6) {
+        return Err(AlgorithmError::ValidationError(e.to_string()));
+    }
+
+    // Step 2: Check for Lagrangian 2-faces and perturb if needed
+    let detection = detect_near_lagrangian(&hrep, EPS_LAGR, EPS_FEAS, EPS_DEDUP);
+
+    let mut diagnostics = Diagnostics {
+        best_action_found: f64::INFINITY,
+        lagrangian_detection: Some(detection),
+        ..Default::default()
+    };
+
+    let (hrep, perturbation) = if detection.detected {
+        let seed = 42u64;
+        // epsilon=1e-2 creates well-conditioned geometry with rotations
+        // ~0.25 turns per 2-face. Smaller values cause numerical degeneracy
+        // where the feasible polygon collapses to a line.
+        let epsilon = 1e-2;
+        let outcome = perturb_polytope_normals(&hrep, seed, epsilon);
+        (outcome.polytope, Some(outcome.metadata))
+    } else {
+        (hrep, None)
+    };
+    diagnostics.perturbation = perturbation;
+
+    // Step 3: Precompute polytope data
+    let data = PolytopeData::new(hrep);
+
+    if data.two_faces.is_empty() {
+        return Err(AlgorithmError::EmptyPolytope);
+    }
+
+    // Step 4: Initialize search
+    let mut best_action = f64::INFINITY;
+    let mut best_witness = None;
+    let mut worklist: BinaryHeap<Tube> = BinaryHeap::new();
+
+    // Debug: print 2-face info
+    #[cfg(test)]
+    {
+        eprintln!("DEBUG: {} non-Lagrangian 2-faces after perturbation", data.two_faces.len());
+        for (idx, tf) in data.two_faces.iter().take(3).enumerate() {
+            eprintln!("  2-face[{}]: i={}, j={}, rotation={:.6}", idx, tf.i, tf.j, tf.rotation);
+        }
+    }
+
+    // Create root tubes (one per non-Lagrangian 2-face)
+    for two_face in &data.two_faces {
+        let tube = Tube::create_root(two_face);
+        if tube.rotation <= MAX_ROTATION + EPS_ROT {
+            worklist.push(tube);
+        } else {
+            diagnostics.nodes_pruned_rotation += 1;
+        }
+    }
+
+    // Step 5: Branch-and-bound search
+    #[cfg(test)]
+    let mut max_seq_len = 0usize;
+    #[cfg(test)]
+    let mut closure_count = 0usize;
+
+    while let Some(tube) = worklist.pop() {
+        diagnostics.nodes_explored += 1;
+
+        #[cfg(test)]
+        if tube.facet_sequence.len() > max_seq_len {
+            max_seq_len = tube.facet_sequence.len();
+            eprintln!("DEBUG: max seq_len={}, rotation={:.4}", max_seq_len, tube.rotation);
+        }
+
+        // Action pruning
+        if tube.action_lower_bound >= best_action {
+            diagnostics.nodes_pruned_action += 1;
+            continue;
+        }
+
+        // Get extensions
+        let extensions = get_extensions(&tube, &data);
+
+        for ext in extensions {
+            match ext {
+                ExtensionResult::Extension(new_tube) => {
+                    // Rotation pruning
+                    if new_tube.rotation > MAX_ROTATION + EPS_ROT {
+                        diagnostics.nodes_pruned_rotation += 1;
+                        continue;
+                    }
+
+                    // Action pruning
+                    if new_tube.action_lower_bound >= best_action {
+                        diagnostics.nodes_pruned_action += 1;
+                        continue;
+                    }
+
+                    worklist.push(new_tube);
+                }
+                ExtensionResult::Closure(closed_tube) => {
+                    #[cfg(test)]
+                    {
+                        closure_count += 1;
+                    }
+                    // Rotation check: must be exactly 1 turn (within tolerance)
+                    #[cfg(test)]
+                    eprintln!("DEBUG: closure candidate #{} rotation={:.4}, seq_len={}",
+                              closure_count, closed_tube.rotation, closed_tube.facet_sequence.len());
+
+                    if (closed_tube.rotation - 1.0).abs() > EPS_ROT {
+                        diagnostics.nodes_pruned_rotation += 1;
+                        continue;
+                    }
+
+                    // Try to solve this closed tube
+                    if let Some((action, witness)) = solve_closed_tube(&closed_tube, &data) {
+                        #[cfg(test)]
+                        eprintln!("DEBUG: solved closed tube, action={}", action);
+                        if action < best_action && action > 0.0 {
+                            best_action = action;
+                            best_witness = Some(witness);
+                            diagnostics.best_action_found = action;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(test)]
+    eprintln!("DEBUG: search complete. nodes={}, closures_found={}, max_seq_len={}",
+              diagnostics.nodes_explored, closure_count, max_seq_len);
+
+    // Return result
+    if best_action < f64::INFINITY {
+        Ok(CapacityResult {
+            capacity: best_action,
+            witness: best_witness,
+            diagnostics,
+        })
+    } else {
+        Err(AlgorithmError::NoValidOrbits)
+    }
+}
+
+// ============================================================================
+// Algorithm Trait Abstraction
+// ============================================================================
+
+/// Metadata about an algorithm's capabilities and constraints.
+#[derive(Clone, Debug)]
+pub struct AlgorithmMetadata {
+    pub name: &'static str,
+    pub description: &'static str,
+    pub requires_non_lagrangian: bool,
+    pub lagrangian_product_only: bool,
+    pub complexity: &'static str,
+    pub max_recommended_facets: Option<usize>,
+}
+
+/// Trait for algorithms that compute symplectic capacities.
+pub trait CapacityAlgorithm {
+    fn metadata(&self) -> AlgorithmMetadata;
+    fn supports_input(&self, hrep: &PolytopeHRep) -> Result<(), String>;
+    fn compute(&self, hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError>;
+
+    fn timeout_hint_ms(&self, hrep: &PolytopeHRep) -> Option<u64> {
+        let facets = hrep.normals.len();
+        Some(1000 * facets.min(60) as u64)
+    }
+}
+
+/// The tube-based branch-and-bound algorithm (CH2021).
+#[derive(Clone, Debug, Default)]
+pub struct TubeAlgorithm {
+    pub use_rotation_cutoffs: bool,
+    pub use_action_bounds: bool,
+}
+
+impl TubeAlgorithm {
+    pub fn new() -> Self {
+        Self {
+            use_rotation_cutoffs: true,
+            use_action_bounds: true,
+        }
+    }
+
+    pub fn with_options(use_rotation_cutoffs: bool, use_action_bounds: bool) -> Self {
+        Self {
+            use_rotation_cutoffs,
+            use_action_bounds,
+        }
+    }
+}
+
+impl CapacityAlgorithm for TubeAlgorithm {
+    fn metadata(&self) -> AlgorithmMetadata {
+        AlgorithmMetadata {
+            name: "Tube (CH2021)",
+            description: "Branch-and-bound search over tube compositions",
+            requires_non_lagrangian: false,
+            lagrangian_product_only: false,
+            complexity: "O(F! / pruning)",
+            max_recommended_facets: Some(20),
+        }
+    }
+
+    fn supports_input(&self, hrep: &PolytopeHRep) -> Result<(), String> {
+        hrep.validate(1e-6).map_err(|e| e.to_string())
+    }
+
+    fn compute(&self, hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError> {
+        compute_capacity(hrep)
+    }
+}
+
+/// Placeholder for the HK2019 quadratic programming algorithm.
+#[derive(Clone, Debug, Default)]
+pub struct HK2019Algorithm {
+    pub tolerance: f64,
+}
+
+impl HK2019Algorithm {
+    pub fn new() -> Self {
+        Self { tolerance: 1e-8 }
+    }
+}
+
+impl CapacityAlgorithm for HK2019Algorithm {
+    fn metadata(&self) -> AlgorithmMetadata {
+        AlgorithmMetadata {
+            name: "HK2019 (QP)",
+            description: "Quadratic programming formulation",
+            requires_non_lagrangian: false,
+            lagrangian_product_only: false,
+            complexity: "O(F!) where F is the number of facets",
+            max_recommended_facets: Some(8), // 9+ times out at 60s
+        }
+    }
+
+    fn supports_input(&self, hrep: &PolytopeHRep) -> Result<(), String> {
+        hrep.validate(1e-6).map_err(|e| e.to_string())?;
+        let num_facets = hrep.normals.len();
+        if num_facets > 10 {
+            return Err(format!(
+                "HK2019 becomes very slow for >10 facets (have {})",
+                num_facets
+            ));
+        }
+        Ok(())
+    }
+
+    fn compute(&self, hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError> {
+        crate::hk2019::compute_hk2019_capacity(hrep)
+    }
+
+    fn timeout_hint_ms(&self, hrep: &PolytopeHRep) -> Option<u64> {
+        let facets = hrep.normals.len();
+        // Factorial complexity: 8! = 40320, 10! = 3.6M
+        let factorial: u64 = (1..=facets as u64).product();
+        Some((factorial / 1000).max(100).min(300000))
+    }
+}
+
+/// Minkowski billiard algorithm for Lagrangian products (LP-based).
+///
+/// For K = K₁ × K₂ where K₁ ⊂ ℝ²_q and K₂ ⊂ ℝ²_p, the EHZ capacity
+/// equals the minimal length of a closed K₂°-billiard trajectory in K₁.
+///
+/// Uses linear programming to find the optimal trajectory. By Rudolf 2022
+/// Theorem 4, the optimal has at most 3 bounces for 2D polygons.
+#[derive(Clone, Debug, Default)]
+pub struct MinkowskiBilliardAlgorithm;
+
+impl MinkowskiBilliardAlgorithm {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl CapacityAlgorithm for MinkowskiBilliardAlgorithm {
+    fn metadata(&self) -> AlgorithmMetadata {
+        AlgorithmMetadata {
+            name: "Minkowski Billiard (LP)",
+            description: "LP-based billiard dynamics for Lagrangian products",
+            requires_non_lagrangian: false,
+            lagrangian_product_only: true,
+            // Complexity: O(n³·m) where n = edges of K₁, m = vertices of K₂
+            // - C(n,2) + C(n,3) = O(n³) edge pairs/triples
+            // - Each LP has O(m) constraints and O(1) variables
+            complexity: "O(n³·m) for n edges in K₁, m vertices in K₂",
+            max_recommended_facets: None,
+        }
+    }
+
+    fn supports_input(&self, hrep: &PolytopeHRep) -> Result<(), String> {
+        hrep.validate(1e-6).map_err(|e| e.to_string())?;
+        // Check if it's a Lagrangian product
+        let is_lagrangian_product = hrep.normals.iter().all(|n| {
+            let qpart = (n[0].abs() > 1e-10) || (n[1].abs() > 1e-10);
+            let ppart = (n[2].abs() > 1e-10) || (n[3].abs() > 1e-10);
+            (qpart && !ppart) || (!qpart && ppart)
+        });
+
+        if !is_lagrangian_product {
+            return Err(
+                "MinkowskiBilliard only works for Lagrangian products (K = K₁ × K₂)".to_string(),
+            );
+        }
+        Ok(())
+    }
+
+    fn compute(&self, hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError> {
+        crate::billiard_lp::compute_billiard_capacity_lp(hrep)
+    }
+
+    fn timeout_hint_ms(&self, _hrep: &PolytopeHRep) -> Option<u64> {
+        Some(100)
+    }
+}
+
+/// Collection of all available algorithms.
+pub fn all_algorithms() -> Vec<Box<dyn CapacityAlgorithm>> {
+    vec![
+        Box::new(TubeAlgorithm::new()),
+        Box::new(HK2019Algorithm::new()),
+        Box::new(MinkowskiBilliardAlgorithm::new()),
+    ]
+}
