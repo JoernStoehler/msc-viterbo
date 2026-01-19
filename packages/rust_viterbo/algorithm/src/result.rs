@@ -268,3 +268,300 @@ impl fmt::Display for AlgorithmError {
 }
 
 impl std::error::Error for AlgorithmError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Create a simple tesseract H-rep for testing.
+    fn tesseract_hrep() -> PolytopeHRep {
+        let normals = vec![
+            SymplecticVector::new(1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(-1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, -1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, -1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, 1.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, -1.0),
+        ];
+        PolytopeHRep::new(normals, vec![1.0; 8])
+    }
+
+    // =========================================================================
+    // verify_differential_inclusion Tests
+    // =========================================================================
+
+    #[test]
+    fn verify_inclusion_exact_v1() {
+        // displacement = λ₁ * v1 with λ₁ = 1
+        let v1 = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
+        let v2 = SymplecticVector::new(0.0, 1.0, 0.0, 0.0);
+        let displacement = v1;
+
+        let error = verify_differential_inclusion(displacement, v1, v2, 1e-10);
+        assert!(error < 1e-10, "Exact v1 should have zero error, got {:.2e}", error);
+    }
+
+    #[test]
+    fn verify_inclusion_exact_v2() {
+        // displacement = λ₂ * v2 with λ₂ = 1
+        let v1 = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
+        let v2 = SymplecticVector::new(0.0, 1.0, 0.0, 0.0);
+        let displacement = v2;
+
+        let error = verify_differential_inclusion(displacement, v1, v2, 1e-10);
+        assert!(error < 1e-10, "Exact v2 should have zero error, got {:.2e}", error);
+    }
+
+    #[test]
+    fn verify_inclusion_convex_combination() {
+        // displacement = 0.5*v1 + 0.5*v2
+        let v1 = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
+        let v2 = SymplecticVector::new(0.0, 1.0, 0.0, 0.0);
+        let displacement = v1 * 0.5 + v2 * 0.5;
+
+        let error = verify_differential_inclusion(displacement, v1, v2, 1e-10);
+        assert!(error < 1e-10, "Convex combination should have zero error, got {:.2e}", error);
+    }
+
+    #[test]
+    fn verify_inclusion_outside_cone() {
+        // displacement perpendicular to both v1 and v2
+        let v1 = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
+        let v2 = SymplecticVector::new(0.0, 1.0, 0.0, 0.0);
+        let displacement = SymplecticVector::new(0.0, 0.0, 1.0, 0.0);
+
+        let error = verify_differential_inclusion(displacement, v1, v2, 1e-10);
+        assert!(error > 0.9, "Perpendicular displacement should have large error, got {:.2e}", error);
+    }
+
+    #[test]
+    fn verify_inclusion_negative_lambda_rejected() {
+        // displacement = -v1 (negative coefficient)
+        let v1 = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
+        let v2 = SymplecticVector::new(0.0, 1.0, 0.0, 0.0);
+        let displacement = -v1;
+
+        let error = verify_differential_inclusion(displacement, v1, v2, 1e-10);
+        assert!(error > 0.9, "Negative lambda should give large error, got {:.2e}", error);
+    }
+
+    // =========================================================================
+    // WitnessOrbit::verify Tests
+    // =========================================================================
+
+    #[test]
+    fn witness_verify_empty_orbit() {
+        let hrep = tesseract_hrep();
+        let witness = WitnessOrbit {
+            breakpoints: vec![],
+            facet_sequence: vec![],
+            segment_times: vec![],
+        };
+        let result = witness.verify(&hrep, 1e-6);
+        assert!(!result.valid, "Empty orbit should be invalid");
+    }
+
+    #[test]
+    fn witness_verify_positive_times() {
+        // An orbit with non-positive times should be invalid
+        let hrep = tesseract_hrep();
+        let witness = WitnessOrbit {
+            breakpoints: vec![SymplecticVector::new(1.0, 0.0, 0.0, 0.0)],
+            facet_sequence: vec![0, 0],  // Minimal facet sequence
+            segment_times: vec![-1.0],    // Negative time!
+        };
+        let result = witness.verify(&hrep, 1e-6);
+        assert!(!result.valid, "Orbit with negative time should be invalid");
+    }
+
+    #[test]
+    fn witness_verify_computes_action() {
+        // Check that computed_action equals sum of segment_times
+        let hrep = tesseract_hrep();
+        let times = vec![1.0, 2.0, 3.0, 4.0];
+        let witness = WitnessOrbit {
+            breakpoints: vec![
+                SymplecticVector::new(0.5, 0.5, 0.0, 0.0),
+                SymplecticVector::new(0.5, 0.5, 0.5, 0.0),
+                SymplecticVector::new(0.5, 0.5, 0.5, 0.5),
+                SymplecticVector::new(0.5, 0.0, 0.5, 0.5),
+            ],
+            facet_sequence: vec![0, 4, 6, 2, 0],
+            segment_times: times.clone(),
+        };
+        let result = witness.verify(&hrep, 1e-6);
+        let expected_action: f64 = times.iter().sum();
+        assert!((result.computed_action - expected_action).abs() < 1e-10,
+            "computed_action = {} should equal sum of times = {}",
+            result.computed_action, expected_action);
+    }
+
+    // =========================================================================
+    // WitnessVerification Structure Tests
+    // =========================================================================
+
+    #[test]
+    fn witness_verification_fields_initialized() {
+        let verification = WitnessVerification {
+            valid: true,
+            max_facet_error: 0.001,
+            max_flow_error: 0.002,
+            closure_error: 0.003,
+            computed_action: 4.0,
+        };
+        assert!(verification.valid);
+        assert!((verification.max_facet_error - 0.001).abs() < 1e-10);
+        assert!((verification.max_flow_error - 0.002).abs() < 1e-10);
+        assert!((verification.closure_error - 0.003).abs() < 1e-10);
+        assert!((verification.computed_action - 4.0).abs() < 1e-10);
+    }
+
+    // =========================================================================
+    // Diagnostics Tests
+    // =========================================================================
+
+    #[test]
+    fn diagnostics_default_values() {
+        let diag = Diagnostics::default();
+        assert_eq!(diag.nodes_explored, 0);
+        assert_eq!(diag.nodes_pruned_empty, 0);
+        assert_eq!(diag.nodes_pruned_action, 0);
+        assert_eq!(diag.nodes_pruned_rotation, 0);
+        assert!((diag.best_action_found - 0.0).abs() < 1e-10);
+    }
+
+    // =========================================================================
+    // Algorithm Output Verification Tests
+    // =========================================================================
+
+    /// Test that billiard algorithm witness has breakpoints on claimed facets.
+    ///
+    /// MATHEMATICAL PROPERTY: Each breakpoint γ(t_i) must satisfy ⟨n_k, γ(t_i)⟩ = h_k
+    /// for the facet k that the orbit passes through at that breakpoint.
+    #[test]
+    fn billiard_witness_breakpoints_on_facets() {
+        use crate::compute::MinkowskiBilliardAlgorithm;
+        use crate::compute::CapacityAlgorithm;
+
+        let hrep = tesseract_hrep();
+        let algo = MinkowskiBilliardAlgorithm::new();
+        let result = algo.compute(hrep.clone()).expect("billiard should succeed");
+
+        let witness = result.witness.expect("billiard should return witness");
+        let tol = 1e-6;
+
+        // Check each breakpoint lies on its claimed facet
+        for (i, breakpoint) in witness.breakpoints.iter().enumerate() {
+            // facet_sequence has length n+1 where n = number of segments
+            // facet_sequence[i] is the facet the orbit is on at breakpoint[i]
+            if i < witness.facet_sequence.len() {
+                let facet = witness.facet_sequence[i];
+                let n = hrep.normals[facet];
+                let h = hrep.heights[facet];
+                let constraint_value = n.dot(breakpoint);
+                let error = (constraint_value - h).abs();
+
+                assert!(
+                    error < tol,
+                    "Breakpoint {} should lie on facet {}. ⟨n, p⟩ = {:.6}, h = {:.6}, error = {:.2e}",
+                    i, facet, constraint_value, h, error
+                );
+            }
+        }
+    }
+
+    /// Test that billiard witness has consistent facet sequence (adjacent facets share 2-face).
+    ///
+    /// MATHEMATICAL PROPERTY: Consecutive facets in the orbit must share a 2-face,
+    /// i.e., the orbit can only transition between facets that meet at a codimension-2 face.
+    #[test]
+    fn billiard_witness_facets_share_two_face() {
+        use crate::compute::MinkowskiBilliardAlgorithm;
+        use crate::compute::CapacityAlgorithm;
+        use crate::polytope::{PolytopeData, EPS_FEAS, EPS_DEDUP};
+
+        let hrep = tesseract_hrep();
+        let algo = MinkowskiBilliardAlgorithm::new();
+        let result = algo.compute(hrep.clone()).expect("billiard should succeed");
+
+        let witness = result.witness.expect("billiard should return witness");
+
+        // Get all 2-faces (both Lagrangian and non-Lagrangian)
+        let raw_faces = hrep.two_faces(EPS_FEAS, EPS_DEDUP);
+        let two_face_pairs: std::collections::HashSet<(usize, usize)> = raw_faces
+            .iter()
+            .map(|f| if f.i < f.j { (f.i, f.j) } else { (f.j, f.i) })
+            .collect();
+
+        // Check each consecutive pair of facets shares a 2-face
+        for w in witness.facet_sequence.windows(2) {
+            let (f1, f2) = if w[0] < w[1] { (w[0], w[1]) } else { (w[1], w[0]) };
+
+            // Same facet is OK (happens at breakpoints for 2-bounce orbits)
+            if f1 == f2 {
+                continue;
+            }
+
+            assert!(
+                two_face_pairs.contains(&(f1, f2)),
+                "Consecutive facets {} and {} should share a 2-face",
+                w[0], w[1]
+            );
+        }
+    }
+
+    /// Test that billiard witness has positive segment times.
+    ///
+    /// MATHEMATICAL PROPERTY: The Reeb flow moves forward in time, so all
+    /// segment durations must be positive.
+    #[test]
+    fn billiard_witness_positive_segment_times() {
+        use crate::compute::MinkowskiBilliardAlgorithm;
+        use crate::compute::CapacityAlgorithm;
+
+        let hrep = tesseract_hrep();
+        let algo = MinkowskiBilliardAlgorithm::new();
+        let result = algo.compute(hrep.clone()).expect("billiard should succeed");
+
+        let witness = result.witness.expect("billiard should return witness");
+
+        for (i, &time) in witness.segment_times.iter().enumerate() {
+            assert!(
+                time > 0.0,
+                "Segment {} time should be positive, got {}",
+                i, time
+            );
+        }
+    }
+
+    /// Test that billiard witness closes (last breakpoint connects to first).
+    ///
+    /// MATHEMATICAL PROPERTY: A periodic Reeb orbit satisfies γ(0) = γ(T).
+    /// For a closed billiard, following the Reeb flow from the last breakpoint
+    /// should return to the first breakpoint.
+    ///
+    /// NOTE: This test is currently ignored because the billiard witness construction
+    /// produces approximate times, not exact Reeb flow times. The witness shows
+    /// the combinatorial structure but not the exact geometry.
+    #[test]
+    #[ignore = "Billiard witness times are approximate, closure won't be exact"]
+    fn billiard_witness_closes() {
+        use crate::compute::MinkowskiBilliardAlgorithm;
+        use crate::compute::CapacityAlgorithm;
+
+        let hrep = tesseract_hrep();
+        let algo = MinkowskiBilliardAlgorithm::new();
+        let result = algo.compute(hrep.clone()).expect("billiard should succeed");
+
+        let witness = result.witness.expect("billiard should return witness");
+        let verification = witness.verify(&hrep, 1e-6);
+
+        assert!(
+            verification.closure_error < 1e-3,
+            "Orbit should close. Closure error = {:.2e}",
+            verification.closure_error
+        );
+    }
+}

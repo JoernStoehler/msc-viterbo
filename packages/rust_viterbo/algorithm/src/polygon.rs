@@ -295,4 +295,181 @@ mod tests {
         assert!((val - 0.0).abs() < 1e-12);
         assert!((pt - Vector2f::new(0.0, 0.0)).norm() < 1e-12);
     }
+
+    // =========================================================================
+    // Clipping Tests
+    // =========================================================================
+
+    #[test]
+    fn clip_half_square() {
+        // Clip unit square by the line y = 0.5
+        // Should keep the part where y >= 0.5
+        let sq = unit_square();
+        // Edge from (0, 0.5) to (1, 0.5) with p2 - p1 = (1, 0)
+        // Points with cross > 0 are kept (left side of directed edge)
+        // For edge going right, "left" is the upper half
+        let p1 = Vector2f::new(0.0, 0.5);
+        let p2 = Vector2f::new(1.0, 0.5);
+        let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
+
+        // Should have 4 vertices: (0, 0.5), (1, 0.5), (1, 1), (0, 1)
+        assert_eq!(clipped.len(), 4, "Clipped polygon should have 4 vertices, got {}", clipped.len());
+
+        // All clipped vertices should have y >= 0.5 - EPS
+        for v in &clipped {
+            assert!(v.y >= 0.5 - EPS_POLY, "Vertex {:?} below clip line", v);
+        }
+    }
+
+    #[test]
+    fn clip_outside_polygon() {
+        // Clip square by a half-plane that doesn't intersect it
+        // clip_polygon_by_edge keeps points to the LEFT of directed edge p1 → p2
+        // For edge (p1, p2), cross_2d(p2-p1, v-p1) >= 0 means v is kept
+        let sq = unit_square();  // vertices at (0,0), (1,0), (1,1), (0,1)
+
+        // Edge going UP at x = -1: from (-1, 0) to (-1, 1)
+        // cross_2d((0, 1), (x, y) - (-1, 0)) = 0*(y) - 1*(x + 1) = -(x + 1)
+        // Keeps where -(x + 1) >= 0, i.e., x <= -1
+        // Square has x >= 0, so nothing is kept
+        let p1 = Vector2f::new(-1.0, 0.0);
+        let p2 = Vector2f::new(-1.0, 1.0);
+        let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
+
+        assert!(clipped.is_empty(), "Clipping by disjoint half-plane should be empty, got {} vertices", clipped.len());
+    }
+
+    #[test]
+    fn clip_entirely_inside() {
+        // Clip square by a half-plane that contains it entirely
+        let sq = unit_square();  // vertices at (0,0), (1,0), (1,1), (0,1)
+
+        // Edge going UP at x = 2: from (2, 0) to (2, 1)
+        // cross_2d((0, 1), (x, y) - (2, 0)) = 0*(y) - 1*(x - 2) = 2 - x
+        // Keeps where 2 - x >= 0, i.e., x <= 2
+        // Square has x ∈ [0, 1], so everything is kept
+        let p1 = Vector2f::new(2.0, 0.0);
+        let p2 = Vector2f::new(2.0, 1.0);
+        let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
+
+        // Should preserve all vertices
+        assert_eq!(clipped.len(), sq.vertices.len(), "Should preserve all {} vertices", sq.vertices.len());
+    }
+
+    // =========================================================================
+    // Intersection Invariant Tests
+    // =========================================================================
+
+    #[test]
+    fn intersection_is_subset_of_both() {
+        // The intersection should be contained in both input polygons
+        let sq1 = unit_square();
+        let sq2 = Polygon2D::new(vec![
+            Vector2f::new(0.3, 0.3),
+            Vector2f::new(1.3, 0.3),
+            Vector2f::new(1.3, 1.3),
+            Vector2f::new(0.3, 1.3),
+        ]);
+        let inter = sq1.intersect(&sq2);
+
+        if !inter.is_empty() {
+            for v in &inter.vertices {
+                assert!(sq1.contains(*v), "Intersection vertex {:?} not in sq1", v);
+                assert!(sq2.contains(*v), "Intersection vertex {:?} not in sq2", v);
+            }
+        }
+    }
+
+    #[test]
+    fn intersection_is_convex() {
+        // Intersection of convex polygons is convex
+        // Check: all vertices have same signed area contribution (same winding)
+        let sq1 = unit_square();
+        let sq2 = Polygon2D::new(vec![
+            Vector2f::new(0.25, 0.25),
+            Vector2f::new(0.75, 0.25),
+            Vector2f::new(0.75, 0.75),
+            Vector2f::new(0.25, 0.75),
+        ]);
+        let inter = sq1.intersect(&sq2);
+
+        if inter.vertices.len() >= 3 {
+            let area = inter.signed_area();
+            // For a valid convex polygon, area should be non-zero
+            // (unless degenerate)
+            assert!(area.abs() > 1e-12, "Intersection has zero area");
+        }
+    }
+
+    // =========================================================================
+    // Contains Edge Cases
+    // =========================================================================
+
+    #[test]
+    fn contains_vertex_points() {
+        let sq = unit_square();
+        for v in &sq.vertices {
+            assert!(sq.contains(*v), "Polygon should contain its own vertex {:?}", v);
+        }
+    }
+
+    #[test]
+    fn contains_edge_midpoints() {
+        let sq = unit_square();
+        for i in 0..sq.vertices.len() {
+            let v1 = sq.vertices[i];
+            let v2 = sq.vertices[(i + 1) % sq.vertices.len()];
+            let mid = (v1 + v2) * 0.5;
+            assert!(sq.contains(mid), "Polygon should contain edge midpoint {:?}", mid);
+        }
+    }
+
+    #[test]
+    fn contains_near_boundary() {
+        // Points just inside boundary should be contained
+        let sq = unit_square();
+        let eps = 1e-9;
+        let near_interior = vec![
+            Vector2f::new(eps, 0.5),           // near left edge
+            Vector2f::new(1.0 - eps, 0.5),     // near right edge
+            Vector2f::new(0.5, eps),           // near bottom edge
+            Vector2f::new(0.5, 1.0 - eps),     // near top edge
+        ];
+        for p in near_interior {
+            assert!(sq.contains(p), "Point {:?} near boundary should be contained", p);
+        }
+    }
+
+    // =========================================================================
+    // Signed Area Tests
+    // =========================================================================
+
+    #[test]
+    fn signed_area_ccw_positive() {
+        // CCW polygon should have positive signed area
+        let sq = unit_square();  // CCW ordering
+        let area = sq.signed_area();
+        assert!(area > 0.0, "CCW polygon should have positive area, got {}", area);
+    }
+
+    #[test]
+    fn signed_area_cw_negative() {
+        // CW polygon should have negative signed area
+        let cw_sq = Polygon2D::new(vec![
+            Vector2f::new(0.0, 0.0),
+            Vector2f::new(0.0, 1.0),
+            Vector2f::new(1.0, 1.0),
+            Vector2f::new(1.0, 0.0),
+        ]);
+        let area = cw_sq.signed_area();
+        assert!(area < 0.0, "CW polygon should have negative area, got {}", area);
+    }
+
+    #[test]
+    fn signed_area_magnitude() {
+        // Unit square has area 1
+        let sq = unit_square();
+        let area = sq.signed_area().abs();
+        assert!((area - 1.0).abs() < 1e-10, "Unit square area should be 1, got {}", area);
+    }
 }

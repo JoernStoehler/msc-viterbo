@@ -138,3 +138,78 @@ impl PolytopeData {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rust_viterbo_geom::{PolytopeHRep, SymplecticVector};
+
+    /// Standard tesseract B^2 × B^2 (unit 4-cube).
+    fn tesseract() -> PolytopeHRep {
+        let normals = vec![
+            SymplecticVector::new(1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(-1.0, 0.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, -1.0, 0.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, -1.0, 0.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, 1.0),
+            SymplecticVector::new(0.0, 0.0, 0.0, -1.0),
+        ];
+        PolytopeHRep::new(normals, vec![1.0; 8])
+    }
+
+    /// Test that get_two_face retrieves face by indices (order-independent).
+    #[test]
+    fn get_two_face_order_independent() {
+        let data = PolytopeData::new(tesseract());
+        assert!(!data.two_faces.is_empty(), "tesseract should have non-Lagrangian faces");
+
+        let first = &data.two_faces[0];
+        let by_ij = data.get_two_face(first.i, first.j);
+        let by_ji = data.get_two_face(first.j, first.i);
+
+        assert!(by_ij.is_some());
+        assert!(by_ji.is_some());
+        assert_eq!(by_ij.unwrap().i, by_ji.unwrap().i);
+    }
+
+    /// Test that faces_adjacent_to finds all faces containing a given facet.
+    #[test]
+    fn faces_adjacent_to_includes_facet() {
+        let data = PolytopeData::new(tesseract());
+
+        // Find a facet that appears in some 2-face
+        if let Some(face) = data.two_faces.first() {
+            let adjacent = data.faces_adjacent_to(face.i);
+            assert!(
+                adjacent.iter().any(|f| f.i == face.i || f.j == face.i),
+                "faces_adjacent_to should include the face containing facet {}", face.i
+            );
+        }
+    }
+
+    /// Test that Lagrangian 2-faces are filtered out.
+    ///
+    /// The tesseract B^2 × B^2 has 28 raw 2-faces but only 8 non-Lagrangian ones
+    /// (the faces where q-facets meet p-facets).
+    #[test]
+    fn lagrangian_detection_uses_adjacent_faces() {
+        let data = PolytopeData::new(tesseract());
+        // Tesseract = B^2 × B^2 has 8 facets (4 q-facets + 4 p-facets)
+        // Non-Lagrangian faces: q-facet meets p-facet = 4×4 = 16 pairs / 2 (symmetry) = 8
+        // But rotation filter removes some, so we expect roughly 8
+        assert_eq!(data.two_faces.len(), 8,
+            "tesseract should have exactly 8 non-Lagrangian 2-faces");
+    }
+
+    /// Test that rotation values are in valid range (0, 0.5).
+    #[test]
+    fn two_faces_for_tesseract() {
+        let data = PolytopeData::new(tesseract());
+        for face in &data.two_faces {
+            assert!(face.rotation > 0.0 && face.rotation < 0.5,
+                "rotation should be in (0, 0.5), got {}", face.rotation);
+        }
+    }
+}
