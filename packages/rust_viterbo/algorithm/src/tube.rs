@@ -712,6 +712,22 @@ mod tests {
     use rust_viterbo_geom::{trivialization, SymplecticVector};
 
     // =========================================================================
+    // Flow Direction Tests
+    // =========================================================================
+
+    #[test]
+    fn flow_i_to_j_correct() {
+        assert!(flow_allows_crossing(0, 1, FlowDir::ItoJ));
+        assert!(!flow_allows_crossing(1, 0, FlowDir::ItoJ));
+    }
+
+    #[test]
+    fn flow_j_to_i_correct() {
+        assert!(!flow_allows_crossing(0, 1, FlowDir::JtoI));
+        assert!(flow_allows_crossing(1, 0, FlowDir::JtoI));
+    }
+
+    // =========================================================================
     // Trivialization Roundtrip Tests
     // =========================================================================
 

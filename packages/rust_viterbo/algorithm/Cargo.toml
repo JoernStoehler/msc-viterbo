@@ -7,6 +7,7 @@ edition = "2021"
 rust_viterbo_geom = { path = "../geom" }
 nalgebra = "0.32"
 minilp = "0.2"
+osqp = "1.0.1"
 
 [dev-dependencies]
 proptest = "1.4"

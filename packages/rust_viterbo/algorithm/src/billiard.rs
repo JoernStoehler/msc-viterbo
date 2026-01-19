@@ -501,9 +501,8 @@ pub struct ThreeBounceTrajectory {
 ///
 /// ## Output invariants (should be verified by WitnessOrbit::verify):
 /// - Each breakpoint lies on the corresponding facet in facet_sequence
-/// - segment_times sum to trajectory.action
+/// - segment_times: NOT IMPLEMENTED (placeholder zeros)
 /// - The orbit closes: flowing from last breakpoint returns to first
-/// - Breakpoints form a valid Reeb orbit in ℝ⁴
 ///
 /// ## Geometry:
 /// A 2-bounce billiard trajectory oscillates between two points q_a, q_b ∈ ∂K₁.
@@ -550,27 +549,10 @@ pub fn construct_2bounce_witness(
 
     let facet_sequence = vec![q_facet_0, q_facet_0, p_facet_1, q_facet_1, p_facet_0];
 
-    // Compute segment times
-    let delta_p = (p_1 - p_0).norm();
-    let delta_q = direction.norm();
-
-    let n_q0 = factors.k1.normals[trajectory.q_facet_local[0]];
-    let h_q0 = factors.k1.heights[trajectory.q_facet_local[0]];
-    let t0 = delta_p * h_q0 / (2.0 * n_q0.norm());
-
-    let n_p1 = factors.k2.normals[trajectory.p_facet_local[0]];
-    let h_p1 = factors.k2.heights[trajectory.p_facet_local[0]];
-    let t1 = delta_q * h_p1 / (2.0 * n_p1.norm());
-
-    let n_q1 = factors.k1.normals[trajectory.q_facet_local[1]];
-    let h_q1 = factors.k1.heights[trajectory.q_facet_local[1]];
-    let t2 = delta_p * h_q1 / (2.0 * n_q1.norm());
-
-    let n_p0 = factors.k2.normals[trajectory.p_facet_local[1]];
-    let h_p0 = factors.k2.heights[trajectory.p_facet_local[1]];
-    let t3 = delta_q * h_p0 / (2.0 * n_p0.norm());
-
-    let segment_times = vec![t0, t1, t2, t3];
+    // TODO: segment_times need proper derivation from Reeb flow equations.
+    // The previous formula here had no derivation and gave 335% error on random polygons.
+    // For now, use placeholder. Only breakpoints and facet_sequence are reliable.
+    let segment_times = vec![0.0; 4]; // PLACEHOLDER - not computed
 
     Some(WitnessOrbit {
         breakpoints,
@@ -590,7 +572,7 @@ pub fn construct_2bounce_witness(
 ///
 /// ## Output invariants (should be verified by WitnessOrbit::verify):
 /// - Each breakpoint lies on the corresponding facet in facet_sequence
-/// - segment_times sum to trajectory.action
+/// - segment_times: NOT IMPLEMENTED (placeholder zeros)
 /// - The orbit closes: flowing from last breakpoint returns to first
 ///
 /// ## Geometry:
@@ -600,10 +582,6 @@ pub fn construct_2bounce_witness(
 /// (q₁, p₃₁) → (q₁, p₁₂) → (q₂, p₁₂) → (q₂, p₂₃) → (q₃, p₂₃) → (q₃, p₃₁) → close
 /// ```
 /// where p_ij is the K₂ vertex supporting direction q_j - q_i.
-///
-/// # Known Limitations
-/// - segment_times computation is simplified (uses distances, not proper flow times)
-/// - Should be verified against WitnessOrbit::verify with actual H-rep
 pub fn construct_3bounce_witness(
     factors: &LagrangianFactors,
     trajectory: &ThreeBounceTrajectory,
@@ -659,25 +637,9 @@ pub fn construct_3bounce_witness(
         p_facet_31, // segment 5: q changes from q₃ to q₁
     ];
 
-    // Compute segment times (simplified - use normalized times)
-    // For proper physics, each segment time would be computed from the flow equations
-    let delta_p_01 = (p_12 - p_31).norm();
-    let delta_q_12 = d12.norm();
-    let delta_p_23_p = (p_23 - p_12).norm();
-    let delta_q_23 = d23.norm();
-    let delta_p_45 = (p_31 - p_23).norm();
-    let delta_q_31 = d31.norm();
-
-    // Simplified time computation (proportional to distance)
-    // In a full implementation, this would use the facet normals and heights
-    let segment_times = vec![
-        delta_p_01,
-        delta_q_12,
-        delta_p_23_p,
-        delta_q_23,
-        delta_p_45,
-        delta_q_31,
-    ];
+    // TODO: segment_times need proper derivation from Reeb flow equations.
+    // The previous formula here had no derivation. Only breakpoints and facet_sequence are reliable.
+    let segment_times = vec![0.0; 6]; // PLACEHOLDER - not computed
 
     Some(WitnessOrbit {
         breakpoints,

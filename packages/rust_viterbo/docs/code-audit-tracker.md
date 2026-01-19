@@ -9,7 +9,15 @@ This document tracks invariants that need verification via debug_asserts, unit t
 
 ## Test Coverage Summary (2026-01-19)
 - Total tests: 181 (148 algorithm + 33 geom)
-- Ignored: 14 (known issues or blocked tests)
+- Ignored: 11 (known issues or blocked tests)
+
+## Test Organization (2026-01-19)
+
+Tests are now modular:
+- **Unit tests**: In each module file (`billiard.rs`, `tube.rs`, `polygon.rs`, etc.)
+- **Integration tests**: `tests/mod.rs` - end-to-end algorithm tests
+- **Property tests**: `tests/property.rs` - proptest-based axiom verification
+- **Stubs**: `tests/stubs.rs` - TODO tests documenting planned work
 
 ---
 
@@ -174,9 +182,13 @@ The `construct_2bounce_witness` and `construct_3bounce_witness` functions comput
 |------|------|-------|
 | 2026-01-19 | billiard.rs | 27 unit tests added |
 | 2026-01-19 | billiard_lp.rs | 16 unit tests added |
-| 2026-01-19 | tube.rs | 11 unit tests added |
+| 2026-01-19 | tube.rs | 11 unit tests added (+ flow direction tests) |
 | 2026-01-19 | polygon.rs | 23 unit tests added |
 | 2026-01-19 | result.rs | 14 unit tests (13 passing + 1 ignored) |
 | 2026-01-19 | polytope.rs | 4 unit tests added |
 | 2026-01-19 | Witness action test | Split into ignored test with clear documentation |
 | 2026-01-19 | Algorithm output verification | 3 tests verifying billiard witness properties |
+| 2026-01-19 | **Test Reorganization** | Split monolithic tests.rs (1700+ lines) into modular structure |
+| 2026-01-19 | tests/mod.rs | Integration tests and common fixtures |
+| 2026-01-19 | tests/property.rs | Property-based tests (scaling, monotonicity, witness verification) |
+| 2026-01-19 | tests/stubs.rs | TODO stubs documenting blocked/planned tests |
