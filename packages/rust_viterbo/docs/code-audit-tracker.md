@@ -24,7 +24,7 @@ The custom QP solver has a known bug (returns Q=0.119 vs expected 0.125 for tess
 | `project_to_constraints` | No convergence tests | ❌ |
 | `compute_q` | No known-answer tests | ❌ |
 
-**Decision needed**: Replace with proper QP library (osqp or clarabel) OR add comprehensive unit tests.
+**Decision (2026-01-19)**: Replace with external QP crate (osqp or clarabel). Custom solver consumed >6h without working.
 
 **Tests**: 9 (but 2 ignored due to the bug)
 
