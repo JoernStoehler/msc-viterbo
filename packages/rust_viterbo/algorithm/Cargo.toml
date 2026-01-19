@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 rust_viterbo_geom = { path = "../geom" }
+nalgebra = "0.32"
+minilp = "0.2"
