@@ -8,16 +8,28 @@ This document tracks invariants that need verification via debug_asserts, unit t
 - ✅ Done
 
 ## Test Coverage Summary (2026-01-19)
-- Total tests: 181 (148 algorithm + 33 geom)
-- Ignored: 11 (known issues or blocked tests)
+- Total tests: 182 (149 algorithm + 33 geom)
+- Ignored: 8 (known issues or blocked tests)
 
 ## Test Organization (2026-01-19)
 
-Tests are now modular:
-- **Unit tests**: In each module file (`billiard.rs`, `tube.rs`, `polygon.rs`, etc.)
-- **Integration tests**: `tests/mod.rs` - end-to-end algorithm tests
-- **Property tests**: `tests/property.rs` - proptest-based axiom verification
-- **Stubs**: `tests/stubs.rs` - TODO tests documenting planned work
+Tests are organized by **topic** (not mechanism) in `src/tests/`:
+
+| File | Lines | Topic |
+|------|-------|-------|
+| `capacity_known_values.rs` | 26 | Literature-verifiable values (tesseract=4) |
+| `capacity_scaling_axiom.rs` | 128 | c(λK) = λ²c(K) |
+| `capacity_monotonicity.rs` | 51 | K⊆L ⟹ c(K)≤c(L) |
+| `algorithm_agreement.rs` | 125 | Billiard vs HK2019 agreement |
+| `algorithm_metadata.rs` | 73 | Algorithm traits and input validation |
+| `billiard_witness.rs` | 163 | Witness orbit geometry |
+| `lagrangian_product.rs` | 246 | Product detection/structure |
+| `polygon_2d.rs` | 107 | 2D polygon operations |
+| `tube_algorithm.rs` | 96 | Tube (CH2021) tests |
+| `polytope_preprocessing.rs` | 34 | PolytopeData construction |
+| `fixtures.rs` | 142 | Test polytopes and random generation |
+
+Plus **unit tests** in each module file (`billiard.rs`, `tube.rs`, `polygon.rs`, etc.)
 
 ---
 
@@ -40,16 +52,16 @@ The custom QP solver has a known bug (returns Q=0.119 vs expected 0.125 for tess
 
 ## CRITICAL: Witness Segment Times (billiard.rs)
 
-The `construct_2bounce_witness` and `construct_3bounce_witness` functions compute **approximate** segment times that can be 10-40% off from the true capacity.
+The `construct_2bounce_witness` and `construct_3bounce_witness` functions have **placeholder zeros** for segment_times.
 
 | Function | Issue | Status |
 |----------|-------|--------|
-| `construct_2bounce_witness` | segment_times are approximate | 🔄 Documented |
-| `construct_3bounce_witness` | segment_times are approximate | 🔄 Documented |
+| `construct_2bounce_witness` | segment_times = zeros (NOT IMPLEMENTED) | ✅ Documented |
+| `construct_3bounce_witness` | segment_times = zeros (NOT IMPLEMENTED) | ✅ Documented |
 
-**Note**: The capacity returned by the LP is CORRECT. Only the witness times are wrong.
+**Note**: The capacity returned by the LP is CORRECT. Only the witness times are missing.
 
-**Decision needed**: Either remove misleading segment_times or implement proper Reeb flow times.
+**Decision (2026-01-19)**: Previous bogus formulas (335% error, no derivation) removed. Now placeholder zeros with clear TODOs.
 
 ---
 
@@ -188,7 +200,13 @@ The `construct_2bounce_witness` and `construct_3bounce_witness` functions comput
 | 2026-01-19 | polytope.rs | 4 unit tests added |
 | 2026-01-19 | Witness action test | Split into ignored test with clear documentation |
 | 2026-01-19 | Algorithm output verification | 3 tests verifying billiard witness properties |
-| 2026-01-19 | **Test Reorganization** | Split monolithic tests.rs (1700+ lines) into modular structure |
-| 2026-01-19 | tests/mod.rs | Integration tests and common fixtures |
-| 2026-01-19 | tests/property.rs | Property-based tests (scaling, monotonicity, witness verification) |
-| 2026-01-19 | tests/stubs.rs | TODO stubs documenting blocked/planned tests |
+| 2026-01-19 | **Test Reorganization (v2)** | Reorganized by TOPIC, not mechanism. 12 files <250 lines each |
+| 2026-01-19 | capacity_known_values.rs | Literature-verifiable capacity values |
+| 2026-01-19 | capacity_scaling_axiom.rs | c(λK) = λ²c(K) property tests |
+| 2026-01-19 | capacity_monotonicity.rs | K⊆L ⟹ c(K)≤c(L) property tests |
+| 2026-01-19 | algorithm_agreement.rs | Cross-algorithm agreement tests |
+| 2026-01-19 | billiard_witness.rs | Witness geometry verification |
+| 2026-01-19 | lagrangian_product.rs | Product detection and structure tests |
+| 2026-01-19 | polygon_2d.rs | 2D polygon operations |
+| 2026-01-19 | tube_algorithm.rs | Tube (CH2021) algorithm tests |
+| 2026-01-19 | Segment times cleanup | Removed bogus formulas, now placeholder zeros |
