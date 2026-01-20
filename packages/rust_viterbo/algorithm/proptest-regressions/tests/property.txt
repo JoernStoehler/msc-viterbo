@@ -1,7 +1,0 @@
-# Seeds for failure cases proptest has generated in the past. It is
-# automatically read and these particular cases re-run before any
-# novel cases are generated.
-#
-# It is recommended to check this file in to source control so that
-# everyone who runs the test benefits from these saved cases.
-cc 23c23c53df42d2d3c68c27e0f82b6a3dc0b086c511d153eee7fb4063af80f03f # shrinks to polytope = PolytopeHRep { normals: [[[0.5126130652266316, 0.8586197326866866, 0.0, 0.0]], [[-0.9998547812703413, 0.01704160704974848, 0.0, 0.0]], [[0.5271440847240365, -0.8497759198403175, 0.0, 0.0]], [[0.0, 0.0, 0.5395202711468917, 0.8419726106124736]], [[0.0, 0.0, -0.9997431426271929, -0.02266382072608508]], [[0.0, 0.0, 0.5203842355573267, -0.8539322264579413]]], heights: [0.6183347218589363, 0.6531114677446658, 0.6358626284004565, 0.6141305960674907, 0.6419819131022552, 0.5923482357531947] }

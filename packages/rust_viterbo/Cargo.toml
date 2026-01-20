@@ -1,10 +1,8 @@
+# ARCHIVED - Source code deleted, see docs/developer-spec.md for algorithm specs
+# Original implementation at tag v0.1.0-archive
+
 [workspace]
-members = [
-    "geom",
-    "algorithm",
-    "ffi",
-    "optim",  # STUB - see optim/SPEC.md for implementation plan
-]
+members = ["ffi"]
 resolver = "2"
 
 [workspace.package]

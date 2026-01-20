@@ -1,12 +1,14 @@
+# ARCHIVED - Returns NotImplemented errors
+# See docs/ffi-contract.md for the API spec
+# Re-implement from docs/developer-spec.md when needed
+
 [package]
 name = "rust_viterbo_ffi"
-version = "0.1.0"
+version = "0.2.0"  # Bumped to indicate archived stub
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-rust_viterbo_algorithm = { path = "../algorithm" }
-rust_viterbo_geom = { path = "../geom" }
 pyo3 = { version = "0.22", features = ["extension-module"] }
