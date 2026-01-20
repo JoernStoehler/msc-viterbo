@@ -36,6 +36,7 @@ use rust_viterbo_geom::{PolytopeHRep, Vector2f};
 /// Tolerance for numerical comparisons
 const EPS: f64 = 1e-10;
 
+// **UNCITED**: Numerical values 0.01 and 0.1 are ad-hoc engineering choices, no mathematical justification
 /// Margin to avoid edge endpoints (prevents degenerate vertex bounces).
 /// Setting t ∈ [MARGIN, 1-MARGIN] excludes bounces near polygon vertices,
 /// which is where adjacent edges would create degenerate (coincident) bounce points.
@@ -72,6 +73,7 @@ pub struct LPTwoBounceResult {
 
 /// Solve the 3-bounce LP for a fixed edge triple.
 ///
+// **UNCITED**: LP epigraph formulation is standard convex optimization technique (Boyd & Vandenberghe), not cited
 /// Variables: t₁, t₂, t₃ (edge params), z₁, z₂, z₃ (epigraph)
 /// Objective: minimize z₁ + z₂ + z₃
 /// Constraints:
@@ -138,6 +140,7 @@ pub fn solve_3bounce_lp(
     let z2 = problem.add_var(1.0, (f64::NEG_INFINITY, f64::INFINITY));
     let z3 = problem.add_var(1.0, (f64::NEG_INFINITY, f64::INFINITY));
 
+    // **UNCITED**: Support function constraint derivation z ≥ ⟨d_ij, y⟩ needs convex analysis reference
     // Add constraints for each vertex of K₂
     for y in &k2.vertices {
         // Constraint: z₁ ≥ ⟨d₁₂, y⟩ where d₁₂ = q₂ - q₁
@@ -151,7 +154,7 @@ pub fn solve_3bounce_lp(
         let coef_t2_12 = edge_dirs[1].dot(y);
         // z1 + coef_t1_12 * t1 - coef_t2_12 * t2 >= const_12
         problem.add_constraint(
-            &[(z1, 1.0), (t1, coef_t1_12), (t2, -coef_t2_12)],
+            [(z1, 1.0), (t1, coef_t1_12), (t2, -coef_t2_12)],
             ComparisonOp::Ge,
             const_12,
         );
@@ -162,7 +165,7 @@ pub fn solve_3bounce_lp(
         let coef_t2_23 = edge_dirs[1].dot(y);
         let coef_t3_23 = edge_dirs[2].dot(y);
         problem.add_constraint(
-            &[(z2, 1.0), (t2, coef_t2_23), (t3, -coef_t3_23)],
+            [(z2, 1.0), (t2, coef_t2_23), (t3, -coef_t3_23)],
             ComparisonOp::Ge,
             const_23,
         );
@@ -173,12 +176,13 @@ pub fn solve_3bounce_lp(
         let coef_t3_31 = edge_dirs[2].dot(y);
         let coef_t1_31 = edge_dirs[0].dot(y);
         problem.add_constraint(
-            &[(z3, 1.0), (t3, coef_t3_31), (t1, -coef_t1_31)],
+            [(z3, 1.0), (t3, coef_t3_31), (t1, -coef_t1_31)],
             ComparisonOp::Ge,
             const_31,
         );
     }
 
+    // **UNCITED**: Separation constraints preventing degenerate bounces are ad-hoc, no mathematical justification
     // Add separation constraints for adjacent edge pairs to prevent degenerate solutions.
     // For edges (i, j, k) where in general i, j, k are not consecutive, we need to check
     // which pairs of edges are adjacent in the polygon and add separation constraints.
@@ -198,28 +202,28 @@ pub fn solve_3bounce_lp(
         // If ei = (ej + 1) mod n, shared vertex is at t1=0, t2=1 => t1 + (1-t2) >= SEP
         if ej == (ei + 1) % n1 {
             // -t1 + t2 >= SEPARATION - 1
-            problem.add_constraint(&[(t1, -1.0), (t2, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t1, -1.0), (t2, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         } else {
             // t1 - t2 >= SEPARATION - 1
-            problem.add_constraint(&[(t1, 1.0), (t2, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t1, 1.0), (t2, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         }
     }
 
     // Check if edge j and edge k are adjacent
     if edges_adjacent(ej, ek, n1) {
         if ek == (ej + 1) % n1 {
-            problem.add_constraint(&[(t2, -1.0), (t3, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t2, -1.0), (t3, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         } else {
-            problem.add_constraint(&[(t2, 1.0), (t3, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t2, 1.0), (t3, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         }
     }
 
     // Check if edge k and edge i are adjacent
     if edges_adjacent(ek, ei, n1) {
         if ei == (ek + 1) % n1 {
-            problem.add_constraint(&[(t3, -1.0), (t1, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t3, -1.0), (t1, 1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         } else {
-            problem.add_constraint(&[(t3, 1.0), (t1, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
+            problem.add_constraint([(t3, 1.0), (t1, -1.0)], ComparisonOp::Ge, SEPARATION - 1.0);
         }
     }
 
@@ -298,7 +302,7 @@ pub fn solve_2bounce_lp(
         let coef_t1 = edge_dirs[0].dot(y);
         let coef_t2 = edge_dirs[1].dot(y);
         problem.add_constraint(
-            &[(z1, 1.0), (t1, coef_t1), (t2, -coef_t2)],
+            [(z1, 1.0), (t1, coef_t1), (t2, -coef_t2)],
             ComparisonOp::Ge,
             const_12,
         );
@@ -307,7 +311,7 @@ pub fn solve_2bounce_lp(
         // z₂ ≥ -(const + coef_t2·t₂ - coef_t1·t₁)
         // z₂ ≥ -const - coef_t2·t₂ + coef_t1·t₁
         problem.add_constraint(
-            &[(z2, 1.0), (t1, -coef_t1), (t2, coef_t2)],
+            [(z2, 1.0), (t1, -coef_t1), (t2, coef_t2)],
             ComparisonOp::Ge,
             -const_12,
         );
@@ -344,6 +348,7 @@ pub fn find_min_3bounce_lp(
 
     let mut best: Option<LPThreeBounceResult> = None;
 
+    // **UNCITED**: Enumeration of edge triples C(n,3) depends on Rudolf 2022 Theorem 4 (at most 3 bounces), should cite explicitly
     // Enumerate all unordered triples
     for i in 0..n1 {
         for j in (i + 1)..n1 {
@@ -352,11 +357,10 @@ pub fn find_min_3bounce_lp(
                     // Filter out degenerate solutions with near-zero T-length
                     if result.t_length > EPS {
                         // Verify solution is non-degenerate by checking bounce points don't coincide
-                        if is_3bounce_nondegenerate(k1, &result) {
-                            if best.is_none() || result.t_length < best.as_ref().unwrap().t_length {
+                        if is_3bounce_nondegenerate(k1, &result)
+                            && (best.is_none() || result.t_length < best.as_ref().unwrap().t_length) {
                                 best = Some(result);
                             }
-                        }
                     }
                 }
             }
@@ -414,15 +418,19 @@ fn is_3bounce_nondegenerate(k1: &Polygon2DSimple, result: &LPThreeBounceResult) 
 /// Check if two edges are adjacent (share a vertex).
 fn edges_adjacent(i: usize, j: usize, n: usize) -> bool {
     // Edges i and j are adjacent if |i - j| = 1 (mod n)
-    let diff = if i > j { i - j } else { j - i };
+    let diff = i.abs_diff(j);
     diff == 1 || diff == n - 1
 }
 
 /// Find the minimum capacity over all edge pairs (2-bounce) using LP.
 ///
+// **UNCITED**: Geometric reasoning that adjacent edges give degenerate LP is intuitive but not formally justified
 /// Only considers NON-ADJACENT edge pairs, since adjacent edges share a vertex
 /// and the LP would find a degenerate solution with d₁₂ = 0.
-pub fn find_min_2bounce_lp(k1: &Polygon2DSimple, k2: &Polygon2DSimple) -> Option<LPTwoBounceResult> {
+pub fn find_min_2bounce_lp(
+    k1: &Polygon2DSimple,
+    k2: &Polygon2DSimple,
+) -> Option<LPTwoBounceResult> {
     let n1 = k1.vertices.len();
     if n1 < 4 {
         // Need at least 4 edges to have non-adjacent pairs
@@ -440,11 +448,10 @@ pub fn find_min_2bounce_lp(k1: &Polygon2DSimple, k2: &Polygon2DSimple) -> Option
             }
             if let Some(result) = solve_2bounce_lp(k1, k2, [i, j]) {
                 // Filter out degenerate solutions with near-zero T-length
-                if result.t_length > EPS {
-                    if best.is_none() || result.t_length < best.as_ref().unwrap().t_length {
+                if result.t_length > EPS
+                    && (best.is_none() || result.t_length < best.as_ref().unwrap().t_length) {
                         best = Some(result);
                     }
-                }
             }
         }
     }
@@ -665,8 +672,15 @@ mod tests {
     fn equilateral_triangle() -> Polygon2DSimple {
         // Equilateral triangle with circumradius 1
         use std::f64::consts::PI;
-        let angles = [PI / 2.0, PI / 2.0 + 2.0 * PI / 3.0, PI / 2.0 + 4.0 * PI / 3.0];
-        let vertices: Vec<Vector2f> = angles.iter().map(|&a| Vector2f::new(a.cos(), a.sin())).collect();
+        let angles = [
+            PI / 2.0,
+            PI / 2.0 + 2.0 * PI / 3.0,
+            PI / 2.0 + 4.0 * PI / 3.0,
+        ];
+        let vertices: Vec<Vector2f> = angles
+            .iter()
+            .map(|&a| Vector2f::new(a.cos(), a.sin()))
+            .collect();
 
         // Compute normals and heights from vertices
         let n = vertices.len();
@@ -688,7 +702,11 @@ mod tests {
             heights.push(height);
         }
 
-        Polygon2DSimple { vertices, normals, heights }
+        Polygon2DSimple {
+            vertices,
+            normals,
+            heights,
+        }
     }
 
     #[test]
@@ -811,7 +829,11 @@ mod tests {
         let idx = find_supporting_vertex_idx(&sq, Vector2f::new(1.0, 0.0));
         let v = sq.vertices[idx];
         // Should be (1, 1) or (1, -1)
-        assert!((v.x - 1.0).abs() < 1e-10, "Supporting vertex x should be 1, got {}", v.x);
+        assert!(
+            (v.x - 1.0).abs() < 1e-10,
+            "Supporting vertex x should be 1, got {}",
+            v.x
+        );
     }
 
     #[test]
@@ -822,8 +844,12 @@ mod tests {
         let v = sq.vertices[idx];
         let support = sq.support(d);
         let achieved = d.dot(&v);
-        assert!((achieved - support).abs() < 1e-10,
-            "Supporting vertex should achieve support: {} vs {}", achieved, support);
+        assert!(
+            (achieved - support).abs() < 1e-10,
+            "Supporting vertex should achieve support: {} vs {}",
+            achieved,
+            support
+        );
     }
 
     // =========================================================================
@@ -837,7 +863,11 @@ mod tests {
         let idx = find_supporting_facet_idx(&sq, Vector2f::new(1.0, 0.0));
         let n = sq.normals[idx];
         // Should be the right facet with normal (1, 0)
-        assert!((n.x - 1.0).abs() < 1e-10, "Supporting facet normal x should be 1, got {}", n.x);
+        assert!(
+            (n.x - 1.0).abs() < 1e-10,
+            "Supporting facet normal x should be 1, got {}",
+            n.x
+        );
     }
 
     #[test]
@@ -848,9 +878,14 @@ mod tests {
         let n = sq.normals[idx];
         // Check this normal is most aligned with d
         for (i, m) in sq.normals.iter().enumerate() {
-            assert!(n.dot(&d) >= m.dot(&d) - 1e-10,
+            assert!(
+                n.dot(&d) >= m.dot(&d) - 1e-10,
                 "Facet {} has better alignment than {}: {} > {}",
-                i, idx, m.dot(&d), n.dot(&d));
+                i,
+                idx,
+                m.dot(&d),
+                n.dot(&d)
+            );
         }
     }
 
@@ -877,7 +912,7 @@ mod tests {
             let polygon_facet = (lp_edge + 1) % n;
 
             // Get the edge endpoints
-            let v_start = sq.vertices[lp_edge];
+            let _v_start = sq.vertices[lp_edge];
             let v_end = sq.vertices[(lp_edge + 1) % n];
 
             // Both endpoints should satisfy the facet constraint (lie on or inside)
@@ -886,9 +921,13 @@ mod tests {
 
             // The ending vertex should lie exactly ON the facet
             let end_err = (n_facet.dot(&v_end) - h_facet).abs();
-            assert!(end_err < 1e-10,
+            assert!(
+                end_err < 1e-10,
                 "LP edge {} end vertex should be on polygon facet {}: error = {:.2e}",
-                lp_edge, polygon_facet, end_err);
+                lp_edge,
+                polygon_facet,
+                end_err
+            );
         }
     }
 
@@ -914,9 +953,13 @@ mod tests {
 
             // Check facet indices are in valid range
             for (i, &f) in traj.q_facet_local.iter().enumerate() {
-                assert!(f < factors.k1.normals.len(),
+                assert!(
+                    f < factors.k1.normals.len(),
                     "q_facet_local[{}] = {} out of range [0, {})",
-                    i, f, factors.k1.normals.len());
+                    i,
+                    f,
+                    factors.k1.normals.len()
+                );
             }
         }
     }
@@ -932,7 +975,7 @@ mod tests {
         let result = LPThreeBounceResult {
             t_length: 10.0,
             edge_params: [0.5, 0.5, 0.5],
-            edge_indices: [0, 1, 2],  // Would be invalid for triangle but ok for test
+            edge_indices: [0, 1, 2], // Would be invalid for triangle but ok for test
         };
         // For a square with edges [0, 1, 2], these are non-adjacent
         assert!(is_3bounce_nondegenerate(&sq, &result));
@@ -1059,7 +1102,8 @@ mod tests {
                 assert!(
                     r2.t_length <= len + 1e-10,
                     "Found 2-bounce {} < reported minimum {}",
-                    len, r2.t_length
+                    len,
+                    r2.t_length
                 );
             }
         }
@@ -1069,7 +1113,8 @@ mod tests {
                 assert!(
                     r3.t_length <= len + 1e-10,
                     "Found 3-bounce {} < reported minimum {}",
-                    len, r3.t_length
+                    len,
+                    r3.t_length
                 );
             }
         }

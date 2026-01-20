@@ -3,6 +3,7 @@ members = [
     "geom",
     "algorithm",
     "ffi",
+    "optim",  # STUB - see optim/SPEC.md for implementation plan
 ]
 resolver = "2"
 

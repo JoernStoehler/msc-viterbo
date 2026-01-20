@@ -1,15 +1,144 @@
 # Code Audit Tracker
 
+Current implementation status for the rust_viterbo crate.
+
+> **Related documents:**
+> - Mathematical claims with citations: see `mathematical-claims.md`
+> - Test infrastructure: see `test-documentation.md`
+> - Test case catalog: see `test-cases.md`
+
 This document tracks invariants that need verification via debug_asserts, unit tests, or code comments.
 
 ## Status Legend
 - ❌ Not done
 - 🔄 In progress
 - ✅ Done
+- ⏳ Blocked
 
-## Test Coverage Summary (2026-01-19)
-- Total tests: 182 (149 algorithm + 33 geom)
-- Ignored: 8 (known issues or blocked tests)
+## CRITICAL DEPENDENCY: optim crate ⏳
+
+The `optim` crate (`packages/rust_viterbo/optim/`) is a **STUB** that needs implementation.
+
+**What's blocked on it:**
+- `hk2019.rs::solve_qp_for_permutation` - currently uses incomplete vertex+edge enumeration
+- Tests pass "by luck" because test case optima happen to be at vertices/edges
+
+**Implementation plan:** See `optim/SPEC.md`
+
+**DO NOT** waste time trying to fix the HK2019 QP solver without first implementing the optim crate.
+
+---
+
+## Test Coverage Summary (2026-01-20)
+- Total tests: 186 (153 algorithm + 33 geom) + 4 optim
+- Ignored: 6 (known issues or blocked tests)
+
+---
+
+## Debug Audit Summary (2026-01-20)
+
+This section documents where the mathematical writeups, implementations, and tests have issues.
+
+### 1. HK2019 Algorithm ❌ INCOMPLETE
+
+| Category | Issue | Status |
+|----------|-------|--------|
+| **Math writeup** | Formula correct: Q(σ,β) = Σ_{j<i} β_{σ(i)} β_{σ(j)} ω(n_{σ(i)}, n_{σ(j)}) | ✅ OK |
+| **Math writeup** | c_EHZ = (1/2) × [max Q]^{-1} — correct | ✅ OK |
+| **Implementation** | `compute_q` — correctly implements formula | ✅ OK |
+| **Implementation** | `solve_qp_for_permutation` — vertex + edge enumeration | ❌ INCOMPLETE |
+| **Implementation** | For tesseract: Q=0.125 found correctly | ⚠️ Works by luck |
+| **Test** | `tesseract_qp_solver_finds_optimal` — passes | ⚠️ Happens to pass |
+| **Test** | `billiard_hk2019_agreement` — <0.1% relative error | ⚠️ Empirical only |
+
+**Problem Analysis (2026-01-20):**
+
+The HK2017 paper gives TWO equivalent formulations:
+
+**Formulation 1 (Theorem 1):**
+- Maximize Q(σ,β) subject to β ≥ 0, Σβ_i h_i = 1, Σβ_i n_i = 0
+- Q is INDEFINITE quadratic, constraints are LINEAR
+- This is indefinite QP over a polytope
+
+**Formulation 2 (Remark 1.4):**
+- Minimize (Σβ_i h_i)² subject to β ≥ 0, Σβ_i n_i = 0, Q(β) = 1
+- Objective is CONVEX, but Q=1 is QUADRATIC EQUALITY constraint
+- This is QCQP (Quadratically Constrained QP)
+
+**BOTH formulations are NON-CONVEX:**
+1. F1: indefinite objective → non-convex
+2. F2: quadratic equality Q=1 → non-convex (hyperboloid constraint)
+
+**Why the current implementation is wrong:**
+
+The vertex + edge enumeration only checks 0D (vertices) and 1D (edges) faces. For a 3D feasible region (tesseract), the optimum could be on a **2D face** - which we don't check.
+
+The tests pass because the optima for test cases happen to be at vertices or edges. This is **luck**, not correctness.
+
+**To fix properly:** Need a global optimization solver. See `optim/SPEC.md` for the implementation plan. **DO NOT** attempt to fix the QP solver without first implementing the optim crate.
+
+### 2. Billiard (LP) Algorithm
+
+| Category | Issue | Severity |
+|----------|-------|----------|
+| **Math writeup** | Epigraph LP reformulation — rigorous, textbook technique | ✅ OK |
+| **Math writeup** | Rudolf 2022 theorems correctly cited (3-bounce bound) | ✅ OK |
+| **Implementation** | LP formulation correct, uses minilp | ✅ OK |
+| **Implementation** | Capacity computation verified: tesseract=4, triangle×triangle=1.5 | ✅ OK |
+| **Implementation** | **Witness segment_times are zeros** (placeholder) | ⚠️ Incomplete |
+| **Implementation** | Index convention (LP edge vs polygon facet) — **documented but tricky** | ⚠️ Fragile |
+| **Test gap** | `billiard_witness_closes` is **ignored** (witness doesn't close) | ⚠️ Acknowledged |
+| **Test gap** | `billiard_witness_positive_segment_times` is **ignored** | ⚠️ Acknowledged |
+| **Test gap** | No test that validates witness satisfies differential inclusion | ❌ Missing |
+
+**Root cause for witness issues**: The billiard trajectory gives correct T-length but doesn't directly map to Reeb orbit dynamics. Converting to a Reeb witness requires solving flow equations (see spec Section 5.1). Previous formulas were bogus (335% error) and removed.
+
+### 3. Tube Algorithm
+
+| Category | Issue | Severity |
+|----------|-------|----------|
+| **Math writeup** | Flow map formula t(p) = h_k(h_j - ⟨n_j,p⟩)/(2ω(n_k,n_j)) — correct | ✅ OK |
+| **Math writeup** | Rotation additivity in Sp̃(2) — correct | ✅ OK |
+| **Math writeup** | Trivialization τ_F — verified in unit tests | ✅ OK |
+| **Implementation** | `compute_flow_map` — appears correct | ⚠️ Unverified E2E |
+| **Implementation** | `reconstruct_4d_from_2d` — uses barycentric coords, may have edge cases | ⚠️ Fragile |
+| **Implementation** | `solve_closed_tube` — skips empty polygon check in closure mode | ⚠️ Risky |
+| **Test gap** | No end-to-end test with known capacity result | ❌ Missing |
+| **Test gap** | No test comparing tube algorithm to billiard/HK2019 | ❌ Missing |
+
+**Investigation (2026-01-20)**: Tested tube algorithm on multiple polytopes:
+- Tesseract: NoValidOrbits (Lagrangian product, as expected)
+- Generic polytope (tesseract+1 facet): NoValidOrbits (rotations 1.25, 1.50)
+- Cross-polytope (16-cell): NoValidOrbits (rotations ~1.8)
+- 24-cell: NoValidOrbits (rotations 0.5-0.7)
+
+All closure candidates have rotation ≠ 1.0. This suggests either:
+1. These polytopes don't have short periodic orbits of the required type
+2. The rotation accumulation may have an error
+3. The CH2021 paper uses specially constructed polytopes
+
+**Status**: Algorithm runs but finding a polytope with valid orbits requires more investigation.
+
+### 4. Cross-Algorithm Agreement ✅ IMPROVED
+
+| Test | Status | Notes |
+|------|--------|-------|
+| Billiard vs HK2019 on tesseract | ✅ Both=4.0 | HK2019 QP fixed |
+| Billiard vs HK2019 on random products | ✅ <1% error | 3 proptests passing |
+| Billiard vs HK2019 on triangle×triangle | ⚠️ Slow | HK2019 with 6!=720 perms takes ~0.1s |
+| Tube vs Billiard on tesseract | ❌ N/A | Tube returns NoValidOrbits (Lagrangian degeneracy) |
+| All three on non-Lagrangian polytope | ❌ Missing | Need non-Lagrangian polytope with known capacity |
+
+### 5. Specification Gaps
+
+| Spec | Gap | Impact |
+|------|-----|--------|
+| algorithm-hk2019-spec.md | No analytical solution for QP | Must implement numerical QP |
+| algorithm-billiard-spec.md | Witness construction incomplete (§8.5) | Documented limitation |
+| tube-geometry-spec.md | "Prove claims in Section 4" TODO | Claims used without proof |
+| algorithm-spec.md | No explicit complexity analysis | Performance unclear |
+
+---
 
 ## Test Organization (2026-01-19)
 
@@ -33,20 +162,31 @@ Plus **unit tests** in each module file (`billiard.rs`, `tube.rs`, `polygon.rs`,
 
 ---
 
-## CRITICAL: HK2019 QP Solver (hk2019.rs)
+## CRITICAL: HK2019 QP Solver (hk2019.rs) ❌ INCOMPLETE
 
-The custom QP solver has a known bug (returns Q=0.119 vs expected 0.125 for tesseract).
+The HK2019 algorithm requires solving a **non-convex optimization problem** (see Section 1 above).
+
+**History:**
+- Grid search: replaced with vertex enumeration
+- Vertex enumeration: passes tests but is mathematically incomplete
+
+**Why vertex enumeration is incomplete:**
+
+The claim "for quadratic maximization over a polytope, the optimum is at a vertex" is **FALSE** for indefinite quadratics. The maximum can be at vertices, edges, 2D faces, or higher-dimensional faces.
+
+The current code only checks vertices (0D) and edges (1D). For the tesseract (3D feasible region), the optimum could be on a 2D face.
 
 | Function | Issue | Status |
 |----------|-------|--------|
-| `solve_qp_for_permutation` | Custom grid-search, unreliable | ❌ |
-| `compute_null_space` | No verification tests | ❌ |
-| `project_to_constraints` | No convergence tests | ❌ |
-| `compute_q` | No known-answer tests | ❌ |
+| `solve_qp_for_permutation` | Vertex + edge enumeration | ❌ Incomplete |
+| `compute_q` | Verified against known optimal | ✅ Tested |
+| `enumerate_subsets` | Enumerates BFS vertices | ✅ Works |
 
-**Decision (2026-01-19)**: Replace with external QP crate (osqp or clarabel). Custom solver consumed >6h without working.
+**Tests pass by luck**, not correctness:
+- `tesseract_optimal_q_value`: Q=0.125 ✓ (optimum happens to be at a vertex)
+- `billiard_hk2019_agreement`: <1% error (doesn't prove correctness)
 
-**Tests**: 9 (but 2 ignored due to the bug)
+**To fix:** Need QCQP solver or global optimizer (SCIP, Gurobi, etc.)
 
 ---
 
@@ -74,13 +214,16 @@ The `construct_2bounce_witness` and `construct_3bounce_witness` functions have *
 | `supporting_vertex` | Returns correct argmax | ✅ 2 tests |
 | `polar` | Correct dual construction | ✅ 3 tests |
 | `width_euclidean` | Correct width formula | ✅ 2 tests |
-| `find_facet_for_vertex` | Vertex i on facet i | ✅ 1 test |
-| `find_facet_containing_point` | Point on returned facet | ✅ 2 tests |
-| `find_supporting_vertex` | Correct support | ✅ 1 test |
-| `find_supporting_facet` | Normal aligned with direction | ✅ 1 test |
-| `find_minimal_billiard` | Returns trajectory with action | ✅ 4 tests |
 
-**Tests**: 27
+**Tests**: 17
+
+**Removed (2026-01-20)**: The following functions and tests were deleted because `find_minimal_billiard` used a WRONG algorithm (vertex-search only, misses edge-interior optima):
+- `find_minimal_billiard` — only checked vertices, but Minkowski billiard optima can be at edge interiors (e.g., triangle×triangle at t=1/3)
+- `minimal_billiard_length` — wrapper for the wrong function
+- `find_facet_for_vertex`, `find_facet_containing_point`, `find_supporting_vertex`, `find_supporting_facet` — helper functions only used by the deleted functions
+- All tests for these functions
+
+The CORRECT algorithm is in `billiard_lp.rs` which uses LP to search over continuous t∈[0,1] parameters along edges.
 
 ---
 
@@ -210,3 +353,12 @@ The `construct_2bounce_witness` and `construct_3bounce_witness` functions have *
 | 2026-01-19 | polygon_2d.rs | 2D polygon operations |
 | 2026-01-19 | tube_algorithm.rs | Tube (CH2021) algorithm tests |
 | 2026-01-19 | Segment times cleanup | Removed bogus formulas, now placeholder zeros |
+| 2026-01-20 | **Debug Audit Session** | Comprehensive review of all 3 algorithms |
+| 2026-01-20 | HK2019 analysis | Confirmed QP grid-search is fundamentally broken |
+| 2026-01-20 | Billiard analysis | Capacity correct, witness incomplete but documented |
+| 2026-01-20 | Tube analysis | Unit-tested but no E2E verification |
+| 2026-01-20 | Test gaps identified | Cross-algorithm agreement tests mostly missing |
+| 2026-01-20 | **HK2019 QP fix** | Replaced grid-search with vertex enumeration |
+| 2026-01-20 | Algorithm agreement | Billiard↔HK2019 now <1% (was 10%) |
+| 2026-01-20 | Tube investigation | Tested on cross-polytope, 24-cell - no valid orbits found |
+| 2026-01-20 | Test count | 153 passed, 6 ignored (was 149 passed, 8 ignored) |

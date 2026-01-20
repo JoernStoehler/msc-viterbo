@@ -313,7 +313,12 @@ mod tests {
         let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
 
         // Should have 4 vertices: (0, 0.5), (1, 0.5), (1, 1), (0, 1)
-        assert_eq!(clipped.len(), 4, "Clipped polygon should have 4 vertices, got {}", clipped.len());
+        assert_eq!(
+            clipped.len(),
+            4,
+            "Clipped polygon should have 4 vertices, got {}",
+            clipped.len()
+        );
 
         // All clipped vertices should have y >= 0.5 - EPS
         for v in &clipped {
@@ -326,7 +331,7 @@ mod tests {
         // Clip square by a half-plane that doesn't intersect it
         // clip_polygon_by_edge keeps points to the LEFT of directed edge p1 → p2
         // For edge (p1, p2), cross_2d(p2-p1, v-p1) >= 0 means v is kept
-        let sq = unit_square();  // vertices at (0,0), (1,0), (1,1), (0,1)
+        let sq = unit_square(); // vertices at (0,0), (1,0), (1,1), (0,1)
 
         // Edge going UP at x = -1: from (-1, 0) to (-1, 1)
         // cross_2d((0, 1), (x, y) - (-1, 0)) = 0*(y) - 1*(x + 1) = -(x + 1)
@@ -336,13 +341,17 @@ mod tests {
         let p2 = Vector2f::new(-1.0, 1.0);
         let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
 
-        assert!(clipped.is_empty(), "Clipping by disjoint half-plane should be empty, got {} vertices", clipped.len());
+        assert!(
+            clipped.is_empty(),
+            "Clipping by disjoint half-plane should be empty, got {} vertices",
+            clipped.len()
+        );
     }
 
     #[test]
     fn clip_entirely_inside() {
         // Clip square by a half-plane that contains it entirely
-        let sq = unit_square();  // vertices at (0,0), (1,0), (1,1), (0,1)
+        let sq = unit_square(); // vertices at (0,0), (1,0), (1,1), (0,1)
 
         // Edge going UP at x = 2: from (2, 0) to (2, 1)
         // cross_2d((0, 1), (x, y) - (2, 0)) = 0*(y) - 1*(x - 2) = 2 - x
@@ -353,7 +362,12 @@ mod tests {
         let clipped = clip_polygon_by_edge(&sq.vertices, p1, p2);
 
         // Should preserve all vertices
-        assert_eq!(clipped.len(), sq.vertices.len(), "Should preserve all {} vertices", sq.vertices.len());
+        assert_eq!(
+            clipped.len(),
+            sq.vertices.len(),
+            "Should preserve all {} vertices",
+            sq.vertices.len()
+        );
     }
 
     // =========================================================================
@@ -409,7 +423,11 @@ mod tests {
     fn contains_vertex_points() {
         let sq = unit_square();
         for v in &sq.vertices {
-            assert!(sq.contains(*v), "Polygon should contain its own vertex {:?}", v);
+            assert!(
+                sq.contains(*v),
+                "Polygon should contain its own vertex {:?}",
+                v
+            );
         }
     }
 
@@ -420,7 +438,11 @@ mod tests {
             let v1 = sq.vertices[i];
             let v2 = sq.vertices[(i + 1) % sq.vertices.len()];
             let mid = (v1 + v2) * 0.5;
-            assert!(sq.contains(mid), "Polygon should contain edge midpoint {:?}", mid);
+            assert!(
+                sq.contains(mid),
+                "Polygon should contain edge midpoint {:?}",
+                mid
+            );
         }
     }
 
@@ -430,13 +452,17 @@ mod tests {
         let sq = unit_square();
         let eps = 1e-9;
         let near_interior = vec![
-            Vector2f::new(eps, 0.5),           // near left edge
-            Vector2f::new(1.0 - eps, 0.5),     // near right edge
-            Vector2f::new(0.5, eps),           // near bottom edge
-            Vector2f::new(0.5, 1.0 - eps),     // near top edge
+            Vector2f::new(eps, 0.5),       // near left edge
+            Vector2f::new(1.0 - eps, 0.5), // near right edge
+            Vector2f::new(0.5, eps),       // near bottom edge
+            Vector2f::new(0.5, 1.0 - eps), // near top edge
         ];
         for p in near_interior {
-            assert!(sq.contains(p), "Point {:?} near boundary should be contained", p);
+            assert!(
+                sq.contains(p),
+                "Point {:?} near boundary should be contained",
+                p
+            );
         }
     }
 
@@ -447,9 +473,13 @@ mod tests {
     #[test]
     fn signed_area_ccw_positive() {
         // CCW polygon should have positive signed area
-        let sq = unit_square();  // CCW ordering
+        let sq = unit_square(); // CCW ordering
         let area = sq.signed_area();
-        assert!(area > 0.0, "CCW polygon should have positive area, got {}", area);
+        assert!(
+            area > 0.0,
+            "CCW polygon should have positive area, got {}",
+            area
+        );
     }
 
     #[test]
@@ -462,7 +492,11 @@ mod tests {
             Vector2f::new(1.0, 0.0),
         ]);
         let area = cw_sq.signed_area();
-        assert!(area < 0.0, "CW polygon should have negative area, got {}", area);
+        assert!(
+            area < 0.0,
+            "CW polygon should have negative area, got {}",
+            area
+        );
     }
 
     #[test]
@@ -470,6 +504,10 @@ mod tests {
         // Unit square has area 1
         let sq = unit_square();
         let area = sq.signed_area().abs();
-        assert!((area - 1.0).abs() < 1e-10, "Unit square area should be 1, got {}", area);
+        assert!(
+            (area - 1.0).abs() < 1e-10,
+            "Unit square area should be 1, got {}",
+            area
+        );
     }
 }

@@ -1,133 +1,135 @@
 # Capacity Algorithm Test Cases
 
-Reference document for validated test cases and expected values.
+Catalog of test polytopes with expected values and verification status.
+
+For test infrastructure and running tests, see `test-documentation.md`.
+For mathematical claims and citations, see `mathematical-claims.md`.
+
+---
 
 ## Base Polytopes
 
-### Tesseract (Hypercube) [-1,1]⁴
+### Tesseract (Hypercube) [-1,1]^4
 
-- **Structure**: Lagrangian product [-1,1]² × [-1,1]²
-- **Facets**: 8 (4 q-facets, 4 p-facets)
-- **Expected capacity**: 4.0
-- **Literature**: Tesseract capacity is well-known; HK2019 cites this as a benchmark.
-- **Algorithms**: HK2019 ✓, Billiard ✓, Tube ✓
-- **Status**: Cross-validated, all three algorithms agree.
+| Property | Value |
+|----------|-------|
+| Structure | Lagrangian product [-1,1]^2 x [-1,1]^2 |
+| Facets | 8 (4 q-facets, 4 p-facets) |
+| Expected capacity | 4.0 |
+| Citation | HK2019 Example 4.6; Rudolf 2022 Example 3.5 |
+| Billiard | 4.0 (verified) |
+| HK2019 | 4.0 (verified) |
+| Tube | NoValidOrbits (Lagrangian, expected) |
+| Status | Cross-validated |
 
-### Standard Simplex in ℝ⁴
+---
 
-- **Structure**: conv{0, e₁, e₂, e₃, e₄} (NOT Lagrangian product)
-- **Facets**: 5
-- **Expected capacity**: 1/(2n) = 1/4 = 0.25 for normalized simplex
-- **Literature**: Haim-Kislev thesis (2019), formula c = 1/(2n) for standard simplex in ℝ^{2n}
-- **Algorithms**: HK2019 ✓
-- **Notes**:
-  - Standard simplex with vertices at 0 and unit vectors has edge length 1.
-  - Our test simplex (circumradius 1) gives capacity ~1.0.
-  - Scaling by λ gives capacity λ² × original (verified: scale by 0.5 → capacity 0.25).
+### Equilateral Triangle x Triangle
 
-### HK-O 2024 Pentagon Product
+| Property | Value |
+|----------|-------|
+| Structure | Lagrangian product, circumradius 1 |
+| Facets | 6 (3 q-facets, 3 p-facets) |
+| Expected capacity | 1.5 |
+| Citation | [UNCITED - computational verification only] |
+| Billiard (LP) | 1.5 (verified) |
+| HK2019 | 1.5 (verified) |
+| Status | Cross-validated |
 
-- **Structure**: Lagrangian product K × T where K = regular pentagon, T = K rotated by 90°
-- **Facets**: 10 (5 q-facets, 5 p-facets)
-- **Expected capacity**: 2·cos(π/10)·(1+cos(π/5)) ≈ 3.441
-- **Literature**: Haim-Kislev & Ostrover 2024, Proposition 1
-- **Algorithms**: Billiard ✓ (after adjacent vertex fix)
-- **Notes**:
-  - HK2019 times out (10! = 3.6M permutations)
-  - This is a COUNTEREXAMPLE to Viterbo's conjecture (systolic ratio > 1)
-- **Data**: `packages/python_viterbo/data/counterexamples/hk-o-2024/`
+**Note:** The Fagnano orbit (t=0.5) gives 2.25, but the optimal Minkowski trajectory is at t=1/3.
 
-## Lagrangian Product Test Cases
+---
 
-### Rectangle × Rectangle
+### Pentagon x Rotated Pentagon (HK-O Counterexample)
 
-| K₁ | K₂ | Expected | Billiard | HK2019 | Status |
-|----|----|---------:|--------:|-------:|--------|
-| [-1,1]² | [-1,1]² | 4.0 | 4.0 | ~4.0 | ✓ |
-| [-1,1]×[-0.5,0.5] | same | 1.0 | 1.0 | ~1.0 | ✓ |
+| Property | Value |
+|----------|-------|
+| Structure | K x T where K = regular pentagon, T = K rotated 90 degrees |
+| Facets | 10 (5 q-facets, 5 p-facets) |
+| Expected capacity | 2*cos(pi/10)*(1+cos(pi/5)) = 3.4409548... |
+| Citation | Haim-Kislev & Ostrover 2024, Proposition 1 |
+| Billiard | [BUG] Returns 2.127 = expected/phi |
+| HK2019 | Times out (10! permutations) |
+| Status | **BUG - under investigation** |
 
-### Regular Polygon × Same Polygon (unrotated)
+This is a COUNTEREXAMPLE to Viterbo's conjecture (systolic ratio > 1).
 
-| Polygon | Facets | Billiard (heuristic) | Billiard (LP) | HK2019 | Status |
-|---------|-------:|---------:|--------:|-------:|--------|
-| Square | 8 | 4.0 | 4.0 | ~4.0 | ✓ |
-| Hexagon | 12 | 4.0 | (TBD) | (too large) | Billiard only |
-| Pentagon | 10 | 5.0 | (TBD) | (too large) | Billiard only |
-| Triangle | 6 | 2.25 | **1.5** | 1.5 | ✓ |
+Data: `packages/python_viterbo/data/counterexamples/hk-o-2024/`
 
-**RESOLVED**: Triangle × triangle capacity is **1.5** (not 2.25). The heuristic algorithm
-searches only at edge midpoints (Fagnano orbit), which is optimal for Euclidean billiards
-but NOT for Minkowski billiards. The LP-based algorithm proves the optimal is at t=1/3.
-See [billiard-correctness-proof.md](billiard-correctness-proof.md) Section 9.
+---
 
-## Scaling Axiom Tests
+### Rectangle [-1,1] x [-0.5,0.5]
 
-Capacity scales as λ² with size: c(λK) = λ²·c(K)
+| Property | Value |
+|----------|-------|
+| Structure | Lagrangian product |
+| Facets | 8 |
+| Expected capacity | 1.0 (4 * min(1, 0.5)^2) |
+| Billiard | 1.0 (verified) |
+| HK2019 | ~1.0 (verified) |
+| Status | Cross-validated |
 
-| Base | Scale λ | Expected | Computed | Status |
-|------|--------:|--------:|--------:|--------|
-| Tesseract | 2 | 16.0 | 16.0 | ✓ |
-| Simplex | 0.5 | 0.25 | 0.25 | ✓ |
+---
 
-## Monotonicity Axiom Tests
+### Standard Simplex in R^4
 
-If K ⊆ L, then c(K) ≤ c(L).
+| Property | Value |
+|----------|-------|
+| Structure | conv{0, e_1, e_2, e_3, e_4} - NOT Lagrangian product |
+| Facets | 5 |
+| Expected capacity | 1/(2n) = 0.25 for normalized simplex |
+| Citation | [UNCITED - needs verification from HK thesis] |
+| Billiard | N/A (not Lagrangian) |
+| HK2019 | Not tested |
+| Status | **NOT TESTED** |
 
-Tested by comparing nested polytopes. ✓
+---
 
-## Perturbation Tests
+## Axiom Tests
 
-Small perturbations should give approximately equal capacity.
+### Scaling: c(lambda K) = lambda^2 c(K)
 
-- Perturbed tesseract (random noise ε=1e-6): capacity within 1e-3 of original ✓
+| Base | Scale | Expected | Computed | Status |
+|------|-------|----------|----------|--------|
+| Tesseract | 2 | 16.0 | 16.0 | Verified |
+| Random products | [0.3, 3.0] | lambda^2 * c | lambda^2 * c | Proptest |
 
-## Algorithm Limits
+### Monotonicity: K subset L implies c(K) <= c(L)
 
-| Algorithm | Max Facets | Notes |
-|-----------|-----------|-------|
-| HK2019 | 8 practical, 10 max | O(F!) complexity, 60s timeout |
-| Billiard | unlimited | O(n²) for Lagrangian products only |
-| Tube | 8 typical | Often fails (no valid orbits) |
+Tested via proptest with random products and expansion factors [1.01, 2.0].
 
-## Open Issues
+### Symplectomorphism Invariance
 
-### Triangle × Triangle Discrepancy (FULLY RESOLVED)
+| Transform | Status |
+|-----------|--------|
+| Block rotation (q1,p1) | Tested |
+| Block rotation (q2,p2) | Tested |
+| Combined rotation | Tested |
+| Shear | Ignored (breaks Lagrangian structure) |
 
-**Original Observation**:
-- Heuristic billiard algorithm = 2.25, HK2019 = 1.5 (ratio 1.5)
+---
 
-**Resolution**: The **correct capacity is 1.5**. The heuristic algorithm was wrong.
+## Algorithm Domain
 
-**Root Cause**:
+| Algorithm | Lagrangian Products | General Polytopes | Max Facets |
+|-----------|---------------------|-------------------|------------|
+| Billiard (LP) | Works | N/A | Unlimited |
+| HK2019 | Works | Works | 8 practical |
+| Tube | Fails (degenerate) | Untested | N/A |
 
-The heuristic billiard algorithm searches at edge midpoints (t=0.5), finding the **Fagnano orbit**.
-The Fagnano orbit is optimal for **Euclidean** billiards, but NOT for **Minkowski** billiards.
+---
 
-For Minkowski billiards with K₂ = K₁ (equilateral triangle), the optimal is at t = 1/3
-(one-third points on each edge), giving T-length = 1.5.
+## Known Issues
 
-**Verification**:
-- LP-based algorithm (billiard_lp.rs) proves minimum is 1.5 via linear programming
-- Analytical verification: T-length at t=1/3 is 3 × 0.5 = 1.5
-- HK2019 also gives 1.5, confirming correctness
+1. **Pentagon capacity bug:** Returns 2.127, expected 3.441 (ratio = phi)
+2. **HK2019 QP solver:** Only checks vertices/edges, may miss optimum on higher faces
+3. **Tube algorithm:** Returns NoValidOrbits for all tested polytopes
+4. **Witness segment_times:** Not implemented (placeholder zeros)
 
-**Why the Fagnano orbit (t=0.5) is NOT optimal**:
-- Fagnano minimizes Euclidean length by using "reflection" points
-- Minkowski billiards minimize support-function-weighted length
-- Different objectives → different optima
-
-See [billiard-correctness-proof.md](billiard-correctness-proof.md) Section 7 and Section 9
-for the complete mathematical analysis.
-
-### Tube Algorithm Limitations
-
-Tube algorithm often returns NoValidOrbits because:
-- Closure candidates don't satisfy rotation constraint (need rotation = 1.0)
-- Only works for polytopes with favorable 2-face structure
-- Rotated tesseract: 8 non-Lagrangian 2-faces found, but rotation ~1.75
+---
 
 ## References
 
-- Haim-Kislev (2019): "On the Symplectic Size of Convex Polytopes" - HK2019 formula
-- Rudolf (2022): "The Minkowski Billiard Characterization of the EHZ-Capacity of Convex Lagrangian Products"
-- Haim-Kislev & Ostrover (2024): "A Counterexample to Viterbo's Conjecture"
+- HK2019: Haim-Kislev 2019, "On the Symplectic Size of Convex Polytopes"
+- Rudolf 2022: "The Minkowski Billiard Characterization of the EHZ-Capacity"
+- HK-O 2024: Haim-Kislev & Ostrover 2024, "A Counterexample to Viterbo's Conjecture"

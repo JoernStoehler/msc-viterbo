@@ -3,6 +3,8 @@
 This document specifies the geometric data and formulas needed for the tube-based capacity algorithm.
 It uses the language/conventions of the thesis and provides a dictionary to CH2021 where relevant.
 
+> **Related:** For mathematical claims and citations, see `mathematical-claims.md` Sections 3.3, 4.
+
 **Status:** Draft, pending review.
 
 ## 1. Conventions (locked, from thesis)

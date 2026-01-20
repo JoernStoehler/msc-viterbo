@@ -2,6 +2,8 @@
 
 Implementation guide for the Minkowski billiard algorithm for Lagrangian products.
 
+> **Related:** For mathematical claims and citations, see `mathematical-claims.md` Section 3.1.
+
 ## Status and Trustworthiness
 
 **Status:** Implementation complete using LP-based algorithm. Tests pass for tesseract
@@ -49,7 +51,7 @@ been removed in favor of the LP approach, which is more rigorous and gives corre
 results for all tested cases.
 
 ### For detailed analysis:
-See [billiard-correctness-proof.md](billiard-correctness-proof.md) for:
+See [billiard-correctness-proof.md](archive/billiard-correctness-proof.md) for:
 - Exact optimization problem formulation
 - Properties of the problem (convex, piecewise linear, non-smooth)
 - Exact theorem statements from Rudolf 2022
@@ -362,7 +364,7 @@ For triangles, the optimal trajectory is a 3-bounce orbit, but NOT the Fagnano o
 
 **Correct capacity: 1.5** (verified by LP algorithm and HK2019).
 
-See [billiard-correctness-proof.md](billiard-correctness-proof.md) Section 7 and 9 for
+See [billiard-correctness-proof.md](archive/billiard-correctness-proof.md) Section 7 and 9 for
 the complete mathematical analysis.
 
 ### 8.3 When 2-Bounce is Optimal

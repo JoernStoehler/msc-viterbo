@@ -10,7 +10,15 @@
 //! The key insight is that flow maps between 2-faces are affine, so tube
 //! composition reduces to 2D affine algebra.
 //!
-//! See thesis §4.3 and [algorithm-spec.md](../docs/algorithm-spec.md).
+//! # Citations
+//!
+//! - **CH2021 §2**: Definition of linear flows and symplectic flow graphs
+//!   (Definition 2.4-2.12 in docs/papers/s2_type_1_reeb_orbits.tex)
+//! - **CH2021 Definition 3.12**: Periodic orbit = cycle with fixed point of φ_p
+//! - **CH2021 Corollary 5.3**: Each 2-face crossing has rotation in (0, 1/2)
+//! - **CH2021 Definition 3.17**: Combinatorial rotation number ρ_comb(γ) = ρ_τ(p)
+//!
+//! See also thesis algorithms.tex and [algorithm-spec.md](../docs/algorithm-spec.md).
 
 use crate::affine::{AffineFunc, AffineMap2D};
 use crate::polygon::Polygon2D;
@@ -136,6 +144,8 @@ pub fn inverse_trivialization(coords: Vector2f, n: SymplecticVector) -> Symplect
 /// - v · Kn = coords.y (trivialization y-coordinate)
 /// - v · n_i = 0 (tangent to facet i)
 /// - v · n_j = 0 (tangent to facet j)
+///
+/// **UNCITED**: Orthonormal basis approach needs linear algebra justification
 pub fn inverse_trivialization_2face(
     coords: Vector2f,
     entry_normal: SymplecticVector,
@@ -298,6 +308,8 @@ fn barycentric_coords(p: Vector2f, v0: Vector2f, v1: Vector2f, v2: Vector2f) -> 
 
 /// Compute time to reach next 2-face when flowing on a facet.
 /// Formula: t(p) = h_k (h_j - ⟨n_j, p⟩) / (2 ω(n_k, n_j))
+///
+/// **UNCITED**: needs CH2021 time formula citation
 pub fn compute_time_to_crossing(
     p: SymplecticVector,
     facet_k: usize,
@@ -332,7 +344,8 @@ pub fn compute_flow_map(
     let n_exit = exit_face.entry_normal;
     let r_exit = exit_face.centroid;
 
-    // Reeb velocity on facet k
+    // Reeb velocity on facet k: v_k = (2/h_k) J n_k
+    // **UNCITED**: needs CH2021 §2.2 velocity formula
     let v_k = apply_j(n_k) * (2.0 / h_k);
 
     // Compute time function coefficients
@@ -372,6 +385,7 @@ pub fn compute_flow_map(
         tau_exit_v_k.y * time_gradient.y,
     );
 
+    // **UNCITED**: claims flow map is sum of base and time-dependent terms
     let total_linear = base_linear + time_linear;
     let total_offset = tau_exit_delta_r + tau_exit_v_k * time_constant;
 
@@ -413,25 +427,19 @@ fn extend_tube_inner(
 ) -> Option<Tube> {
     let (prev_facet, current_facet) = tube.current_face();
     let entry_face = data.get_two_face(prev_facet, current_facet);
-    if entry_face.is_none() {
-        #[cfg(test)]
-        eprintln!("DEBUG extend_tube: no 2-face ({}, {})", prev_facet, current_facet);
-        return None;
-    }
+    entry_face?;
     let entry_face = entry_face.unwrap();
 
     let exit_face = data.get_two_face(current_facet, new_facet);
-    if exit_face.is_none() {
-        #[cfg(test)]
-        eprintln!("DEBUG extend_tube: no 2-face ({}, {})", current_facet, new_facet);
-        return None;
-    }
+    exit_face?;
     let exit_face = exit_face.unwrap();
 
     if !flow_allows_crossing(current_facet, new_facet, exit_face.flow_direction) {
         #[cfg(test)]
-        eprintln!("DEBUG extend_tube: flow blocked {} -> {} (dir={:?})",
-                  current_facet, new_facet, exit_face.flow_direction);
+        eprintln!(
+            "DEBUG extend_tube: flow blocked {} -> {} (dir={:?})",
+            current_facet, new_facet, exit_face.flow_direction
+        );
         return None;
     }
 
@@ -446,7 +454,10 @@ fn extend_tube_inner(
     if !closure_mode && new_p_end.is_empty() {
         #[cfg(test)]
         if tube.facet_sequence.len() >= 4 && tube.facet_sequence[0] == 2 {
-            eprintln!("DEBUG extend_tube: polygon empty after {} -> {}", current_facet, new_facet);
+            eprintln!(
+                "DEBUG extend_tube: polygon empty after {} -> {}",
+                current_facet, new_facet
+            );
             eprintln!("  seq: {:?}", tube.facet_sequence);
             eprintln!("  mapped_end vertices: {:?}", mapped_end.vertices);
             eprintln!("  exit_face vertices: {:?}", exit_face.polygon.vertices);
@@ -457,6 +468,7 @@ fn extend_tube_inner(
     let new_flow_map = flow_data.map.compose(&tube.flow_map);
     let action_increment = flow_data.time_func.compose(&tube.flow_map);
     let new_action_func = tube.action_func.add(&action_increment);
+    // **UNCITED**: assumes rotation accumulates additively
     let new_rotation = tube.rotation + exit_face.rotation;
 
     // For closure mode with empty polygon, use 0.0 as placeholder for action bound
@@ -493,7 +505,10 @@ pub fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<ExtensionResult> 
     // Check if we can close immediately
     if current_facet == start_i {
         #[cfg(test)]
-        eprintln!("DEBUG get_extensions: at start_i={}, trying to close to start_j={}", start_i, start_j);
+        eprintln!(
+            "DEBUG get_extensions: at start_i={}, trying to close to start_j={}",
+            start_i, start_j
+        );
         // Use closure-mode extension to bypass polygon intersection check
         if let Some(extended) = extend_tube_for_closure(tube, start_j, data) {
             results.push(ExtensionResult::Closure(extended));
@@ -505,8 +520,12 @@ pub fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<ExtensionResult> 
     let adjacent_faces = data.faces_adjacent_to(current_facet);
     #[cfg(test)]
     if tube.facet_sequence.len() >= 4 {
-        eprintln!("DEBUG get_extensions: seq={:?}, {} adjacent faces to {}",
-                  tube.facet_sequence, adjacent_faces.len(), current_facet);
+        eprintln!(
+            "DEBUG get_extensions: seq={:?}, {} adjacent faces to {}",
+            tube.facet_sequence,
+            adjacent_faces.len(),
+            current_facet
+        );
     }
 
     for face in adjacent_faces {
@@ -527,7 +546,10 @@ pub fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<ExtensionResult> 
         if let Some(extended) = extend_tube(tube, next_facet, data) {
             if next_facet == start_i {
                 #[cfg(test)]
-                eprintln!("DEBUG get_extensions: reached start_i={}, trying to close to start_j={}", start_i, start_j);
+                eprintln!(
+                    "DEBUG get_extensions: reached start_i={}, trying to close to start_j={}",
+                    start_i, start_j
+                );
                 // Use closure-mode extension to bypass polygon intersection check
                 if let Some(closed) = extend_tube_for_closure(&extended, start_j, data) {
                     results.push(ExtensionResult::Closure(closed));
@@ -550,14 +572,19 @@ pub fn solve_closed_tube(
     data: &PolytopeData,
 ) -> Option<(f64, crate::result::WitnessOrbit)> {
     #[cfg(test)]
-    eprintln!("DEBUG solve_closed_tube: seq={:?}, rotation={:.4}", tube.facet_sequence, tube.rotation);
+    eprintln!(
+        "DEBUG solve_closed_tube: seq={:?}, rotation={:.4}",
+        tube.facet_sequence, tube.rotation
+    );
 
     let fixed_point = match tube.flow_map.fixed_point() {
         Some(fp) => fp,
         None => {
             #[cfg(test)]
-            eprintln!("DEBUG solve_closed_tube: no fixed point (det={:.6})",
-                      tube.flow_map.linear.determinant());
+            eprintln!(
+                "DEBUG solve_closed_tube: no fixed point (det={:.6})",
+                tube.flow_map.linear.determinant()
+            );
             return None;
         }
     };
@@ -570,8 +597,10 @@ pub fn solve_closed_tube(
     // but p_start is well-conditioned and the fixed point must be valid there.
     if !tube.p_start.contains(fixed_point) {
         #[cfg(test)]
-        eprintln!("DEBUG solve_closed_tube: fixed_point not in p_start (vertices={:?})",
-                  tube.p_start.vertices);
+        eprintln!(
+            "DEBUG solve_closed_tube: fixed_point not in p_start (vertices={:?})",
+            tube.p_start.vertices
+        );
         return None;
     }
 
@@ -579,10 +608,22 @@ pub fn solve_closed_tube(
     #[cfg(test)]
     {
         eprintln!("DEBUG solve_closed_tube: action={:.6}", action);
-        eprintln!("DEBUG solve_closed_tube: action_func.gradient={:?}", tube.action_func.gradient);
-        eprintln!("DEBUG solve_closed_tube: action_func.constant={:.6}", tube.action_func.constant);
-        eprintln!("DEBUG solve_closed_tube: flow_map.linear={:?}", tube.flow_map.linear);
-        eprintln!("DEBUG solve_closed_tube: flow_map.offset={:?}", tube.flow_map.offset);
+        eprintln!(
+            "DEBUG solve_closed_tube: action_func.gradient={:?}",
+            tube.action_func.gradient
+        );
+        eprintln!(
+            "DEBUG solve_closed_tube: action_func.constant={:.6}",
+            tube.action_func.constant
+        );
+        eprintln!(
+            "DEBUG solve_closed_tube: flow_map.linear={:?}",
+            tube.flow_map.linear
+        );
+        eprintln!(
+            "DEBUG solve_closed_tube: flow_map.offset={:?}",
+            tube.flow_map.offset
+        );
     }
 
     if action <= 0.0 {
@@ -612,7 +653,10 @@ fn reconstruct_witness(
     let n_segments = seq.len() - 2;
 
     #[cfg(test)]
-    eprintln!("DEBUG reconstruct: seq={:?}, n_segments={}", seq, n_segments);
+    eprintln!(
+        "DEBUG reconstruct: seq={:?}, n_segments={}",
+        seq, n_segments
+    );
 
     if n_segments == 0 {
         return None;
@@ -637,10 +681,14 @@ fn reconstruct_witness(
     {
         eprintln!("DEBUG reconstruct: start_4d={:?}", current_4d);
         // Verify trivialization matches fixed_point
-        let reconstructed_2d = trivialization(current_4d - start_face.centroid, start_face.entry_normal);
+        let reconstructed_2d =
+            trivialization(current_4d - start_face.centroid, start_face.entry_normal);
         eprintln!("DEBUG reconstruct: fixed_point_2d={:?}", fixed_point_2d);
         eprintln!("DEBUG reconstruct: reconstructed_2d={:?}", reconstructed_2d);
-        eprintln!("DEBUG reconstruct: 2D error={:.3e}", (reconstructed_2d - fixed_point_2d).norm());
+        eprintln!(
+            "DEBUG reconstruct: 2D error={:.3e}",
+            (reconstructed_2d - fixed_point_2d).norm()
+        );
         eprintln!("DEBUG reconstruct: polygon vertices:");
         for (i, v) in start_face.polygon.vertices.iter().enumerate() {
             let dist = (*v - fixed_point_2d).norm();
@@ -662,8 +710,10 @@ fn reconstruct_witness(
 
         let time = compute_time_to_crossing(current_4d, facet_k, facet_j, data);
         #[cfg(test)]
-        eprintln!("DEBUG reconstruct: segment {} on facet {}, exit to {}, time={:.6}",
-                  s, facet_k, facet_j, time);
+        eprintln!(
+            "DEBUG reconstruct: segment {} on facet {}, exit to {}, time={:.6}",
+            s, facet_k, facet_j, time
+        );
         segment_times.push(time);
 
         let h_k = data.hrep.heights[facet_k];
@@ -686,7 +736,10 @@ fn reconstruct_witness(
     let total_time: f64 = segment_times.iter().sum();
     if total_time < 1e-6 {
         #[cfg(test)]
-        eprintln!("DEBUG reconstruct: rejecting degenerate orbit (total_time={:.3e})", total_time);
+        eprintln!(
+            "DEBUG reconstruct: rejecting degenerate orbit (total_time={:.3e})",
+            total_time
+        );
         return None;
     }
 
@@ -694,7 +747,10 @@ fn reconstruct_witness(
     for (_i, &t) in segment_times.iter().enumerate() {
         if t < -1e-10 {
             #[cfg(test)]
-            eprintln!("DEBUG reconstruct: rejecting orbit with negative time (segment {} has t={:.3e})", _i, t);
+            eprintln!(
+                "DEBUG reconstruct: rejecting orbit with negative time (segment {} has t={:.3e})",
+                _i, t
+            );
             return None;
         }
     }
@@ -743,8 +799,8 @@ mod tests {
         let n = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
         let j = quaternion::mat_j();
         let k = quaternion::mat_k();
-        let jn = j * n;  // (0, 0, -1, 0) for standard J
-        let kn = k * n;  // (0, 0, 0, -1) for standard K
+        let jn = j * n; // (0, 0, -1, 0) for standard J
+        let kn = k * n; // (0, 0, 0, -1) for standard K
 
         // Create a vector in span{Jn, Kn}
         let v = jn * 0.7 + kn * 0.3;
@@ -754,8 +810,11 @@ mod tests {
         let reconstructed = inverse_trivialization(coords, n);
 
         let error = (reconstructed - v).norm();
-        assert!(error < 1e-10,
-            "Roundtrip error for v in span{{Jn,Kn}} = {:.2e}, expected ~0", error);
+        assert!(
+            error < 1e-10,
+            "Roundtrip error for v in span{{Jn,Kn}} = {:.2e}, expected ~0",
+            error
+        );
     }
 
     #[test]
@@ -783,8 +842,11 @@ mod tests {
         let expected = jn * (v.dot(&jn) / jn_norm_sq) + kn * (v.dot(&kn) / kn_norm_sq);
 
         let error = (reconstructed - expected).norm();
-        assert!(error < 1e-10,
-            "Trivialization is not a projection: error = {:.2e}", error);
+        assert!(
+            error < 1e-10,
+            "Trivialization is not a projection: error = {:.2e}",
+            error
+        );
     }
 
     // =========================================================================
@@ -813,9 +875,21 @@ mod tests {
         let centroid = (v0 + v1 + v2) / 3.0;
 
         let (w0, w1, w2) = barycentric_coords(centroid, v0, v1, v2);
-        assert!((w0 - 1.0/3.0).abs() < 1e-10, "w0 should be 1/3, got {}", w0);
-        assert!((w1 - 1.0/3.0).abs() < 1e-10, "w1 should be 1/3, got {}", w1);
-        assert!((w2 - 1.0/3.0).abs() < 1e-10, "w2 should be 1/3, got {}", w2);
+        assert!(
+            (w0 - 1.0 / 3.0).abs() < 1e-10,
+            "w0 should be 1/3, got {}",
+            w0
+        );
+        assert!(
+            (w1 - 1.0 / 3.0).abs() < 1e-10,
+            "w1 should be 1/3, got {}",
+            w1
+        );
+        assert!(
+            (w2 - 1.0 / 3.0).abs() < 1e-10,
+            "w2 should be 1/3, got {}",
+            w2
+        );
     }
 
     #[test]
@@ -834,8 +908,12 @@ mod tests {
         for p in test_points {
             let (w0, w1, w2) = barycentric_coords(p, v0, v1, v2);
             let sum = w0 + w1 + w2;
-            assert!((sum - 1.0).abs() < 1e-10,
-                "Barycentric coords should sum to 1, got {} for p={:?}", sum, p);
+            assert!(
+                (sum - 1.0).abs() < 1e-10,
+                "Barycentric coords should sum to 1, got {} for p={:?}",
+                sum,
+                p
+            );
         }
     }
 
@@ -851,8 +929,11 @@ mod tests {
         let reconstructed = v0 * w0 + v1 * w1 + v2 * w2;
 
         let error = (reconstructed - p).norm();
-        assert!(error < 1e-10,
-            "Barycentric reconstruction error = {:.2e}", error);
+        assert!(
+            error < 1e-10,
+            "Barycentric reconstruction error = {:.2e}",
+            error
+        );
     }
 
     // =========================================================================
@@ -862,10 +943,7 @@ mod tests {
     #[test]
     fn affine_map_fixed_point_contraction() {
         // Contraction x → 0.5*x + (1, 1) has fixed point (2, 2)
-        let map = AffineMap2D::new(
-            Matrix2f::new(0.5, 0.0, 0.0, 0.5),
-            Vector2f::new(1.0, 1.0),
-        );
+        let map = AffineMap2D::new(Matrix2f::new(0.5, 0.0, 0.0, 0.5), Vector2f::new(1.0, 1.0));
         let fp = map.fixed_point().expect("Should have fixed point");
         assert!((fp - Vector2f::new(2.0, 2.0)).norm() < 1e-10);
     }
@@ -873,14 +951,15 @@ mod tests {
     #[test]
     fn affine_map_fixed_point_is_actually_fixed() {
         // Any fixed point f(x) = x should satisfy x = Ax + b
-        let map = AffineMap2D::new(
-            Matrix2f::new(0.8, 0.1, -0.1, 0.7),
-            Vector2f::new(0.5, 0.3),
-        );
+        let map = AffineMap2D::new(Matrix2f::new(0.8, 0.1, -0.1, 0.7), Vector2f::new(0.5, 0.3));
         if let Some(fp) = map.fixed_point() {
             let mapped = map.apply(fp);
             let error = (mapped - fp).norm();
-            assert!(error < 1e-10, "f(fp) should equal fp, error = {:.2e}", error);
+            assert!(
+                error < 1e-10,
+                "f(fp) should equal fp, error = {:.2e}",
+                error
+            );
         }
     }
 
@@ -944,18 +1023,9 @@ mod tests {
     #[test]
     fn flow_map_composition_associative() {
         // (A ∘ B) ∘ C = A ∘ (B ∘ C)
-        let a = AffineMap2D::new(
-            Matrix2f::new(0.9, 0.1, -0.1, 0.8),
-            Vector2f::new(0.5, 0.3),
-        );
-        let b = AffineMap2D::new(
-            Matrix2f::new(0.7, -0.2, 0.2, 0.6),
-            Vector2f::new(-0.2, 0.4),
-        );
-        let c = AffineMap2D::new(
-            Matrix2f::new(1.1, 0.0, 0.3, 0.9),
-            Vector2f::new(0.1, -0.1),
-        );
+        let a = AffineMap2D::new(Matrix2f::new(0.9, 0.1, -0.1, 0.8), Vector2f::new(0.5, 0.3));
+        let b = AffineMap2D::new(Matrix2f::new(0.7, -0.2, 0.2, 0.6), Vector2f::new(-0.2, 0.4));
+        let c = AffineMap2D::new(Matrix2f::new(1.1, 0.0, 0.3, 0.9), Vector2f::new(0.1, -0.1));
 
         let ab_c = a.compose(&b).compose(&c);
         let a_bc = a.compose(&b.compose(&c));
@@ -970,7 +1040,11 @@ mod tests {
             let r1 = ab_c.apply(p);
             let r2 = a_bc.apply(p);
             let error = (r1 - r2).norm();
-            assert!(error < 1e-10, "Composition not associative: error = {:.2e}", error);
+            assert!(
+                error < 1e-10,
+                "Composition not associative: error = {:.2e}",
+                error
+            );
         }
     }
 
@@ -980,22 +1054,28 @@ mod tests {
 
     /// Rotation should accumulate additively when extending tubes.
     ///
-    /// MATHEMATICAL PROPERTY: For a closed orbit crossing 2-faces F₁, F₂, ..., Fₙ,
-    /// the total rotation is Σᵢ ρ(Fᵢ) = 1 (one full turn).
+    /// **Citation**: CH2021 §2.3 (Definition 3.17 and Remark 3.18) establishes that
+    /// rotation is additive in Sp̃(2): ρ_total = Σᵢ ρ(Fᵢ).
+    ///
+    /// UNCITED CLAIM REMOVED: Previous comment claimed "total rotation = 1" but
+    /// CH2021 Proposition 1.10 says action-minimizing orbits have ρ ∈ (1, 2) for CZ=3.
+    /// The 24-cell example (CH2021 §2.4) has orbits with ρ = 2.
     ///
     /// This test verifies rotation accumulates correctly in tube extension.
     #[test]
     fn rotation_accumulates_additively() {
         // If we had two tubes with rotations r1 and r2, composing them should give r1 + r2
-        // This is implicit in extend_tube_inner but let's verify the math:
-        // A closed orbit has total rotation = 1 (integer number of turns)
+        // Citation: CH2021 §2.3 rotation additivity in Sp̃(2)
 
         // Create two flow maps with known rotation increments
         let r1: f64 = 0.125; // 1/8 turn
         let r2: f64 = 0.125; // 1/8 turn
         let r_total = r1 + r2;
 
-        assert!((r_total - 0.25_f64).abs() < 1e-10, "Rotation should be additive");
+        assert!(
+            (r_total - 0.25_f64).abs() < 1e-10,
+            "Rotation should be additive"
+        );
     }
 
     /// Action lower bound should be achieved or exceeded by any point in p_end.
@@ -1020,9 +1100,13 @@ mod tests {
             // Any point in polygon should achieve >= min_val
             for v in &polygon.vertices {
                 let val = action_func.eval(*v);
-                assert!(val >= min_val - 1e-10,
+                assert!(
+                    val >= min_val - 1e-10,
                     "Vertex {:?} has action {} < lower bound {}",
-                    v, val, min_val);
+                    v,
+                    val,
+                    min_val
+                );
             }
         }
     }
@@ -1045,13 +1129,17 @@ mod tests {
         // The property holds by construction when flow direction is chosen correctly.
         let h_k = 1.0;
         let h_j = 1.0;
-        let n_j_dot_p = 0.5;  // p is inside
-        let omega_kj = 0.5;   // positive omega means flow k → j
+        let n_j_dot_p = 0.5; // p is inside
+        let omega_kj = 0.5; // positive omega means flow k → j
 
         let numerator = h_k * (h_j - n_j_dot_p);
         let denominator = 2.0 * omega_kj;
         let time = numerator / denominator;
 
-        assert!(time > 0.0, "Time should be positive for forward flow, got {}", time);
+        assert!(
+            time > 0.0,
+            "Time should be positive for forward flow, got {}",
+            time
+        );
     }
 }

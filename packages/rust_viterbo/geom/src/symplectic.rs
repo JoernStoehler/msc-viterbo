@@ -12,7 +12,9 @@ use crate::types::{Matrix2f, Matrix4f, SymplecticVector, Vector2f};
 
 /// Quaternion structure matrices for trivializations.
 /// Satisfy i² = j² = k² = -I and ij = k, jk = i, ki = j.
+/// **UNCITED**: quaternion relations i² = j² = k² = -I should cite standard algebra reference
 /// Convention: i = J (our almost complex structure).
+/// **UNCITED**: identification of quaternion i with almost complex structure J needs justification
 ///
 /// In (q₁, q₂, p₁, p₂) coordinates:
 pub mod quaternion {
@@ -58,6 +60,7 @@ pub fn apply_j(v: SymplecticVector) -> SymplecticVector {
 }
 
 /// Compute the standard symplectic form ω(x,y) = ⟨Jx, y⟩.
+/// **UNCITED**: standard symplectic form definition, should cite
 pub fn symplectic_form(x: SymplecticVector, y: SymplecticVector) -> f64 {
     apply_j(x).dot(&y)
 }
@@ -69,6 +72,7 @@ pub fn symplectic_form_2d(u: Vector2f, v: Vector2f) -> f64 {
 
 /// Trivialization τ_n: maps V ∈ ℝ⁴ to (⟨V, jn⟩, ⟨V, kn⟩) ∈ ℝ².
 /// This uses the quaternion matrices j, k applied to normal n.
+/// **UNCITED**: trivialization formula needs CH2021 or thesis citation
 pub fn trivialization(v: SymplecticVector, n: SymplecticVector) -> Vector2f {
     let j = quaternion::mat_j();
     let k = quaternion::mat_k();
@@ -78,8 +82,9 @@ pub fn trivialization(v: SymplecticVector, n: SymplecticVector) -> Vector2f {
 }
 
 /// Compute the transition matrix ψ = τ_n₂ ∘ (τ_n₁)⁻¹.
+/// **UNCITED**: ψ = τ_n₂ ∘ (τ_n₁)⁻¹ formula needs proof reference
 ///
-/// Given two normals n₁ (exit facet) and n₂ (entry facet), this computes
+/// Given two normals n₁ (exit facet) and n₂ (entry facat), this computes
 /// the 2×2 matrix that transforms coordinates from τ_n₁ to τ_n₂.
 ///
 /// For a 2-face F with ω(n₁, n₂) > 0 (flow from E₁ to E₂):
@@ -96,15 +101,11 @@ pub fn transition_matrix(n1: SymplecticVector, n2: SymplecticVector) -> Matrix2f
     let kn2 = k * n2;
 
     // ψ[i,j] = ⟨basis_i of τ_n2, basis_j of τ_n1⟩
-    Matrix2f::new(
-        jn2.dot(&jn1),
-        jn2.dot(&kn1),
-        kn2.dot(&jn1),
-        kn2.dot(&kn1),
-    )
+    Matrix2f::new(jn2.dot(&jn1), jn2.dot(&kn1), kn2.dot(&jn1), kn2.dot(&kn1))
 }
 
 /// Classification of elements of Sp(2) by trace.
+/// **UNCITED**: standard classification but should cite standard reference
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Sp2Class {
     PositiveHyperbolic, // Tr > 2
@@ -147,6 +148,7 @@ pub fn classify_sp2(m: Matrix2f) -> Sp2Class {
 
 /// Compute the rotation number for a positive elliptic matrix.
 /// Returns θ ∈ (0, 0.5) such that eigenvalues are e^{±2πiθ}.
+/// **UNCITED**: rotation number formula θ = arccos(tr/2)/(2π) for elliptic matrices needs citation
 ///
 /// For non-positive-elliptic matrices, returns None.
 pub fn rotation_number(m: Matrix2f) -> Option<f64> {
@@ -162,6 +164,7 @@ pub fn rotation_number(m: Matrix2f) -> Option<f64> {
 }
 
 /// Compute the rotation increment for a 2-face with given normals.
+/// **UNCITED**: needs explicit CH2021 Corollary 5.3 citation
 ///
 /// n1: normal of exit facet (flow leaving)
 /// n2: normal of entry facet (flow entering)
@@ -292,7 +295,11 @@ mod tests {
 
         #[test]
         fn all_matrices_are_orthogonal() {
-            for m in [quaternion::mat_i(), quaternion::mat_j(), quaternion::mat_k()] {
+            for m in [
+                quaternion::mat_i(),
+                quaternion::mat_j(),
+                quaternion::mat_k(),
+            ] {
                 let mt = m.transpose();
                 assert!((m * mt - identity()).norm() < 1e-12);
             }
@@ -415,10 +422,7 @@ mod tests {
             let n2 = SymplecticVector::new(0.0, 0.0, 1.0, 0.0);
 
             if let Some(rot) = two_face_rotation(n1, n2) {
-                assert!(
-                    (rot - 0.25).abs() < 1e-10,
-                    "expected 0.25 turn, got {rot}"
-                );
+                assert!((rot - 0.25).abs() < 1e-10, "expected 0.25 turn, got {rot}");
             }
         }
 
@@ -432,14 +436,21 @@ mod tests {
         #[test]
         fn sp2_classification_by_trace() {
             let tests = [
-                (Matrix2f::new(2.0, 1.0, 0.0, 2.0), Sp2Class::PositiveHyperbolic),
-                (Matrix2f::new(-2.0, 1.0, 0.0, -2.0), Sp2Class::NegativeHyperbolic),
+                (
+                    Matrix2f::new(2.0, 1.0, 0.0, 2.0),
+                    Sp2Class::PositiveHyperbolic,
+                ),
+                (
+                    Matrix2f::new(-2.0, 1.0, 0.0, -2.0),
+                    Sp2Class::NegativeHyperbolic,
+                ),
                 (Matrix2f::identity(), Sp2Class::Identity),
             ];
             for (m, expected) in tests {
                 let class = classify_sp2(m);
                 assert_eq!(
-                    class, expected,
+                    class,
+                    expected,
                     "matrix with trace {} should be {:?}, got {:?}",
                     m.trace(),
                     expected,

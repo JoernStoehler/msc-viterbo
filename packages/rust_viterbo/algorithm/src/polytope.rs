@@ -3,8 +3,15 @@
 //! This module computes and caches geometric data about non-Lagrangian 2-faces
 //! that is reused throughout the branch-and-bound search.
 //!
-//! Key insight: Only non-Lagrangian 2-faces can be crossed by Reeb orbits.
-//! See thesis §4.2 for the Reeb dynamics on polytope boundaries.
+//! # Citations
+//!
+//! - **CH2021 Definition 2.9**: A 2-face Fᵢⱼ is Lagrangian iff ω(nᵢ, nⱼ) = 0.
+//!   Reeb flow crosses non-Lagrangian 2-faces in a definite direction.
+//! - **CH2021 §2.2 (after Definition 2.9)**: Flow direction determined by sign of ω(nᵢ, nⱼ).
+//!   If ω(nᵢ, nⱼ) > 0, flow crosses from Eᵢ into Eⱼ.
+//! - **CH2021 Corollary 5.3**: Each 2-face crossing has rotation in (0, 1/2).
+//!
+//! See also thesis algorithms.tex §4.2 for Reeb dynamics on polytope boundaries.
 
 use crate::polygon::Polygon2D;
 use rust_viterbo_geom::{
@@ -21,6 +28,9 @@ pub const EPS_LAGR: f64 = 1e-9;
 /// Flow direction across a 2-face.
 ///
 /// Determined by the sign of ω(nᵢ, nⱼ) where nᵢ, nⱼ are the facet normals.
+///
+/// **Citation**: CH2021 §2.2 (tube-geometry-spec.md §2.3) - if ω(nᵢ, nⱼ) > 0,
+/// the Reeb velocity vᵢ points into half-space {⟨nⱼ, x⟩ < hⱼ}.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FlowDir {
     /// Flow crosses from Eᵢ into Eⱼ (ω(nᵢ, nⱼ) > 0)
@@ -40,7 +50,8 @@ pub struct TwoFaceData {
     pub j: usize,
     /// Which way does the Reeb flow cross?
     pub flow_direction: FlowDir,
-    /// Rotation increment ρ(F) ∈ (0, 0.5) in turns
+    /// Rotation increment ρ(F) ∈ (0, 0.5) in turns.
+    /// **Citation**: CH2021 Corollary 5.3 proves this range.
     pub rotation: f64,
     /// Polygon vertices in 2D (trivialization coordinates, relative to centroid)
     pub polygon: Polygon2D,
@@ -163,7 +174,10 @@ mod tests {
     #[test]
     fn get_two_face_order_independent() {
         let data = PolytopeData::new(tesseract());
-        assert!(!data.two_faces.is_empty(), "tesseract should have non-Lagrangian faces");
+        assert!(
+            !data.two_faces.is_empty(),
+            "tesseract should have non-Lagrangian faces"
+        );
 
         let first = &data.two_faces[0];
         let by_ij = data.get_two_face(first.i, first.j);
@@ -184,7 +198,8 @@ mod tests {
             let adjacent = data.faces_adjacent_to(face.i);
             assert!(
                 adjacent.iter().any(|f| f.i == face.i || f.j == face.i),
-                "faces_adjacent_to should include the face containing facet {}", face.i
+                "faces_adjacent_to should include the face containing facet {}",
+                face.i
             );
         }
     }
@@ -199,8 +214,11 @@ mod tests {
         // Tesseract = B^2 × B^2 has 8 facets (4 q-facets + 4 p-facets)
         // Non-Lagrangian faces: q-facet meets p-facet = 4×4 = 16 pairs / 2 (symmetry) = 8
         // But rotation filter removes some, so we expect roughly 8
-        assert_eq!(data.two_faces.len(), 8,
-            "tesseract should have exactly 8 non-Lagrangian 2-faces");
+        assert_eq!(
+            data.two_faces.len(),
+            8,
+            "tesseract should have exactly 8 non-Lagrangian 2-faces"
+        );
     }
 
     /// Test that rotation values are in valid range (0, 0.5).
@@ -208,8 +226,11 @@ mod tests {
     fn two_faces_for_tesseract() {
         let data = PolytopeData::new(tesseract());
         for face in &data.two_faces {
-            assert!(face.rotation > 0.0 && face.rotation < 0.5,
-                "rotation should be in (0, 0.5), got {}", face.rotation);
+            assert!(
+                face.rotation > 0.0 && face.rotation < 0.5,
+                "rotation should be in (0, 0.5), got {}",
+                face.rotation
+            );
         }
     }
 }

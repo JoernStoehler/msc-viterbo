@@ -1,22 +1,59 @@
 //! HK2019 combinatorial capacity algorithm.
 //!
-//! Implements the Haim-Kislev (2017/2019) quadratic programming formulation for
-//! computing the EHZ capacity:
+//! # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//! # ⚠️  BROKEN ALGORITHM - DO NOT USE FOR PRODUCTION  ⚠️
+//! # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //!
-//!   c_EHZ(K) = (1/2) * [max_{σ,β} Q(σ,β)]^{-1}
+//! ## Why This Is Broken
 //!
-//! where Q(σ,β) = Σ_{j<i} β_{σ(i)} β_{σ(j)} ω(n_{σ(i)}, n_{σ(j)})
-//! subject to: Σ_i β_i h_i = 1 and Σ_i β_i n_i = 0
+//! The QP solver is **INCOMPLETE**: it only checks 0D faces (vertices) and 1D
+//! faces (edges) of the constraint polytope. For indefinite quadratics (which
+//! the symplectic form produces), the global maximum can lie on **2D or higher-
+//! dimensional faces**.
 //!
-//! For each permutation σ, the inner optimization over β is a quadratic program
-//! with linear constraints.
+//! ## What Goes Wrong
+//!
+//! - Returns plausible-looking capacity values that are **WRONG**
+//! - Some tests "pass by luck" when the optimum happens to be at a vertex/edge
+//! - Future agents may see passing tests and assume correctness
+//!
+//! ## DO NOT
+//!
+//! - Trust any capacity value returned by this algorithm
+//! - Use this as ground truth for validation
+//! - Remove the runtime warning without fixing the QP solver
+//!
+//! ## Blocked On
+//!
+//! `rust_viterbo_optim` crate with proper global QP solver.
+//! See: `packages/rust_viterbo/optim/SPEC.md`
+//!
+//! # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!
+//! ---
+//!
+//! Implements the Haim-Kislev (2017) quadratic programming formulation for
+//! computing the EHZ capacity.
+//!
+//! # Citations
+//!
+//! - **HK2017 Theorem 1**: Main capacity formula (HK2017-EHZ-polytopes.tex, lines 68-78):
+//!   ```text
+//!   c_EHZ(K) = (1/2) * [max_{σ∈S_F, β∈M(K)} Q(σ,β)]^{-1}
+//!   ```
+//!   where:
+//!   - Q(σ,β) = Σ_{j<i} β_{σ(i)} β_{σ(j)} ω(n_{σ(i)}, n_{σ(j)})
+//!   - M(K) = {β_i ≥ 0, Σ β_i h_i = 1, Σ β_i n_i = 0}
+//!
+//! - **HK2017 Remark 3.6** (lines 509-516): Graph-based pruning can reduce permutation space.
 //!
 //! **Performance note:** The algorithm has O(F!) complexity in the number of facets.
 //! Default timeout is 60 seconds to prevent runaway computation.
 //!
-//! References:
-//! - Haim-Kislev (2019): "On the Ekeland-Hofer-Zehnder capacity of difference bodies"
-//! - CH2021 Theorem 1.4: rotation bound restricts valid permutations
+//! # UNCITED Claims
+//!
+//! - The previous doc claimed "CH2021 Theorem 1.4: rotation bound restricts valid permutations"
+//!   but no such theorem exists in CH2021. This reference should be removed or corrected.
 
 use crate::result::{AlgorithmError, CapacityResult, Diagnostics, WitnessOrbit};
 use rust_viterbo_geom::{symplectic_form, PolytopeHRep, SymplecticVector};
@@ -31,11 +68,9 @@ const DEFAULT_TIMEOUT_SECS: u64 = 60;
 /// Compute Q(σ, β) for a given permutation and β values.
 ///
 /// Q(σ,β) = Σ_{j<i} β_{σ(i)} β_{σ(j)} ω(n_{σ(i)}, n_{σ(j)})
-fn compute_q(
-    sigma: &[usize],
-    beta: &[f64],
-    normals: &[SymplecticVector],
-) -> f64 {
+///
+/// **Citation**: HK2017 Theorem 1 (equation 1).
+fn compute_q(sigma: &[usize], beta: &[f64], normals: &[SymplecticVector]) -> f64 {
     let m = sigma.len();
     let mut q = 0.0;
 
@@ -51,20 +86,36 @@ fn compute_q(
     q
 }
 
-/// Solve the constrained QP for a given permutation using grid search.
+/// Solve the constrained QP for a given permutation.
+///
+/// # INCOMPLETE IMPLEMENTATION - BLOCKED ON optim CRATE
+///
+/// This function only checks vertices (0D) and edges (1D) of the feasible polytope.
+/// For indefinite quadratics, the maximum can be on 2D or higher-dimensional faces.
+///
+/// **TODO**: Replace with `rust_viterbo_optim::maximize_quadratic_over_polytope`
+/// once the optim crate is implemented. See `optim/SPEC.md`.
+///
+/// ---
 ///
 /// Maximize Q(σ, β) subject to:
-///   - Σ β_i h_i = 1
-///   - Σ β_i n_i = 0
+///   - Σ β_i h_i = 1  (normalization, HK2017 Theorem 1)
+///   - Σ β_i n_i = 0  (closure constraint, HK2017 Theorem 1)
 ///   - β_i ≥ 0
 ///
-/// The constraint set has dimension (n - 5) where n is the number of facets.
-/// For small n (5-8 facets), we can afford a grid search over the feasible region.
+/// The feasible region is a polytope. Q(σ,β) is an INDEFINITE quadratic form
+/// (the symplectic form has mixed signs), so the maximum may be at a vertex,
+/// edge interior, or higher-dimensional face interior.
 ///
-/// Approach:
-/// 1. Find a particular solution to the linear constraints
-/// 2. Find a basis for the null space (homogeneous solutions)
-/// 3. Grid search over parameters to maximize Q while respecting β_i ≥ 0
+/// Algorithm:
+/// 1. Enumerate all vertices (basic feasible solutions) of the constraint polytope
+/// 2. For each pair of vertices, check the edge between them for interior critical points
+/// 3. Return the maximum Q found
+///
+/// For an edge from v₁ to v₂, Q restricted to the edge is quadratic in t ∈ [0,1]:
+///   Q((1-t)v₁ + tv₂) = at² + bt + c
+/// If a < 0 (parabola opens downward) and critical point t* = -b/(2a) ∈ (0,1),
+/// then t* is a local maximum on the edge.
 fn solve_qp_for_permutation(
     sigma: &[usize],
     normals: &[SymplecticVector],
@@ -89,189 +140,131 @@ fn solve_qp_for_permutation(
         }
     }
 
-    // Use nalgebra to find particular solution and null space
-    let a = nalgebra::DMatrix::from_row_slice(5, n, &a_data);
+    let a_full = nalgebra::DMatrix::from_row_slice(5, n, &a_data);
     let b_vec = nalgebra::DVector::from_row_slice(&b);
 
-    // Solve A * β = b using SVD for robustness
-    let svd = a.clone().svd(true, true);
-    let particular = match svd.solve(&b_vec, 1e-10) {
-        Ok(p) => p,
-        Err(_) => return None,
-    };
-
-    // Find null space of A (basis for homogeneous solutions)
-    let null_space = compute_null_space(&a, 1e-10);
-    let null_dim = null_space.ncols();
-
-    if null_dim == 0 {
-        // Only one solution (point feasible region)
-        let beta: Vec<f64> = particular.iter().cloned().collect();
-        // Check non-negativity
-        if beta.iter().any(|&b| b < -1e-10) {
-            return None;
-        }
-        let beta: Vec<f64> = beta.iter().map(|&b| b.max(0.0)).collect();
-        let q = compute_q(sigma, &beta, normals);
-        if q > 0.0 {
-            return Some((q, beta));
-        } else {
-            return None;
-        }
-    }
-
-    // Grid search over the null space parameters
-    // For each dimension, search in a range that keeps β non-negative
     let mut best_q = f64::NEG_INFINITY;
     let mut best_beta = None;
 
-    // Determine search bounds for each null space dimension
-    // β = particular + Σ t_i * null_vec_i
-    // For β_j ≥ 0: particular_j + Σ t_i * null_vec_i[j] ≥ 0
+    // Collect all vertices for edge search later
+    let mut vertices: Vec<Vec<f64>> = Vec::new();
 
-    // Compute bounds for each null space direction independently
-    // For a single direction, β_j ≥ 0 ⟹ t ≥ -particular[j]/null_vec[j] (if coef > 0)
-    //                                      t ≤ -particular[j]/null_vec[j] (if coef < 0)
-    fn compute_1d_bounds(particular: &nalgebra::DVector<f64>, null_vec: &nalgebra::DVectorView<f64>) -> (f64, f64) {
-        let mut t_min = f64::NEG_INFINITY;
-        let mut t_max = f64::INFINITY;
-        for j in 0..particular.len() {
-            let coef = null_vec[j];
-            if coef.abs() > 1e-12 {
-                let bound = -particular[j] / coef;
-                if coef > 0.0 {
-                    t_min = t_min.max(bound);
-                } else {
-                    t_max = t_max.min(bound);
+    // Phase 1: Enumerate all vertices (basic feasible solutions)
+    for num_nonzero in 1..=n.min(5) {
+        enumerate_subsets(n, num_nonzero, &mut |nonzero_indices: &[usize]| {
+            // Build reduced system: extract columns for non-zero variables
+            let k = nonzero_indices.len();
+            let mut a_reduced_data = Vec::with_capacity(5 * k);
+            for row in 0..5 {
+                for &col in nonzero_indices {
+                    a_reduced_data.push(a_full[(row, col)]);
                 }
             }
-        }
-        // Clamp to reasonable bounds
-        (t_min.max(-100.0), t_max.min(100.0))
+            let a_reduced = nalgebra::DMatrix::from_row_slice(5, k, &a_reduced_data);
+
+            // Solve the reduced system
+            let svd = a_reduced.clone().svd(true, true);
+            let beta_reduced = match svd.solve(&b_vec, 1e-10) {
+                Ok(p) => p,
+                Err(_) => return, // Singular system, skip
+            };
+
+            // Check that the solution actually satisfies the constraints
+            let residual = (&a_reduced * &beta_reduced - &b_vec).norm();
+            if residual > 1e-8 {
+                return; // Not a valid solution
+            }
+
+            // Check non-negativity
+            if beta_reduced.iter().any(|&b| b < -1e-10) {
+                return; // Infeasible
+            }
+
+            // Reconstruct full beta vector
+            let mut beta = vec![0.0; n];
+            for (i, &idx) in nonzero_indices.iter().enumerate() {
+                beta[idx] = beta_reduced[i].max(0.0);
+            }
+
+            // Evaluate Q at this vertex
+            let q = compute_q(sigma, &beta, normals);
+            if q > best_q {
+                best_q = q;
+                best_beta = Some(beta.clone());
+            }
+
+            // Store vertex for edge search
+            vertices.push(beta);
+        });
     }
 
-    // Grid density: enough points to capture the optimum while being fast
-    let grid_points = if null_dim == 1 {
-        100
-    } else if null_dim == 2 {
-        40
-    } else {
-        15  // More points for 3D to find boundary optima
-    };
+    // Phase 2: Check edges between all pairs of vertices for interior critical points
+    // For indefinite quadratics, the maximum might be in the interior of an edge
+    for i in 0..vertices.len() {
+        for j in (i + 1)..vertices.len() {
+            let v1 = &vertices[i];
+            let v2 = &vertices[j];
 
-    match null_dim {
-        1 => {
-            // 1D search with proper bounds
-            let null_vec = null_space.column(0);
-            let (t_min, t_max) = compute_1d_bounds(&particular, &null_vec);
-            if t_min >= t_max {
-                // No feasible region in this direction, skip
-            } else {
-                for i in 0..=grid_points {
-                    let t = t_min + (t_max - t_min) * (i as f64) / (grid_points as f64);
-                    let beta: Vec<f64> = (0..n)
-                        .map(|j| particular[j] + t * null_vec[j])
-                        .collect();
+            // Check if edge is valid (all points on edge satisfy β ≥ 0)
+            // Edge: β(t) = (1-t)v1 + t*v2 for t ∈ [0,1]
+            // β_k(t) = (1-t)v1_k + t*v2_k ≥ 0 for all k
+            // This is guaranteed if v1, v2 are both feasible (which they are)
 
-                    if beta.iter().any(|&b| b < -1e-10) {
-                        continue;
-                    }
-                    let beta: Vec<f64> = beta.iter().map(|&b| b.max(0.0)).collect();
-                    let q = compute_q(sigma, &beta, normals);
-                    if q > best_q {
-                        best_q = q;
-                        best_beta = Some(beta);
-                    }
-                }
+            // Compute Q restricted to edge: Q(t) = at² + bt + c
+            // Q(β(t)) = Σ_{r<s} β_{σ(s)}(t) β_{σ(r)}(t) ω(n_{σ(s)}, n_{σ(r)})
+            // Let d = v2 - v1, so β(t) = v1 + t*d
+            // β_{σ(k)}(t) = v1_{σ(k)} + t*d_{σ(k)}
+            //
+            // Q(t) = Σ_{r<s} (v1_{σ(s)} + t*d_{σ(s)})(v1_{σ(r)} + t*d_{σ(r)}) ω_{sr}
+            //      = Σ_{r<s} [v1_{σ(s)}*v1_{σ(r)} + t*(v1_{σ(s)}*d_{σ(r)} + d_{σ(s)}*v1_{σ(r)}) + t²*d_{σ(s)}*d_{σ(r)}] ω_{sr}
+            //
+            // c = Q(v1)
+            // a + b + c = Q(v2)
+            // So we can compute a, b, c from Q(0), Q(1), and Q(0.5)
+
+            let q0 = compute_q(sigma, v1, normals); // Q(0) = c
+            let q1 = compute_q(sigma, v2, normals); // Q(1) = a + b + c
+
+            // Q(0.5) = a/4 + b/2 + c
+            let mut v_half = vec![0.0; n];
+            for k in 0..n {
+                v_half[k] = 0.5 * v1[k] + 0.5 * v2[k];
             }
-        }
-        2 => {
-            // 2D search with proper bounds
-            let null_vec0 = null_space.column(0);
-            let null_vec1 = null_space.column(1);
-            let (t0_min, t0_max) = compute_1d_bounds(&particular, &null_vec0);
-            let (t1_min, t1_max) = compute_1d_bounds(&particular, &null_vec1);
+            let q_half = compute_q(sigma, &v_half, normals);
 
-            for i in 0..=grid_points {
-                let t0 = t0_min + (t0_max - t0_min) * (i as f64) / (grid_points as f64);
-                for j in 0..=grid_points {
-                    let t1 = t1_min + (t1_max - t1_min) * (j as f64) / (grid_points as f64);
-                    let beta: Vec<f64> = (0..n)
-                        .map(|k| particular[k] + t0 * null_vec0[k] + t1 * null_vec1[k])
-                        .collect();
+            // Solve for a, b, c:
+            // c = q0
+            // a + b + c = q1  =>  a + b = q1 - q0
+            // a/4 + b/2 + c = q_half  =>  a/4 + b/2 = q_half - q0
+            //                         =>  a + 2b = 4*(q_half - q0)
+            // From a + b = q1 - q0 and a + 2b = 4*(q_half - q0):
+            // b = 4*(q_half - q0) - (q1 - q0) = 4*q_half - 4*q0 - q1 + q0 = 4*q_half - 3*q0 - q1
+            // a = (q1 - q0) - b = q1 - q0 - 4*q_half + 3*q0 + q1 = 2*q1 + 2*q0 - 4*q_half
+            let _c = q0; // c = Q(0), unused but kept for documentation
+            let b_coef = 4.0 * q_half - 3.0 * q0 - q1;
+            let a_coef = 2.0 * q1 + 2.0 * q0 - 4.0 * q_half;
 
-                    if beta.iter().any(|&b| b < -1e-10) {
-                        continue;
+            // For maximum on edge interior: need a < 0 and t* = -b/(2a) ∈ (0, 1)
+            if a_coef < -1e-12 {
+                let t_star = -b_coef / (2.0 * a_coef);
+                if t_star > 1e-10 && t_star < 1.0 - 1e-10 {
+                    // Compute β at t_star
+                    let mut beta_star = vec![0.0; n];
+                    for k in 0..n {
+                        beta_star[k] = (1.0 - t_star) * v1[k] + t_star * v2[k];
                     }
-                    let beta: Vec<f64> = beta.iter().map(|&b| b.max(0.0)).collect();
-                    let q = compute_q(sigma, &beta, normals);
-                    if q > best_q {
-                        best_q = q;
-                        best_beta = Some(beta);
-                    }
-                }
-            }
-        }
-        _ => {
-            // Higher dimensions: grid search with proper bounds per dimension
-            // Compute bounds for each null space direction
-            let mut bounds: Vec<(f64, f64)> = Vec::with_capacity(null_dim);
-            for d in 0..null_dim {
-                let null_vec = null_space.column(d);
-                bounds.push(compute_1d_bounds(&particular, &null_vec));
-            }
 
-            // 3D grid search (for null_dim = 3, which is the tesseract case)
-            if null_dim == 3 {
-                for i in 0..=grid_points {
-                    let t0 = bounds[0].0 + (bounds[0].1 - bounds[0].0) * (i as f64) / (grid_points as f64);
-                    for j in 0..=grid_points {
-                        let t1 = bounds[1].0 + (bounds[1].1 - bounds[1].0) * (j as f64) / (grid_points as f64);
-                        for k in 0..=grid_points {
-                            let t2 = bounds[2].0 + (bounds[2].1 - bounds[2].0) * (k as f64) / (grid_points as f64);
-
-                            let beta: Vec<f64> = (0..n)
-                                .map(|idx| {
-                                    particular[idx]
-                                        + t0 * null_space[(idx, 0)]
-                                        + t1 * null_space[(idx, 1)]
-                                        + t2 * null_space[(idx, 2)]
-                                })
-                                .collect();
-
-                            if beta.iter().any(|&b| b < -1e-10) {
-                                continue;
+                    // Verify feasibility (should be automatic but check anyway)
+                    if beta_star.iter().all(|&b| b >= -1e-10) {
+                        let q_star = compute_q(sigma, &beta_star, normals);
+                        if q_star > best_q {
+                            best_q = q_star;
+                            // Clamp to non-negative
+                            for b in &mut beta_star {
+                                *b = b.max(0.0);
                             }
-                            let beta: Vec<f64> = beta.iter().map(|&b| b.max(0.0)).collect();
-                            let q = compute_q(sigma, &beta, normals);
-                            if q > best_q {
-                                best_q = q;
-                                best_beta = Some(beta);
-                            }
+                            best_beta = Some(beta_star);
                         }
-                    }
-                }
-            } else {
-                // For dim > 3, use sampling
-                for sample in 0..5000 {
-                    let mut beta: Vec<f64> = particular.iter().cloned().collect();
-                    for dim in 0..null_dim {
-                        // Use deterministic but varied sampling
-                        let frac = ((sample * (dim + 7)) % 100) as f64 / 100.0;
-                        let t = bounds[dim].0 + (bounds[dim].1 - bounds[dim].0) * frac;
-                        for idx in 0..n {
-                            beta[idx] += t * null_space[(idx, dim)];
-                        }
-                    }
-
-                    if beta.iter().any(|&b| b < -1e-10) {
-                        continue;
-                    }
-                    let beta: Vec<f64> = beta.iter().map(|&b| b.max(0.0)).collect();
-                    let q = compute_q(sigma, &beta, normals);
-                    if q > best_q {
-                        best_q = q;
-                        best_beta = Some(beta);
                     }
                 }
             }
@@ -285,71 +278,45 @@ fn solve_qp_for_permutation(
     }
 }
 
-/// Compute the null space of a matrix using SVD.
-///
-/// For an m×n matrix A with m < n:
-/// - The null space has dimension n - rank(A)
-/// - Columns of V corresponding to zero (or tiny) singular values span the null space
-/// - For a full-rank m×n matrix, the null space is spanned by columns m..n of V
-fn compute_null_space(a: &nalgebra::DMatrix<f64>, tol: f64) -> nalgebra::DMatrix<f64> {
-    let _m = a.nrows(); // Used in doc comment for dimension description
-    let n = a.ncols();
+/// Enumerate all subsets of {0, 1, ..., n-1} of size k, calling f for each.
+fn enumerate_subsets<F>(n: usize, k: usize, f: &mut F)
+where
+    F: FnMut(&[usize]),
+{
+    if k == 0 {
+        f(&[]);
+        return;
+    }
+    if k > n {
+        return;
+    }
 
-    // For the null space, we need the FULL V matrix (n×n).
-    // nalgebra's SVD with (true, true) gives V^T with shape min(m,n) × n for m < n.
-    // To get the full V, we need to compute it differently.
+    let mut subset = vec![0; k];
+    for i in 0..k {
+        subset[i] = i;
+    }
 
-    // Alternative: compute A^T * A and find its null space
-    // Null(A) = Null(A^T * A) for real matrices
-    let ata = a.transpose() * a;
+    loop {
+        f(&subset);
 
-    // Eigendecomposition of A^T * A gives V (eigenvectors) and singular_values^2 (eigenvalues)
-    let eigen = ata.symmetric_eigen();
-    let eigenvalues = &eigen.eigenvalues;
-    let eigenvectors = &eigen.eigenvectors;
+        // Find rightmost element that can be incremented
+        let mut i = k - 1;
+        loop {
+            if subset[i] < n - k + i {
+                break;
+            }
+            if i == 0 {
+                return; // All subsets enumerated
+            }
+            i -= 1;
+        }
 
-    // Find eigenvectors corresponding to zero (or tiny) eigenvalues
-    // These span the null space of A
-    // Use a relative tolerance based on the largest eigenvalue
-    let max_eigenvalue = eigenvalues.iter().cloned().fold(0.0_f64, f64::max);
-    // More generous tolerance to capture all null space vectors
-    let eigenvalue_tol = (tol * 10.0 * max_eigenvalue).max(tol * 10.0);
-
-    let mut null_cols = Vec::new();
-    for i in 0..n {
-        if eigenvalues[i].abs() < eigenvalue_tol {
-            // Eigenvalue ≈ 0 means this eigenvector is in the null space
-            null_cols.push(i);
+        // Increment and reset subsequent elements
+        subset[i] += 1;
+        for j in (i + 1)..k {
+            subset[j] = subset[j - 1] + 1;
         }
     }
-
-    // Sanity check: for m×n matrix with m < n, null space dimension should be n - m
-    // If we don't find enough null vectors, use a larger tolerance
-    let m = a.nrows();
-    let expected_null_dim = n.saturating_sub(m);
-    if null_cols.len() < expected_null_dim {
-        // Try finding the expected_null_dim smallest eigenvalues
-        let mut indexed_eigenvalues: Vec<(usize, f64)> = eigenvalues.iter().cloned().enumerate().collect();
-        indexed_eigenvalues.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-        null_cols.clear();
-        for (idx, _) in indexed_eigenvalues.iter().take(expected_null_dim) {
-            null_cols.push(*idx);
-        }
-    }
-
-    if null_cols.is_empty() {
-        return nalgebra::DMatrix::zeros(n, 0);
-    }
-
-    // Build null space matrix from selected eigenvectors
-    let mut null_space = nalgebra::DMatrix::zeros(n, null_cols.len());
-    for (j, &col_idx) in null_cols.iter().enumerate() {
-        for i in 0..n {
-            null_space[(i, j)] = eigenvectors[(i, col_idx)];
-        }
-    }
-
-    null_space
 }
 
 /// Generate all permutations of indices 0..n using Heap's algorithm.
@@ -369,7 +336,7 @@ fn heap_permute(arr: &mut [usize], k: usize, result: &mut Vec<Vec<usize>>) {
     heap_permute(arr, k - 1, result);
 
     for i in 0..(k - 1) {
-        if k % 2 == 0 {
+        if k.is_multiple_of(2) {
             arr.swap(i, k - 1);
         } else {
             arr.swap(0, k - 1);
@@ -382,8 +349,15 @@ fn heap_permute(arr: &mut [usize], k: usize, result: &mut Vec<Vec<usize>>) {
 ///
 /// c_EHZ(K) = (1/2) * [max_{σ,β} Q(σ,β)]^{-1}
 ///
+/// **Citation**: HK2017 Theorem 1 (HK2017-EHZ-polytopes.tex, lines 68-78).
+///
 /// Uses a default timeout of 60 seconds. Use `compute_hk2019_capacity_with_timeout`
 /// for custom timeout.
+///
+/// # Warning
+///
+/// **THIS ALGORITHM IS INCOMPLETE AND MAY RETURN WRONG VALUES.**
+/// See module documentation for details.
 pub fn compute_hk2019_capacity(hrep: PolytopeHRep) -> Result<CapacityResult, AlgorithmError> {
     compute_hk2019_capacity_with_timeout(hrep, Duration::from_secs(DEFAULT_TIMEOUT_SECS))
 }
@@ -391,10 +365,30 @@ pub fn compute_hk2019_capacity(hrep: PolytopeHRep) -> Result<CapacityResult, Alg
 /// Compute the EHZ capacity using the HK2019 algorithm with custom timeout.
 ///
 /// c_EHZ(K) = (1/2) * [max_{σ,β} Q(σ,β)]^{-1}
+///
+/// # Warning
+///
+/// **THIS ALGORITHM IS INCOMPLETE AND MAY RETURN WRONG VALUES.**
+/// See module documentation for details.
 pub fn compute_hk2019_capacity_with_timeout(
     hrep: PolytopeHRep,
     timeout: Duration,
 ) -> Result<CapacityResult, AlgorithmError> {
+    // LOUD WARNING: This algorithm is incomplete and may return wrong values.
+    // DO NOT REMOVE THIS WARNING without fixing the underlying QP solver.
+    eprintln!(
+        "\n\
+        ╔══════════════════════════════════════════════════════════════════════╗\n\
+        ║  WARNING: HK2019 algorithm is INCOMPLETE - results may be WRONG!     ║\n\
+        ║                                                                      ║\n\
+        ║  The QP solver only checks vertices and edges (0D/1D faces).         ║\n\
+        ║  For indefinite quadratics, the maximum can be on 2D+ faces.         ║\n\
+        ║                                                                      ║\n\
+        ║  DO NOT trust the returned capacity value.                           ║\n\
+        ║  See: packages/rust_viterbo/algorithm/src/hk2019.rs                  ║\n\
+        ╚══════════════════════════════════════════════════════════════════════╝\n"
+    );
+
     let start_time = Instant::now();
 
     // Validate input
@@ -601,7 +595,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "HK2019 QP solver bug - returns Q=0.119 instead of 0.125 for tesseract"]
     fn tesseract_qp_solver_finds_optimal() {
         // Test that solve_qp_for_permutation finds the correct Q for the optimal permutation.
         let t = tesseract();
@@ -658,40 +651,18 @@ mod tests {
         let particular = svd.solve(&b_vec, 1e-10).expect("should solve");
         eprintln!("\nParticular solution: {:?}", particular.as_slice());
 
-        // Compute null space
-        let null_space = compute_null_space(&a, 1e-10);
-        eprintln!("\nNull space dimension: {}", null_space.ncols());
-        for d in 0..null_space.ncols() {
-            eprintln!("Null vector {}: {:?}", d, null_space.column(d).as_slice());
-        }
-
-        // Compute bounds for each null space direction
-        for d in 0..null_space.ncols() {
-            let null_vec = null_space.column(d);
-            let mut t_min = f64::NEG_INFINITY;
-            let mut t_max = f64::INFINITY;
-            for j in 0..n {
-                let coef = null_vec[j];
-                if coef.abs() > 1e-12 {
-                    let bound = -particular[j] / coef;
-                    if coef > 0.0 {
-                        t_min = t_min.max(bound);
-                    } else {
-                        t_max = t_max.min(bound);
-                    }
-                }
-            }
-            eprintln!("Bounds for t_{}: [{:.6}, {:.6}]", d, t_min, t_max);
-        }
-
-        // Check that the optimal point (0.25, 0.25, 0, 0, 0.25, 0.25, 0, 0) is in the null space
-        let optimal_beta = nalgebra::DVector::from_row_slice(&[0.25, 0.25, 0.0, 0.0, 0.25, 0.25, 0.0, 0.0]);
+        // Check that the optimal point (0.25, 0.25, 0, 0, 0.25, 0.25, 0, 0) is in feasible region
+        let optimal_beta =
+            nalgebra::DVector::from_row_slice(&[0.25, 0.25, 0.0, 0.0, 0.25, 0.25, 0.0, 0.0]);
         let delta = &optimal_beta - &particular;
         eprintln!("\nDelta from particular to optimal: {:?}", delta.as_slice());
 
-        // Check if delta is in null space (A * delta should be 0)
-        let a_delta = &a * &delta;
-        eprintln!("A * delta (should be ~0): {:?}", a_delta.as_slice());
+        // Check if optimal satisfies constraints (A * optimal should equal b)
+        let a_optimal = &a * &optimal_beta;
+        eprintln!(
+            "A * optimal (should be [1,0,0,0,0]): {:?}",
+            a_optimal.as_slice()
+        );
     }
 
     #[test]
@@ -729,7 +700,10 @@ mod tests {
         eprintln!("=== Triangle×Triangle Product ===");
         eprintln!("Normals:");
         for (i, n) in normals.iter().enumerate() {
-            eprintln!("  n[{}] = ({:.3}, {:.3}, {:.3}, {:.3})", i, n.x, n.y, n.z, n.w);
+            eprintln!(
+                "  n[{}] = ({:.3}, {:.3}, {:.3}, {:.3})",
+                i, n.x, n.y, n.z, n.w
+            );
         }
 
         // Print symplectic form matrix
@@ -776,9 +750,6 @@ mod tests {
         let any_negative = particular.iter().any(|&b| b < -1e-10);
         eprintln!("Any negative β in particular solution: {}", any_negative);
 
-        let null_space = compute_null_space(&a, 1e-10);
-        eprintln!("Null space dimension: {}", null_space.ncols());
-
         // Try the identity permutation
         let sigma = vec![0, 1, 2, 3, 4, 5];
         if let Some((q, beta)) = solve_qp_for_permutation(&sigma, &normals, &heights) {
@@ -790,7 +761,7 @@ mod tests {
         }
 
         // Try permutation that interleaves q and p facets
-        let sigma = vec![0, 3, 1, 4, 2, 5];  // q0, p0, q1, p1, q2, p2
+        let sigma = vec![0, 3, 1, 4, 2, 5]; // q0, p0, q1, p1, q2, p2
         if let Some((q, beta)) = solve_qp_for_permutation(&sigma, &normals, &heights) {
             eprintln!("\nInterleaved permutation [0,3,1,4,2,5]:");
             eprintln!("  Q = {}", q);
@@ -815,9 +786,19 @@ mod tests {
                     let omega = symplectic_form(ni, nj);
                     let contrib = beta[best_sigma[i]] * beta[best_sigma[j]] * omega;
                     if contrib.abs() > 1e-10 {
-                        eprintln!("    Q[{},{}]: β[{}]*β[{}]*ω({},{}) = {:.4}*{:.4}*{:.4} = {:.4}",
-                            j, i, best_sigma[j], best_sigma[i], best_sigma[j], best_sigma[i],
-                            beta[best_sigma[j]], beta[best_sigma[i]], omega, contrib);
+                        eprintln!(
+                            "    Q[{},{}]: β[{}]*β[{}]*ω({},{}) = {:.4}*{:.4}*{:.4} = {:.4}",
+                            j,
+                            i,
+                            best_sigma[j],
+                            best_sigma[i],
+                            best_sigma[j],
+                            best_sigma[i],
+                            beta[best_sigma[j]],
+                            beta[best_sigma[i]],
+                            omega,
+                            contrib
+                        );
                     }
                     manual_q += contrib;
                 }

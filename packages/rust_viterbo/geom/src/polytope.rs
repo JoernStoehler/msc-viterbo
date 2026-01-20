@@ -1,5 +1,6 @@
 //! Convex polytope representation in H-rep (half-space intersection).
 //!
+//! **UNCITED**: H-representation K = { x : ⟨nᵢ, x⟩ ≤ hᵢ } is standard polytope theory, should cite
 //! A polytope K ⊂ ℝ⁴ is defined by: K = { x : ⟨nᵢ, x⟩ ≤ hᵢ for all i }.
 //! Each facet Fᵢ is the intersection of K with the hyperplane ⟨nᵢ, x⟩ = hᵢ.
 //! A 2-face is the intersection of two facets Fᵢ ∩ Fⱼ.
@@ -148,6 +149,7 @@ impl PolytopeHRep {
     }
 
     /// Enumerate all 2-faces of the polytope.
+    /// **UNCITED**: 2-face enumeration by facet pair intersection needs polytope theory citation
     pub fn two_faces(&self, eps_feas: f64, eps_dedup: f64) -> Vec<TwoFace> {
         let mut faces = Vec::new();
         let n = self.normals.len();
@@ -162,6 +164,7 @@ impl PolytopeHRep {
                         if l == i || l == j {
                             continue;
                         }
+                        // **UNCITED**: solving 4-hyperplane intersection assumes non-degeneracy
                         if let Some(x) = solve_vertex(&self.normals, &self.heights, i, j, k, l) {
                             if is_vertex_feasible(&x, &self.normals, &self.heights, eps_feas)
                                 && is_vertex_on_facet(
@@ -254,6 +257,7 @@ fn insert_dedup(vertices: &mut Vec<SymplecticVector>, candidate: SymplecticVecto
     vertices.push(candidate);
 }
 
+/// **UNCITED**: cyclic ordering via atan2 is standard computational geometry
 fn order_face_vertices(
     vertices: &mut [SymplecticVector],
     n_i: SymplecticVector,
@@ -284,6 +288,7 @@ fn order_face_vertices(
     }
 }
 
+/// **UNCITED**: Gram-Schmidt style basis computation for 2-face plane
 fn face_plane_basis(
     n_i: SymplecticVector,
     n_j: SymplecticVector,
@@ -362,6 +367,7 @@ mod tests {
     }
 
     #[test]
+    /// **UNCITED**: apply_j(n) being tangent to facet needs symplectic geometry citation
     fn reeb_velocity_is_tangent() {
         use crate::symplectic::apply_j;
         let n = SymplecticVector::new(1.0, 0.0, 0.0, 0.0);
@@ -382,6 +388,7 @@ mod tests {
     }
 
     #[test]
+    /// **UNCITED**: Lagrangian detection via ω(nᵢ, nⱼ) = 0 needs CH2021 Definition 2.9 citation
     fn lagrangian_detection_uses_adjacent_faces() {
         use crate::perturbation::detect_near_lagrangian;
         let hrep = tesseract();

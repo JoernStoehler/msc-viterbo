@@ -3,7 +3,10 @@
 //! This is a fundamental property of symplectic capacity.
 
 use super::fixtures::{scale_polytope, seeded_lagrangian_product, tesseract};
-use crate::compute::{all_algorithms, compute_capacity, CapacityAlgorithm, HK2019Algorithm, MinkowskiBilliardAlgorithm};
+use crate::compute::{
+    all_algorithms, compute_capacity, CapacityAlgorithm, HK2019Algorithm,
+    MinkowskiBilliardAlgorithm,
+};
 use proptest::prelude::*;
 
 // ============================================================================
@@ -11,9 +14,8 @@ use proptest::prelude::*;
 // ============================================================================
 
 fn lagrangian_product_strategy() -> impl Strategy<Value = rust_viterbo_geom::PolytopeHRep> {
-    (any::<u64>(), 3usize..=5, 3usize..=5).prop_map(|(seed, n1, n2)| {
-        seeded_lagrangian_product(seed, n1, n2)
-    })
+    (any::<u64>(), 3usize..=5, 3usize..=5)
+        .prop_map(|(seed, n1, n2)| seeded_lagrangian_product(seed, n1, n2))
 }
 
 fn lagrangian_product_small_strategy() -> impl Strategy<Value = rust_viterbo_geom::PolytopeHRep> {

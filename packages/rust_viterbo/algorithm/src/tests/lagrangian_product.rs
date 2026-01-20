@@ -5,17 +5,16 @@
 
 use super::fixtures::{seeded_lagrangian_product, tesseract};
 use crate::billiard::{extract_lagrangian_factors, Polygon2DSimple};
-use rust_viterbo_geom::{PolytopeHRep, SymplecticVector};
 use proptest::prelude::*;
+use rust_viterbo_geom::{PolytopeHRep, SymplecticVector};
 
 // ============================================================================
 // Proptest Strategies
 // ============================================================================
 
 fn lagrangian_product_strategy() -> impl Strategy<Value = rust_viterbo_geom::PolytopeHRep> {
-    (any::<u64>(), 3usize..=5, 3usize..=5).prop_map(|(seed, n1, n2)| {
-        seeded_lagrangian_product(seed, n1, n2)
-    })
+    (any::<u64>(), 3usize..=5, 3usize..=5)
+        .prop_map(|(seed, n1, n2)| seeded_lagrangian_product(seed, n1, n2))
 }
 
 // ============================================================================
@@ -44,14 +43,11 @@ fn rotated_tesseract_is_not_lagrangian_product() {
     let c = std::f64::consts::FRAC_1_SQRT_2;
     let s = std::f64::consts::FRAC_1_SQRT_2;
 
-    let rotated_normals: Vec<SymplecticVector> = hrep.normals.iter().map(|n| {
-        SymplecticVector::new(
-            c * n[0] - s * n[2],
-            n[1],
-            s * n[0] + c * n[2],
-            n[3],
-        )
-    }).collect();
+    let rotated_normals: Vec<SymplecticVector> = hrep
+        .normals
+        .iter()
+        .map(|n| SymplecticVector::new(c * n[0] - s * n[2], n[1], s * n[0] + c * n[2], n[3]))
+        .collect();
 
     let rotated = PolytopeHRep::new(rotated_normals, hrep.heights.clone());
 

@@ -49,7 +49,10 @@ fn build_result_dict(py: Python<'_>, result: &CapacityResult) -> PyResult<PyObje
     let diag = PyDict::new_bound(py);
     diag.set_item("nodes_explored", result.diagnostics.nodes_explored)?;
     diag.set_item("nodes_pruned_empty", result.diagnostics.nodes_pruned_empty)?;
-    diag.set_item("nodes_pruned_action", result.diagnostics.nodes_pruned_action)?;
+    diag.set_item(
+        "nodes_pruned_action",
+        result.diagnostics.nodes_pruned_action,
+    )?;
     diag.set_item(
         "nodes_pruned_rotation",
         result.diagnostics.nodes_pruned_rotation,

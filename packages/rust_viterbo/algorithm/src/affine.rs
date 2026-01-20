@@ -112,10 +112,7 @@ mod tests {
 
     #[test]
     fn compose_with_identity() {
-        let m = AffineMap2D::new(
-            Matrix2f::new(1.0, 2.0, 3.0, 4.0),
-            Vector2f::new(5.0, 6.0),
-        );
+        let m = AffineMap2D::new(Matrix2f::new(1.0, 2.0, 3.0, 4.0), Vector2f::new(5.0, 6.0));
         let id = AffineMap2D::identity();
         let composed = m.compose(&id);
         let v = Vector2f::new(1.0, 2.0);

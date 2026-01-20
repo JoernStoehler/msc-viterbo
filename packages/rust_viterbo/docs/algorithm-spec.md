@@ -3,7 +3,9 @@
 This document is the **implementation guide** for the tube-based EHZ capacity algorithm.
 Mathematical formulas are in [tube-geometry-spec.md](tube-geometry-spec.md).
 
-**Status:** Draft, ready for M4 implementation.
+> **Related:** For mathematical claims and citations, see `mathematical-claims.md` Section 3.3.
+
+**Status:** Implementation exists but returns NoValidOrbits for all tested polytopes. See `code-audit-tracker.md`.
 
 ## 1. Goal
 

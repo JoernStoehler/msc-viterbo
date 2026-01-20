@@ -2,7 +2,9 @@
 
 Implementation guide for the Haim-Kislev (2019) quadratic programming algorithm.
 
-**Status:** Implemented and tested.
+> **Related:** For mathematical claims and citations, see `mathematical-claims.md` Section 3.2.
+
+**Status:** Implemented but INCOMPLETE - QP solver only checks 0D/1D faces. See `code-audit-tracker.md`.
 
 ## 1. Goal
 
@@ -100,8 +102,13 @@ pub fn compute_hk2019_capacity_with_timeout(
 
 ## 6. References
 
+- **HK2017 Theorem 1**: Main capacity formula (HK2017-EHZ-polytopes.tex, lines 68-78)
 - Haim-Kislev (2019): "On the Ekeland-Hofer-Zehnder capacity of difference bodies"
-- CH2021 Theorem 1.4: Rotation bound restricts valid permutations (not yet implemented)
+
+### UNCITED Claims
+
+- Previous reference claimed "CH2021 Theorem 1.4: Rotation bound restricts valid permutations"
+  but no such theorem exists in CH2021. This needs verification or removal.
 
 ## 7. Future Improvements
 

@@ -3,7 +3,9 @@
 //! On Lagrangian products, both billiard and HK2019 should compute the same capacity.
 
 use super::fixtures::{seeded_lagrangian_product, tesseract};
-use crate::compute::{CapacityAlgorithm, HK2019Algorithm, MinkowskiBilliardAlgorithm, TubeAlgorithm};
+use crate::compute::{
+    CapacityAlgorithm, HK2019Algorithm, MinkowskiBilliardAlgorithm, TubeAlgorithm,
+};
 use crate::result::AlgorithmError;
 use proptest::prelude::*;
 use rust_viterbo_geom::symplectic_form;
@@ -25,7 +27,8 @@ proptest! {
 
     /// Billiard and HK2019 should agree on random Lagrangian products.
     ///
-    /// Note: HK2019 has a known QP solver bug that may cause failures.
+    /// Both algorithms compute the EHZ capacity for Lagrangian products K₁ × K₂.
+    /// Agreement within 1% validates correctness of both implementations.
     #[test]
     fn billiard_hk2019_agreement(polytope in lagrangian_product_small_strategy()) {
         let billiard = MinkowskiBilliardAlgorithm::new();
@@ -48,7 +51,7 @@ proptest! {
             c_billiard, c_hk2019, rel_error * 100.0);
 
         prop_assert!(
-            rel_error < 0.10,
+            rel_error < 0.01,
             "Billiard and HK2019 disagree: billiard={}, hk2019={}, rel_error={:.2}%",
             c_billiard, c_hk2019, rel_error * 100.0
         );
@@ -57,8 +60,9 @@ proptest! {
 
 /// Tube and billiard disagree on tesseract (expected behavior).
 ///
-/// Tube returns NoValidOrbits because tesseract has degenerate Lagrangian 2-faces.
-/// Billiard succeeds because tesseract is a Lagrangian product.
+/// Tube returns InvalidInput because tesseract has Lagrangian 2-faces.
+/// The tube algorithm requires ALL 2-faces to be non-Lagrangian.
+/// Billiard succeeds because tesseract is a Lagrangian product (which it handles).
 #[test]
 fn tube_billiard_tesseract_disagree() {
     let hrep = tesseract();
@@ -68,9 +72,11 @@ fn tube_billiard_tesseract_disagree() {
     let r_tube = tube.compute(hrep.clone());
     let r_billiard = billiard.compute(hrep);
 
+    // Tube should return InvalidInput (tesseract has Lagrangian 2-faces)
     assert!(
-        matches!(&r_tube, Err(AlgorithmError::NoValidOrbits)),
-        "Tube should return NoValidOrbits for tesseract"
+        matches!(&r_tube, Err(AlgorithmError::InvalidInput(_))),
+        "Tube should return InvalidInput for tesseract (Lagrangian 2-faces), got {:?}",
+        r_tube
     );
     assert!(
         r_billiard.is_ok(),
@@ -90,14 +96,18 @@ fn debug_hk2019_billiard_disagreement() {
 
     eprintln!("\nNormals and heights:");
     for (i, (n, h)) in polytope.normals.iter().zip(&polytope.heights).enumerate() {
-        eprintln!("  [{:1}]: n=({:7.4}, {:7.4}, {:7.4}, {:7.4}), h={:.4}",
-            i, n.x, n.y, n.z, n.w, h);
+        eprintln!(
+            "  [{:1}]: n=({:7.4}, {:7.4}, {:7.4}, {:7.4}), h={:.4}",
+            i, n.x, n.y, n.z, n.w, h
+        );
     }
 
     eprintln!("\nSymplectic form ω(nᵢ, nⱼ):");
     let n = polytope.normals.len();
     eprint!("     ");
-    for j in 0..n { eprint!("{:7}", j); }
+    for j in 0..n {
+        eprint!("{:7}", j);
+    }
     eprintln!();
     for i in 0..n {
         eprint!("  {} |", i);
@@ -119,7 +129,11 @@ fn debug_hk2019_billiard_disagreement() {
 
     if let (Ok(b), Ok(h)) = (&billiard_result, &hk2019_result) {
         let rel_error = (b.capacity - h.capacity).abs() / b.capacity;
-        eprintln!("\nComparison: billiard={:.6}, hk2019={:.6}, rel_error={:.2}%",
-            b.capacity, h.capacity, rel_error * 100.0);
+        eprintln!(
+            "\nComparison: billiard={:.6}, hk2019={:.6}, rel_error={:.2}%",
+            b.capacity,
+            h.capacity,
+            rel_error * 100.0
+        );
     }
 }

@@ -11,12 +11,23 @@
 //! - Witness orbit construction (`construct_2bounce_witness`, `construct_3bounce_witness`)
 //!
 //! The actual capacity computation is in `billiard_lp.rs`, which uses LP to find
-//! the optimal trajectory. By Rudolf 2022 Theorem 4, the optimal has at most 3 bounces.
+//! the optimal trajectory.
 //!
-//! References:
-//! - Rudolf (2022): "The Minkowski Billiard Characterization of the EHZ-Capacity
-//!   of Convex Lagrangian Products"
-//! - Artstein-Avidan & Ostrover (2014): Original connection for smooth convex bodies
+//! # Citations
+//!
+//! - **Rudolf 2022 Theorem 3**: For K polytope and T strictly convex, action-minimizing
+//!   closed characteristics on ∂(K×T) correspond to closed (K,T)-Minkowski billiard
+//!   trajectories in K with dual trajectories in T.
+//!   Source: "The Minkowski Billiard Characterization of the EHZ-Capacity of Convex
+//!   Lagrangian Products", J. Dyn. Diff. Equat., arXiv:2203.01718
+//!
+//! - **Rudolf 2022 Theorem 4**: The T-minimizing closed (K,T)-Minkowski billiard
+//!   trajectory has **at most n+1 bouncing points** (where n = dim K). For n=2
+//!   (planar polygons), this means at most 3 bounces.
+//!
+//! - **Artstein-Avidan & Ostrover 2014**: Original connection for smooth convex bodies.
+//!   Source: "Bounds for Minkowski Billiard Trajectories in Convex Bodies", IMRN 2014(1),
+//!   arXiv:1111.2353
 
 use crate::result::WitnessOrbit;
 use rust_viterbo_geom::{PolytopeHRep, SymplecticVector, Vector2f};
@@ -76,13 +87,22 @@ impl Polygon2DSimple {
         let n = normals.len();
 
         // Validate inputs in debug mode
-        debug_assert_eq!(normals.len(), heights.len(), "normals and heights must have same length");
+        debug_assert_eq!(
+            normals.len(),
+            heights.len(),
+            "normals and heights must have same length"
+        );
         debug_assert!(n >= 3, "polygon must have at least 3 edges, got {}", n);
         for (i, normal) in normals.iter().enumerate() {
             debug_assert!(normal.norm() > 1e-10, "normal {} is zero or near-zero", i);
         }
         for (i, &h) in heights.iter().enumerate() {
-            debug_assert!(h > 0.0, "height {} must be positive (origin inside polygon), got {}", i, h);
+            debug_assert!(
+                h > 0.0,
+                "height {} must be positive (origin inside polygon), got {}",
+                i,
+                h
+            );
         }
 
         let mut vertices = Vec::with_capacity(n);
@@ -91,12 +111,23 @@ impl Polygon2DSimple {
         for i in 0..n {
             let j = (i + 1) % n;
             if let Some(v) = line_intersection(&normals[i], heights[i], &normals[j], heights[j]) {
-                debug_assert!(v.x.is_finite() && v.y.is_finite(), "vertex {} is not finite: {:?}", i, v);
+                debug_assert!(
+                    v.x.is_finite() && v.y.is_finite(),
+                    "vertex {} is not finite: {:?}",
+                    i,
+                    v
+                );
                 vertices.push(v);
             }
         }
 
-        debug_assert_eq!(vertices.len(), n, "failed to compute all {} vertices, got {}", n, vertices.len());
+        debug_assert_eq!(
+            vertices.len(),
+            n,
+            "failed to compute all {} vertices, got {}",
+            n,
+            vertices.len()
+        );
 
         Self {
             vertices,
@@ -106,6 +137,9 @@ impl Polygon2DSimple {
     }
 
     /// Support function: h_K(v) = max_{x ∈ K} ⟨x, v⟩
+    ///
+    /// **UNCITED standard definition**: Support function is a standard concept in convex
+    /// analysis. For Minkowski billiards, see Rudolf 2022 §3.1.
     pub fn support(&self, direction: Vector2f) -> f64 {
         self.vertices
             .iter()
@@ -129,8 +163,10 @@ impl Polygon2DSimple {
     }
 
     /// Compute the polar body K° = {y : h_K(y) ≤ 1}
-    /// For a polygon with vertices v_i, the polar has normals v_i/||v_i||² and heights 1/||v_i||
-    /// But more practically: polar of polygon with normals n_i, heights h_i has vertices n_i/h_i
+    ///
+    /// **UNCITED standard result**: For a polygon given by {x : ⟨n_i, x⟩ ≤ h_i} with origin
+    /// in interior, the polar body has vertices at n_i/h_i. This is a standard result in
+    /// convex geometry (polar duality) but should be cited from a textbook source.
     pub fn polar(&self) -> Polygon2DSimple {
         // The polar of a polygon given by {x : ⟨n_i, x⟩ ≤ h_i} has vertices at n_i/h_i
         let polar_vertices: Vec<Vector2f> = self
@@ -177,12 +213,7 @@ impl Polygon2DSimple {
 }
 
 /// Find intersection of two lines given by ⟨n_i, x⟩ = h_i
-fn line_intersection(
-    n1: &Vector2f,
-    h1: f64,
-    n2: &Vector2f,
-    h2: f64,
-) -> Option<Vector2f> {
+fn line_intersection(n1: &Vector2f, h1: f64, n2: &Vector2f, h2: f64) -> Option<Vector2f> {
     let det = n1.x * n2.y - n1.y * n2.x;
     if det.abs() < 1e-12 {
         return None; // Parallel lines
@@ -239,17 +270,41 @@ pub fn extract_lagrangian_factors(hrep: &PolytopeHRep) -> Option<LagrangianFacto
     let (k2, p_facet_indices) = extract_polygon_with_indices(p_data);
 
     // Validate output invariants in debug mode
-    debug_assert_eq!(k1.vertices.len(), k1.normals.len(), "K1 vertices/normals mismatch");
-    debug_assert_eq!(k2.vertices.len(), k2.normals.len(), "K2 vertices/normals mismatch");
-    debug_assert_eq!(q_facet_indices.len(), k1.normals.len(), "q_facet_indices length mismatch");
-    debug_assert_eq!(p_facet_indices.len(), k2.normals.len(), "p_facet_indices length mismatch");
+    debug_assert_eq!(
+        k1.vertices.len(),
+        k1.normals.len(),
+        "K1 vertices/normals mismatch"
+    );
+    debug_assert_eq!(
+        k2.vertices.len(),
+        k2.normals.len(),
+        "K2 vertices/normals mismatch"
+    );
+    debug_assert_eq!(
+        q_facet_indices.len(),
+        k1.normals.len(),
+        "q_facet_indices length mismatch"
+    );
+    debug_assert_eq!(
+        p_facet_indices.len(),
+        k2.normals.len(),
+        "p_facet_indices length mismatch"
+    );
 
     // Validate facet indices are valid and unique
     for &idx in &q_facet_indices {
-        debug_assert!(idx < hrep.normals.len(), "q_facet_index {} out of range", idx);
+        debug_assert!(
+            idx < hrep.normals.len(),
+            "q_facet_index {} out of range",
+            idx
+        );
     }
     for &idx in &p_facet_indices {
-        debug_assert!(idx < hrep.normals.len(), "p_facet_index {} out of range", idx);
+        debug_assert!(
+            idx < hrep.normals.len(),
+            "p_facet_index {} out of range",
+            idx
+        );
     }
 
     Some(LagrangianFactors {
@@ -272,204 +327,6 @@ fn extract_polygon_with_indices(
     let indices: Vec<usize> = data.iter().map(|(_, _, i)| *i).collect();
 
     (Polygon2DSimple::from_hrep(normals, heights), indices)
-}
-
-/// Sort polygon data to counterclockwise order by normal angle, preserving original indices.
-/// NOTE: This doesn't work correctly for all polygons - see extract_polygon_with_indices.
-#[allow(dead_code)]
-fn sort_polygon_ccw_with_indices(
-    data: Vec<(Vector2f, f64, usize)>,
-) -> (Polygon2DSimple, Vec<usize>) {
-    let mut sorted = data;
-    sorted.sort_by(|(n1, _, _), (n2, _, _)| {
-        let angle1 = n1.y.atan2(n1.x);
-        let angle2 = n2.y.atan2(n2.x);
-        angle1.partial_cmp(&angle2).unwrap()
-    });
-
-    let normals: Vec<Vector2f> = sorted.iter().map(|(n, _, _)| *n).collect();
-    let heights: Vec<f64> = sorted.iter().map(|(_, h, _)| *h).collect();
-    let indices: Vec<usize> = sorted.iter().map(|(_, _, i)| *i).collect();
-
-    (Polygon2DSimple::from_hrep(normals, heights), indices)
-}
-
-/// Find which facet of a polygon a vertex lies on.
-/// Returns the index of the facet (edge) whose constraint is active at this vertex.
-fn find_facet_for_vertex(_polygon: &Polygon2DSimple, vertex_idx: usize) -> usize {
-    // Vertex i is at the intersection of edges i-1 and i (in CCW order).
-    // The edge i goes from vertex i to vertex i+1, with normal polygon.normals[i].
-    // So vertex i lies on edge (i-1) mod n and edge i.
-    // We return edge i as the "incoming" edge.
-    vertex_idx
-}
-
-/// Find which facet (edge) of a polygon a point lies on.
-/// Returns the index of the facet whose constraint is most tightly satisfied (closest to equality).
-fn find_facet_containing_point(polygon: &Polygon2DSimple, point: Vector2f) -> usize {
-    let mut best_idx = 0;
-    let mut best_slack = f64::INFINITY;
-
-    for (i, (normal, &height)) in polygon.normals.iter().zip(&polygon.heights).enumerate() {
-        // Constraint: n · x <= h
-        // Slack: h - n · x (should be >= 0 and small if on boundary)
-        let slack = (height - normal.dot(&point)).abs();
-        if slack < best_slack {
-            best_slack = slack;
-            best_idx = i;
-        }
-    }
-
-    best_idx
-}
-
-/// Find which vertex of K₂ achieves the support h_{K₂}(direction).
-/// Returns the vertex index.
-fn find_supporting_vertex(k2: &Polygon2DSimple, direction: Vector2f) -> usize {
-    let mut best_idx = 0;
-    let mut best_val = f64::NEG_INFINITY;
-    for (i, v) in k2.vertices.iter().enumerate() {
-        let val = v.dot(&direction);
-        if val > best_val {
-            best_val = val;
-            best_idx = i;
-        }
-    }
-    best_idx
-}
-
-/// Find which facet of K₂ is active when moving in the given direction.
-/// For the support direction d, this is the facet whose normal is most aligned with d.
-fn find_supporting_facet(k2: &Polygon2DSimple, direction: Vector2f) -> usize {
-    let mut best_idx = 0;
-    let mut best_val = f64::NEG_INFINITY;
-    for (i, normal) in k2.normals.iter().enumerate() {
-        let val = normal.dot(&direction);
-        if val > best_val {
-            best_val = val;
-            best_idx = i;
-        }
-    }
-    best_idx
-}
-
-/// Compute the minimal billiard trajectory with full trajectory information.
-///
-/// For a K₂°-billiard in K₁, finds the 2-bounce trajectory with minimal K₂-length
-/// and returns the trajectory details needed to construct a witness orbit.
-pub fn find_minimal_billiard(k1: &Polygon2DSimple, k2: &Polygon2DSimple) -> Option<BilliardTrajectory> {
-    let n1 = k1.vertices.len();
-    if n1 < 3 {
-        return None;
-    }
-
-    let mut best: Option<BilliardTrajectory> = None;
-    let mut min_length = f64::INFINITY;
-
-    // Check all NON-ADJACENT pairs of vertices as potential bounce points.
-    // Adjacent vertices share an edge, so the "trajectory" would go along the
-    // boundary, not through the interior. Only non-adjacent pairs form valid
-    // 2-bounce billiard trajectories.
-    for i in 0..n1 {
-        for j in (i + 1)..n1 {
-            // Skip adjacent vertices (share an edge)
-            let adjacent = (j == i + 1) || (i == 0 && j == n1 - 1);
-            if adjacent {
-                continue;
-            }
-
-            let v_i = k1.vertices[i];
-            let v_j = k1.vertices[j];
-            let direction = v_j - v_i;
-
-            // K₂-length of round-trip
-            let length_forward = k2.support(direction);
-            let length_backward = k2.support(-direction);
-            let total_length = length_forward + length_backward;
-
-            if total_length < min_length {
-                min_length = total_length;
-                // Find which K₂ vertices and facets are active for each direction
-                let p_vert_fwd = find_supporting_vertex(k2, direction);
-                let p_vert_bwd = find_supporting_vertex(k2, -direction);
-                let p_facet_fwd = find_supporting_facet(k2, direction);
-                let p_facet_bwd = find_supporting_facet(k2, -direction);
-                best = Some(BilliardTrajectory {
-                    action: total_length,
-                    q_points: [v_i, v_j],
-                    q_facet_local: [find_facet_for_vertex(k1, i), find_facet_for_vertex(k1, j)],
-                    p_vertex_local: [p_vert_fwd, p_vert_bwd],
-                    p_facet_local: [p_facet_fwd, p_facet_bwd],
-                });
-            }
-        }
-    }
-
-    // Also check edge-perpendicular directions (width minimizers)
-    // This only applies to polygons with parallel edges (e.g., parallelograms).
-    // For triangles, this case produces invalid trajectories where "opposite"
-    // lands on a vertex instead of an edge.
-    for i in 0..n1 {
-        let v1 = k1.vertices[i];
-        let v2 = k1.vertices[(i + 1) % n1];
-        let edge = v2 - v1;
-        let perp = Vector2f::new(-edge.y, edge.x);
-
-        // Find points on opposite parallel edges
-        let max_proj = k1.support(perp);
-        let min_proj = -k1.support(-perp);
-        let width_vec = perp * ((max_proj - min_proj) / perp.norm_squared());
-
-        let length = k2.support(width_vec) + k2.support(-width_vec);
-        if length < min_length {
-            // For edge-perpendicular case, the bounce points are on edges
-            // We use the midpoint of edge i and project to find the opposite point
-            let mid = (v1 + v2) * 0.5;
-            let opposite = mid + width_vec;
-
-            // Find which K₁ facets these points lie on by checking constraints
-            let q_facet_mid = find_facet_containing_point(k1, mid);
-            let q_facet_opp = find_facet_containing_point(k1, opposite);
-
-            // IMPORTANT: Validate that both points actually lie on their claimed facets.
-            // For triangles, the "opposite" point lands on a vertex, not an edge,
-            // so this case doesn't produce a valid 2-bounce trajectory.
-            // Use a relative tolerance based on the polygon size.
-            let scale = k1.heights.iter().fold(0.0f64, |a, &b| a.max(b.abs())).max(1.0);
-            let tol = 1e-6 * scale;
-            let mid_error = (k1.normals[q_facet_mid].dot(&mid) - k1.heights[q_facet_mid]).abs();
-            let opp_error = (k1.normals[q_facet_opp].dot(&opposite) - k1.heights[q_facet_opp]).abs();
-
-            if mid_error > tol || opp_error > tol {
-                // Points don't lie on edges - skip this invalid trajectory
-                continue;
-            }
-
-            min_length = length;
-
-            // Find which K₂ vertices and facets are active
-            let p_vert_fwd = find_supporting_vertex(k2, width_vec);
-            let p_vert_bwd = find_supporting_vertex(k2, -width_vec);
-            let p_facet_fwd = find_supporting_facet(k2, width_vec);
-            let p_facet_bwd = find_supporting_facet(k2, -width_vec);
-            best = Some(BilliardTrajectory {
-                action: length,
-                q_points: [mid, opposite],
-                q_facet_local: [q_facet_mid, q_facet_opp],
-                p_vertex_local: [p_vert_fwd, p_vert_bwd],
-                p_facet_local: [p_facet_fwd, p_facet_bwd],
-            });
-        }
-    }
-
-    best
-}
-
-/// Simple version that just returns the length (for backward compatibility in tests).
-pub fn minimal_billiard_length(k1: &Polygon2DSimple, k2: &Polygon2DSimple) -> f64 {
-    find_minimal_billiard(k1, k2)
-        .map(|t| t.action)
-        .unwrap_or(f64::INFINITY)
 }
 
 // ============================================================================
@@ -529,7 +386,7 @@ pub fn construct_2bounce_witness(
     let q_b = trajectory.q_points[1];
 
     // p_0, p_1 are the vertices of K₂ that achieve the support in each direction
-    let direction = q_b - q_a;
+    let _direction = q_b - q_a;
     let p_1 = factors.k2.vertices[trajectory.p_vertex_local[0]]; // supports direction
     let p_0 = factors.k2.vertices[trajectory.p_vertex_local[1]]; // supports -direction
 
@@ -549,10 +406,19 @@ pub fn construct_2bounce_witness(
 
     let facet_sequence = vec![q_facet_0, q_facet_0, p_facet_1, q_facet_1, p_facet_0];
 
-    // TODO: segment_times need proper derivation from Reeb flow equations.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ⚠️  PLACEHOLDER VALUES - NOT COMPUTED  ⚠️
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //
+    // segment_times need proper derivation from Reeb flow equations.
     // The previous formula here had no derivation and gave 335% error on random polygons.
-    // For now, use placeholder. Only breakpoints and facet_sequence are reliable.
-    let segment_times = vec![0.0; 4]; // PLACEHOLDER - not computed
+    //
+    // WARNING: Code that USES these values will produce WRONG results!
+    // The WitnessOrbit::verify() function detects this and warns loudly.
+    //
+    // Only breakpoints and facet_sequence are reliable from this witness.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    let segment_times = vec![0.0; 4]; // PLACEHOLDER - DO NOT USE FOR COMPUTATION
 
     Some(WitnessOrbit {
         breakpoints,
@@ -628,18 +494,28 @@ pub fn construct_3bounce_witness(
 
     // Facet sequence: alternates q-facet, p-facet, q-facet, p-facet, q-facet, p-facet
     let facet_sequence = vec![
-        q_facet_1, // starting facet
-        q_facet_1, // segment 0: p changes on q_facet_1
+        q_facet_1,  // starting facet
+        q_facet_1,  // segment 0: p changes on q_facet_1
         p_facet_12, // segment 1: q changes from q₁ to q₂
-        q_facet_2, // segment 2: p changes on q_facet_2
+        q_facet_2,  // segment 2: p changes on q_facet_2
         p_facet_23, // segment 3: q changes from q₂ to q₃
-        q_facet_3, // segment 4: p changes on q_facet_3
+        q_facet_3,  // segment 4: p changes on q_facet_3
         p_facet_31, // segment 5: q changes from q₃ to q₁
     ];
 
-    // TODO: segment_times need proper derivation from Reeb flow equations.
-    // The previous formula here had no derivation. Only breakpoints and facet_sequence are reliable.
-    let segment_times = vec![0.0; 6]; // PLACEHOLDER - not computed
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ⚠️  PLACEHOLDER VALUES - NOT COMPUTED  ⚠️
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //
+    // segment_times need proper derivation from Reeb flow equations.
+    // The previous formula here had no derivation.
+    //
+    // WARNING: Code that USES these values will produce WRONG results!
+    // The WitnessOrbit::verify() function detects this and warns loudly.
+    //
+    // Only breakpoints and facet_sequence are reliable from this witness.
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    let segment_times = vec![0.0; 6]; // PLACEHOLDER - DO NOT USE FOR COMPUTATION
 
     Some(WitnessOrbit {
         breakpoints,
@@ -686,8 +562,15 @@ mod tests {
     /// Equilateral triangle with circumradius 1.
     fn equilateral_triangle() -> Polygon2DSimple {
         use std::f64::consts::PI;
-        let angles = [PI / 2.0, PI / 2.0 + 2.0 * PI / 3.0, PI / 2.0 + 4.0 * PI / 3.0];
-        let vertices: Vec<Vector2f> = angles.iter().map(|&a| Vector2f::new(a.cos(), a.sin())).collect();
+        let angles = [
+            PI / 2.0,
+            PI / 2.0 + 2.0 * PI / 3.0,
+            PI / 2.0 + 4.0 * PI / 3.0,
+        ];
+        let vertices: Vec<Vector2f> = angles
+            .iter()
+            .map(|&a| Vector2f::new(a.cos(), a.sin()))
+            .collect();
 
         let n = vertices.len();
         let mut normals = Vec::with_capacity(n);
@@ -708,7 +591,11 @@ mod tests {
             heights.push(height);
         }
 
-        Polygon2DSimple { vertices, normals, heights }
+        Polygon2DSimple {
+            vertices,
+            normals,
+            heights,
+        }
     }
 
     // =========================================================================
@@ -757,16 +644,33 @@ mod tests {
             // Check equality on adjacent edges
             let err1 = (sq.normals[e1].dot(v) - sq.heights[e1]).abs();
             let err2 = (sq.normals[e2].dot(v) - sq.heights[e2]).abs();
-            assert!(err1 < tol, "Vertex {} not on edge {}: err={:.2e}", v_idx, e1, err1);
-            assert!(err2 < tol, "Vertex {} not on edge {}: err={:.2e}", v_idx, e2, err2);
+            assert!(
+                err1 < tol,
+                "Vertex {} not on edge {}: err={:.2e}",
+                v_idx,
+                e1,
+                err1
+            );
+            assert!(
+                err2 < tol,
+                "Vertex {} not on edge {}: err={:.2e}",
+                v_idx,
+                e2,
+                err2
+            );
 
             // Check strict inequality on other edges
             for e in 0..n {
                 if e != e1 && e != e2 {
                     let val = sq.normals[e].dot(v);
-                    assert!(val < sq.heights[e] + tol,
+                    assert!(
+                        val < sq.heights[e] + tol,
                         "Vertex {} violates edge {} inequality: {:.6} >= {:.6}",
-                        v_idx, e, val, sq.heights[e]);
+                        v_idx,
+                        e,
+                        val,
+                        sq.heights[e]
+                    );
                 }
             }
         }
@@ -799,8 +703,14 @@ mod tests {
         let sq = unit_square();
         for (i, (n, &h)) in sq.normals.iter().zip(&sq.heights).enumerate() {
             let support_val = sq.support(*n);
-            assert!((support_val - h).abs() < 1e-10,
-                "support(n_{}) = {:.6} ≠ h_{} = {:.6}", i, support_val, i, h);
+            assert!(
+                (support_val - h).abs() < 1e-10,
+                "support(n_{}) = {:.6} ≠ h_{} = {:.6}",
+                i,
+                support_val,
+                i,
+                h
+            );
         }
     }
 
@@ -822,9 +732,14 @@ mod tests {
             let v_star = sq.supporting_vertex(d);
             let support_val = sq.support(d);
             let achieved = d.dot(&v_star);
-            assert!((achieved - support_val).abs() < 1e-10,
+            assert!(
+                (achieved - support_val).abs() < 1e-10,
                 "supporting_vertex({:?}) = {:?} gives ⟨v*,d⟩ = {:.6} ≠ h_K(d) = {:.6}",
-                d, v_star, achieved, support_val);
+                d,
+                v_star,
+                achieved,
+                support_val
+            );
         }
     }
 
@@ -840,8 +755,11 @@ mod tests {
         // with vertices at (±1, 0), (0, ±1)
         assert_eq!(polar.vertices.len(), 4);
         for v in &polar.vertices {
-            assert!((v.norm() - 1.0).abs() < 1e-10,
-                "Polar vertex {:?} not on unit circle", v);
+            assert!(
+                (v.norm() - 1.0).abs() < 1e-10,
+                "Polar vertex {:?} not on unit circle",
+                v
+            );
         }
     }
 
@@ -852,8 +770,15 @@ mod tests {
         let polar = sq.polar();
         for (i, v) in polar.vertices.iter().enumerate() {
             let expected = sq.normals[i] / sq.heights[i];
-            assert!((v - &expected).norm() < 1e-10,
-                "Polar vertex {} = {:?} ≠ n_{}/h_{} = {:?}", i, v, i, i, expected);
+            assert!(
+                (v - &expected).norm() < 1e-10,
+                "Polar vertex {} = {:?} ≠ n_{}/h_{} = {:?}",
+                i,
+                v,
+                i,
+                i,
+                expected
+            );
         }
     }
 
@@ -893,138 +818,11 @@ mod tests {
         let sq = unit_square();
         // Width in (1,1) direction = h_K((1,1)) + h_K((-1,-1)) = 2 + 2 = 4
         let width_diag = sq.width_euclidean(Vector2f::new(1.0, 1.0));
-        assert!((width_diag - 4.0).abs() < 1e-10, "Diagonal width = {}", width_diag);
-    }
-
-    // =========================================================================
-    // find_facet_for_vertex Tests
-    // =========================================================================
-
-    #[test]
-    fn find_facet_for_vertex_returns_vertex_index() {
-        // Current implementation: find_facet_for_vertex returns vertex_idx
-        let sq = unit_square();
-        for i in 0..sq.vertices.len() {
-            let facet = find_facet_for_vertex(&sq, i);
-            assert_eq!(facet, i, "find_facet_for_vertex({}) = {} ≠ {}", i, facet, i);
-        }
-    }
-
-    // =========================================================================
-    // find_facet_containing_point Tests
-    // =========================================================================
-
-    #[test]
-    fn find_facet_containing_point_for_vertex() {
-        // A vertex lies on two facets; function returns one of them
-        let sq = unit_square();
-        for (i, v) in sq.vertices.iter().enumerate() {
-            let facet = find_facet_containing_point(&sq, *v);
-            // Check point is on the returned facet
-            let err = (sq.normals[facet].dot(v) - sq.heights[facet]).abs();
-            assert!(err < 1e-8,
-                "Vertex {} claimed on facet {} but error = {:.2e}", i, facet, err);
-        }
-    }
-
-    #[test]
-    fn find_facet_containing_point_edge_midpoint() {
-        let sq = unit_square();
-        // Midpoint of edge 0 (right edge) = (1, 0)
-        let midpoint = Vector2f::new(1.0, 0.0);
-        let facet = find_facet_containing_point(&sq, midpoint);
-        let err = (sq.normals[facet].dot(&midpoint) - sq.heights[facet]).abs();
-        assert!(err < 1e-8, "Midpoint facet error = {:.2e}", err);
-    }
-
-    // =========================================================================
-    // find_supporting_vertex/facet Tests
-    // =========================================================================
-
-    #[test]
-    fn find_supporting_vertex_consistency() {
-        let sq = unit_square();
-        let d = Vector2f::new(1.0, 0.5);
-        let v_idx = find_supporting_vertex(&sq, d);
-        let v = sq.vertices[v_idx];
-        // Check this vertex achieves maximum
-        for (i, w) in sq.vertices.iter().enumerate() {
-            assert!(d.dot(&v) >= d.dot(w) - 1e-10,
-                "Vertex {} beats supporting vertex {}: {:.6} > {:.6}",
-                i, v_idx, d.dot(w), d.dot(&v));
-        }
-    }
-
-    #[test]
-    fn find_supporting_facet_consistency() {
-        let sq = unit_square();
-        let d = Vector2f::new(1.0, 0.5);
-        let f_idx = find_supporting_facet(&sq, d);
-        let n = sq.normals[f_idx];
-        // Check this normal is most aligned with d
-        for (i, m) in sq.normals.iter().enumerate() {
-            assert!(n.dot(&d) >= m.dot(&d) - 1e-10,
-                "Normal {} more aligned than facet {}: {:.6} > {:.6}",
-                i, f_idx, m.dot(&d), n.dot(&d));
-        }
-    }
-
-    // =========================================================================
-    // find_minimal_billiard Tests
-    // =========================================================================
-
-    #[test]
-    fn find_minimal_billiard_square_returns_trajectory() {
-        let sq = unit_square();
-        let result = find_minimal_billiard(&sq, &sq);
-        assert!(result.is_some(), "Should find billiard trajectory for square");
-    }
-
-    #[test]
-    fn find_minimal_billiard_square_action_is_4() {
-        let sq = unit_square();
-        let traj = find_minimal_billiard(&sq, &sq).expect("Should find trajectory");
-        assert!((traj.action - 4.0).abs() < 1e-6,
-            "Square×Square billiard action = {} ≠ 4", traj.action);
-    }
-
-    #[test]
-    fn find_minimal_billiard_bounce_points_on_boundary() {
-        // Invariant: bounce points lie on K₁ boundary
-        let sq = unit_square();
-        let traj = find_minimal_billiard(&sq, &sq).expect("Should find trajectory");
-
-        for (i, q) in traj.q_points.iter().enumerate() {
-            // Point should satisfy some facet constraint with equality
-            let min_slack = sq.normals.iter().zip(&sq.heights)
-                .map(|(n, h)| (h - n.dot(q)).abs())
-                .fold(f64::INFINITY, f64::min);
-            assert!(min_slack < 1e-6,
-                "Bounce point {} = {:?} not on boundary, min_slack = {:.2e}",
-                i, q, min_slack);
-        }
-    }
-
-    // =========================================================================
-    // minimal_billiard_length Tests
-    // =========================================================================
-
-    #[test]
-    fn minimal_billiard_length_square_is_4() {
-        let sq = unit_square();
-        let length = minimal_billiard_length(&sq, &sq);
-        assert!((length - 4.0).abs() < 1e-6,
-            "Billiard length should be 4, got {}", length);
-    }
-
-    #[test]
-    fn minimal_billiard_length_triangle_approx_1_5() {
-        // Triangle × Triangle has capacity ≈ 1.5
-        let tri = equilateral_triangle();
-        let length = minimal_billiard_length(&tri, &tri);
-        // Note: find_minimal_billiard only finds 2-bounce; 3-bounce may be shorter
-        // for triangles. The LP algorithm handles this correctly.
-        assert!(length > 0.0 && length < 10.0, "Reasonable length: {}", length);
+        assert!(
+            (width_diag - 4.0).abs() < 1e-10,
+            "Diagonal width = {}",
+            width_diag
+        );
     }
 
     // =========================================================================
@@ -1058,7 +856,7 @@ mod tests {
     fn extract_lagrangian_factors_rejects_non_product() {
         // A mixed normal: (1, 0, 1, 0) touches both q and p
         let normals = vec![
-            SymplecticVector::new(1.0, 0.0, 1.0, 0.0),  // Mixed!
+            SymplecticVector::new(1.0, 0.0, 1.0, 0.0), // Mixed!
             SymplecticVector::new(-1.0, 0.0, 0.0, 0.0),
             SymplecticVector::new(0.0, 1.0, 0.0, 0.0),
             SymplecticVector::new(0.0, -1.0, 0.0, 0.0),
@@ -1068,21 +866,24 @@ mod tests {
         ];
         let hrep = PolytopeHRep::new(normals, vec![1.0; 7]);
         let factors = extract_lagrangian_factors(&hrep);
-        assert!(factors.is_none(), "Mixed normal should prevent Lagrangian extraction");
+        assert!(
+            factors.is_none(),
+            "Mixed normal should prevent Lagrangian extraction"
+        );
     }
 
     #[test]
     fn extract_lagrangian_factors_index_mapping_correct() {
         // Verify that q_facet_indices[i] points to the correct 4D facet
         let normals = vec![
-            SymplecticVector::new(1.0, 0.0, 0.0, 0.0),   // q
-            SymplecticVector::new(-1.0, 0.0, 0.0, 0.0),  // q
-            SymplecticVector::new(0.0, 1.0, 0.0, 0.0),   // q
-            SymplecticVector::new(0.0, -1.0, 0.0, 0.0),  // q
-            SymplecticVector::new(0.0, 0.0, 1.0, 0.0),   // p
-            SymplecticVector::new(0.0, 0.0, -1.0, 0.0),  // p
-            SymplecticVector::new(0.0, 0.0, 0.0, 1.0),   // p
-            SymplecticVector::new(0.0, 0.0, 0.0, -1.0),  // p
+            SymplecticVector::new(1.0, 0.0, 0.0, 0.0),  // q
+            SymplecticVector::new(-1.0, 0.0, 0.0, 0.0), // q
+            SymplecticVector::new(0.0, 1.0, 0.0, 0.0),  // q
+            SymplecticVector::new(0.0, -1.0, 0.0, 0.0), // q
+            SymplecticVector::new(0.0, 0.0, 1.0, 0.0),  // p
+            SymplecticVector::new(0.0, 0.0, -1.0, 0.0), // p
+            SymplecticVector::new(0.0, 0.0, 0.0, 1.0),  // p
+            SymplecticVector::new(0.0, 0.0, 0.0, -1.0), // p
         ];
         let hrep = PolytopeHRep::new(normals.clone(), vec![1.0; 8]);
         let f = extract_lagrangian_factors(&hrep).unwrap();
@@ -1090,19 +891,30 @@ mod tests {
         // Check q_facet_indices point to q-facets
         for (local_idx, &global_idx) in f.q_facet_indices.iter().enumerate() {
             let n4d = normals[global_idx];
-            assert!(n4d.z.abs() < 1e-10 && n4d.w.abs() < 1e-10,
-                "q_facet_indices[{}] = {} points to non-q facet", local_idx, global_idx);
+            assert!(
+                n4d.z.abs() < 1e-10 && n4d.w.abs() < 1e-10,
+                "q_facet_indices[{}] = {} points to non-q facet",
+                local_idx,
+                global_idx
+            );
             // Check 2D normal matches
             let n2d = f.k1.normals[local_idx];
-            assert!((n2d.x - n4d.x).abs() < 1e-10 && (n2d.y - n4d.y).abs() < 1e-10,
-                "Normal mismatch at q_facet[{}]", local_idx);
+            assert!(
+                (n2d.x - n4d.x).abs() < 1e-10 && (n2d.y - n4d.y).abs() < 1e-10,
+                "Normal mismatch at q_facet[{}]",
+                local_idx
+            );
         }
 
         // Check p_facet_indices point to p-facets
         for (local_idx, &global_idx) in f.p_facet_indices.iter().enumerate() {
             let n4d = normals[global_idx];
-            assert!(n4d.x.abs() < 1e-10 && n4d.y.abs() < 1e-10,
-                "p_facet_indices[{}] = {} points to non-p facet", local_idx, global_idx);
+            assert!(
+                n4d.x.abs() < 1e-10 && n4d.y.abs() < 1e-10,
+                "p_facet_indices[{}] = {} points to non-p facet",
+                local_idx,
+                global_idx
+            );
         }
     }
 
@@ -1127,7 +939,10 @@ mod tests {
         let result = crate::billiard_lp::compute_billiard_capacity_lp(hrep)
             .expect("should compute capacity");
 
-        assert!((result.capacity - 4.0).abs() < 1e-6,
-            "Tesseract capacity should be 4, got {}", result.capacity);
+        assert!(
+            (result.capacity - 4.0).abs() < 1e-6,
+            "Tesseract capacity should be 4, got {}",
+            result.capacity
+        );
     }
 }
