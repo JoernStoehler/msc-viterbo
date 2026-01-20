@@ -387,7 +387,7 @@ omega(n_i, n_j) = 0
 
 **Citation:** CH2021, Definition 3.3.
 
-**Verification:** Tested for tesseract (all 2-faces Lagrangian).
+**Verification:** Tested for tesseract (20 Lagrangian and 8 non-Lagrangian 2-faces).
 
 **Code location:** `polytope.rs::PolytopeData`.
 

@@ -896,8 +896,8 @@ pub struct RandomNonLagrangianResult {
 ///
 /// 1. Generate `n_facets` random unit vectors uniformly on S³
 /// 2. Generate random positive heights h_i = base_height + uniform(0, height_variation)
-/// 3. Verify at least half the facet pairs are non-Lagrangian (ω(n_i, n_j) ≠ 0)
-/// 4. Verify boundedness by checking that origin is strictly interior (all n_i · 0 < h_i)
+/// 3. Verify ALL normal pairs are non-Lagrangian (ω(n_i, n_j) ≠ 0)
+/// 4. Verify ALL normal pairs correspond to geometric 2-faces (share vertices)
 ///
 /// # Arguments
 ///
@@ -909,6 +909,7 @@ pub struct RandomNonLagrangianResult {
 /// # Returns
 ///
 /// A `RandomNonLagrangianResult` containing the polytope if successful.
+/// Returns None if the random normals don't satisfy all requirements.
 pub fn try_random_nonlagrangian_polytope(
     seed: u64,
     n_facets: usize,
@@ -929,7 +930,7 @@ pub fn try_random_nonlagrangian_polytope(
         .map(|_| base_height + rng.gen::<f64>() * height_variation)
         .collect();
 
-    // Count non-Lagrangian pairs
+    // Count non-Lagrangian normal pairs
     let total_pairs = n_facets * (n_facets - 1) / 2;
     let mut non_lagrangian_count = 0;
     let threshold = 1e-9;
@@ -943,9 +944,8 @@ pub fn try_random_nonlagrangian_polytope(
         }
     }
 
-    // Check if at least half are non-Lagrangian
-    let min_required = total_pairs / 2;
-    if non_lagrangian_count < min_required {
+    // Require ALL normal pairs to be non-Lagrangian
+    if non_lagrangian_count < total_pairs {
         return RandomNonLagrangianResult {
             polytope: None,
             n_facets,
@@ -953,27 +953,44 @@ pub fn try_random_nonlagrangian_polytope(
             total_pairs,
             is_bounded: false,
             message: format!(
-                "Too few non-Lagrangian pairs: {} out of {} (need at least {})",
-                non_lagrangian_count, total_pairs, min_required
+                "Not all normal pairs are non-Lagrangian: {} out of {} (need all {})",
+                non_lagrangian_count, total_pairs, total_pairs
             ),
         };
     }
 
-    // All heights are positive (by construction), so origin is interior
-    // The polytope is bounded if the normals span R^4 (which they do w.h.p. for n>=5)
-    let is_bounded = heights.iter().all(|&h| h > 0.0);
-
     let polytope = PolytopeHRep::new(normals, heights);
 
-    // Validate polytope
+    // Basic validation (normals unit, heights positive and finite)
     if let Err(e) = polytope.validate(1e-6) {
         return RandomNonLagrangianResult {
             polytope: None,
             n_facets,
             non_lagrangian_pairs: non_lagrangian_count,
             total_pairs,
-            is_bounded,
+            is_bounded: false,
             message: format!("Polytope validation failed: {}", e),
+        };
+    }
+
+    // Check that all normal pairs correspond to geometric 2-faces.
+    // A pair (i,j) has a geometric 2-face if their facets share at least one vertex.
+    let eps_feas = 1e-9;
+    let eps_dedup = 1e-9;
+    let two_faces = polytope.two_faces(eps_feas, eps_dedup);
+    let geometric_2face_count = two_faces.len();
+
+    if geometric_2face_count < total_pairs {
+        return RandomNonLagrangianResult {
+            polytope: None,
+            n_facets,
+            non_lagrangian_pairs: non_lagrangian_count,
+            total_pairs,
+            is_bounded: false,
+            message: format!(
+                "Not all normal pairs have geometric 2-faces: {} out of {} pairs have 2-faces",
+                geometric_2face_count, total_pairs
+            ),
         };
     }
 
@@ -982,10 +999,10 @@ pub fn try_random_nonlagrangian_polytope(
         n_facets,
         non_lagrangian_pairs: non_lagrangian_count,
         total_pairs,
-        is_bounded,
+        is_bounded: true,
         message: format!(
-            "Generated polytope with {} facets, {}/{} non-Lagrangian pairs",
-            n_facets, non_lagrangian_count, total_pairs
+            "Generated polytope with {} facets, {}/{} non-Lagrangian pairs, {} geometric 2-faces",
+            n_facets, non_lagrangian_count, total_pairs, geometric_2face_count
         ),
     }
 }
@@ -994,40 +1011,342 @@ pub fn try_random_nonlagrangian_polytope(
 ///
 /// Uses 6 facets, base_height=1.0, height_variation=0.5.
 /// Returns None if the seed doesn't produce a valid polytope.
+///
+/// NOTE: This generator creates random halfplanes which rarely form simplicial
+/// polytopes. For tube algorithm testing, prefer `random_nonlagrangian_simplex()`
+/// which always produces a valid 5-facet simplex with 10 geometric 2-faces.
 pub fn random_nonlagrangian_polytope(seed: u64) -> Option<PolytopeHRep> {
     try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5).polytope
 }
 
-/// Pre-verified seeds that produce valid random non-Lagrangian polytopes.
-///
-/// These seeds have been tested to:
-/// 1. Produce polytopes with at least half non-Lagrangian facet pairs
-/// 2. Have all positive heights (bounded polytope)
-/// 3. Pass validation checks
-///
-/// Test results with 6 facets:
-/// - 42:   15/15 non-Lagrangian pairs, 1 2-face  -> SearchExhausted
-/// - 137:  15/15 non-Lagrangian pairs, 5 2-faces -> SearchExhausted
-/// - 1729: 15/15 non-Lagrangian pairs, 6 2-faces -> SUCCESS (capacity found!)
-/// - 2718: 15/15 non-Lagrangian pairs, 5 2-faces -> SearchExhausted
-/// - 3141: 15/15 non-Lagrangian pairs, 11 2-faces -> SearchExhausted
-///
-/// Use these for reproducible tests.
-pub const VERIFIED_NONLAGRANGIAN_SEEDS: [u64; 5] = [
-    42,   // 1 2-face (limited connectivity)
-    137,  // 5 2-faces
-    1729, // 6 2-faces - FINDS ORBIT (Hardy-Ramanujan number)
-    2718, // 5 2-faces (Euler's number digits)
-    3141, // 11 2-faces (Pi digits)
-];
+// =============================================================================
+// Random Non-Lagrangian Simplex Generator
+// =============================================================================
 
-/// Get a verified random non-Lagrangian polytope by index.
+/// Compute the 4D cross product of three vectors.
 ///
-/// Returns a polytope from a pre-verified seed, or None if index is out of range.
-pub fn verified_nonlagrangian_polytope(index: usize) -> Option<PolytopeHRep> {
-    VERIFIED_NONLAGRANGIAN_SEEDS
-        .get(index)
-        .and_then(|&seed| random_nonlagrangian_polytope(seed))
+/// Returns a vector perpendicular to all three input vectors.
+fn cross_4d(e1: SymplecticVector, e2: SymplecticVector, e3: SymplecticVector) -> SymplecticVector {
+    // Determinant expansion for 4D cross product
+    SymplecticVector::new(
+        e1.y * (e2.z * e3.w - e2.w * e3.z) - e1.z * (e2.y * e3.w - e2.w * e3.y)
+            + e1.w * (e2.y * e3.z - e2.z * e3.y),
+        -(e1.x * (e2.z * e3.w - e2.w * e3.z) - e1.z * (e2.x * e3.w - e2.w * e3.x)
+            + e1.w * (e2.x * e3.z - e2.z * e3.x)),
+        e1.x * (e2.y * e3.w - e2.w * e3.y) - e1.y * (e2.x * e3.w - e2.w * e3.x)
+            + e1.w * (e2.x * e3.y - e2.y * e3.x),
+        -(e1.x * (e2.y * e3.z - e2.z * e3.y) - e1.y * (e2.x * e3.z - e2.z * e3.x)
+            + e1.z * (e2.x * e3.y - e2.y * e3.x)),
+    )
+}
+
+/// Compute the outward-pointing normal to a facet of a simplex.
+///
+/// The facet is defined by all vertices except `skip_vertex`.
+/// The normal points away from `centroid`.
+fn simplex_facet_normal(
+    vertices: &[SymplecticVector; 5],
+    skip_vertex: usize,
+    centroid: SymplecticVector,
+) -> SymplecticVector {
+    // Collect the 4 vertices of this facet
+    let mut fv: Vec<SymplecticVector> = Vec::new();
+    for (j, &v) in vertices.iter().enumerate() {
+        if j != skip_vertex {
+            fv.push(v);
+        }
+    }
+
+    // Compute normal using edges from fv[0]
+    let e1 = fv[1] - fv[0];
+    let e2 = fv[2] - fv[0];
+    let e3 = fv[3] - fv[0];
+
+    let mut n = cross_4d(e1, e2, e3);
+    let norm = n.norm();
+    if norm < 1e-10 {
+        // Degenerate simplex
+        return SymplecticVector::new(0.0, 0.0, 0.0, 0.0);
+    }
+    n = n / norm;
+
+    // Make sure it points outward (away from centroid)
+    let to_centroid = centroid - fv[0];
+    if n.dot(&to_centroid) > 0.0 {
+        n = SymplecticVector::new(-n.x, -n.y, -n.z, -n.w);
+    }
+    n
+}
+
+/// Validation result for tube algorithm input.
+#[derive(Clone, Debug)]
+pub struct TubeInputValidation {
+    /// Whether the polytope is valid tube algorithm input.
+    pub is_valid: bool,
+    /// Number of facets.
+    pub n_facets: usize,
+    /// Total facet pairs C(n,2).
+    pub total_pairs: usize,
+    /// Number of non-Lagrangian normal pairs.
+    pub non_lagrangian_pairs: usize,
+    /// Number of geometric 2-faces.
+    pub geometric_2faces: usize,
+    /// Error message if invalid.
+    pub error: Option<String>,
+}
+
+/// Validate a polytope as valid input for the tube algorithm.
+///
+/// For the tube algorithm to work, the polytope must have:
+/// 1. All normal pairs non-Lagrangian (ω(nᵢ, nⱼ) ≠ 0)
+/// 2. All normal pairs corresponding to geometric 2-faces
+///
+/// This is a comprehensive validation for tube algorithm input.
+pub fn validate_tube_input(hrep: &PolytopeHRep) -> TubeInputValidation {
+    use rust_viterbo_geom::symplectic_form;
+
+    let n = hrep.normals.len();
+    let total_pairs = n * (n - 1) / 2;
+
+    // Check basic validation first
+    if let Err(e) = hrep.validate(1e-6) {
+        return TubeInputValidation {
+            is_valid: false,
+            n_facets: n,
+            total_pairs,
+            non_lagrangian_pairs: 0,
+            geometric_2faces: 0,
+            error: Some(format!("Basic validation failed: {}", e)),
+        };
+    }
+
+    // Count non-Lagrangian pairs
+    let mut non_lagrangian_count = 0;
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let omega = symplectic_form(hrep.normals[i], hrep.normals[j]);
+            if omega.abs() > 1e-9 {
+                non_lagrangian_count += 1;
+            }
+        }
+    }
+
+    // Count geometric 2-faces
+    let two_faces = hrep.two_faces(1e-9, 1e-9);
+    let geometric_2faces = two_faces.len();
+
+    // Check validity
+    let mut error = None;
+    if non_lagrangian_count < total_pairs {
+        error = Some(format!(
+            "Not all normal pairs are non-Lagrangian: {}/{} pairs",
+            non_lagrangian_count, total_pairs
+        ));
+    } else if geometric_2faces < total_pairs {
+        error = Some(format!(
+            "Not all normal pairs have geometric 2-faces: {}/{} pairs",
+            geometric_2faces, total_pairs
+        ));
+    }
+
+    TubeInputValidation {
+        is_valid: error.is_none(),
+        n_facets: n,
+        total_pairs,
+        non_lagrangian_pairs: non_lagrangian_count,
+        geometric_2faces,
+        error,
+    }
+}
+
+/// Generate a random non-Lagrangian polytope with specified facet count.
+///
+/// # Algorithm
+///
+/// 1. Generate `n_facets` random unit vectors on S³
+/// 2. Generate random positive heights
+/// 3. Check all C(n,2) normal pairs satisfy ω(nᵢ,nⱼ) ≠ 0
+/// 4. Check all C(n,2) normal pairs have geometric 2-faces
+/// 5. If not, increment seed and retry (resampling)
+///
+/// # Arguments
+///
+/// * `seed` - Random seed
+/// * `n_facets` - Number of facets (5 for simplex, 6+  for more complex polytopes)
+///
+/// # Returns
+///
+/// A valid `PolytopeHRep` satisfying tube algorithm requirements.
+/// Panics if no valid polytope found after max_attempts.
+pub fn random_nonlagrangian_polytope_with_facets(seed: u64, n_facets: usize) -> PolytopeHRep {
+    assert!(n_facets >= 5, "Need at least 5 facets for a bounded 4D polytope");
+
+    let max_attempts = 100000;
+    for attempt in 0..max_attempts {
+        let current_seed = seed.wrapping_add(attempt);
+        let mut rng = ChaCha8Rng::seed_from_u64(current_seed);
+
+        // Generate random unit normals
+        let normals: Vec<SymplecticVector> = (0..n_facets)
+            .map(|_| random_unit_vector_s3(&mut rng))
+            .collect();
+
+        // Generate random positive heights
+        let heights: Vec<f64> = (0..n_facets)
+            .map(|_| 0.5 + rng.gen::<f64>() * 1.5) // heights in [0.5, 2.0]
+            .collect();
+
+        let polytope = PolytopeHRep::new(normals, heights);
+
+        // Validate as tube input
+        let validation = validate_tube_input(&polytope);
+        if validation.is_valid {
+            return polytope;
+        }
+    }
+
+    panic!(
+        "random_nonlagrangian_polytope_with_facets: failed after {} attempts (seed={}, n_facets={})",
+        max_attempts, seed, n_facets
+    );
+}
+
+/// Generate a random 4D simplex with all 10 facet pairs non-Lagrangian.
+///
+/// # Algorithm
+///
+/// 1. Generate 5 random vertices in R⁴
+/// 2. Compute the 5 facet normals from simplex geometry
+/// 3. Check all C(5,2)=10 normal pairs satisfy ω(nᵢ,nⱼ) ≠ 0
+/// 4. If not, increment seed and retry (resampling)
+///
+/// A 4D simplex always has all C(5,2)=10 pairs as geometric 2-faces,
+/// so the only constraint is the non-Lagrangian condition.
+///
+/// # Returns
+///
+/// A valid `PolytopeHRep` with:
+/// - 5 facets (simplex)
+/// - 10 geometric 2-faces
+/// - All 10 facet pairs non-Lagrangian
+///
+/// This function always succeeds (resamples internally until valid).
+pub fn random_nonlagrangian_simplex(seed: u64) -> PolytopeHRep {
+    use rust_viterbo_geom::symplectic_form;
+
+    let max_attempts = 10000;
+    for attempt in 0..max_attempts {
+        let current_seed = seed.wrapping_add(attempt);
+        let mut rng = ChaCha8Rng::seed_from_u64(current_seed);
+
+        // Generate 5 random vertices
+        let mut vertices: [SymplecticVector; 5] = [SymplecticVector::new(0.0, 0.0, 0.0, 0.0); 5];
+        for v in vertices.iter_mut() {
+            *v = random_unit_vector_s3(&mut rng) * (1.0 + rng.gen::<f64>());
+        }
+
+        // Compute centroid
+        let centroid = {
+            let sum = vertices.iter().fold(
+                SymplecticVector::new(0.0, 0.0, 0.0, 0.0),
+                |acc, &v| acc + v,
+            );
+            sum / 5.0
+        };
+
+        // Compute facet normals
+        let mut normals: [SymplecticVector; 5] =
+            [SymplecticVector::new(0.0, 0.0, 0.0, 0.0); 5];
+        let mut degenerate = false;
+        for i in 0..5 {
+            normals[i] = simplex_facet_normal(&vertices, i, centroid);
+            if normals[i].norm() < 0.5 {
+                degenerate = true;
+                break;
+            }
+        }
+        if degenerate {
+            continue;
+        }
+
+        // Check all 10 pairs are non-Lagrangian
+        let mut all_nonlagrangian = true;
+        for i in 0..5 {
+            for j in (i + 1)..5 {
+                let omega = symplectic_form(normals[i], normals[j]);
+                if omega.abs() < 1e-9 {
+                    all_nonlagrangian = false;
+                    break;
+                }
+            }
+            if !all_nonlagrangian {
+                break;
+            }
+        }
+        if !all_nonlagrangian {
+            continue;
+        }
+
+        // Compute heights: h_i = max over vertices of ⟨n_i, v⟩
+        let mut heights = Vec::with_capacity(5);
+        for n in &normals {
+            let h = vertices.iter().map(|v| n.dot(v)).fold(f64::NEG_INFINITY, f64::max);
+            heights.push(h);
+        }
+
+        // Translate to ensure all heights are positive
+        let min_h = heights.iter().cloned().fold(f64::INFINITY, f64::min);
+        if min_h <= 0.0 {
+            let shift = 1.0 - min_h;
+            for h in heights.iter_mut() {
+                *h += shift;
+            }
+        }
+
+        let polytope = PolytopeHRep::new(normals.to_vec(), heights);
+
+        // Final validation: ensure it's valid tube input
+        let validation = validate_tube_input(&polytope);
+        if validation.is_valid {
+            return polytope;
+        }
+        // Otherwise continue to next attempt
+    }
+
+    panic!(
+        "random_nonlagrangian_simplex: failed to find valid simplex after {} attempts from seed {}",
+        max_attempts, seed
+    );
+}
+
+/// Generate a random non-Lagrangian simplex and return detailed information.
+pub fn try_random_nonlagrangian_simplex(seed: u64) -> RandomNonLagrangianResult {
+    use rust_viterbo_geom::symplectic_form;
+
+    let polytope = random_nonlagrangian_simplex(seed);
+
+    // Count non-Lagrangian pairs (should be all 10)
+    let mut non_lagrangian_count = 0;
+    for i in 0..5 {
+        for j in (i + 1)..5 {
+            let omega = symplectic_form(polytope.normals[i], polytope.normals[j]);
+            if omega.abs() > 1e-9 {
+                non_lagrangian_count += 1;
+            }
+        }
+    }
+
+    RandomNonLagrangianResult {
+        polytope: Some(polytope),
+        n_facets: 5,
+        non_lagrangian_pairs: non_lagrangian_count,
+        total_pairs: 10,
+        is_bounded: true,
+        message: format!(
+            "Generated simplex with 5 facets, {}/10 non-Lagrangian pairs, 10 geometric 2-faces",
+            non_lagrangian_count
+        ),
+    }
 }
 
 // =============================================================================
@@ -1127,58 +1446,34 @@ mod tests {
     }
 
     // =========================================================================
-    // Random Non-Lagrangian Polytope Tests
+    // Random Non-Lagrangian Polytope Tests (generic halfplanes)
     // =========================================================================
 
     #[test]
-    fn random_nonlagrangian_polytope_produces_valid_output() {
-        // Test with seed 42
+    fn random_nonlagrangian_polytope_rejects_invalid() {
+        // Test that the generator correctly rejects polytopes without enough 2-faces.
+        // Seed 42 produces 15/15 non-Lagrangian normal pairs but only 1 geometric 2-face.
         let result = try_random_nonlagrangian_polytope(42, 6, 1.0, 0.5);
         eprintln!("Result: {}", result.message);
-        eprintln!(
-            "Non-Lagrangian pairs: {}/{}",
-            result.non_lagrangian_pairs, result.total_pairs
-        );
 
-        // For random normals on S^3, almost all pairs should be non-Lagrangian
-        // (Lagrangian condition is measure-zero)
+        // This seed should be rejected (not enough geometric 2-faces)
         assert!(
-            result.non_lagrangian_pairs >= result.total_pairs / 2,
-            "Random normals should produce mostly non-Lagrangian pairs"
+            result.polytope.is_none(),
+            "Seed 42 should be rejected: only 1 geometric 2-face out of 15 required"
         );
-
-        if let Some(polytope) = &result.polytope {
-            // Verify validation passes
-            assert!(
-                polytope.validate(1e-6).is_ok(),
-                "Polytope should pass validation"
-            );
-
-            // Verify normals are unit vectors
-            for (i, n) in polytope.normals.iter().enumerate() {
-                let norm = n.norm();
-                assert!(
-                    (norm - 1.0).abs() < 1e-10,
-                    "Normal {} should be unit: norm = {}",
-                    i,
-                    norm
-                );
-            }
-
-            // Verify heights are positive
-            for (i, &h) in polytope.heights.iter().enumerate() {
-                assert!(h > 0.0, "Height {} should be positive: h = {}", i, h);
-            }
-        }
+        assert!(
+            result.message.contains("2-faces"),
+            "Rejection message should mention 2-faces"
+        );
     }
 
     #[test]
     fn random_nonlagrangian_normals_are_generic() {
         use rust_viterbo_geom::symplectic_form;
 
-        // Test that random normals don't have special values like 0, 1, sqrt(2), etc.
-        let result = try_random_nonlagrangian_polytope(42, 6, 1.0, 0.5);
-        let polytope = result.polytope.expect("Should produce valid polytope");
+        // Test that simplex normals don't have special values like 0, 1, sqrt(2), etc.
+        // Use the simplex generator which always produces valid polytopes.
+        let polytope = random_nonlagrangian_simplex(42);
 
         for (i, n) in polytope.normals.iter().enumerate() {
             // Check that components are "random" - not special values
@@ -1224,28 +1519,77 @@ mod tests {
         }
     }
 
-    #[test]
-    fn random_nonlagrangian_multiple_seeds_work() {
-        // Test all verified seeds
-        for (idx, &seed) in VERIFIED_NONLAGRANGIAN_SEEDS.iter().enumerate() {
-            let result = try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5);
-            eprintln!("Seed {}: {}", seed, result.message);
+    // =========================================================================
+    // Random Non-Lagrangian Simplex Tests
+    // =========================================================================
 
-            // All verified seeds should produce valid polytopes
-            assert!(
-                result.polytope.is_some(),
-                "Verified seed {} (index {}) should produce valid polytope",
+    #[test]
+    fn random_nonlagrangian_simplex_produces_valid_output() {
+        use rust_viterbo_geom::symplectic_form;
+
+        // Test several seeds
+        for seed in [0, 42, 123, 1729, 9999] {
+            let polytope = random_nonlagrangian_simplex(seed);
+
+            // Should have 5 facets (simplex)
+            assert_eq!(polytope.normals.len(), 5, "Simplex should have 5 facets");
+            assert_eq!(polytope.heights.len(), 5);
+
+            // Normals should be unit vectors
+            for (i, n) in polytope.normals.iter().enumerate() {
+                let norm = n.norm();
+                assert!(
+                    (norm - 1.0).abs() < 1e-6,
+                    "Seed {}: normal {} should be unit, got norm {}",
+                    seed,
+                    i,
+                    norm
+                );
+            }
+
+            // Heights should be positive
+            for (i, &h) in polytope.heights.iter().enumerate() {
+                assert!(
+                    h > 0.0,
+                    "Seed {}: height {} should be positive, got {}",
+                    seed,
+                    i,
+                    h
+                );
+            }
+
+            // All 10 pairs should be non-Lagrangian
+            for i in 0..5 {
+                for j in (i + 1)..5 {
+                    let omega = symplectic_form(polytope.normals[i], polytope.normals[j]);
+                    assert!(
+                        omega.abs() > 1e-9,
+                        "Seed {}: pair ({}, {}) should be non-Lagrangian, got omega = {}",
+                        seed,
+                        i,
+                        j,
+                        omega
+                    );
+                }
+            }
+
+            // Should have 10 geometric 2-faces (simplex property)
+            let two_faces = polytope.two_faces(1e-9, 1e-9);
+            assert_eq!(
+                two_faces.len(),
+                10,
+                "Seed {}: simplex should have 10 geometric 2-faces, got {}",
                 seed,
-                idx
+                two_faces.len()
             );
         }
     }
 
     #[test]
-    fn random_nonlagrangian_is_deterministic() {
-        // Same seed should produce same polytope
-        let p1 = random_nonlagrangian_polytope(12345).expect("Should produce polytope");
-        let p2 = random_nonlagrangian_polytope(12345).expect("Should produce polytope");
+    fn random_nonlagrangian_simplex_is_deterministic() {
+        // Same seed should produce same simplex
+        let p1 = random_nonlagrangian_simplex(42);
+        let p2 = random_nonlagrangian_simplex(42);
 
         assert_eq!(p1.normals.len(), p2.normals.len());
         for (n1, n2) in p1.normals.iter().zip(&p2.normals) {
@@ -1257,18 +1601,14 @@ mod tests {
     }
 
     #[test]
-    fn random_nonlagrangian_detailed_analysis() {
+    fn random_nonlagrangian_simplex_detailed_analysis() {
         use rust_viterbo_geom::symplectic_form;
 
-        let seed = 42u64;
-        let result = try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5);
-        eprintln!(
-            "=== Random Non-Lagrangian Polytope Analysis (seed={}) ===",
-            seed
-        );
-        eprintln!("Message: {}", result.message);
+        let seed = 0u64;
+        let polytope = random_nonlagrangian_simplex(seed);
 
-        let polytope = result.polytope.expect("Should produce valid polytope");
+        eprintln!("=== Random Non-Lagrangian Simplex (seed={}) ===", seed);
+        eprintln!("Facets: {}", polytope.normals.len());
 
         eprintln!("\nNormals:");
         for (i, n) in polytope.normals.iter().enumerate() {
@@ -1283,36 +1623,84 @@ mod tests {
             eprintln!("  h[{}] = {:.6}", i, h);
         }
 
-        eprintln!("\nSymplectic form matrix:");
-        eprint!("     ");
-        for j in 0..polytope.normals.len() {
-            eprint!("{:8}", j);
-        }
-        eprintln!();
-        for i in 0..polytope.normals.len() {
-            eprint!("  {} |", i);
-            for j in 0..polytope.normals.len() {
+        eprintln!("\nSymplectic forms ω(nᵢ, nⱼ):");
+        for i in 0..5 {
+            for j in (i + 1)..5 {
                 let omega = symplectic_form(polytope.normals[i], polytope.normals[j]);
-                eprint!("{:8.4}", omega);
-            }
-            eprintln!();
-        }
-
-        eprintln!("\nNon-Lagrangian pairs (|omega| > 1e-9):");
-        let mut count = 0;
-        for i in 0..polytope.normals.len() {
-            for j in (i + 1)..polytope.normals.len() {
-                let omega = symplectic_form(polytope.normals[i], polytope.normals[j]);
-                if omega.abs() > 1e-9 {
-                    count += 1;
-                    eprintln!("  ({}, {}): omega = {:+.6}", i, j, omega);
-                }
+                eprintln!("  ω(n{}, n{}) = {:+.6}", i, j, omega);
             }
         }
-        let total = polytope.normals.len() * (polytope.normals.len() - 1) / 2;
-        eprintln!("\nTotal: {}/{} pairs are non-Lagrangian", count, total);
 
-        // Assert at least half are non-Lagrangian
-        assert!(count >= total / 2, "At least half should be non-Lagrangian");
+        let two_faces = polytope.two_faces(1e-9, 1e-9);
+        eprintln!("\nGeometric 2-faces: {}", two_faces.len());
+    }
+
+    // =========================================================================
+    // validate_tube_input Tests
+    // =========================================================================
+
+    #[test]
+    fn validate_tube_input_accepts_valid_simplex() {
+        let polytope = random_nonlagrangian_simplex(0);
+        let validation = validate_tube_input(&polytope);
+
+        assert!(validation.is_valid, "Simplex should be valid: {:?}", validation.error);
+        assert_eq!(validation.n_facets, 5);
+        assert_eq!(validation.total_pairs, 10);
+        assert_eq!(validation.non_lagrangian_pairs, 10);
+        assert_eq!(validation.geometric_2faces, 10);
+        assert!(validation.error.is_none());
+    }
+
+    #[test]
+    fn validate_tube_input_rejects_lagrangian_product() {
+        // Tesseract is a Lagrangian product - has Lagrangian 2-faces
+        let polytope = tesseract();
+        let validation = validate_tube_input(&polytope);
+
+        assert!(!validation.is_valid, "Tesseract should be rejected");
+        assert!(validation.error.is_some());
+        // Tesseract has 8 facets, so 28 pairs
+        // Only 8 pairs are non-Lagrangian (the ones mixing q and p directions)
+        assert!(validation.non_lagrangian_pairs < validation.total_pairs);
+    }
+
+    #[test]
+    fn validate_tube_input_rejects_skewed_simplex() {
+        // Skewed simplex has 4 Lagrangian 2-faces out of 10
+        let polytope = skewed_simplex_4d();
+        let validation = validate_tube_input(&polytope);
+
+        assert!(!validation.is_valid, "Skewed simplex should be rejected");
+        assert!(validation.error.is_some());
+        // Should have only 6 non-Lagrangian pairs out of 10
+        assert_eq!(validation.non_lagrangian_pairs, 6);
+        assert!(validation.error.as_ref().unwrap().contains("non-Lagrangian"));
+    }
+
+    #[test]
+    fn validate_tube_input_rejects_random_halfplanes() {
+        // Random halfplanes usually don't form simplices - few geometric 2-faces
+        let result = try_random_nonlagrangian_polytope(42, 6, 1.0, 0.5);
+
+        // Seed 42 produces only 1 geometric 2-face
+        assert!(result.polytope.is_none(), "Seed 42 should be rejected");
+        assert!(result.message.contains("2-faces"));
+    }
+
+    #[test]
+    fn validate_tube_input_multiple_valid_simplices() {
+        // Multiple seeds should all produce valid simplices
+        for seed in [0, 1, 10, 100, 1000] {
+            let polytope = random_nonlagrangian_simplex(seed);
+            let validation = validate_tube_input(&polytope);
+
+            assert!(
+                validation.is_valid,
+                "Seed {} should produce valid simplex: {:?}",
+                seed,
+                validation.error
+            );
+        }
     }
 }

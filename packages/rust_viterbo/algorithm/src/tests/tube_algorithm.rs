@@ -2041,26 +2041,24 @@ fn tube_complete_orbit_verification() {
 // These tests use truly random polytopes (not axis-aligned, not rotations of
 // standard shapes) to verify the tube algorithm works on generic inputs.
 
-/// Test tube algorithm on a random non-Lagrangian polytope.
+/// Test tube algorithm on a random non-Lagrangian simplex.
 ///
 /// Unlike the skewed simplex (which is a rotation of the standard simplex),
-/// these polytopes have completely random normals sampled uniformly from S^3.
+/// these polytopes have completely random normals derived from random vertices.
 /// This ensures we test genuinely generic non-Lagrangian structure.
 #[test]
 fn tube_algorithm_on_random_nonlagrangian_polytope() {
-    use super::fixtures::{random_nonlagrangian_polytope, try_random_nonlagrangian_polytope};
+    use super::fixtures::{random_nonlagrangian_simplex, validate_tube_input};
     use crate::polytope::PolytopeData;
     use rust_viterbo_geom::symplectic_form;
 
     let seed = 42u64;
-    eprintln!("=== Tube Algorithm on Random Non-Lagrangian Polytope (seed={}) ===", seed);
+    eprintln!("=== Tube Algorithm on Random Non-Lagrangian Simplex (seed={}) ===", seed);
 
-    // Get the generation result for diagnostics
-    let gen_result = try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5);
-    eprintln!("Generation: {}", gen_result.message);
-
-    let hrep = random_nonlagrangian_polytope(seed)
-        .expect("Seed 42 should produce valid random non-Lagrangian polytope");
+    // Use the simplex generator which always produces valid polytopes
+    let hrep = random_nonlagrangian_simplex(seed);
+    let validation = validate_tube_input(&hrep);
+    eprintln!("Validation: is_valid={}, {:?}", validation.is_valid, validation.error);
 
     // Verify non-Lagrangian structure
     eprintln!("\nPolytope structure:");
@@ -2168,32 +2166,26 @@ fn tube_algorithm_on_random_nonlagrangian_polytope() {
     }
 }
 
-/// Test tube algorithm on multiple random non-Lagrangian polytopes.
+/// Test tube algorithm on random non-Lagrangian simplices.
 ///
-/// This tests the algorithm's robustness across different random seeds.
+/// This tests the algorithm on valid 5-facet simplices where all 10 2-faces
+/// are non-Lagrangian. The simplex generator always produces valid input.
 #[test]
-fn tube_algorithm_on_multiple_random_polytopes() {
-    use super::fixtures::{try_random_nonlagrangian_polytope, VERIFIED_NONLAGRANGIAN_SEEDS};
+fn tube_algorithm_on_random_simplices() {
+    use super::fixtures::random_nonlagrangian_simplex;
     use crate::polytope::PolytopeData;
 
-    eprintln!("=== Tube Algorithm on Multiple Random Polytopes ===\n");
+    eprintln!("=== Tube Algorithm on Random Non-Lagrangian Simplices ===\n");
 
     let mut success_count = 0;
     let mut no_orbit_count = 0;
     let mut exhausted_count = 0;
     let mut error_count = 0;
 
-    for &seed in &VERIFIED_NONLAGRANGIAN_SEEDS {
-        let gen_result = try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5);
+    let test_seeds = [0, 42, 123, 456, 789, 1000, 1729, 2718, 3141, 9999];
 
-        let hrep = match gen_result.polytope {
-            Some(p) => p,
-            None => {
-                eprintln!("Seed {}: SKIPPED (generation failed: {})", seed, gen_result.message);
-                continue;
-            }
-        };
-
+    for seed in test_seeds {
+        let hrep = random_nonlagrangian_simplex(seed);
         let data = PolytopeData::new(hrep.clone());
         let algo = TubeAlgorithm::new();
         let result = algo.compute(hrep);
@@ -2218,9 +2210,8 @@ fn tube_algorithm_on_multiple_random_polytopes() {
         };
 
         eprintln!(
-            "Seed {}: {} facets, {} 2-faces -> {}",
+            "Seed {}: 5 facets, {} 2-faces -> {}",
             seed,
-            gen_result.n_facets,
             data.two_faces.len(),
             status
         );
@@ -2232,28 +2223,28 @@ fn tube_algorithm_on_multiple_random_polytopes() {
     eprintln!("  SearchExhausted: {}", exhausted_count);
     eprintln!("  Errors: {}", error_count);
 
-    // At least some should run without errors
+    // No InvalidInput errors should occur - all simplices are valid input
     assert!(
         error_count == 0,
-        "No unexpected errors should occur on verified seeds"
+        "No errors should occur on valid non-Lagrangian simplices"
     );
 }
 
-/// Detailed debug test for random non-Lagrangian polytope structure.
+/// Detailed debug test for random non-Lagrangian simplex structure.
 ///
 /// This test prints extensive diagnostics to understand why the tube
-/// algorithm succeeds or fails on random polytopes.
+/// algorithm succeeds or fails on random simplices.
 #[test]
 fn debug_random_nonlagrangian_structure() {
-    use super::fixtures::try_random_nonlagrangian_polytope;
+    use super::fixtures::random_nonlagrangian_simplex;
     use crate::polytope::PolytopeData;
     use rust_viterbo_geom::symplectic_form;
 
     let seed = 42u64;
-    eprintln!("=== Random Non-Lagrangian Polytope Structure (seed={}) ===", seed);
+    eprintln!("=== Random Non-Lagrangian Simplex Structure (seed={}) ===", seed);
 
-    let gen_result = try_random_nonlagrangian_polytope(seed, 6, 1.0, 0.5);
-    let hrep = gen_result.polytope.expect("Should produce valid polytope");
+    // Use the simplex generator which always produces valid polytopes
+    let hrep = random_nonlagrangian_simplex(seed);
 
     eprintln!("\nNormals:");
     for (i, n) in hrep.normals.iter().enumerate() {
@@ -2364,8 +2355,8 @@ fn tube_algorithm_varying_facet_count() {
 ///
 /// This test verifies that the following polytopes are correctly rejected:
 /// 1. **Skewed simplex** - has 4 Lagrangian 2-faces (pairs (0,1), (0,3), (1,2), (2,3))
-/// 2. **Tesseract** - ALL 2-faces are Lagrangian (it's a Lagrangian product)
-/// 3. **Triangle x Triangle** - ALL 2-faces are Lagrangian (Lagrangian product)
+/// 2. **Tesseract** - has 20 Lagrangian and 8 non-Lagrangian 2-faces (Lagrangian product)
+/// 3. **Triangle x Triangle** - has Lagrangian 2-faces (Lagrangian product)
 ///
 /// The tube algorithm should detect these upfront and return InvalidInput with a message
 /// indicating how many Lagrangian 2-faces exist.

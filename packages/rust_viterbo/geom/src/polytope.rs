@@ -393,7 +393,7 @@ mod tests {
         use crate::perturbation::detect_near_lagrangian;
         let hrep = tesseract();
         let det = detect_near_lagrangian(&hrep, 0.1, 1e-6, 1e-6);
-        // Tesseract has all-Lagrangian 2-faces
+        // Tesseract has 20 Lagrangian and 8 non-Lagrangian 2-faces
         assert!(det.detected);
     }
 }

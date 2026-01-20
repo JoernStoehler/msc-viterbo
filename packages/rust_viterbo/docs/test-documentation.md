@@ -66,8 +66,8 @@ fn tesseract() -> PolytopeHRep {
 ```
 
 **Properties:**
-- 8 facets, all 2-faces Lagrangian
-- Algorithms: Billiard works, HK2019 works, Tube fails (Lagrangian)
+- 8 facets, 20 Lagrangian 2-faces, 8 non-Lagrangian 2-faces
+- Algorithms: Billiard works, HK2019 works, Tube fails (has Lagrangian 2-faces)
 
 ---
 

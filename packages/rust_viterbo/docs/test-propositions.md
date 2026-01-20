@@ -97,7 +97,7 @@ For each pair of facets (i, j), the 2-face F_ij has type:
 
 **Source:** CH2021, Definition 3.3
 
-**Test:** For Lagrangian products, ALL 2-faces should be Lagrangian.
+**Test:** For Lagrangian products, SOME 2-faces are Lagrangian (but not necessarily all). For example, the tesseract has 20 Lagrangian and 8 non-Lagrangian 2-faces.
 
 ---
 
@@ -568,10 +568,11 @@ A 2-face F_ij (intersection of facets i and j) is Lagrangian iff:
 **Tests:**
 
 **4.4.1 Tesseract 2-faces:**
-All 2-faces are Lagrangian because normals are axis-aligned:
+The tesseract has 20 Lagrangian and 8 non-Lagrangian 2-faces. Axis-aligned normals give:
 ```
-ω(e₁, e₂) = 0
-ω(e₁, e₃) ≠ 0  (but these don't form a 2-face)
+ω(e₁, e₂) = 0   (Lagrangian, forms a 2-face)
+ω(e₃, e₄) = 0   (Lagrangian, forms a 2-face)
+ω(e₁, e₃) ≠ 0   (non-Lagrangian, forms a 2-face)
 ```
 
 **4.4.2 Perturbed tesseract:**
@@ -701,9 +702,9 @@ c_billiard(K₁ × K₂) = c_HK2019(K₁ × K₂)
 
 ### 6.3 Tube Fails on Lagrangian Products
 
-**Statement:** For pure Lagrangian products, tube algorithm returns NoValidOrbits because all 2-faces are Lagrangian (no non-trivial rotation dynamics).
+**Statement:** For Lagrangian products, tube algorithm fails because they have Lagrangian 2-faces. The tube algorithm requires ALL normal pairs to be non-Lagrangian for valid transition matrices.
 
-**Source:** CH2021, requires ω(n_i, n_j) ≠ 0 for transition matrices.
+**Source:** CH2021, requires ω(n_i, n_j) ≠ 0 for ALL transition matrices.
 
 **Test:** Verify tube fails on tesseract, triangle×triangle, pentagon×pentagon.
 

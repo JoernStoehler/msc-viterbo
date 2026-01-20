@@ -67,12 +67,12 @@ fn compute_capacity_returns_failure_for_tesseract() {
 
 /// Diagnostics are populated when algorithm runs (not for InvalidInput).
 ///
-/// Use a valid non-Lagrangian polytope to test diagnostics.
+/// Use a valid non-Lagrangian simplex to test diagnostics.
 #[test]
 fn diagnostics_populated_when_algorithm_runs() {
-    use crate::tests::fixtures::random_nonlagrangian_polytope;
-    // Seed 57 produces a valid 5-facet polytope with 0 Lagrangian 2-faces
-    let polytope = random_nonlagrangian_polytope(57).expect("seed 57 must produce valid polytope");
+    use crate::tests::fixtures::random_nonlagrangian_simplex;
+    // Use the simplex generator which always produces valid polytopes
+    let polytope = random_nonlagrangian_simplex(42);
     let result = compute_capacity(polytope);
     match result {
         Err(AlgorithmError::NoValidOrbits) => {}
@@ -81,7 +81,7 @@ fn diagnostics_populated_when_algorithm_runs() {
             assert!(r.diagnostics.nodes_explored > 0);
         }
         Err(AlgorithmError::InvalidInput(msg)) => {
-            panic!("seed 57 should be valid, got InvalidInput: {}", msg);
+            panic!("simplex should be valid, got InvalidInput: {}", msg);
         }
         Err(e) => panic!("unexpected error: {e}"),
     }
