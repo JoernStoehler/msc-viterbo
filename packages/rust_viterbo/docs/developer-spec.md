@@ -20,13 +20,97 @@
 
 ### 1.1 Problem Statement
 
-Given a convex polytope \(K \subset \mathbb{R}^4\) in H-representation:
-```
-K = \bigcap_i \{x \in \mathbb{R}^4 : \langle n_i, x \rangle \leq h_i\}
-```
-where \(n_i\) are unit outward normals and \(h_i > 0\) (ensuring \(0 \in \mathrm{int}(K)\)).
+**Input:** A polytope \(K \subset \mathbb{R}^4\) with \(0 \in \mathrm{int}(K)\).
 
-**Compute:** The Ekeland-Hofer-Zehnder capacity \(c_{\mathrm{EHZ}}(K)\) and a witness orbit achieving it.
+**Equivalent definitions of "polytope":**
+- Convex hull of finitely many vertices, with nonempty interior
+- Intersection of finitely many half-spaces, bounded, with nonempty interior
+
+**Representations:**
+- **H-representation (half-space):** \(K = \bigcap_i \{x \in \mathbb{R}^4 : \langle n_i, x \rangle \leq h_i\}\)
+- **V-representation (vertex):** \(K = \mathrm{conv}(\{v_1, \ldots, v_m\})\)
+
+Either representation can be used as input. This spec focuses on H-rep because the algorithms work directly with facet normals, but V-rep is equally valid (convert via vertex enumeration or facet enumeration).
+
+**Conventions for H-rep:**
+- **Non-redundant:** Every half-space defines a facet (no inequality is implied by others)
+- **Normalized:** Normals are outwards pointing unit vectors (\(\|n_i\| = 1\)) and heights are positive (\(h_i > 0\), which follows from \(0 \in \mathrm{int}(K)\))
+
+**Conventions for V-rep:**
+- **Non-redundant:** Every vertex is an extreme point (not a convex combination of others)
+
+**Representing a Polytope:**
+```rust
+struct PolytopeRepEnriched {
+    num_facets: usize,
+    normals: Vec<[f64; 4]>,
+    heights: Vec<f64>,
+    num_vertices: usize,
+    vertices: Vec<[f64; 4]>,
+}
+
+impl PolytopeRepEnriched {
+    fn is_valid(&self) -> bool {
+        // H-rep validity:
+        //   normals.len() == heights.len() == num_facets
+        //   ||normals[i]|| == 1.0 for all i
+        //   heights[i] > 0.0 for all i
+        //   the intersection of half-spaces is bounded
+        //   the half-spaces are non-redundant (none can be removed without changing K)
+        //
+        // V-rep validity:
+        //   vertices.len() == num_vertices
+        //   the convex hull contains 0 in its interior
+        //
+        // Cross-validation:
+        //   conv(vertices) == intersection of half-spaces
+        todo!()
+    }
+}
+```
+
+**Compute:** The Ekeland-Hofer-Zehnder capacity \(c_{\mathrm{EHZ}}(K)\) and a minimum action closed Reeb orbit on \(\partial K\) achieving it.
+
+**Definitions / Representations of Reeb orbit:**
+- fully general: \( \gamma \in W^{1,2}([0,T], \partial K) \) with \( \int_0^T \dot\gamma(t) dt = 0 \) (closed) and \( \dot\gamma(t) \in \mathrm{conv}\{ 2/h_i J n_i : \gamma(t) \in F_i \} \) (Reeb flow differential inclusion) where \(F_i\) are the facets of \(K\) and \(R_i = 2/h_i J n_i\) are the Reeb vectors on each facet.
+- Reeb orbits can be piecewise linear, which can be represented by a cyclic sequence of breakpoints and break times \(\{(p_k, t_k)\}_{k=1}^N \subset \mathbb{R}^4 \times [0,T]\) with \(0 = t_1 < t_2 < \ldots < t_{N+1} = T\) and period \(T>0\). The segments lie on the polytope boundary, the breakpoints in particular have to lie on facet boundaries i.e. in the interior of a 0,1,2-face.
+- There always is a minimum action Reeb orbit that is piecewise linear, and takes every velocity \((p_{k+1} - p_k)/ (t_{k+1} - t_k)\) equal to some facet Reeb vector \(R_{i_k}\) (theorem in thesis) and even takes every Reeb vector at most once.
+- If the polytope has no lagrangian 2-faces, then all segments lie on the interior of 3-facets, i.e. no facet flows along a 0,1,2-face.
+- Some polytopes with lagrangian 2-faces have only minimum action orbits such that the orbit flows along a lagrangian 2-face with a breakpoint in the interior of the lagrangian 2-face.
+
+**Representation of Reeb orbits in output:**
+```rust
+struct SimpleReebOrbitEnriched {
+    period: f64,                // also equals the action
+    num_segments: usize,
+    breakpoints: Vec<[f64; 4]>, // points on the boundary
+    breaktimes: Vec<f64>,       // cumulative times at each breakpoint
+    segment_facets: Vec<usize>, // which facet each segment lies on
+}
+
+impl SimpleReebOrbitEnriched {
+    fn is_valid(&self, K: &PolytopeHRep) -> bool {
+        // Array lengths:
+        //   breakpoints.len() == num_segments + 1
+        //   breakpoints[num_segments] == breakpoints[0]  (closed)
+        //   breaktimes.len() == num_segments + 1
+        //   breaktimes[0] == 0.0, breaktimes[num_segments] == period
+        //   segment_facets.len() == num_segments
+        //
+        // Timing:
+        //   breaktimes strictly increasing
+        //
+        // Geometry (for each segment k):
+        //   breakpoints[k] and breakpoints[k+1] lie on facet segment_facets[k]
+        //   velocity (breakpoints[k+1] - breakpoints[k]) / (breaktimes[k+1] - breaktimes[k])
+        //     equals Reeb vector R_i = (2/h_i) * J * n_i on that facet
+        //
+        // Simplicity:
+        //   no facet appears twice in segment_facets
+        todo!()
+    }
+}
+```
 
 ### 1.2 Algorithm Applicability
 
@@ -38,32 +122,27 @@ where \(n_i\) are unit outward normals and \(h_i > 0\) (ensuring \(0 \in \mathrm
 
 ### 1.3 Input Contract
 
+We minimize the amount of data to pass into the function, it can enrich on the fly as needed:
 ```rust
 struct PolytopeHRep {
     normals: Vec<[f64; 4]>,  // unit outward normals, ||n_i|| = 1
     heights: Vec<f64>,       // positive heights, h_i > 0
 }
 ```
-
-**Invariants:**
-- `normals.len() == heights.len() >= 5` (minimum for bounded 4D polytope)
-- All normals are unit vectors
-- All heights are positive (implies \(0 \in \mathrm{int}(K)\))
-- No NaN/Inf values
+The invariants are as one can deduce from the previous "enriched" struct.
+And from common sense, e.g. no NaNs ever.
 
 ### 1.4 Output Contract
 
 ```rust
 struct CapacityResult {
     capacity: f64,              // c_EHZ(K)
-    witness: Option<WitnessOrbit>,
+    orbit: Option<ReebOrbit>,   // Minimum action closed Reeb orbit
     diagnostics: Diagnostics,
 }
 
-struct WitnessOrbit {
-    breakpoints: Vec<[f64; 4]>,  // Points on \partial K
-    facet_sequence: Vec<usize>,  // Which facet each segment lies on
-    segment_times: Vec<f64>,     // Time on each segment (sum = capacity)
+struct ReebOrbit {
+    breakpoints: Vec<[f64; 4]>,  // Points on \partial K where the velocity changes, breakpoints[0] == breakpoints[breakpoints.len()-1]
 }
 ```
 
@@ -81,7 +160,46 @@ Use for **Lagrangian products** \(K = K_1 \times K_2\) where:
 - \(K_1 \subset \mathbb{R}^2_q\) (configuration space)
 - \(K_2 \subset \mathbb{R}^2_p\) (momentum space)
 
-**Detection:** All facet normals have form \((n_q, 0, 0, 0)\), \((0, n_q, 0, 0)\), \((0, 0, n_p, 0)\), or \((0, 0, 0, n_p)\).
+**Detection:** All facet normals have form \((n_q, 0), (0, n_p)\) where \(n_q, n_p \in \mathbb{R}^2\).
+
+**Representation**:
+
+```rust
+struct LagrangianProductPolytope {
+    K1: PolygonFactor,  // 2D polygon K_1 in H-rep
+    K2: PolygonFactor,  // 2D polygon K_2 in H-rep
+}
+struct PolygonFactor {
+    num_facets: usize,
+    normals: Vec<[f64; 2]>,  // unit outward normals in R^2
+    heights: Vec<f64>,       // positive heights
+    num_vertices: usize,
+    vertices: Vec<[f64; 2]>, // computed from H-rep
+}
+
+impl PolygonFactor {
+    fn is_valid(&self) -> bool {
+        // H-rep validity (same as 4D case):
+        //   normals.len() == heights.len() == num_facets
+        //   ||normals[i]|| == 1.0
+        //   heights[i] > 0.0
+        //   intersection is bounded
+        //
+        // V-rep validity:
+        //   vertices.len() == num_vertices
+        //   0 in interior of conv(vertices)
+        //
+        // Cross-validation:
+        //   conv(vertices) == intersection of half-spaces
+        //
+        // 2D-specific ordering:
+        //   num_vertices == num_facets (polygon property)
+        //   facets and vertices in CCW order
+        //   edge from vertices[k] to vertices[(k+1) % n] lies on facet k
+        todo!()
+    }
+}
+```
 
 ### 2.2 Mathematical Basis
 
@@ -91,111 +209,92 @@ c_{\mathrm{EHZ}}(K) = \min \text{T-length of } (K_1, K_2^\circ)\text{-Minkowski 
 ```
 where \(K_2^\circ\) is the polar body and T-length is measured with \(K_2\) as the unit ball.
 
-**Theorem (Rudolf 2022, Theorem 4):** Optimal trajectory has at most 3 bounces for 2D polygons.
+**Theorem (Rudolf 2022, Theorem 4):** Optimal trajectory has at most 3 bounces for 2D polygons as factors.
 
-### 2.3 LP Formulation
+### 2.3 Algorithm Overview
 
-For a 3-bounce trajectory on edges \((e_1, e_2, e_3)\) of \(K_1\):
+We search for minimum-action Reeb orbits that are **k-bounce billiard trajectories**:
+- A piecewise linear closed curve on \(\partial(K_1 \times K_2)\)
+- Segments alternate between \((\partial K_1) \times K_2\) and \(K_1 \times (\partial K_2)\)
+- Breakpoints lie on \((\partial K_1) \times (\partial K_2)\) (vertices of the product)
+- Total of \(2k\) segments for a k-bounce trajectory
 
-**Variables:**
-- \(t_1, t_2, t_3 \in [0,1]\): edge parameters (\(q_i = a_i + t_i(b_i - a_i)\))
-- \(z_1, z_2, z_3\): epigraph variables
+**Key theorem (Rudolf 2022, Theorem 4):** For 2D polygon factors, the optimal trajectory has at most 3 bounces. Since 3-bounce can degenerate to 2-bounce, we only enumerate 3-bounce combinatorics.
 
-**Objective:** Minimize \(z_1 + z_2 + z_3\)
+### 2.4 Reeb Flow on Lagrangian Products
 
-**Constraints:**
-```
-z_k \geq \langle d_k, v \rangle  for all vertices v of K_2^\circ
-t_i \in [\text{MARGIN}, 1-\text{MARGIN}]  (avoid degeneracy)
-```
-where \(d_k = q_{k+1} - q_k\) is the direction vector.
+On a segment where \(q\) moves and \(p\) is fixed on facet(s) of \(K_2\):
+- Reeb vector: \(R = \frac{2}{h_j} \cdot (-n_j^{K_2})\) where \(n_j^{K_2}\) is the outward normal
+- If \(p\) lies on a vertex (two facets \(j_1, j_2\)), velocity is a convex combination of the two Reeb vectors
+- Segment time: \(t = h_{K_2}(q' - q)\) where \(h_{K_2}\) is the support function (equivalently, the \(K_2^\circ\)-norm)
 
-**Constants (UNCITED engineering choices):**
-- `EPS = 1e-10`: Numerical tolerance
-- `MARGIN = 0.01`: Avoid edge endpoints
-- `SEPARATION = 0.1`: Prevent coincident bounces on adjacent edges
+Symmetrically for segments where \(p\) moves and \(q\) is fixed:
+- Reeb vector: \(R = \frac{2}{h_i} \cdot (+n_i^{K_1})\)
+- Segment time: \(t = h_{K_1}(p' - p)\)
 
-### 2.4 Algorithm Steps
+The total action equals the sum of segment times.
 
-```
-function billiard_capacity(K: PolytopeHRep) -> CapacityResult:
-    // Step 1: Extract 2D factors
-    (K1, K2) = extract_lagrangian_factors(K)
-    if extraction fails:
-        return Error("Not a Lagrangian product")
-
-    // Step 2: Compute polar
-    K2_polar = polar(K2)
-
-    // Step 3: Enumerate all 2-bounce and 3-bounce trajectories
-    best = +\infty
-
-    // 2-bounce: all edge pairs
-    for (i, j) in edge_pairs(K1):
-        result = solve_2bounce_lp(K1, K2_polar, i, j)
-        if result.t_length < best:
-            best = result.t_length
-            best_trajectory = result
-
-    // 3-bounce: all edge triples
-    for (i, j, k) in edge_triples(K1):
-        result = solve_3bounce_lp(K1, K2_polar, i, j, k)
-        if result.t_length < best:
-            best = result.t_length
-            best_trajectory = result
-
-    // Step 4: Construct witness
-    witness = construct_witness(best_trajectory, K1, K2)
-
-    return CapacityResult {
-        capacity: best,
-        witness: witness,
-    }
-```
-
-### 2.5 Data Structures
+### 2.5 Algorithm Steps
 
 ```rust
-/// 2D convex polygon in H-rep form
-struct Polygon2DSimple {
-    vertices: Vec<[f64; 2]>,  // CCW order, computed from H-rep
-    normals: Vec<[f64; 2]>,   // Outward edge normals (unit vectors)
-    heights: Vec<f64>,        // Signed distances from origin (must be > 0)
-}
-// Invariant: Polygon = {x : \langle n_i, x \rangle \leq h_i for all i}
+fn billiard_capacity(K: PolytopeHRep) -> Result<CapacityResult, Error> {
+    // Step 1: Extract and validate 2D factors
+    let (Kq, Kp) = extract_lagrangian_factors(K)?;
+    let nq = Kq.num_facets;
+    let np = Kp.num_facets;
 
-/// Lagrangian product decomposition
-struct LagrangianFactors {
-    k1: Polygon2DSimple,         // q-space polygon (K_1 \subset \mathbb{R}^2_q)
-    k2: Polygon2DSimple,         // p-space polygon (K_2 \subset \mathbb{R}^2_p)
-    q_facet_indices: Vec<usize>, // Maps K_1 facet i -> original 4D facet index
-    p_facet_indices: Vec<usize>, // Maps K_2 facet i -> original 4D facet index
-}
+    // Step 2: Enumerate all 3-bounce combinatorics
+    // Each bounce alternates q-segment and p-segment
+    // Combinatorics: which edge each of the 6 breakpoints lies on
+    let mut best_action = f64::INFINITY;
+    let mut best_orbit = None;
 
-/// 2-bounce trajectory (most common minimum)
-struct BilliardTrajectory {
-    action: f64,                 // Total T-length = capacity
-    q_points: [[f64; 2]; 2],     // Bounce points on \partial K_1
-    q_facet_local: [usize; 2],   // Which K_1 facets hit
-    p_vertex_local: [usize; 2],  // K_2 vertices supporting directions
-    p_facet_local: [usize; 2],   // Which K_2 facets traversed
-}
+    for eq in all_triples(nq) {        // 3 edges in Kq
+        for ep in all_triples(np) {    // 3 edges in Kp
+            // Step 3: Setup LP for this combinatorics
+            //
+            // Variables (18 total):
+            //   mq1, mq2, mq3 ∈ [0,1]  -- edge parameters in Kq
+            //   mp1, mp2, mp3 ∈ [0,1]  -- edge parameters in Kp
+            //   tq1, tq2, tq3 ∈ [0,∞)  -- times for q-segments
+            //   tp1, tp2, tp3 ∈ [0,∞)  -- times for p-segments
+            //   cq1, cq2, cq3 ∈ [0,1]  -- convex combo coeffs (if breakpoint on vertex)
+            //   cp1, cp2, cp3 ∈ [0,1]  -- convex combo coeffs (if breakpoint on vertex)
+            //
+            // Derived points:
+            //   q_k = Kq.vertices[eq_k] + mq_k * (Kq.vertices[eq_k+1] - Kq.vertices[eq_k])
+            //   p_k = Kp.vertices[ep_k] + mp_k * (Kp.vertices[ep_k+1] - Kp.vertices[ep_k])
+            //
+            // Velocity constraints (Reeb flow):
+            //   (q_{k+1} - q_k) / tq_k = convex_combo(Reeb vectors at p_k)
+            //   (p_{k+1} - p_k) / tp_k = convex_combo(Reeb vectors at q_k)
+            //
+            // Objective: minimize T = tq1 + tp1 + tq2 + tp2 + tq3 + tp3
 
-/// 3-bounce trajectory (when 2-bounce insufficient)
-struct ThreeBounceTrajectory {
-    action: f64,
-    q_points: [[f64; 2]; 3],
-    edge_params: [f64; 3],       // t \in [0,1] parameter on each edge
-    q_facet_local: [usize; 3],
-}
+            let result = solve_billiard_lp(&Kq, &Kp, &eq, &ep);
 
-/// LP result for 3-bounce optimization
-struct LPThreeBounceResult {
-    t_length: f64,               // Objective value
-    edge_params: [f64; 3],       // Optimal t_1, t_2, t_3
-    edge_indices: [usize; 3],    // Which edges of K_1
+            // Step 4: Filter degenerate solutions
+            if let Some((action, orbit)) = result {
+                if action < EPS_ZERO {
+                    continue;  // point orbit, skip
+                }
+                if action < best_action {
+                    best_action = action;
+                    best_orbit = Some(orbit);
+                }
+            }
+        }
+    }
+
+    Ok(CapacityResult {
+        capacity: best_action,
+        orbit: best_orbit,
+        diagnostics: Diagnostics::default(),
+    })
 }
 ```
+
+**Degeneracy handling:** Rather than filtering combinatorics upfront (e.g., excluding (1,1,2) but allowing (1,1,3)), we solve all LPs and discard solutions with action ≈ 0. This is simpler and catches all point-orbit degeneracies.
 
 ### 2.6 Implementation Details
 
@@ -203,61 +302,26 @@ struct LPThreeBounceResult {
 1. Partition facet normals by which coordinates are nonzero
 2. Classify as "q-space only" (coords 0-1) or "p-space only" (coords 2-3)
 3. Sort both q and p facets by `atan2(normal.y, normal.x)` to recover CCW boundary order
-4. Build 2D polygons and track original 4D facet indices for witness construction
+4. Build 2D polygons and track original 4D facet indices for orbit reconstruction
 
-**Polar Body Computation:**
-For H-rep polygon \(\{x : \langle n_i, x \rangle \leq h_i\}\), polar has vertices at \(n_i/h_i\).
+**Edge Index Convention:**
+- Edge i connects vertex[i] to vertex[(i+1) mod n]
+- Facet i has normal \(n_i\) and corresponds to edge i
 
-**Edge Index Convention (CRITICAL):**
-- LP convention: Edge i goes from vertex[i] to vertex[(i+1) mod n]
-- Polygon convention: Facet i has normal \(n_i\) and is the edge ending at vertex[i]
-- Mapping: LP edge i corresponds to polygon facet (i+1) mod n
+**Orbit Reconstruction:**
+Given LP solution (edge parameters mq, mp and segment times tq, tp):
+1. Compute breakpoints: \(q_k = \text{interp}(\text{vertices}[eq_k], \text{vertices}[eq_k+1], mq_k)\)
+2. Lift to 4D: breakpoints alternate between \((q_k, p_k)\) and \((q_k, p_{k+1})\)
+3. Segment times come directly from the LP solution
 
-**LP Constraint Linearization:**
-For 3-bounce constraint \(z_1 \geq \langle d_{12}, y \rangle\) with \(d_{12} = (a_2 - a_1) + t_2 \cdot e_2 - t_1 \cdot e_1\):
-```
-z_1 + coef_t1 * t_1 - coef_t2 * t_2 \geq const
-where:
-  const = \langle a_2 - a_1, y \rangle
-  coef_t1 = \langle e_1, y \rangle
-  coef_t2 = \langle e_2, y \rangle
-```
+### 2.7 Known Issues
 
-**Separation Constraints (adjacent edges):**
-For edges i, j where j = (i+1) mod n (sharing a vertex):
-```
--(1-t_i) - t_j \geq SEPARATION - 1
-```
-This prevents bounces both approaching the shared vertex.
+1. **Pentagon bug (v0.1.0-archive):** Returned 2.127, expected 3.441 (HK-O 2024 Prop 1.4)
+   - Root cause: Unknown, likely error in old LP formulation
+   - The HK-O counterexample is Pentagon × RotatedPentagon
 
-**Witness Construction (2-bounce):**
-2 bounces in \(K_1\) create 4-segment orbit in \(\mathbb{R}^4\):
-```
-(q_a, p_0) -> (q_a, p_1) -> (q_b, p_1) -> (q_b, p_0) -> close
-    on q_0       on p_1       on q_1       on p_0
-```
-where \(p_0, p_1\) are \(K_2\) vertices supporting directions \(\pm(q_b - q_a)\).
-
-**Degeneracy Detection:**
-- Interior bounce (\(t \in (\varepsilon, 1-\varepsilon)\)): require pairwise bounce distance > \(\varepsilon\)
-- Boundary bounce (\(t \approx 0\) or 1): use 10x larger tolerance
-
-### 2.8 Known Issues
-
-1. **Pentagon bug:** Returns 2.127, expected 3.441 (HK-O 2024 Prop 1.4)
-   - Root cause: Unknown, needs investigation
-   - The HK-O counterexample is Pentagon x RotatedPentagon
-
-2. **Witness segment_times:** Currently placeholder zeros
-   - Capacity value is correct
-   - Breakpoints and facet_sequence are correct
-   - segment_times need derivation from Reeb flow equations (not implemented)
-   - Previous formula attempt had 335% error on random polygons
-
-3. **UNCITED formulas:**
-   - Support function and polar duality (standard convex geometry, needs textbook cite)
-   - LP epigraph formulation (Boyd & Vandenberghe, not cited)
-   - MARGIN and SEPARATION values (ad-hoc engineering, no mathematical justification)
+2. **Segment times (v0.1.0-archive):** Were placeholder zeros in old implementation
+   - The new formulation in 2.5 computes times directly as LP variables
 
 ---
 
@@ -269,7 +333,7 @@ where \(p_0, p_1\) are \(K_2\) vertices supporting directions \(\pm(q_b - q_a)\)
 
 ### 3.1 When to Use
 
-Use for general convex polytopes, especially non-Lagrangian products.
+Use for general polytopes, especially non-Lagrangian products.
 
 **Requirement:** Polytope must have at least one non-Lagrangian 2-face (\(\omega(n_i, n_j) \neq 0\)).
 
@@ -374,15 +438,15 @@ function tube_capacity(K: PolytopeHRep) -> CapacityResult:
         // Extend or close
         for ext in get_extensions(tube, data):
             if ext is Closure:
-                (action, witness) = solve_closed_tube(ext)
+                (action, orbit) = solve_closed_tube(ext)
                 if action < best_action:
                     best_action = action
-                    best_witness = witness
+                    best_orbit = orbit
             else:  // Extension
                 if ext.p_end not empty and ext.rotation <= 2 + \varepsilon:
                     worklist.push(ext)
 
-    return CapacityResult { capacity: best_action, witness: best_witness }
+    return CapacityResult { capacity: best_action, orbit: best_orbit }
 ```
 
 ### 3.5 Flow Map Formulas
@@ -424,7 +488,7 @@ To find closed orbits:
 1. Find fixed points of flow_map: solve \((A - I)x = -b\)
 2. **Check if solution lies in p_start** (not p_end, which may be numerically degenerate)
 3. Evaluate action = action_func(fixed_point)
-4. Reconstruct 4D witness via barycentric interpolation
+4. Reconstruct 4D orbit point via barycentric interpolation
 
 **Barycentric reconstruction:**
 - Given 2D fixed point in trivialized coordinates
@@ -490,7 +554,7 @@ To find closed orbits:
 
 ### 4.1 When to Use
 
-Works for ANY convex polytope, but \(O(F!)\) complexity limits to ~10 facets.
+Works for ANY polytope, but \(O(F!)\) complexity limits to ~10 facets.
 
 ### 4.2 Mathematical Basis
 
@@ -768,7 +832,7 @@ c_{\mathrm{EHZ}}(K \times T) = 2 \times \cos(\pi/10) \times (1 + \cos(\pi/5)) \a
 
 1. **HK2019 QP:** Non-convex optimization is hard; vertex enumeration insufficient
 2. **Tube NoValidOrbits:** Either rotation formula wrong or test polytopes unsuitable
-3. **Witness times:** Converting billiard to Reeb orbit requires more work
+3. **Orbit reconstruction:** Converting billiard to full Reeb orbit requires more work
 
 ### 7.3 Recommendations for Re-implementation
 
