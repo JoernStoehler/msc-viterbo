@@ -465,7 +465,54 @@ Many code snippets index into arrays without bounds checking:
 
 ---
 
-## 7. Minor Issues
+## 7. Truth Flow Violations
+
+The spec should follow: **Math papers → Thesis → Spec math → Spec Rust**. Violations occur when:
+- Mathematical claims lack citations to papers/thesis
+- Rust code defines behavior instead of implementing cited math
+- Inline derivations replace proper theorem references
+
+### 7.1 Missing Citations for Key Definitions
+
+| Section | Claim | Missing Citation |
+|---------|-------|------------------|
+| 1.9 Quaternion Structure | J, K matrices used for trivialization | No citation for why these specific matrices; should reference thesis or CH2021 |
+| 1.10 Trivialization | τ_n(V) = (⟨V, Jn⟩, ⟨V, Kn⟩) | **Critical:** No citation for this definition. Should cite CH2021 or thesis |
+| 1.10 Trivialization | "Symplectic form preservation" (line 546) | No citation for this theorem |
+| 1.11 Transition Matrices | ψ_F = τ_{n_j} ∘ τ_{n_i}^{-1} | No citation; should reference CH2021 Definition X |
+| 1.11 Transition Matrices | "Hyperbolic cannot occur" (line 606) | No citation for why polytope 2-faces are never hyperbolic |
+| 1.12 Rotation Number | ρ(F) = (1/2π) arccos(tr(ψ)/2) | No citation; should cite CH2021 |
+| 2.5 Action of Trajectories | "Action equals period" (line 1003) | No citation; fundamental claim needs reference to Hofer-Zehnder or thesis |
+| 2.9 Tubes | Tube data structure and semantics | Should cite CH2021 for the tube concept |
+
+### 7.2 Inline Derivations Without Theorem References
+
+| Location | Issue |
+|----------|-------|
+| Section 2.10 (line 1200) | "Why action is affine in starting position" — gives inline proof instead of citing theorem |
+| Section 2.10 (lines 1226-1231) | Time computation derivation — should reference that this follows from Reeb flow definition |
+| Section 1.10 (lines 535-540) | Round-trip property — stated as assertion but not cited as theorem |
+
+### 7.3 Rust Defining Math (Inverted Flow)
+
+| Location | Issue |
+|----------|-------|
+| Section 3.1 Ambiguity (line 211-233) | Review originally treated Rust `entry_normal` parameter as source of truth for convention |
+| `TwoFaceEnriched` struct | Fields like `polygon_2d: Vec<Vector2<f64>>` don't document which mathematical object they represent or cite the definition |
+
+### 7.4 Well-Cited Sections (For Reference)
+
+These sections properly cite sources:
+- Section 1.3 (Reeb vectors): "See thesis math/05-reeb-dynamics.tex"
+- Section 1.7 (Flow direction): "Proof: See thesis math/05-reeb-dynamics.tex:lem-nonlagrangian-2face"
+- Section 2.7 (Simple orbits): "HK2017 Theorem 2"
+- Section 3.2 (Billiard): "Rudolf 2022, Thm 4"
+- Section 3.3 (HK2017): "Haim-Kislev 2017"
+- Section 3.4 (Tube): "Chaidez-Hutchings 2021", "CH2021 Prop 1.10"
+
+---
+
+## 8. Minor Issues
 
 1. **Typo potential:** Line 1282 comment says "p_4d" but should clarify if this is entry or exit coords
 2. **Missing imports:** Code uses `Matrix2`, `Matrix4` but imports are incomplete
@@ -475,22 +522,26 @@ Many code snippets index into arrays without bounds checking:
 
 ---
 
-## 8. Recommendations Summary
+## 9. Recommendations Summary
 
-### High Priority
-1. Define `find_fixed_point_set` for degenerate tube closure
-2. Define `action_lower_bound` for tube pruning
-3. Clarify trivialization coordinate system conventions
-4. Add algorithm for mixed Lagrangian/non-Lagrangian polytopes
+### High Priority (Truth Flow)
+1. **Add citations for trivialization** (Section 1.10): τ_n definition, symplectic preservation theorem
+2. **Add citations for transition matrices** (Section 1.11): ψ_F definition, trace classification theorem
+3. **Add citation for rotation number formula** (Section 1.12)
+4. **Add citation for "action = period"** (Section 2.5)
+5. **Add citation for tube concept** (Section 2.9): reference CH2021 definition
+
+### High Priority (Functionality)
+6. Per 0.6: Replace `find_fixed_point_set` with runtime error on near-singular
+7. Define `action_lower_bound` for tube pruning (min of affine func over polygon vertices)
 
 ### Medium Priority
-5. Complete all helper function definitions (polygon intersection, CCW sort, etc.)
-6. Resolve HK2017 vs HK2019 naming inconsistency
-7. Verify and cite all ground truth values
-8. Fix complexity claim for Billiard algorithm
+8. Complete helper function definitions (polygon intersection, CCW sort, etc.)
+9. Resolve HK2017 vs HK2019 naming inconsistency
+10. Document which normal (entry/exit) is used for each trivialization
 
 ### Low Priority
-9. Consolidate struct definitions
-10. Establish consistent Rust code style
-11. Complete test fixture code
-12. Add explicit bounds checking or document preconditions
+11. Consolidate struct definitions
+12. Establish consistent Rust code style
+13. Complete test fixture code
+14. Delete or mark unverified complexity claims
