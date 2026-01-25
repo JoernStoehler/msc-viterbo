@@ -1,9 +1,16 @@
 #!/bin/bash
 # Hook: Install gh CLI in Claude Code web environments
-# Only runs when CLAUDE_CODE_REMOTE=true, silent unless errors occur
+# Only runs on startup in web environment, silent unless errors occur
+
+# Read hook input from stdin (SessionStart provides JSON with source field)
+hook_input=$(cat)
+source=$(echo "$hook_input" | jq -r '.source // "startup"')
 
 # Exit early if not in web environment
 [ "$CLAUDE_CODE_REMOTE" != "true" ] && exit 0
+
+# Only install on startup (not resume/compact/clear - gh persists in VM)
+[ "$source" != "startup" ] && exit 0
 
 # Exit early if gh is already installed
 command -v gh &>/dev/null && exit 0
