@@ -15,23 +15,22 @@
    - Document Structure
 
 1. [Data about the Polytope K](#1-data-about-the-polytope-k)
-   - 1.1 H-Representation
-   - 1.2 V-Representation
+   - 1.1 Polytope Representation (H-rep and V-rep)
+   - 1.2 Facets (3-faces)
    - 1.3 Reeb Vectors
    - 1.4 Symplectic Form
-   - 1.5 Complex Structure J
-   - 1.6 Facets and 2-Faces
-   - 1.7 Lagrangian 2-Faces
-   - 1.8 Adjacency Graph
-   - 1.9 2D Polygons
-   - 1.10 Quaternion Structure
-   - 1.11 Trivialization
-   - 1.12 Transition Matrices
-   - 1.13 Rotation Number
-   - 1.14 Support Function and Polar Body
-   - 1.15 Trivialized 2-Face Polygons
-   - 1.16 Edge and Vertex Incidence
-   - 1.17 Constants and Tolerances
+   - 1.5 Two-Faces and Adjacency
+   - 1.6 Lagrangian vs Non-Lagrangian 2-Faces
+   - 1.7 Flow Direction on Non-Lagrangian 2-Faces
+   - 1.8 Lagrangian Product Structure
+   - 1.9 Quaternion Structure
+   - 1.10 Trivialization
+   - 1.11 Transition Matrices
+   - 1.12 Rotation Number
+   - 1.13 Support Function and Polar Body
+   - 1.14 Trivialized 2-Face Polygons
+   - 1.15 Edge and Vertex Incidence
+   - 1.16 Constants and Tolerances
 
 2. [Data about Reeb Trajectories and Orbits](#2-data-about-reeb-trajectories-and-orbits)
    - 2.1 Closed Curves and Action
@@ -84,15 +83,19 @@ c_{\text{EHZ}}(K) = \min \{ A(\gamma) : \gamma \text{ is a closed Reeb orbit on 
 **Why it matters:**
 - \(c_{\text{EHZ}}\) is a symplectic invariant: preserved under symplectomorphisms
 - It measures the "symplectic size" of \(K\)
-- Viterbo's conjecture (now known to be false) predicted \(c_{\text{EHZ}}(K)^2 \leq 2 \cdot \text{Vol}(K)\)
+- Viterbo's conjecture (disproven in 2024) predicted \(c_{\text{EHZ}}(K)^2 \leq 2 \cdot \text{Vol}(K)\)
 - The HK-O 2024 counterexample (pentagon × rotated pentagon) has \(c^2 / (2 \cdot \text{Vol}) \approx 1.047 > 1\)
 
 ### Capacity Axioms (What Tests Should Verify)
 
 1. **Scaling:** \(c(\lambda K) = \lambda^2 \cdot c(K)\) for \(\lambda > 0\)
 2. **Monotonicity:** \(K \subseteq L \Rightarrow c(K) \leq c(L)\)
-3. **Symplectic invariance:** \(c(AK) = c(K)\) for \(A \in \text{Sp}(4)\)
-4. **Conformality:** \(c(B^4) = c(Z^4) = \pi\) (ball and cylinder)
+3. **Symplectic invariance:** \(c(AK+b) = c(K)\) for \(A \in \text{Sp}(4)\) and \(b \in \mathbb{R}^4\)
+4. **Normalization:** \(c(B^4) = c(Z^4) = \pi\) (ball and cylinder)
+
+The axioms also imply:
+
+5. **Continuity:** If \(K_j \to K\) in Hausdorff metric, then \(c(K_j) \to c(K)\)
 
 ### Document Structure
 
@@ -100,6 +103,26 @@ c_{\text{EHZ}}(K) = \min \{ A(\gamma) : \gamma \text{ is a closed Reeb orbit on 
 - **Part 2:** Data about Reeb trajectories and orbits — representations and validity conditions
 - **Part 3:** Algorithms — Billiard, HK2017, Tube
 - **Part 4:** Test cases — properties that detect bugs when code diverges from math
+
+### Document Style
+
+- We outsource mathematical proofs to the thesis or literature.
+- We make our mathematical definitions and propositions explicit and precise. We need to be extra careful here since Rust code has a less strong type system than "Mathematics" itself, and we need to manually track the missing information.
+- We give Rust structures and functions to represent the mathematical definitions and propositions, though of course Rust is lossy as it has no dependent types or proof system. We do suggest assertions, function signatures that can be filled in by a math-savvy programmer, and unit tests as ways to confirm computationally that the Rust code corresponds to the math proofs. We also suggest code comments to keep track of type information, in the computer science sense of preconditions and postconditions and invariants, and in the type system sense of dependent types and proposition types that we know are occupied even without any automated proof checker using these code comments.
+- We use progressive disclosure, and we don't prescribe how the programmers arrange the presented Rust snippets into actual executable code, e.g. we don't prescribe what inputs and outputs the final API will use. This is left to software architects. We focus instead on the internal logic, i.e. on how to keep Rust code close to the math. 
+
+### Unstated Assertions and Code Style
+
+We have several silent assertions that apply everywhere and which we don't repeat. We suggest to write code such that these silent assertions "blow up" and get caught eventually, or even "panic" and just interrupt code. It's not expected / best practice to manually insert checks for these silent assertions everywhere, since that's a waste of compute and hinders code clarity.
+
+- **Floating point arithmetic:** All floating point operations are assumed to work without overflow, underflow, or NaNs, unless otherwise specified. All floating point comparisons are to be done with tolerance parameters. 
+- **Conservative branching when using floating point comparisons:** Since we are ultimately doing a minimum search, these tolerances should be signed such that the true minimum is not accidentally rejected, and that inadmissible minima can be rejected near the end in a separate validation step. If designing a variant of the algorithms presented here that is conservative in this regard is too difficult, then a good fallback is to allow a return value that indicates uncertainty about the validity of the result, i.e. that maybe an inadmissible minimum was accepted which is lower than the true minimum. If that still is too difficult, then a warning that something may be wrong in either direction is useful. If that still is too difficult, then at least we will have good documentation that informs API users of the danger that the result is not just numerically rounded, but in fact may be combinatorically wrong.
+- **Functional Programming:** We use functional programming best practices to avoid dealing with Rust's borrow checker.
+- **Linear Algebra:** We use `nalgebra` for vectors and matrices (`Vector4<f64>`, `Vector2<f64>`, `Matrix2<f64>`, `Matrix4<f64>`). This enables natural mathematical notation like `J_MATRIX * n` for matrix-vector products, `v.dot(&w)` for inner products, and `v.norm()` for norms.
+- **No concurrency:** We are satisfied with single-threaded library code, though of course the tests and later experiments can be run embarrassingly parallel.
+- **Debug-Asserts:** The production code is optimized for speed, the debug code is optimized for catching any bugs. We suggest to use `debug_assert!` for assertions in performance critical code, where performance criticality is determined by profiling and not by guesswork.
+- **Unit tests in Rust and Python:** Some propositions require input with special properties, e.g. when we want to assert that an algorithm returns the literature values of the capacity for certain polytopes. In such cases we use unit tests, which if fast enough can just be run every time, and if too costly can be run selectively. Especially costly / complex-to-setup unit tests may even be Python tests rather than Rust tests. Similarly, some assertions are too costly to run for all function calls in the debug build, e.g. because they'd be run for all unit tests, and so despite being suitable to be run for many inputs, we only activate them / we move them outside the function into select unit tests. This is all meant in addition to the other python tests that cover actual python code, which this document does not talk about. Python unit tests are perhaps suitable for infrequent expensive tests that are run selectively, while Rust unit tests often are more suitable inexpensive tests that can be run every time. In total, the "default" test suite (Rust only) should be less than 1 minute ideally. This bound can be edited and relaxed / sharpened with Project Owner permission. Current agreed target is 1 minute.
+Select tests can be longer, but anything above 10 minutes incurs high friction costs for developers and is to be avoided if possible, and must be documented clearly. Current tests exceeding 10 minutes: none.
 
 ---
 
@@ -115,96 +138,79 @@ We work in standard symplectic \(\mathbb{R}^4\) with coordinates \((q_1, q_2, p_
 
 ---
 
-### 1.1 H-Representation (Input)
+### 1.1 Polytope Representation (H-rep and V-rep)
 
-The **H-representation** defines \(K\) as an intersection of half-spaces:
-\[
-K = \bigcap_{i=0}^{F-1} \{ x \in \mathbb{R}^4 : \langle n_i, x \rangle \leq h_i \}
-\]
+A polytope can be represented equivalently as:
+- **H-representation:** Intersection of half-spaces \(K = \bigcap_i \{ x : \langle n_i, x \rangle \leq h_i \}\)
+- **V-representation:** Convex hull of vertices \(K = \mathrm{conv}(\{v_0, \ldots, v_{V-1}\})\)
 
-This is a natural input format because:
-- Compact: \(O(F)\) data for \(F\) facets
-- The algorithms work directly with facet normals
-- Converting V-rep → H-rep requires vertex enumeration (expensive)
+We take H-rep as input (compact, algorithms use facet normals directly) and compute V-rep for validation.
 
 ```rust
+use nalgebra::{Vector4, Vector2, Matrix2};
+
 struct PolytopeHRep {
-    normals: Vec<[f64; 4]>,
-    heights: Vec<f64>,
+    normals: Vec<Vector4<f64>>,   // unit outward normals
+    heights: Vec<f64>,            // h_i > 0 (since 0 ∈ int(K))
+}
+
+struct PolytopeVRep {
+    vertices: Vec<Vector4<f64>>,
+}
+
+fn vertex_enumeration(hrep: &PolytopeHRep) -> PolytopeVRep;  // e.g., double description method
+```
+
+**Validation** (requires both representations):
+
+```rust
+fn validate_polytope(hrep: &PolytopeHRep, vrep: &PolytopeVRep) -> Result<(), ValidationError> {
+    // 1. Basic H-rep checks
+    assert!(hrep.normals.len() == hrep.heights.len());
+    assert!(hrep.normals.iter().all(|n| (n.norm() - 1.0).abs() < EPS));
+    assert!(hrep.heights.iter().all(|&h| h > 0.0));  // 0 in interior
+
+    // 2. No duplicate half-spaces
+    for i in 0..hrep.normals.len() {
+        for j in (i+1)..hrep.normals.len() {
+            assert!(!(
+                (hrep.heights[i] - hrep.heights[j]).abs() < EPS &&
+                (hrep.normals[i] - hrep.normals[j]).norm() < EPS
+            ), "half-spaces {} and {} are duplicates", i, j);
+        }
+    }
+
+    // 3. Vertices satisfy all constraints and lie on boundary
+    for v in &vrep.vertices {
+        assert!(hrep.normals.iter().zip(&hrep.heights)
+            .all(|(n, &h)| n.dot(v) <= h + EPS));
+        assert!(hrep.normals.iter().zip(&hrep.heights)
+            .any(|(n, &h)| (n.dot(v) - h).abs() < EPS));
+    }
+
+    // 4. Non-redundancy: every half-space has ≥4 vertices (3D facet in 4D)
+    for i in 0..hrep.normals.len() {
+        let count = vrep.vertices.iter()
+            .filter(|v| (hrep.normals[i].dot(v) - hrep.heights[i]).abs() < EPS)
+            .count();
+        assert!(count >= 4, "facet {} is redundant or degenerate", i);
+    }
+
+    Ok(())
 }
 ```
 
-**Derived:**
+**Boundedness:** Vertex enumeration implicitly checks boundedness (unbounded polytopes have no vertices or infinitely many). Alternatively, check that normals positively span ℝ⁴ via LP feasibility: "∃c ≠ 0 with ⟨n_i, c⟩ ≥ 0 ∀i" means unbounded.
+
+**Derived quantities:**
 ```rust
-let num_facets: usize = normals.len();
-```
-
-**Assertions:**
-```rust
-assert!(normals.len() == heights.len());           // arrays match
-assert!(normals.iter().all(|n| is_unit(n)));       // normalized
-assert!(heights.iter().all(|&h| h > 0.0));         // 0 in interior
-assert!(normals.iter().all(|n| !has_nan(n)));      // no NaNs
-assert!(heights.iter().all(|&h| !h.is_nan()));
-```
-
-**If assertions fail:**
-- `heights[i] <= 0` → origin not in interior, violates \(0 \in \mathrm{int}(K)\)
-- `||n_i|| != 1` → not normalized, caller must normalize before passing
-- Array length mismatch → malformed input
-
-**Conventions:**
-- **Normalized:** \(\|n_i\| = 1\) (unit outward normals)
-- **Non-redundant:** Every half-space defines a facet (checked later, requires more computation)
-
----
-
-### 1.2 V-Representation (Vertices)
-
-The **V-representation** defines \(K\) as a convex hull:
-\[
-K = \mathrm{conv}(\{v_0, v_1, \ldots, v_{V-1}\})
-\]
-
-Vertices can be computed from H-rep via vertex enumeration (e.g., double description method).
-
-```rust
-let vertices: Vec<[f64; 4]> = vertex_enumeration(&hrep);
-let num_vertices: usize = vertices.len();
-```
-
-**Assertions:**
-```rust
-// Each vertex lies on the boundary (at least one tight constraint)
-assert!(vertices.iter().all(|v|
-    hrep.normals.iter().zip(&hrep.heights)
-        .any(|(n, &h)| (dot(n, v) - h).abs() < EPS)
-));
-
-// Each vertex satisfies all constraints
-assert!(vertices.iter().all(|v|
-    hrep.normals.iter().zip(&hrep.heights)
-        .all(|(n, &h)| dot(n, v) <= h + EPS)
-));
-
-// Origin is in interior of convex hull
-assert!(is_in_interior_of_convex_hull(&[0.0; 4], &vertices));
-```
-
-**Non-redundancy check for H-rep** (now possible with vertices):
-```rust
-// Every facet has at least 4 vertices (since dim = 4, facets are 3-dimensional)
-for i in 0..num_facets {
-    let verts_on_facet: Vec<_> = vertices.iter()
-        .filter(|v| (dot(&hrep.normals[i], v) - hrep.heights[i]).abs() < EPS)
-        .collect();
-    assert!(verts_on_facet.len() >= 4, "facet {} is redundant or degenerate", i);
-}
+let num_facets: usize = hrep.normals.len();
+let num_vertices: usize = vrep.vertices.len();
 ```
 
 ---
 
-### 1.3 Facets (3-faces)
+### 1.2 Facets (3-faces)
 
 A **facet** \(F_i\) is the intersection of \(K\) with the \(i\)-th bounding hyperplane:
 \[
@@ -216,48 +222,43 @@ Facets are 3-dimensional convex polytopes. We index them by \(i \in \{0, \ldots,
 ```rust
 struct Facet {
     index: usize,              // i
-    normal: [f64; 4],          // n_i (outward unit normal)
+    normal: Vector4<f64>,      // n_i (outward unit normal)
     height: f64,               // h_i
-    vertices: Vec<usize>,      // indices into the global vertex list
+    vertices: Vec<usize>,      // indices into global vertex list (vertices where ⟨n_i, v⟩ = h_i)
 }
-
-let facets: Vec<Facet> = (0..num_facets).map(|i| {
-    let verts: Vec<usize> = (0..num_vertices)
-        .filter(|&j| (dot(&normals[i], &vertices[j]) - heights[i]).abs() < EPS)
-        .collect();
-    Facet { index: i, normal: normals[i], height: heights[i], vertices: verts }
-}).collect();
 ```
 
-**Assertions:**
-```rust
-assert!(facets.iter().all(|f| f.vertices.len() >= 4));  // 3D polytope needs >= 4 vertices
-```
+**Assertion:** Each facet has ≥4 vertices (3D polytope in 4D).
 
 ---
 
-### 1.4 Reeb Vectors
+### 1.3 Reeb Vectors
 
 The **Reeb vector** on facet \(F_i\) is the direction of the Reeb flow:
 \[
 R_i = \frac{2}{h_i} J n_i
 \]
 
-where \(J\) is the standard complex structure:
+**Derivation** (see thesis `math/05-reeb-dynamics.tex`): For the contact form \(\alpha = \lambda|_{\partial K}\) where \(\lambda = \frac{1}{2}(p \, dq - q \, dp)\), the Reeb vector \(R\) satisfies \(\alpha(R) = 1\) and \(\iota_R d\alpha = 0\). At a point \(x\) on facet \(F_i\) with outward normal \(n_i\), this gives \(R(x) = \frac{2}{\langle x, n_i \rangle} J n_i\). Since points on \(F_i\) satisfy \(\langle x, n_i \rangle = h_i\), we have \(R_i = \frac{2}{h_i} J n_i\).
+
+Here \(J\) is the standard complex structure:
 \[
 J(q_1, q_2, p_1, p_2) = (-p_1, -p_2, q_1, q_2)
 \]
 
 ```rust
-fn complex_structure(v: [f64; 4]) -> [f64; 4] {
-    [-v[2], -v[3], v[0], v[1]]
-}
+use nalgebra::{Vector4, Vector2, Matrix2, Matrix4};
 
-let reeb_vectors: Vec<[f64; 4]> = (0..num_facets)
-    .map(|i| {
-        let jn = complex_structure(normals[i]);
-        scale(2.0 / heights[i], jn)
-    })
+/// The standard complex structure J as a matrix
+const J_MATRIX: Matrix4<f64> = Matrix4::new(
+    0.0,  0.0, -1.0,  0.0,
+    0.0,  0.0,  0.0, -1.0,
+    1.0,  0.0,  0.0,  0.0,
+    0.0,  1.0,  0.0,  0.0,
+);
+
+let reeb_vectors: Vec<Vector4<f64>> = (0..num_facets)
+    .map(|i| (J_MATRIX * normals[i]) * (2.0 / heights[i]))
     .collect();
 ```
 
@@ -265,16 +266,16 @@ let reeb_vectors: Vec<[f64; 4]> = (0..num_facets)
 ```rust
 // Reeb vectors are perpendicular to their facet normal
 assert!(reeb_vectors.iter().zip(&normals)
-    .all(|(r, n)| dot(r, n).abs() < EPS));
+    .all(|(r, n)| r.dot(n).abs() < EPS));
 
 // Reeb vectors have magnitude 2/h_i
 assert!(reeb_vectors.iter().zip(&heights)
-    .all(|(r, &h)| (norm(r) - 2.0/h).abs() < EPS));
+    .all(|(r, &h)| (r.norm() - 2.0/h).abs() < EPS));
 ```
 
 ---
 
-### 1.5 Symplectic Form
+### 1.4 Symplectic Form
 
 The **symplectic form** \(\omega\) on \(\mathbb{R}^4\):
 \[
@@ -282,9 +283,8 @@ The **symplectic form** \(\omega\) on \(\mathbb{R}^4\):
 \]
 
 ```rust
-fn symplectic_form(x: [f64; 4], y: [f64; 4]) -> f64 {
-    let jx = complex_structure(x);
-    dot(&jx, &y)
+fn symplectic_form(x: &Vector4<f64>, y: &Vector4<f64>) -> f64 {
+    (J_MATRIX * x).dot(y)
 }
 ```
 
@@ -294,15 +294,20 @@ fn symplectic_form(x: [f64; 4], y: [f64; 4]) -> f64 {
 
 **Standard basis pairings:**
 ```rust
-assert_eq!(symplectic_form([1,0,0,0], [0,0,1,0]),  1.0);  // omega(e_1, e_3) = 1
-assert_eq!(symplectic_form([0,1,0,0], [0,0,0,1]),  1.0);  // omega(e_2, e_4) = 1
-assert_eq!(symplectic_form([1,0,0,0], [0,1,0,0]),  0.0);  // omega(e_1, e_2) = 0 (Lagrangian)
-assert_eq!(symplectic_form([0,0,1,0], [0,0,0,1]),  0.0);  // omega(e_3, e_4) = 0 (Lagrangian)
+let e1 = Vector4::new(1.0, 0.0, 0.0, 0.0);
+let e2 = Vector4::new(0.0, 1.0, 0.0, 0.0);
+let e3 = Vector4::new(0.0, 0.0, 1.0, 0.0);
+let e4 = Vector4::new(0.0, 0.0, 0.0, 1.0);
+
+assert_eq!(symplectic_form(&e1, &e3),  1.0);  // omega(e_1, e_3) = 1
+assert_eq!(symplectic_form(&e2, &e4),  1.0);  // omega(e_2, e_4) = 1
+assert_eq!(symplectic_form(&e1, &e2),  0.0);  // omega(e_1, e_2) = 0 (Lagrangian)
+assert_eq!(symplectic_form(&e3, &e4),  0.0);  // omega(e_3, e_4) = 0 (Lagrangian)
 ```
 
 ---
 
-### 1.6 Two-Faces and Adjacency
+### 1.5 Two-Faces and Adjacency
 
 A **2-face** \(F_{ij}\) is the intersection of two facets:
 \[
@@ -320,7 +325,7 @@ struct TwoFace {
 }
 ```
 
-**Note:** For the Tube algorithm, 2-faces are enriched with additional data (transition matrices, trivialized polygons, rotation numbers). These fields are defined in sections 1.11-1.15 and collected in `TwoFaceEnriched`.
+**Note:** For the Tube algorithm, 2-faces are enriched with additional data (transition matrices, trivialized polygons, rotation numbers). These fields are defined in sections 1.10-1.14 and collected in `TwoFaceEnriched`.
 
 ```rust
 let two_faces: Vec<TwoFace> = {
@@ -329,12 +334,12 @@ let two_faces: Vec<TwoFace> = {
         for j in (i+1)..num_facets {
             let verts: Vec<usize> = (0..num_vertices)
                 .filter(|&k|
-                    (dot(&normals[i], &vertices[k]) - heights[i]).abs() < EPS &&
-                    (dot(&normals[j], &vertices[k]) - heights[j]).abs() < EPS
+                    (normals[i].dot(&vertices[k]) - heights[i]).abs() < EPS &&
+                    (normals[j].dot(&vertices[k]) - heights[j]).abs() < EPS
                 )
                 .collect();
             if verts.len() >= 3 {  // 2D face needs >= 3 vertices
-                let omega_ij = symplectic_form(normals[i], normals[j]);
+                let omega_ij = symplectic_form(&normals[i], &normals[j]);
                 faces.push(TwoFace { i, j, vertices: verts, omega_ij });
             }
         }
@@ -350,7 +355,7 @@ let adjacent: Vec<Vec<bool>> = /* F x F matrix where adjacent[i][j] = true iff F
 
 ---
 
-### 1.7 Lagrangian vs Non-Lagrangian 2-Faces
+### 1.6 Lagrangian vs Non-Lagrangian 2-Faces
 
 A 2-face \(F_{ij}\) is **Lagrangian** iff \(\omega(n_i, n_j) = 0\).
 
@@ -377,9 +382,14 @@ let non_lagrangian_two_faces: Vec<&TwoFace> = two_faces.iter()
 
 ---
 
-### 1.8 Flow Direction on Non-Lagrangian 2-Faces
+### 1.7 Flow Direction on Non-Lagrangian 2-Faces
 
 For a non-Lagrangian 2-face \(F_{ij}\), the Reeb flow crosses from one facet to the other. The direction depends on the sign of \(\omega(n_i, n_j)\):
+
+- If \(\omega(n_i, n_j) > 0\): flow crosses from \(F_i\) to \(F_j\)
+- If \(\omega(n_i, n_j) < 0\): flow crosses from \(F_j\) to \(F_i\)
+
+**Proof:** See thesis `math/05-reeb-dynamics.tex:lem-nonlagrangian-2face`. The key identity is \(\langle Jn_i, n_j \rangle = \omega(n_i, n_j)\). On facet \(F_i\), the Reeb vector is \(R_i \propto Jn_i\). Its inner product with \(n_j\) determines whether \(R_i\) points into (\(<0\)) or out of (\(>0\)) the half-space \(\{x : \langle x, n_j \rangle \leq h_j\}\). When \(\omega(n_i, n_j) > 0\), we have \(\langle R_i, n_j \rangle > 0\), meaning \(R_i\) points outward from \(F_i\) toward \(F_j\).
 
 ```rust
 enum FlowDirection {
@@ -402,7 +412,7 @@ impl TwoFace {
 
 ---
 
-### 1.9 Lagrangian Product Structure (Special Case)
+### 1.8 Lagrangian Product Structure (Special Case)
 
 \(K\) is a **Lagrangian product** iff \(K = K_1 \times K_2\) where:
 - \(K_1 \subset \mathbb{R}^2_q\) (configuration space, coordinates \(q_1, q_2\))
@@ -431,15 +441,15 @@ struct LagrangianFactors {
 }
 
 struct Polygon2D {
-    normals: Vec<[f64; 2]>,    // unit outward normals, CCW order
+    normals: Vec<Vector2<f64>>,    // unit outward normals, CCW order
     heights: Vec<f64>,
-    vertices: Vec<[f64; 2]>,   // CCW order, vertex[i] is intersection of edges i-1 and i
+    vertices: Vec<Vector2<f64>>,   // CCW order, vertex[i] is intersection of edges i-1 and i
 }
 ```
 
 ---
 
-### 1.10 Quaternion Structure
+### 1.9 Quaternion Structure
 
 For trivializing 2-faces, we use the quaternion matrices on \(\mathbb{R}^4\):
 
@@ -450,26 +460,27 @@ K = \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 
 \]
 
 ```rust
-fn J(v: [f64; 4]) -> [f64; 4] {
-    [-v[2], -v[3], v[0], v[1]]
-}
+/// J is already defined above as J_MATRIX
 
-fn K(v: [f64; 4]) -> [f64; 4] {
-    [-v[1], v[0], v[3], -v[2]]
-}
+const K_MATRIX: Matrix4<f64> = Matrix4::new(
+    0.0, -1.0,  0.0,  0.0,
+    1.0,  0.0,  0.0,  0.0,
+    0.0,  0.0,  0.0,  1.0,
+    0.0,  0.0, -1.0,  0.0,
+);
 ```
 
 **Relations:** \(I^2 = J^2 = K^2 = IJK = -I\)
 
 ```rust
-assert_eq!(J(J(v)), scale(-1.0, v));  // J² = -I
-assert_eq!(K(K(v)), scale(-1.0, v));  // K² = -I
-assert_eq!(J(K(v)), scale(-1.0, K(J(v))));  // JK = -KJ
+assert_eq!(J_MATRIX * J_MATRIX, -Matrix4::identity());  // J² = -I
+assert_eq!(K_MATRIX * K_MATRIX, -Matrix4::identity());  // K² = -I
+assert_eq!(J_MATRIX * K_MATRIX, -(K_MATRIX * J_MATRIX));  // JK = -KJ
 ```
 
 ---
 
-### 1.11 Trivialization of 2-Face Tangent Spaces
+### 1.10 Trivialization of 2-Face Tangent Spaces
 
 Each non-Lagrangian 2-face \(F_{ij}\) has a 2-dimensional tangent space. We trivialize it using the quaternion structure.
 
@@ -485,8 +496,10 @@ This is 2-dimensional (intersection of two hyperplanes in 4D).
 \]
 
 ```rust
-fn trivialize(n: [f64; 4], v: [f64; 4]) -> [f64; 2] {
-    [dot(&v, &J(n)), dot(&v, &K(n))]
+fn trivialize(n: &Vector4<f64>, v: &Vector4<f64>) -> Vector2<f64> {
+    let jn = J_MATRIX * n;
+    let kn = K_MATRIX * n;
+    Vector2::new(v.dot(&jn), v.dot(&kn))
 }
 ```
 
@@ -498,27 +511,32 @@ fn trivialize(n: [f64; 4], v: [f64; 4]) -> [f64; 2] {
 \]
 
 ```rust
-fn untrivialize(n: [f64; 4], coords: [f64; 2]) -> [f64; 4] {
-    add(scale(coords[0], J(n)), scale(coords[1], K(n)))
+fn untrivialize(n: &Vector4<f64>, coords: &Vector2<f64>) -> Vector4<f64> {
+    let jn = J_MATRIX * n;
+    let kn = K_MATRIX * n;
+    jn * coords[0] + kn * coords[1]
 }
 ```
 
 **Assertions:**
 ```rust
+let jn = J_MATRIX * n;
+let kn = K_MATRIX * n;
+
 // Jn and Kn are orthonormal (basis for the tangent hyperplane restricted to symplectic complement)
-assert!((dot(&J(n), &K(n))).abs() < EPS);  // orthogonal
-assert!((norm(&J(n)) - 1.0).abs() < EPS);  // unit length
-assert!((norm(&K(n)) - 1.0).abs() < EPS);  // unit length
+assert!(jn.dot(&kn).abs() < EPS);  // orthogonal
+assert!((jn.norm() - 1.0).abs() < EPS);  // unit length
+assert!((kn.norm() - 1.0).abs() < EPS);  // unit length
 
 // Jn and Kn are tangent to the facet (perpendicular to n)
-assert!(dot(&J(n), &n).abs() < EPS);
-assert!(dot(&K(n), &n).abs() < EPS);
+assert!(jn.dot(n).abs() < EPS);
+assert!(kn.dot(n).abs() < EPS);
 
 // Round-trip: untrivialize ∘ trivialize = identity on tangent vectors
 // (only holds for vectors perpendicular to n)
-let v_tangent = /* any vector with dot(v, n) == 0 */;
-let v_recovered = untrivialize(n, trivialize(n, v_tangent));
-assert!(norm(&sub(v_recovered, v_tangent)) < EPS);
+let v_tangent = /* any vector with v.dot(n) == 0 */;
+let v_recovered = untrivialize(n, &trivialize(n, &v_tangent));
+assert!((v_recovered - v_tangent).norm() < EPS);
 ```
 
 **Key property (symplectic form preservation):**
@@ -532,25 +550,25 @@ where \(\omega_{\text{std}}(x, y) = x_1 y_2 - x_2 y_1\) is the standard 2D sympl
 **Mathematical condition (not encoded in Rust type):** The symplectic form preservation only holds when both input vectors are perpendicular to \(n\).
 
 ```rust
-fn symplectic_form_2d(x: [f64; 2], y: [f64; 2]) -> f64 {
+fn symplectic_form_2d(x: &Vector2<f64>, y: &Vector2<f64>) -> f64 {
     x[0] * y[1] - x[1] * y[0]
 }
 
 // Verification (requires v1, v2 tangent to facet):
-fn verify_symplectic_preservation(n: [f64; 4], v1: [f64; 4], v2: [f64; 4]) {
+fn verify_symplectic_preservation(n: &Vector4<f64>, v1: &Vector4<f64>, v2: &Vector4<f64>) {
     // Precondition: v1, v2 are tangent to the facet
-    assert!(dot(&v1, &n).abs() < EPS, "v1 not tangent to facet");
-    assert!(dot(&v2, &n).abs() < EPS, "v2 not tangent to facet");
+    assert!(v1.dot(n).abs() < EPS, "v1 not tangent to facet");
+    assert!(v2.dot(n).abs() < EPS, "v2 not tangent to facet");
 
     let omega_4d = symplectic_form(v1, v2);
-    let omega_2d = symplectic_form_2d(trivialize(n, v1), trivialize(n, v2));
+    let omega_2d = symplectic_form_2d(&trivialize(n, v1), &trivialize(n, v2));
     assert!((omega_4d - omega_2d).abs() < EPS);
 }
 ```
 
 ---
 
-### 1.12 Transition Matrices on 2-Faces
+### 1.11 Transition Matrices on 2-Faces
 
 For a non-Lagrangian 2-face \(F_{ij}\), the **transition matrix** \(\psi_F \in \mathrm{Sp}(2)\) relates the trivializations from the two adjacent facet normals:
 \[
@@ -560,31 +578,28 @@ For a non-Lagrangian 2-face \(F_{ij}\), the **transition matrix** \(\psi_F \in \
 This is a 2×2 symplectic matrix encoding how coordinates transform when crossing the 2-face.
 
 ```rust
-struct TwoFaceEnriched {
-    // ... previous fields ...
-    transition_matrix: [[f64; 2]; 2],  // ψ_F ∈ Sp(2)
-}
+// See section 1.14 for the full TwoFaceEnriched struct definition
 
-fn compute_transition_matrix(n_i: [f64; 4], n_j: [f64; 4]) -> [[f64; 2]; 2] {
+fn compute_transition_matrix(n_i: &Vector4<f64>, n_j: &Vector4<f64>) -> Matrix2<f64> {
     // ψ_F maps τ_{n_i} coordinates to τ_{n_j} coordinates
     // Column k of ψ is τ_{n_j}(τ_{n_i}^{-1}(e_k))
-    let e1 = [1.0, 0.0];
-    let e2 = [0.0, 1.0];
+    let e1 = Vector2::new(1.0, 0.0);
+    let e2 = Vector2::new(0.0, 1.0);
 
-    let v1 = untrivialize(n_i, e1);  // Jn_i
-    let v2 = untrivialize(n_i, e2);  // Kn_i
+    let v1 = untrivialize(n_i, &e1);  // Jn_i
+    let v2 = untrivialize(n_i, &e2);  // Kn_i
 
-    let col1 = trivialize(n_j, v1);
-    let col2 = trivialize(n_j, v2);
+    let col1 = trivialize(n_j, &v1);
+    let col2 = trivialize(n_j, &v2);
 
-    [[col1[0], col2[0]], [col1[1], col2[1]]]
+    Matrix2::from_columns(&[col1, col2])
 }
 ```
 
 **Assertions:**
 ```rust
 // ψ is always symplectic: det(ψ) = 1
-assert!((psi[0][0] * psi[1][1] - psi[0][1] * psi[1][0] - 1.0).abs() < EPS);
+assert!((psi.determinant() - 1.0).abs() < EPS);
 ```
 
 **Classification by trace (mathematical condition not encoded in Rust type):**
@@ -595,8 +610,8 @@ assert!((psi[0][0] * psi[1][1] - psi[0][1] * psi[1][0] - 1.0).abs() < EPS);
 ```rust
 // For non-Lagrangian 2-faces only: ψ is positive elliptic (|tr| < 2)
 // This condition is EQUIVALENT to ω(n_i, n_j) ≠ 0
-fn assert_non_lagrangian(psi: [[f64; 2]; 2], n_i: [f64; 4], n_j: [f64; 4]) {
-    let trace = psi[0][0] + psi[1][1];
+fn assert_non_lagrangian(psi: &Matrix2<f64>, n_i: &Vector4<f64>, n_j: &Vector4<f64>) {
+    let trace = psi.trace();
     let omega = symplectic_form(n_i, n_j);
 
     // Both conditions should agree
@@ -612,7 +627,7 @@ fn assert_non_lagrangian(psi: [[f64; 2]; 2], n_i: [f64; 4], n_j: [f64; 4]) {
 
 ---
 
-### 1.13 Rotation Number of 2-Faces
+### 1.12 Rotation Number of 2-Faces
 
 For a non-Lagrangian 2-face \(F_{ij}\), the **rotation number** \(\rho(F) \in (0, 0.5)\) measures how much the Reeb flow "rotates" when crossing:
 \[
@@ -622,8 +637,11 @@ For a non-Lagrangian 2-face \(F_{ij}\), the **rotation number** \(\rho(F) \in (0
 ```rust
 impl TwoFaceEnriched {
     fn rotation_number(&self) -> f64 {
-        let trace = self.transition_matrix[0][0] + self.transition_matrix[1][1];
-        (0.5 * trace).acos() / (2.0 * PI)
+        let trace = self.transition_matrix.trace();
+        // Clamp to [-2, 2] to handle floating point errors; values outside this range
+        // would indicate a non-elliptic matrix, which shouldn't occur for non-Lagrangian 2-faces.
+        let half_trace_clamped = (0.5 * trace).clamp(-1.0, 1.0);
+        half_trace_clamped.acos() / (2.0 * std::f64::consts::PI)
     }
 }
 ```
@@ -637,7 +655,7 @@ impl TwoFaceEnriched {
 
 ---
 
-### 1.14 Support Function and Polar Body
+### 1.13 Support Function and Polar Body
 
 The **support function** of \(K\):
 \[
@@ -646,9 +664,9 @@ h_K(d) = \max_{x \in K} \langle d, x \rangle
 
 For H-rep polytope, this is computable via the vertices:
 ```rust
-fn support_function(vertices: &[[f64; 4]], direction: [f64; 4]) -> f64 {
+fn support_function(vertices: &[Vector4<f64>], direction: &Vector4<f64>) -> f64 {
     vertices.iter()
-        .map(|v| dot(&direction, v))
+        .map(|v| direction.dot(v))
         .fold(f64::NEG_INFINITY, f64::max)
 }
 ```
@@ -661,9 +679,9 @@ K^\circ = \{ y \in \mathbb{R}^4 : \langle x, y \rangle \leq 1 \text{ for all } x
 For a 2D polygon in H-rep \(\{x : \langle n_i, x \rangle \leq h_i\}\), the polar has vertices at \(n_i / h_i\):
 
 ```rust
-fn polar_vertices_2d(normals: &[[f64; 2]], heights: &[f64]) -> Vec<[f64; 2]> {
+fn polar_vertices_2d(normals: &[Vector2<f64>], heights: &[f64]) -> Vec<Vector2<f64>> {
     normals.iter().zip(heights)
-        .map(|(n, &h)| [n[0] / h, n[1] / h])
+        .map(|(n, &h)| n / h)
         .collect()
 }
 ```
@@ -672,35 +690,30 @@ fn polar_vertices_2d(normals: &[[f64; 2]], heights: &[f64]) -> Vec<[f64; 2]> {
 
 ---
 
-### 1.15 Trivialized 2-Face Polygons
+### 1.14 Trivialized 2-Face Polygons
 
 For the Tube algorithm, we need each 2-face as a 2D polygon in trivialized coordinates.
 
 ```rust
-struct TwoFaceEnriched {
-    // ... previous fields ...
-    polygon_2d: Vec<[f64; 2]>,     // vertices in τ_{n_i} coordinates
-    vertices_4d: Vec<[f64; 4]>,    // original 4D vertices
-    centroid_4d: [f64; 4],         // centroid for reconstruction
-}
+// See below for the full TwoFaceEnriched struct definition
 
 fn trivialize_two_face(
     two_face: &TwoFace,
-    vertices: &[[f64; 4]],
-    entry_normal: [f64; 4],
+    vertices: &[Vector4<f64>],
+    entry_normal: &Vector4<f64>,
 ) -> TwoFaceEnriched {
-    let verts_4d: Vec<[f64; 4]> = two_face.vertices.iter()
+    let verts_4d: Vec<Vector4<f64>> = two_face.vertices.iter()
         .map(|&i| vertices[i])
         .collect();
 
-    let centroid = average(&verts_4d);
+    let centroid: Vector4<f64> = verts_4d.iter().sum::<Vector4<f64>>() / verts_4d.len() as f64;
 
     // Trivialize relative to centroid
-    let polygon_2d: Vec<[f64; 2]> = verts_4d.iter()
-        .map(|v| trivialize(entry_normal, sub(*v, centroid)))
+    let polygon_2d: Vec<Vector2<f64>> = verts_4d.iter()
+        .map(|v| trivialize(entry_normal, &(v - centroid)))
         .collect();
 
-    // Sort by angle for CCW ordering
+    // Sort by angle for CCW ordering (standard: sort by atan2 from centroid)
     let polygon_2d = sort_ccw(polygon_2d);
 
     TwoFaceEnriched {
@@ -713,38 +726,38 @@ fn trivialize_two_face(
 }
 ```
 
-**Consolidated TwoFaceEnriched (all fields from sections 1.6, 1.12-1.15):**
+**Consolidated TwoFaceEnriched (all fields from sections 1.5-1.7, 1.11-1.14):**
 
 ```rust
 struct TwoFaceEnriched {
-    // From 1.6: Basic identification
+    // From 1.5: Basic identification
     i: usize,                          // first facet index (i < j)
     j: usize,                          // second facet index
     vertices: Vec<usize>,              // indices into global vertex list
     omega_ij: f64,                     // ω(n_i, n_j)
 
-    // From 1.7: Lagrangian classification
+    // From 1.6: Lagrangian classification
     is_lagrangian: bool,               // |omega_ij| < EPS_LAGRANGIAN
 
-    // From 1.8: Flow direction (for non-Lagrangian)
+    // From 1.7: Flow direction (for non-Lagrangian)
     flow_direction: Option<FlowDirection>,  // ItoJ or JtoI
 
-    // From 1.12: Transition matrix (for non-Lagrangian)
-    transition_matrix: [[f64; 2]; 2],  // ψ_F ∈ Sp(2)
+    // From 1.11: Transition matrix (for non-Lagrangian)
+    transition_matrix: Matrix2<f64>,   // ψ_F ∈ Sp(2)
 
-    // From 1.13: Rotation number (for non-Lagrangian)
+    // From 1.12: Rotation number (for non-Lagrangian)
     rotation: f64,                     // ρ(F) ∈ (0, 0.5)
 
-    // From 1.15: Trivialized polygon
-    polygon_2d: Vec<[f64; 2]>,         // vertices in τ_{n_i} coordinates, CCW
-    vertices_4d: Vec<[f64; 4]>,        // original 4D vertex positions
-    centroid_4d: [f64; 4],             // centroid for reconstruction
+    // From 1.14: Trivialized polygon
+    polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{n_i} coordinates, CCW
+    vertices_4d: Vec<Vector4<f64>>,    // original 4D vertex positions
+    centroid_4d: Vector4<f64>,         // centroid for reconstruction
 }
 ```
 
 ---
 
-### 1.16 Edge and Vertex Incidence
+### 1.15 Edge and Vertex Incidence
 
 For computing face lattice and adjacency queries:
 
@@ -778,7 +791,7 @@ struct Edge {
 
 ---
 
-### 1.17 Constants and Tolerances
+### 1.16 Constants and Tolerances
 
 ```rust
 const EPS: f64 = 1e-10;              // general numerical tolerance
@@ -815,7 +828,7 @@ where \(\lambda = \frac{1}{2}(p \, dq - q \, dp)\) is the Liouville 1-form.
 
 ```rust
 struct ClosedPolygonalCurve {
-    vertices: Vec<[f64; 4]>,  // vertices[0], ..., vertices[n-1]
+    vertices: Vec<Vector4<f64>>,  // vertices[0], ..., vertices[n-1]
 }
 ```
 
@@ -831,13 +844,11 @@ A = \frac{1}{2} \sum_{k=0}^{n-1} \langle J v_k, v_{k+1} - v_k \rangle = \frac{1}
 \]
 
 ```rust
-fn action_of_closed_polygon(vertices: &[[f64; 4]]) -> f64 {
+fn action_of_closed_polygon(vertices: &[Vector4<f64>]) -> f64 {
     let n = vertices.len();
     let mut sum = 0.0;
     for k in 0..n {
-        let v_k = vertices[k];
-        let v_next = vertices[(k + 1) % n];
-        sum += symplectic_form(v_k, v_next);
+        sum += symplectic_form(&vertices[k], &vertices[(k + 1) % n]);
     }
     0.5 * sum
 }
@@ -865,17 +876,17 @@ p \in \partial K \iff \exists i : \langle n_i, p \rangle = h_i \text{ and } \for
 \]
 
 ```rust
-fn is_on_boundary(p: [f64; 4], hrep: &PolytopeHRep) -> bool {
+fn is_on_boundary(p: &Vector4<f64>, hrep: &PolytopeHRep) -> bool {
     let on_some_facet = hrep.normals.iter().zip(&hrep.heights)
-        .any(|(n, &h)| (dot(n, &p) - h).abs() < EPS);
+        .any(|(n, &h)| (n.dot(p) - h).abs() < EPS);
     let inside_all = hrep.normals.iter().zip(&hrep.heights)
-        .all(|(n, &h)| dot(n, &p) <= h + EPS);
+        .all(|(n, &h)| n.dot(p) <= h + EPS);
     on_some_facet && inside_all
 }
 
-fn active_facets(p: [f64; 4], hrep: &PolytopeHRep) -> Vec<usize> {
+fn active_facets(p: &Vector4<f64>, hrep: &PolytopeHRep) -> Vec<usize> {
     hrep.normals.iter().zip(&hrep.heights).enumerate()
-        .filter(|(_, (n, &h))| (dot(n, &p) - h).abs() < EPS)
+        .filter(|(_, (n, &h))| (n.dot(p) - h).abs() < EPS)
         .map(|(i, _)| i)
         .collect()
 }
@@ -903,10 +914,10 @@ where \(R_i = \frac{2}{h_i} J n_i\) is the Reeb vector on facet \(F_i\).
 **Reeb vector properties:**
 ```rust
 // Reeb vector is tangent to its facet (perpendicular to normal)
-assert!(dot(&reeb_vectors[i], &normals[i]).abs() < EPS);
+assert!(reeb_vectors[i].dot(&normals[i]).abs() < EPS);
 
 // Reeb vector magnitude = 2/h_i
-assert!((norm(&reeb_vectors[i]) - 2.0 / heights[i]).abs() < EPS);
+assert!((reeb_vectors[i].norm() - 2.0 / heights[i]).abs() < EPS);
 ```
 
 **Cone membership:** At a point on multiple facets, the velocity is a non-negative combination:
@@ -916,9 +927,9 @@ assert!((norm(&reeb_vectors[i]) - 2.0 / heights[i]).abs() < EPS);
 
 ```rust
 fn is_valid_reeb_velocity(
-    velocity: [f64; 4],
+    velocity: &Vector4<f64>,
     active_facets: &[usize],
-    reeb_vectors: &[[f64; 4]],
+    reeb_vectors: &[Vector4<f64>],
 ) -> bool {
     // Solve: velocity = Σ λ_i R_i with λ_i ≥ 0
     // This is a linear feasibility problem
@@ -937,9 +948,9 @@ A piecewise linear Reeb trajectory has:
 
 ```rust
 struct PiecewiseLinearReebTrajectory {
-    breakpoints: Vec<[f64; 4]>,   // p_0, p_1, ..., p_m
-    segment_facets: Vec<usize>,   // which facet's Reeb vector for each segment
-    segment_times: Vec<f64>,      // duration of each segment
+    breakpoints: Vec<Vector4<f64>>,   // p_0, p_1, ..., p_m
+    segment_facets: Vec<usize>,       // which facet's Reeb vector for each segment
+    segment_times: Vec<f64>,          // duration of each segment
 }
 ```
 
@@ -963,12 +974,12 @@ Equivalently, since \(p_{k+1} - p_k = \tau_k \cdot R_i\):
 
 ```rust
 fn compute_segment_time(
-    p_start: [f64; 4],
-    p_end: [f64; 4],
+    p_start: &Vector4<f64>,
+    p_end: &Vector4<f64>,
     facet_idx: usize,
     heights: &[f64],
 ) -> f64 {
-    let displacement = norm(&sub(p_end, p_start));
+    let displacement = (p_end - p_start).norm();
     heights[facet_idx] * displacement / 2.0
 }
 ```
@@ -976,13 +987,13 @@ fn compute_segment_time(
 **Assertions:**
 ```rust
 // Velocity matches Reeb vector
-let velocity = scale(1.0 / segment_times[k], sub(breakpoints[k+1], breakpoints[k]));
-let expected_velocity = reeb_vectors[segment_facets[k]];
-assert!(norm(&sub(velocity, expected_velocity)) < EPS);
+let velocity = (breakpoints[k+1] - breakpoints[k]) / segment_times[k];
+let expected_velocity = &reeb_vectors[segment_facets[k]];
+assert!((velocity - expected_velocity).norm() < EPS);
 
 // Both endpoints on claimed facet
-assert!((dot(&normals[i], &breakpoints[k]) - heights[i]).abs() < EPS);
-assert!((dot(&normals[i], &breakpoints[k+1]) - heights[i]).abs() < EPS);
+assert!((normals[i].dot(&breakpoints[k]) - heights[i]).abs() < EPS);
+assert!((normals[i].dot(&breakpoints[k+1]) - heights[i]).abs() < EPS);
 ```
 
 ---
@@ -1002,13 +1013,13 @@ fn action_from_segment_times(segment_times: &[f64]) -> f64 {
 }
 
 fn action_from_breakpoints_and_facets(
-    breakpoints: &[[f64; 4]],
+    breakpoints: &[Vector4<f64>],
     segment_facets: &[usize],
     heights: &[f64],
 ) -> f64 {
     let mut total = 0.0;
     for k in 0..segment_facets.len() {
-        let disp = norm(&sub(breakpoints[k + 1], breakpoints[k]));
+        let disp = (breakpoints[k + 1] - breakpoints[k]).norm();
         total += heights[segment_facets[k]] * disp / 2.0;
     }
     total
@@ -1034,10 +1045,10 @@ A **closed Reeb orbit** is a Reeb trajectory with \(\gamma(T) = \gamma(0)\).
 
 ```rust
 struct ClosedReebOrbit {
-    period: f64,                  // T = action
-    breakpoints: Vec<[f64; 4]>,   // p_0, ..., p_m with p_m = p_0
-    segment_facets: Vec<usize>,   // i_0, ..., i_{m-1}
-    segment_times: Vec<f64>,      // τ_0, ..., τ_{m-1}
+    period: f64,                      // T = action
+    breakpoints: Vec<Vector4<f64>>,   // p_0, ..., p_m with p_m = p_0
+    segment_facets: Vec<usize>,       // i_0, ..., i_{m-1}
+    segment_times: Vec<f64>,          // τ_0, ..., τ_{m-1}
 }
 ```
 
@@ -1049,7 +1060,7 @@ struct ClosedReebOrbit {
 **Assertions:**
 ```rust
 // Closure
-assert!(norm(&sub(breakpoints[breakpoints.len()-1], breakpoints[0])) < EPS);
+assert!((breakpoints[breakpoints.len()-1] - breakpoints[0]).norm() < EPS);
 
 // Period = sum of times
 assert!((period - segment_times.iter().sum::<f64>()).abs() < EPS);
@@ -1070,7 +1081,7 @@ A **simple Reeb orbit** visits each facet at most once (uses each Reeb velocity 
 struct SimpleReebOrbit {
     // Same fields as ClosedReebOrbit
     period: f64,
-    breakpoints: Vec<[f64; 4]>,
+    breakpoints: Vec<Vector4<f64>>,
     segment_facets: Vec<usize>,
     segment_times: Vec<f64>,
 }
@@ -1081,6 +1092,8 @@ struct SimpleReebOrbit {
 
 **Assertions:**
 ```rust
+use std::collections::HashSet;
+
 // All facets distinct
 let facet_set: HashSet<_> = segment_facets.iter().collect();
 assert_eq!(facet_set.len(), segment_facets.len());
@@ -1121,12 +1134,21 @@ impl FacetSequence {
         true
     }
 
-    fn is_closeable(&self) -> bool {
-        // Sequence [i_0, ..., i_m] is closeable if i_m = i_0 and i_{m-1}, i_1 adjacent
-        // (i.e., can close back to starting 2-face)
-        self.facets.len() >= 3 &&
-        self.facets[self.facets.len() - 1] == self.facets[0]
-        // Plus adjacency check for closing edge
+    fn is_closeable(&self, two_faces: &[TwoFace]) -> bool {
+        // Sequence [i_0, ..., i_m] is closeable if:
+        // 1. Length >= 3 (need at least 2 transitions to form a loop)
+        // 2. Last facet equals first facet (i_m == i_0)
+        // 3. The closing transition (i_{m-1} → i_1) has an adjacent 2-face
+        if self.facets.len() < 3 {
+            return false;
+        }
+        if self.facets[self.facets.len() - 1] != self.facets[0] {
+            return false;
+        }
+        // Check adjacency for closing edge: from second-to-last to second facet
+        let i_prev = self.facets[self.facets.len() - 2];
+        let i_next = self.facets[1];
+        two_faces.iter().any(|f| (f.i == i_prev && f.j == i_next) || (f.i == i_next && f.j == i_prev))
     }
 }
 ```
@@ -1156,13 +1178,13 @@ struct Tube {
 }
 
 struct AffineMap2D {
-    matrix: [[f64; 2]; 2],  // A
-    offset: [f64; 2],       // b
+    matrix: Matrix2<f64>,   // A
+    offset: Vector2<f64>,   // b
     // Apply: f(x) = Ax + b
 }
 
 struct AffineFunc {
-    gradient: [f64; 2],     // g
+    gradient: Vector2<f64>, // g
     constant: f64,          // c
     // Evaluate: f(x) = ⟨g, x⟩ + c
 }
@@ -1174,6 +1196,8 @@ struct AffineFunc {
 3. For any start point `s ∈ p_start`, there exists a unique trajectory ending at `flow_map(s)`
 4. `action_func(s)` gives the action of that trajectory
 5. `rotation` is constant over all trajectories in the tube (depends only on combinatorics)
+
+**Why action is affine in starting position:** The action formula \(A(\gamma) = \frac{1}{2}\int\langle J\gamma, \dot\gamma\rangle dt\) is translation-invariant: for \(\gamma \to \gamma + b\) (constant shift), \(\dot\gamma\) is unchanged and \(\int\langle Jb, \dot\gamma\rangle dt = \langle Jb, \gamma\rangle|_0^T = 0\) by closure. Within a tube, breakpoint positions are affine in the starting point (flow maps are affine), so total action (sum of segment times) is affine in the starting position.
 
 **Tube initialization (root tube for 2-face \(F_{ij}\)):**
 ```rust
@@ -1193,6 +1217,125 @@ fn create_root_tube(two_face: &TwoFaceEnriched) -> Tube {
 
 ### 2.10 Tube Extension
 
+#### Computing Facet Flow
+
+The function `compute_facet_flow` computes the affine map and time function for flowing along a facet from one 2-face to the next. This is the core geometric computation of the tube algorithm.
+
+**Geometry:** A point \(p\) on 2-face \(F_{\text{prev}} \cap F_{\text{curr}}\) flows along facet \(F_{\text{curr}}\) with Reeb velocity \(R_{\text{curr}}\) until hitting 2-face \(F_{\text{curr}} \cap F_{\text{next}}\).
+
+**Time computation:** The exit condition is \(\langle q, n_{\text{next}} \rangle = h_{\text{next}}\) where \(q = p + t \cdot R_{\text{curr}}\). Solving:
+\[
+t = \frac{h_{\text{next}} - \langle p, n_{\text{next}} \rangle}{\langle R_{\text{curr}}, n_{\text{next}} \rangle}
+\]
+
+Note: \(\langle R_{\text{curr}}, n_{\text{next}} \rangle \neq 0\) for non-Lagrangian 2-faces (guaranteed by flow direction).
+
+```rust
+fn compute_facet_flow(
+    tube: &Tube,                    // Need previous facet from facet_sequence
+    next_facet: usize,
+    polytope_data: &PolytopeData,
+) -> (AffineMap2D, AffineFunc) {
+    // Extract facet indices
+    let seq = &tube.facet_sequence;
+    let prev_facet = seq[seq.len() - 2];    // i_{k}
+    let curr_facet = seq[seq.len() - 1];    // i_{k+1}, the facet we flow along
+
+    // Get 2-faces with their enriched data
+    let entry_2face = polytope_data.get_two_face_enriched(prev_facet, curr_facet);
+    let exit_2face = polytope_data.get_two_face_enriched(curr_facet, next_facet);
+
+    // Get Reeb vector on current facet
+    let r_curr = polytope_data.reeb_vector(curr_facet);    // R_{curr} = (2/h_{curr}) * J * n_{curr}
+    let n_next = polytope_data.normal(next_facet);
+    let h_next = polytope_data.height(next_facet);
+
+    // Denominator of time formula: ⟨R_curr, n_next⟩
+    let r_dot_n = r_curr.dot(&n_next);
+    debug_assert!(r_dot_n.abs() > EPS, "Lagrangian 2-face or degenerate");
+
+    // For a point p_2d in entry 2-face coordinates:
+    // 1. Convert to 4D: p_4d = untrivialize(n_prev, p_2d) + centroid_entry
+    // 2. Compute time: t = (h_next - ⟨p_4d, n_next⟩) / ⟨R_curr, n_next⟩
+    // 3. Flow: q_4d = p_4d + t * R_curr
+    // 4. Convert to exit coords: q_2d = trivialize(n_curr, q_4d - centroid_exit)
+
+    // Entry trivialization basis vectors in 4D
+    let n_prev = polytope_data.normal(prev_facet);
+    let j_n_prev = J_MATRIX * n_prev;
+    let k_n_prev = K_MATRIX * n_prev;
+    let c_entry = entry_2face.centroid_4d;
+
+    // Exit trivialization basis vectors in 4D
+    let n_curr = polytope_data.normal(curr_facet);
+    let j_n_curr = J_MATRIX * n_curr;
+    let k_n_curr = K_MATRIX * n_curr;
+    let c_exit = exit_2face.centroid_4d;
+
+    // Build the affine map and time function
+    //
+    // For p_2d = (a, b):
+    //   p_4d = a * J*n_prev + b * K*n_prev + c_entry
+    //   ⟨p_4d, n_next⟩ = a * ⟨J*n_prev, n_next⟩ + b * ⟨K*n_prev, n_next⟩ + ⟨c_entry, n_next⟩
+    //
+    //   t = (h_next - ⟨p_4d, n_next⟩) / r_dot_n
+    //     = (h_next - ⟨c_entry, n_next⟩) / r_dot_n
+    //       - (a * ⟨J*n_prev, n_next⟩ + b * ⟨K*n_prev, n_next⟩) / r_dot_n
+    //
+    // Time function: t(p_2d) = t_const + ⟨t_grad, p_2d⟩
+    let t_const = (h_next - c_entry.dot(&n_next)) / r_dot_n;
+    let t_grad = Vector2::new(
+        -j_n_prev.dot(&n_next) / r_dot_n,
+        -k_n_prev.dot(&n_next) / r_dot_n,
+    );
+    let time_func = AffineFunc { gradient: t_grad, constant: t_const };
+
+    // Flow map: q_4d = p_4d + t * R_curr
+    //   q_4d - c_exit = (p_4d - c_entry) + (c_entry - c_exit) + t * R_curr
+    //
+    // Trivialize in exit coordinates:
+    //   q_2d[0] = ⟨q_4d - c_exit, J*n_curr⟩
+    //   q_2d[1] = ⟨q_4d - c_exit, K*n_curr⟩
+
+    // Build 2x2 matrix A and offset b for q_2d = A * p_2d + b
+    //
+    // Components of A come from how (a, b) → p_4d → q_4d → q_2d
+    // Including the time dependence on p_2d
+
+    // Direct term: trivialize(n_curr, untrivialize(n_prev, e_i))
+    // This is the transition matrix ψ from section 1.11
+    let psi = compute_transition_matrix(&n_prev, &n_curr);
+
+    // Time-dependent term: derivative of (t * R_curr) w.r.t. p_2d, trivialized
+    // dt/d(p_2d) = t_grad
+    // d(t * R_curr)/d(p_2d) = R_curr ⊗ t_grad (outer product)
+    // Trivialized: [⟨R_curr, J*n_curr⟩, ⟨R_curr, K*n_curr⟩] ⊗ t_grad
+    let r_triv = Vector2::new(r_curr.dot(&j_n_curr), r_curr.dot(&k_n_curr));
+
+    // Matrix: A = ψ + r_triv ⊗ t_grad
+    let a_matrix = psi + r_triv * t_grad.transpose();
+
+    // Offset: b = trivialize(n_curr, c_entry - c_exit + t_const * R_curr)
+    let delta_c = c_entry - c_exit + r_curr * t_const;
+    let b_offset = Vector2::new(delta_c.dot(&j_n_curr), delta_c.dot(&k_n_curr));
+
+    let flow_map = AffineMap2D { matrix: a_matrix, offset: b_offset };
+
+    (flow_map, time_func)
+}
+```
+
+**Assertions:**
+```rust
+// Flow map is symplectic (area-preserving)
+assert!((flow_map.matrix.determinant() - 1.0).abs() < EPS);
+
+// Time is positive for valid flow direction
+// (may be negative if we're flowing the wrong way, which should be caught by empty intersection)
+```
+
+#### Extending a Tube
+
 Extending a tube by one facet transition:
 
 ```rust
@@ -1205,9 +1348,9 @@ fn extend_tube(
     let two_face = polytope_data.get_two_face(current_end_facet, next_facet)?;
 
     // Compute flow across the facet
-    let (phi, time_func) = compute_facet_flow(current_end_facet, next_facet, polytope_data);
+    let (phi, time_func) = compute_facet_flow(tube, next_facet, polytope_data);
 
-    // New endpoint set
+    // New endpoint set (standard: Sutherland-Hodgman for convex polygon intersection)
     let new_p_end = intersect_polygons(
         &apply_affine_map(&phi, &tube.p_end),
         &two_face.polygon_2d,
@@ -1240,15 +1383,12 @@ To find closed orbits, solve for fixed points of the flow map:
 \]
 
 ```rust
-fn find_closed_orbits(tube: &Tube) -> Vec<(f64, [f64; 2])> {
+fn find_closed_orbits(tube: &Tube) -> Vec<(f64, Vector2<f64>)> {
     // Solve (A - I) s = -b
-    let a_minus_i = [
-        [tube.flow_map.matrix[0][0] - 1.0, tube.flow_map.matrix[0][1]],
-        [tube.flow_map.matrix[1][0], tube.flow_map.matrix[1][1] - 1.0],
-    ];
-    let neg_b = [-tube.flow_map.offset[0], -tube.flow_map.offset[1]];
+    let a_minus_i = tube.flow_map.matrix - Matrix2::identity();
+    let neg_b = -tube.flow_map.offset;
 
-    let det = a_minus_i[0][0] * a_minus_i[1][1] - a_minus_i[0][1] * a_minus_i[1][0];
+    let det = a_minus_i.determinant();
 
     if det.abs() < EPS {
         // Degenerate: line or plane of fixed points
@@ -1256,18 +1396,15 @@ fn find_closed_orbits(tube: &Tube) -> Vec<(f64, [f64; 2])> {
         return find_fixed_point_set(tube);
     }
 
-    // Unique fixed point
-    let s = [
-        (a_minus_i[1][1] * neg_b[0] - a_minus_i[0][1] * neg_b[1]) / det,
-        (-a_minus_i[1][0] * neg_b[0] + a_minus_i[0][0] * neg_b[1]) / det,
-    ];
+    // Unique fixed point: s = (A - I)^{-1} (-b)
+    let s = a_minus_i.try_inverse().unwrap() * neg_b;
 
-    // Check if fixed point is in p_start (the valid region)
+    // Check if fixed point is in p_start (standard: winding number or crossing number test)
     if !point_in_polygon(&s, &tube.p_start) {
         return vec![];
     }
 
-    let action = evaluate_affine_func(&tube.action_func, &s);
+    let action = tube.action_func.gradient.dot(&s) + tube.action_func.constant;
     vec![(action, s)]
 }
 ```
@@ -1275,8 +1412,8 @@ fn find_closed_orbits(tube: &Tube) -> Vec<(f64, [f64; 2])> {
 **Assertions:**
 ```rust
 // Fixed point satisfies flow_map(s) = s
-let s_mapped = apply_affine_map(&tube.flow_map, &fixed_point);
-assert!(norm_2d(&sub_2d(s_mapped, fixed_point)) < EPS);
+let s_mapped = tube.flow_map.matrix * fixed_point + tube.flow_map.offset;
+assert!((s_mapped - fixed_point).norm() < EPS);
 
 // Fixed point is in the valid start region
 assert!(point_in_polygon(&fixed_point, &tube.p_start));
@@ -1286,50 +1423,111 @@ assert!(point_in_polygon(&fixed_point, &tube.p_start));
 
 ### 2.12 Reconstruction: 2D Coordinates to 4D Orbit
 
-Given a closed orbit in 2D trivialized coordinates, reconstruct the 4D orbit:
+Given a closed orbit in 2D trivialized coordinates, reconstruct the 4D orbit.
 
+**Coordinate conversion:** To convert a 2D trivialized point back to 4D:
+```rust
+fn untrivialize_point(
+    point_2d: &Vector2<f64>,
+    two_face: &TwoFaceEnriched,
+) -> Vector4<f64> {
+    // The 2D coordinates are relative to the 2-face's centroid
+    // using the trivialization basis {J*n_entry, K*n_entry}
+    let n_entry = two_face.entry_normal;
+    let offset_4d = untrivialize(&n_entry, point_2d);
+    two_face.centroid_4d + offset_4d
+}
+```
+
+**Full reconstruction:**
 ```rust
 fn reconstruct_4d_orbit(
-    fixed_point_2d: [f64; 2],
+    fixed_point_2d: &Vector2<f64>,
     tube: &Tube,
     polytope_data: &PolytopeData,
 ) -> ClosedReebOrbit {
-    // Start from the 2D fixed point on the start 2-face
-    let start_two_face = polytope_data.get_two_face(
-        tube.facet_sequence[0],
-        tube.facet_sequence[1],
-    );
+    let seq = &tube.facet_sequence;
+    let n_segments = seq.len() - 2;  // Number of facet segments
 
-    // Convert 2D → 4D via barycentric interpolation
-    let start_4d = untrivialize_point(
-        fixed_point_2d,
-        &start_two_face,
-    );
+    // Start from the 2D fixed point on the start 2-face
+    let start_two_face = polytope_data.get_two_face_enriched(seq[0], seq[1]);
+    let start_4d = untrivialize_point(fixed_point_2d, &start_two_face);
 
     // Trace through each facet to get breakpoints
     let mut breakpoints = vec![start_4d];
-    let mut current_2d = fixed_point_2d;
+    let mut current_2d = *fixed_point_2d;
 
-    for k in 1..tube.facet_sequence.len() - 1 {
-        let facet = tube.facet_sequence[k];
-        let (phi, _) = get_facet_flow(k, tube, polytope_data);
-        current_2d = apply_affine_map_point(&phi, &current_2d);
+    // Build partial tube to track coordinate transformations
+    for k in 1..=n_segments {
+        // Current 2-face is F_{seq[k-1]} ∩ F_{seq[k]}
+        // Next 2-face is F_{seq[k]} ∩ F_{seq[k+1]}
 
-        let two_face = polytope_data.get_two_face(
-            tube.facet_sequence[k],
-            tube.facet_sequence[k + 1],
-        );
-        let point_4d = untrivialize_point(current_2d, &two_face);
-        breakpoints.push(point_4d);
+        // Get flow map for this segment
+        let partial_tube = Tube {
+            facet_sequence: seq[0..=k].to_vec(),
+            ..tube.clone()  // other fields not used
+        };
+        let (phi, _) = compute_facet_flow(&partial_tube, seq[k + 1], polytope_data);
+
+        // Apply flow to get exit point in next 2-face coordinates
+        current_2d = phi.matrix * current_2d + phi.offset;
+
+        // Convert to 4D
+        let exit_two_face = polytope_data.get_two_face_enriched(seq[k], seq[k + 1]);
+        let exit_4d = untrivialize_point(&current_2d, &exit_two_face);
+        breakpoints.push(exit_4d);
     }
 
-    breakpoints.push(start_4d);  // Close the orbit
+    // Close the orbit (should match start_4d)
+    debug_assert!(
+        (breakpoints.last().unwrap() - &start_4d).norm() < EPS,
+        "Orbit failed to close"
+    );
 
-    // Compute segment times and facets
-    // ...
+    // Compute segment facets: segment k flows along facet seq[k+1]
+    let segment_facets: Vec<usize> = (0..n_segments)
+        .map(|k| seq[k + 1])
+        .collect();
 
-    ClosedReebOrbit { period, breakpoints, segment_facets, segment_times }
+    // Compute segment times from displacement and Reeb velocity
+    let segment_times: Vec<f64> = (0..n_segments)
+        .map(|k| {
+            let facet_idx = segment_facets[k];
+            let displacement = &breakpoints[k + 1] - &breakpoints[k];
+            let reeb = polytope_data.reeb_vector(facet_idx);
+
+            // Time = |displacement| / |Reeb| = ⟨displacement, Reeb⟩ / |Reeb|²
+            // Since displacement = t * Reeb, we have t = displacement · Reeb / |Reeb|²
+            displacement.dot(&reeb) / reeb.norm_squared()
+        })
+        .collect();
+
+    let period: f64 = segment_times.iter().sum();
+
+    ClosedReebOrbit {
+        period,
+        breakpoints,
+        segment_facets,
+        segment_times,
+    }
 }
+```
+
+**Assertions:**
+```rust
+// All segment times are positive
+assert!(segment_times.iter().all(|&t| t > 0.0));
+
+// Segment displacements match Reeb velocities
+for k in 0..n_segments {
+    let displacement = &breakpoints[k + 1] - &breakpoints[k];
+    let expected = polytope_data.reeb_vector(segment_facets[k]) * segment_times[k];
+    assert!((displacement - expected).norm() < EPS);
+}
+
+// Period equals action (for closed Reeb orbits)
+let action = action_of_closed_polygon(&breakpoints);
+assert!((period - action).abs() < EPS * period);
 ```
 
 ---
@@ -1342,13 +1540,13 @@ Comprehensive validation for computed orbits:
 impl ClosedReebOrbit {
     fn validate(&self, hrep: &PolytopeHRep) -> Result<(), ValidationError> {
         // 1. Closure
-        if norm(&sub(self.breakpoints.last().unwrap(), &self.breakpoints[0])) > EPS {
+        if (self.breakpoints.last().unwrap() - &self.breakpoints[0]).norm() > EPS {
             return Err(ValidationError::NotClosed);
         }
 
         // 2. All breakpoints on boundary
         for (k, p) in self.breakpoints.iter().enumerate() {
-            if !is_on_boundary(*p, hrep) {
+            if !is_on_boundary(p, hrep) {
                 return Err(ValidationError::BreakpointNotOnBoundary(k));
             }
         }
@@ -1356,13 +1554,13 @@ impl ClosedReebOrbit {
         // 3. Segments lie on claimed facets
         for k in 0..self.segment_facets.len() {
             let i = self.segment_facets[k];
-            let p_start = self.breakpoints[k];
-            let p_end = self.breakpoints[k + 1];
+            let p_start = &self.breakpoints[k];
+            let p_end = &self.breakpoints[k + 1];
 
-            if (dot(&hrep.normals[i], &p_start) - hrep.heights[i]).abs() > EPS {
+            if (hrep.normals[i].dot(p_start) - hrep.heights[i]).abs() > EPS {
                 return Err(ValidationError::SegmentNotOnFacet(k, "start"));
             }
-            if (dot(&hrep.normals[i], &p_end) - hrep.heights[i]).abs() > EPS {
+            if (hrep.normals[i].dot(p_end) - hrep.heights[i]).abs() > EPS {
                 return Err(ValidationError::SegmentNotOnFacet(k, "end"));
             }
         }
@@ -1370,11 +1568,11 @@ impl ClosedReebOrbit {
         // 4. Velocities match Reeb vectors
         for k in 0..self.segment_facets.len() {
             let i = self.segment_facets[k];
-            let displacement = sub(self.breakpoints[k + 1], self.breakpoints[k]);
-            let velocity = scale(1.0 / self.segment_times[k], displacement);
-            let reeb = scale(2.0 / hrep.heights[i], complex_structure(hrep.normals[i]));
+            let displacement = &self.breakpoints[k + 1] - &self.breakpoints[k];
+            let velocity = displacement / self.segment_times[k];
+            let reeb = (J_MATRIX * hrep.normals[i]) * (2.0 / hrep.heights[i]);
 
-            if norm(&sub(velocity, reeb)) > EPS * norm(&reeb) {
+            if (velocity - reeb).norm() > EPS * reeb.norm() {
                 return Err(ValidationError::VelocityMismatch(k));
             }
         }
@@ -1648,7 +1846,7 @@ fn test_symplectic_invariance() {
 ```rust
 fn test_breakpoints_on_boundary(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
     for p in &orbit.breakpoints {
-        assert!(is_on_boundary(*p, K), "Breakpoint not on boundary");
+        assert!(is_on_boundary(p, K), "Breakpoint not on boundary");
     }
 }
 ```
@@ -1658,12 +1856,12 @@ fn test_breakpoints_on_boundary(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
 fn test_segments_on_facets(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
     for k in 0..orbit.segment_facets.len() {
         let i = orbit.segment_facets[k];
-        let p0 = orbit.breakpoints[k];
-        let p1 = orbit.breakpoints[k + 1];
+        let p0 = &orbit.breakpoints[k];
+        let p1 = &orbit.breakpoints[k + 1];
 
         // Both endpoints on the claimed facet
-        assert!((dot(&K.normals[i], &p0) - K.heights[i]).abs() < EPS);
-        assert!((dot(&K.normals[i], &p1) - K.heights[i]).abs() < EPS);
+        assert!((K.normals[i].dot(p0) - K.heights[i]).abs() < EPS);
+        assert!((K.normals[i].dot(p1) - K.heights[i]).abs() < EPS);
     }
 }
 ```
@@ -1673,11 +1871,11 @@ fn test_segments_on_facets(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
 fn test_reeb_velocity(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
     for k in 0..orbit.segment_facets.len() {
         let i = orbit.segment_facets[k];
-        let displacement = sub(orbit.breakpoints[k + 1], orbit.breakpoints[k]);
-        let velocity = scale(1.0 / orbit.segment_times[k], displacement);
-        let reeb = scale(2.0 / K.heights[i], complex_structure(K.normals[i]));
+        let displacement = &orbit.breakpoints[k + 1] - &orbit.breakpoints[k];
+        let velocity = displacement / orbit.segment_times[k];
+        let reeb = (J_MATRIX * K.normals[i]) * (2.0 / K.heights[i]);
 
-        assert!(norm(&sub(velocity, reeb)) < EPS * norm(&reeb),
+        assert!((velocity - reeb).norm() < EPS * reeb.norm(),
             "Velocity on segment {} doesn't match Reeb vector", k);
     }
 }
@@ -1686,9 +1884,9 @@ fn test_reeb_velocity(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
 **4.3.4 Orbit closure:**
 ```rust
 fn test_orbit_closure(orbit: &ClosedReebOrbit) {
-    let first = orbit.breakpoints[0];
-    let last = orbit.breakpoints[orbit.breakpoints.len() - 1];
-    assert!(norm(&sub(first, last)) < EPS, "Orbit not closed");
+    let first = &orbit.breakpoints[0];
+    let last = &orbit.breakpoints[orbit.breakpoints.len() - 1];
+    assert!((first - last).norm() < EPS, "Orbit not closed");
 }
 ```
 
@@ -1731,16 +1929,24 @@ fn test_billiard_hk2017_agreement() {
 ```rust
 #[test]
 fn test_symplectic_form_properties() {
+    let u = Vector4::new(1.0, 2.0, 3.0, 4.0);
+    let v = Vector4::new(5.0, 6.0, 7.0, 8.0);
+    let w = Vector4::new(9.0, 10.0, 11.0, 12.0);
+
     // Antisymmetry
-    assert!((symplectic_form(u, v) + symplectic_form(v, u)).abs() < EPS);
+    assert!((symplectic_form(&u, &v) + symplectic_form(&v, &u)).abs() < EPS);
 
     // Bilinearity
-    assert!((symplectic_form(add(u, v), w) - symplectic_form(u, w) - symplectic_form(v, w)).abs() < EPS);
+    assert!((symplectic_form(&(u + v), &w) - symplectic_form(&u, &w) - symplectic_form(&v, &w)).abs() < EPS);
 
     // Standard basis values
-    assert!((symplectic_form([1,0,0,0], [0,0,1,0]) - 1.0).abs() < EPS);  // ω(e1, e3) = 1
-    assert!((symplectic_form([0,1,0,0], [0,0,0,1]) - 1.0).abs() < EPS);  // ω(e2, e4) = 1
-    assert!((symplectic_form([1,0,0,0], [0,1,0,0])).abs() < EPS);        // ω(e1, e2) = 0
+    let e1 = Vector4::new(1.0, 0.0, 0.0, 0.0);
+    let e2 = Vector4::new(0.0, 1.0, 0.0, 0.0);
+    let e3 = Vector4::new(0.0, 0.0, 1.0, 0.0);
+    let e4 = Vector4::new(0.0, 0.0, 0.0, 1.0);
+    assert!((symplectic_form(&e1, &e3) - 1.0).abs() < EPS);  // ω(e1, e3) = 1
+    assert!((symplectic_form(&e2, &e4) - 1.0).abs() < EPS);  // ω(e2, e4) = 1
+    assert!(symplectic_form(&e1, &e2).abs() < EPS);          // ω(e1, e2) = 0
 }
 ```
 
@@ -1751,11 +1957,11 @@ fn test_quaternion_relations() {
     let v = random_unit_vector();
 
     // J² = K² = -I
-    assert!(norm(&add(J(J(v)), v)) < EPS);
-    assert!(norm(&add(K(K(v)), v)) < EPS);
+    assert!((J_MATRIX * J_MATRIX * v + v).norm() < EPS);
+    assert!((K_MATRIX * K_MATRIX * v + v).norm() < EPS);
 
     // JK = -KJ
-    assert!(norm(&add(J(K(v)), K(J(v)))) < EPS);
+    assert!((J_MATRIX * K_MATRIX * v + K_MATRIX * J_MATRIX * v).norm() < EPS);
 }
 ```
 
@@ -1764,11 +1970,10 @@ fn test_quaternion_relations() {
 #[test]
 fn test_transition_matrix_symplectic() {
     for two_face in &polytope_data.two_faces {
-        let psi = two_face.transition_matrix;
+        let psi = &two_face.transition_matrix;
 
         // det(ψ) = 1
-        let det = psi[0][0] * psi[1][1] - psi[0][1] * psi[1][0];
-        assert!((det - 1.0).abs() < EPS);
+        assert!((psi.determinant() - 1.0).abs() < EPS);
 
         // ψᵀ J₂ ψ = J₂
         // (This is equivalent to det = 1 for 2×2 matrices)
@@ -1796,25 +2001,25 @@ fn test_rotation_number_range() {
 
 **4.6.1 Flow map consistency:**
 ```rust
-fn test_tube_flow_map(tube: &Tube, start_point: [f64; 2]) {
+fn test_tube_flow_map(tube: &Tube, start_point: &Vector2<f64>) {
     // Trace the trajectory step by step
     let traced_end = trace_trajectory_stepwise(tube, start_point);
 
     // Compare with flow map
-    let mapped_end = apply_affine_map(&tube.flow_map, &start_point);
+    let mapped_end = tube.flow_map.matrix * start_point + tube.flow_map.offset;
 
-    assert!(norm_2d(&sub_2d(traced_end, mapped_end)) < EPS);
+    assert!((traced_end - mapped_end).norm() < EPS);
 }
 ```
 
 **4.6.2 Action function consistency:**
 ```rust
-fn test_tube_action_func(tube: &Tube, start_point: [f64; 2]) {
+fn test_tube_action_func(tube: &Tube, start_point: &Vector2<f64>) {
     // Trace trajectory and sum segment times
     let traced_action = trace_and_sum_action(tube, start_point);
 
     // Compare with action function
-    let computed_action = evaluate_affine_func(&tube.action_func, &start_point);
+    let computed_action = tube.action_func.gradient.dot(start_point) + tube.action_func.constant;
 
     assert!((traced_action - computed_action).abs() < EPS);
 }
@@ -1822,9 +2027,9 @@ fn test_tube_action_func(tube: &Tube, start_point: [f64; 2]) {
 
 **4.6.3 Closed orbit is actually closed:**
 ```rust
-fn test_closed_orbit_is_fixed_point(orbit_2d: [f64; 2], tube: &Tube) {
-    let mapped = apply_affine_map(&tube.flow_map, &orbit_2d);
-    assert!(norm_2d(&sub_2d(orbit_2d, mapped)) < EPS,
+fn test_closed_orbit_is_fixed_point(orbit_2d: &Vector2<f64>, tube: &Tube) {
+    let mapped = tube.flow_map.matrix * orbit_2d + tube.flow_map.offset;
+    assert!((orbit_2d - mapped).norm() < EPS,
         "Claimed closed orbit is not a fixed point of flow map");
 }
 ```
@@ -1839,14 +2044,14 @@ fn test_hrep_vrep_consistency(K: &PolytopeRepEnriched) {
     // Every vertex satisfies all inequalities
     for v in &K.vertices {
         for (n, &h) in K.normals.iter().zip(&K.heights) {
-            assert!(dot(n, v) <= h + EPS);
+            assert!(n.dot(v) <= h + EPS);
         }
     }
 
     // Every vertex is tight on exactly dim=4 facets (for simple polytopes)
     for v in &K.vertices {
         let tight_count = K.normals.iter().zip(&K.heights)
-            .filter(|(n, &h)| (dot(n, v) - h).abs() < EPS)
+            .filter(|(n, &h)| (n.dot(v) - h).abs() < EPS)
             .count();
         assert!(tight_count >= 4, "Vertex on fewer than 4 facets");
     }
@@ -1859,12 +2064,12 @@ fn test_two_face_enumeration(data: &PolytopeData) {
     for two_face in &data.two_faces {
         // 2-face vertices are on both facets
         for v in &two_face.vertices_4d {
-            assert!((dot(&data.normals[two_face.i], v) - data.heights[two_face.i]).abs() < EPS);
-            assert!((dot(&data.normals[two_face.j], v) - data.heights[two_face.j]).abs() < EPS);
+            assert!((data.normals[two_face.i].dot(v) - data.heights[two_face.i]).abs() < EPS);
+            assert!((data.normals[two_face.j].dot(v) - data.heights[two_face.j]).abs() < EPS);
         }
 
         // Lagrangian classification is correct
-        let omega = symplectic_form(data.normals[two_face.i], data.normals[two_face.j]);
+        let omega = symplectic_form(&data.normals[two_face.i], &data.normals[two_face.j]);
         assert_eq!(omega.abs() < EPS_LAGRANGIAN, two_face.is_lagrangian);
     }
 }
@@ -1879,10 +2084,10 @@ fn test_two_face_enumeration(data: &PolytopeData) {
 fn tesseract() -> PolytopeHRep {
     PolytopeHRep {
         normals: vec![
-            [1.0, 0.0, 0.0, 0.0], [-1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0], [0.0, -1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, -1.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, -1.0],
+            Vector4::new(1.0, 0.0, 0.0, 0.0), Vector4::new(-1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0), Vector4::new(0.0, -1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0), Vector4::new(0.0, 0.0, -1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0), Vector4::new(0.0, 0.0, 0.0, -1.0),
         ],
         heights: vec![1.0; 8],
     }
@@ -1892,9 +2097,10 @@ fn tesseract() -> PolytopeHRep {
 **Triangle × Triangle (equilateral, circumradius 1):**
 ```rust
 fn triangle_product() -> LagrangianProductPolytope {
+    use std::f64::consts::PI;
     let angles = [0.0, 2.0 * PI / 3.0, 4.0 * PI / 3.0];
-    let vertices: Vec<[f64; 2]> = angles.iter()
-        .map(|&a| [a.cos(), a.sin()])
+    let vertices: Vec<Vector2<f64>> = angles.iter()
+        .map(|&a| Vector2::new(a.cos(), a.sin()))
         .collect();
 
     // Compute normals (outward, perpendicular to edges)
@@ -1910,14 +2116,15 @@ fn triangle_product() -> LagrangianProductPolytope {
 **Pentagon × RotatedPentagon (HK-O counterexample):**
 ```rust
 fn hko_counterexample() -> LagrangianProductPolytope {
+    use std::f64::consts::PI;
     let angles: Vec<f64> = (0..5).map(|i| 2.0 * PI * i as f64 / 5.0).collect();
 
-    let pentagon_vertices: Vec<[f64; 2]> = angles.iter()
-        .map(|&a| [a.cos(), a.sin()])
+    let pentagon_vertices: Vec<Vector2<f64>> = angles.iter()
+        .map(|&a| Vector2::new(a.cos(), a.sin()))
         .collect();
 
-    let rotated_vertices: Vec<[f64; 2]> = angles.iter()
-        .map(|&a| [(a + PI/2.0).cos(), (a + PI/2.0).sin()])
+    let rotated_vertices: Vec<Vector2<f64>> = angles.iter()
+        .map(|&a| Vector2::new((a + PI/2.0).cos(), (a + PI/2.0).sin()))
         .collect();
 
     // Expected capacity: 2 * cos(π/10) * (1 + cos(π/5)) ≈ 3.4409548
