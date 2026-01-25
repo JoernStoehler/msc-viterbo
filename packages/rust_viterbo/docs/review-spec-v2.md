@@ -540,6 +540,29 @@ The spec has test cases (§4) but the testing strategy is incomplete for robust 
 
 **Needed:** Identify a polytope with NO Lagrangian 2-faces for tube algorithm end-to-end testing.
 
+**Candidate: Cross-polytope (hyperoctahedron)**
+```
+conv{±e₁, ±e₂, ±e₃, ±e₄}
+```
+This has 0 in its interior and 16 facets with normals proportional to (±1,±1,±1,±1). **Verify:** check that ω(n_i, n_j) ≠ 0 for all adjacent facet pairs before using as test case.
+
+**Random polytope generation (for property-based testing):**
+1. **Random V-rep:** Convex hull of N random points (e.g., uniform on sphere, or Gaussian)
+   - Reject if 0 not in interior
+   - Reject if any 2-face is Lagrangian (|ω(n_i, n_j)| < EPS)
+
+2. **Random H-rep:** N random half-spaces (random unit normal, random height > 0)
+   - Reject if unbounded (normals don't positively span ℝ⁴)
+   - Reject if redundant (fewer than N non-redundant facets)
+   - Reject if any 2-face is Lagrangian
+
+**Caution:** "Suitable" distributions need adversarial thinking. A naive distribution might:
+- Produce mostly near-Lagrangian polytopes
+- Cluster normals in certain directions
+- Miss edge cases the algorithm handles poorly
+
+Consider: distributions that intentionally stress numerical precision (nearly parallel facets, nearly Lagrangian 2-faces with ω ≈ 1e-6, etc.).
+
 ### 9.2 Testing Without Ground Truth Values
 
 Testing correctness does NOT require known capacity values. The spec should emphasize:
@@ -637,12 +660,14 @@ The spec should include these concrete tests, designed to **catch bugs** not con
 
 | Polytope | What It Tests |
 |----------|---------------|
-| Tesseract (Lagrangian product, c=4) | Baseline, billiard works |
+| Tesseract [-1,1]⁴ (Lagrangian product, c=4) | Baseline, billiard works |
 | Tesseract perturbed by symplectomorphism | Symplectic invariance |
 | Tesseract scaled by λ=2 | Scaling axiom (c=16) |
 | Tesseract perturbed to break Lagrangian structure | Tube algorithm on near-Lagrangian |
-| Random convex hull of 10 points (check 0 in interior) | Generic polytope |
+| Cross-polytope conv{±eᵢ} (**verify** no Lagrangian 2-faces first) | Tube algorithm on non-product |
+| Random convex hull of 10 points (reject if 0∉int, or has Lagrangian 2-face) | Generic polytope |
 | Convex hull with nearly coplanar facets | Numerical sensitivity |
+| Nearly-Lagrangian: ω(n_i, n_j) ≈ 1e-6 for some 2-face | Numerical stability near degeneracy |
 | Polytope with exactly 5 facets (minimum for 4D with 0 in interior?) | Minimal case |
 
 #### 9.4.8 Algorithm Agreement Tests
