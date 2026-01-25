@@ -5,6 +5,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash -lc \"$CLAUDE_PROJECT_DIR/.claude/hooks/web-env-setup.sh\""
+          },
+          {
+            "type": "command",
             "command": "bash -lc scripts/hello.sh"
           }
         ]

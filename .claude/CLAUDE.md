@@ -19,9 +19,16 @@
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
 ## Environment Dependencies
-- **TexLive:** Local devcontainer only (apt-get blocked in web environment)
-- **Python packages:** Run `cd packages/python_viterbo && uv sync --extra dev` to install dependencies (includes pytest, maturin, etc.)
-- **Rust:** Should be pre-installed in most environments. Check with `rustc --version`
+Two environments exist: **local devcontainer** (Jörn's machine) and **Claude Code web** (agents). Both support Rust and Python dev. See `.claude/skills/environment/SKILL.md` for details.
+
+| Dependency | Local | Web |
+|------------|-------|-----|
+| Rust, Cargo | Yes | Yes |
+| Python, uv | Yes | Yes |
+| gh CLI | Yes | Auto-installed by SessionStart hook |
+| TexLive (pdflatex) | Yes | No (apt-get blocked) |
+
+**Python packages:** Run `cd packages/python_viterbo && uv sync --extra dev`
 
 ## Communication with Project Owner
 - Jörn only reliably reads the final message of each turn. Structure accordingly: put decisions, questions, and summaries at the end, not interspersed with work updates.
