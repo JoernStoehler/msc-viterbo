@@ -1453,7 +1453,21 @@ struct AffineFunc {
 4. `action_func(s)` gives the action of that trajectory
 5. `rotation` is constant over all trajectories in the tube (depends only on combinatorics)
 
-**Why action is affine in starting position:** The action formula \(A(\gamma) = \frac{1}{2}\int\langle J\gamma, \dot\gamma\rangle dt\) is translation-invariant: for \(\gamma \to \gamma + b\) (constant shift), \(\dot\gamma\) is unchanged and \(\int\langle Jb, \dot\gamma\rangle dt = \langle Jb, \gamma\rangle|_0^T = 0\) by closure. Within a tube, breakpoint positions are affine in the starting point (flow maps are affine), so total action (sum of segment times) is affine in the starting position.
+**Why action is affine in starting position:** This follows from elementary algebra, not contact geometry:
+
+1. **Reeb flow is linear:** On facet with normal \(n\), the flow is \(p(t) = p_0 + t \cdot R_n\) where \(R_n\) is the Reeb vector.
+
+2. **Exit time is affine in starting position:** To exit facet \(n\) and enter facet \(n'\), solve \(\langle n', p(t) \rangle = d'\):
+   \[t_{\text{exit}} = \frac{d' - \langle n', p_0 \rangle}{\langle n', R_n \rangle}\]
+   This is affine in \(p_0\) (the denominator is constant for a given facet pair).
+
+3. **Segment action = segment time:** For Reeb flow, \(A(\gamma) = T\) (action equals period). Each segment contributes \(t_{\text{exit}} - t_{\text{entry}}\).
+
+4. **Composition preserves affinity:** The exit point \(p(t_{\text{exit}})\) is affine in \(p_0\). By induction, all breakpoints are affine in the initial starting position.
+
+5. **Sum of affine functions is affine:** Total action = \(\sum_k t_k(p_0)\) where each \(t_k\) is affine in \(p_0\).
+
+Therefore `action_func` is representable as \(f(x) = \langle g, x \rangle + c\) for some gradient \(g\) and constant \(c\).
 
 **Tube initialization (root tube for 2-face \(F_{ij}\)):**
 ```rust

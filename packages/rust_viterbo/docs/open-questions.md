@@ -7,26 +7,24 @@
 
 ## Open Questions
 
-### 4. Action Function Derivation (Minor)
-
-**Current State:**
-
-The spec says (§2.9):
-> "Why action is affine in starting position: The action formula A(γ) = (1/2)∫⟨Jγ, γ̇⟩dt is translation-invariant..."
-
-**Problem:**
-
-This argument conflates continuous contact geometry with discrete polytope geometry. The actual proof is:
-
-1. Each segment's exit time is **linear** in its starting point (from solving the exit hyperplane equation)
-2. Affine composition of affine functions preserves affinity
-3. Sum of affine functions is affine
-
-**Status:** Low priority since the conclusion is correct. Optional improvement for future milestone.
+*None currently open.*
 
 ---
 
 ## Resolved Questions
+
+### Q4: Action Function Derivation (Resolved 2026-01-25)
+
+**Question:** The spec's argument for "action is affine in starting position" was hand-wavy.
+
+**Resolution:** Replaced with elementary algebraic proof:
+1. Reeb flow is linear: p(t) = p₀ + t·R
+2. Exit time is affine in p₀ (solve hyperplane equation)
+3. Segment action = segment time (for Reeb flow)
+4. Composition of affine functions is affine (by induction, all breakpoints are affine in initial position)
+5. Sum of affine functions is affine
+
+**Spec update:** Section 2.9 now has the correct 5-step derivation.
 
 ### Q1: Trivialization Normal Convention (Resolved 2026-01-25)
 
@@ -81,4 +79,6 @@ The code is consistent with this. Doc improvement: semantic definition added to 
 | Q1: Trivialization normal | **Resolved** | Use exit facet (n_j) per CH2021 |
 | Q2: Transition matrix direction | **Resolved** | Spec matches CH2021 |
 | Q3: entry_normal field | **Resolved** | Store both; polygon_2d uses exit_normal |
-| Q4: Action derivation | Open (minor) | Optional improvement |
+| Q4: Action derivation | **Resolved** | Elementary algebraic proof in §2.9 |
+
+**All questions resolved as of 2026-01-25.**
