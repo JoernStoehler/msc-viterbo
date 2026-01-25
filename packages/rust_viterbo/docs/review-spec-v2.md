@@ -18,6 +18,49 @@ The developer-spec-v2.md is a substantial improvement in structure and mathemati
 
 ---
 
+## 0. Clarifications from Project Owner (2026-01-25)
+
+These clarifications resolve several ambiguities identified below:
+
+### 0.1 Trivialization Basis (re: Section 3.1)
+
+The quaternion-based trivialization τ(V) = (⟨V, jn⟩, ⟨V, kn⟩) may be **stale/incorrect**. While Kn, K'n are orthogonal to n (thus in the 3-facet hyperplane), they may **not lie in the 2-face plane**. This approach may be leftover from an older iteration that needs verification or replacement.
+
+### 0.2 Rotation Convention (re: Section 4.3)
+
+Convention: **rot(init) = 0**. The tube trajectory starts ε-time after entering the second facet (and ends at 2ε-time, being straight lines inside the facet). Trajectories extend such that γ(0) lies on the 2-face. The tube is not just the interior lines—it includes the extended trajectories.
+
+Rotation is **non-decreasing** as one extends a finite trajectory in either direction (both smooth and polytope cases). The algorithm uses ≥0 rotation increments.
+
+### 0.3 Coordinate Systems for p_start, p_end (re: Section 3.4)
+
+Both `p_start` and `p_end` should exist (for debugging; can remove dead code later). They use their respective 2-face coordinate systems (from the first/exited facet). If conventions match up nicely, the right convention was picked.
+
+### 0.4 Mixed Lagrangian Polytopes (re: Section 4.1)
+
+Confirmed: **No algorithm is currently designed** to handle polytopes with both Lagrangian and non-Lagrangian 2-faces. This is a known limitation.
+
+### 0.5 Lagrangian 2-Faces in Tube Algorithm (re: Section 4.2)
+
+Confirmed: The tube algorithm is **not designed** for Lagrangian 2-faces.
+
+### 0.6 Degenerate Fixed Points (re: Section 4.4)
+
+In the generic case, there is 0 or 1 fixed point per tube. This can be seen by perturbation: every factor of ψ can be perturbed (by perturbing the polytope) such that the product no longer has eigenvalue 1.
+
+**Recommendation:** Do not silently assume genericity. Instead, **runtime error** if numerics turn nearly singular.
+
+### 0.7 Naming and Complexity (re: Sections 5.1, 5.4)
+
+- HK2017 naming: agreed, use consistently
+- Complexity claims: not a priority. Delete or mark as unverified.
+
+### 0.8 Tolerance Hierarchy (re: Section 3.5)
+
+Not a priority. More important to detect when numerics are wrong and react, than to theorize tolerance choices in advance.
+
+---
+
 ## 1. Documented Gaps (Explicitly Incomplete)
 
 ### 1.1 HK2017 QP Solver Incompleteness (Section 3.3)
@@ -165,7 +208,7 @@ action_func: add_affine_funcs(&tube.action_func, &compose_with_map(&time_func, &
 
 ## 3. Ambiguities
 
-### 3.1 Trivialization: Which Normal?
+### 3.1 Trivialization: Which Normal? (POTENTIALLY STALE)
 
 **Location:** Section 1.14 vs Section 2.10
 
@@ -188,6 +231,10 @@ In Section 2.10 (line 1261):
 - `TwoFaceEnriched` does not clearly store which normal was used for its `polygon_2d`
 
 This could cause subtle bugs if entry vs exit normal is confused.
+
+**CRITICAL (per 0.1):** The quaternion-based trivialization τ(V) = (⟨V, jn⟩, ⟨V, kn⟩) may be **fundamentally broken**. While jn and kn are orthogonal to n (thus in the facet's 3D hyperplane), they may **not lie in the 2-face's 2D plane**. The 2-face is the intersection of two facets, so its tangent space is 2D, but jn and kn span a 2D subspace of the 3D facet tangent space—not necessarily the same 2D subspace.
+
+**Action needed:** Verify the trivialization formula against CH2021 or derive a correct basis for the 2-face tangent space.
 
 ### 3.2 Closed vs Open Facet Sequences
 
@@ -281,11 +328,13 @@ const EPS_ROTATION: f64 = 0.01;
 
 The rotation number is always in (0, 0.5), but is there a sign convention? Does it depend on flow direction? The document says "how much the Reeb flow rotates when crossing" but doesn't clarify if there's a signed vs unsigned convention.
 
-### 4.4 Multiple Closed Orbits Per Tube
+### 4.4 Multiple Closed Orbits Per Tube (RESOLVED)
 
 **Location:** Section 2.11
 
 The `find_closed_orbits` function suggests a tube could have multiple closed orbits (returns `Vec<...>`). But the text often assumes a unique closed orbit. When can there be multiple? Only in the degenerate case?
+
+**Resolution (per 0.6):** In the generic case, there is **0 or 1** fixed point per tube. Each factor of ψ can be perturbed (by perturbing the polytope) such that the product no longer has eigenvalue 1. Do not silently assume genericity—**runtime error** if numerics turn nearly singular.
 
 ### 4.5 Entry vs Exit Trivialization in TwoFaceEnriched
 
