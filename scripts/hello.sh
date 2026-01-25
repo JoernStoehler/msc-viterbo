@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Note: no set -e; this script should never block session start
+trap 'exit 0' ERR  # Ensure non-blocking even on errors
 
 if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
   cat <<'EOF'
