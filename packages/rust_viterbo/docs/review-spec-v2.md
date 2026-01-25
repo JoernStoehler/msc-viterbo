@@ -6,6 +6,26 @@
 
 ---
 
+## Handoff Notes (for next agent)
+
+**Your task:** Fix the spec (developer-spec-v2.md) according to §10 recommendations. Update this review as you go.
+
+**Key context:**
+1. **Truth hierarchy:** Math papers → Thesis → Spec math → Spec Rust. Never use Rust code to justify conventions; go to the math source.
+2. **Trivialization normal convention (decided):** Use the **exited facet's normal** (the facet we're leaving). Document this in TwoFaceEnriched.
+3. **Facet sequence semantics (decided):** `[i, j]` means "at 2-face F_{i,j}, entered facet j from facet i, about to flow along j."
+4. **Near-singular handling:** Runtime error, don't silently assume genericity (§0.6).
+5. **Testing without ground truth:** Use axioms, orbit validity, internal invariants (§9.2-9.4). Don't rely solely on known capacity values.
+
+**Files to read:**
+- This review: `packages/rust_viterbo/docs/review-spec-v2.md`
+- The spec: `packages/rust_viterbo/docs/developer-spec-v2.md`
+- For citations: `docs/papers/` (contains CH2021 sections), `packages/latex_viterbo/chapters/` (thesis)
+
+**Workflow:** For each §10 recommendation, fix the spec, then mark the recommendation as done in this review.
+
+---
+
 ## Executive Summary
 
 The developer-spec-v2.md is a substantial improvement in structure and mathematical rigor compared to v1. However, several categories of issues remain:
@@ -40,7 +60,13 @@ Rotation is **non-decreasing** as one extends a finite trajectory in either dire
 
 ### 0.3 Coordinate Systems for p_start, p_end (re: Section 3.4)
 
-Both `p_start` and `p_end` should exist (for debugging; can remove dead code later). They use their respective 2-face coordinate systems (from the first/exited facet). If conventions match up nicely, the right convention was picked.
+Both `p_start` and `p_end` should exist (for debugging; can remove dead code later). They use their respective 2-face coordinate systems.
+
+**Convention decided:** Use the **exited facet's normal** (the facet we're leaving) for trivialization. For a tube with `facet_sequence: [i, j, k, ...]`:
+- Start 2-face F_{i,j} is trivialized using n_i (exited facet)
+- After flowing along j to 2-face F_{j,k}, that 2-face is trivialized using n_j (exited facet)
+
+This must be documented clearly in `TwoFaceEnriched.polygon_2d` and in the `compute_facet_flow` function.
 
 ### 0.4 Mixed Lagrangian Polytopes (re: Section 4.1)
 
