@@ -482,6 +482,8 @@ assert_eq!(J_MATRIX * K_MATRIX, -(K_MATRIX * J_MATRIX));  // JK = -KJ
 
 ### 1.10 Trivialization of 2-Face Tangent Spaces
 
+**Source:** CH2021 Definition 2.15 (quaternionic trivialization), Lemma 2.16 (symplectic preservation).
+
 Each non-Lagrangian 2-face \(F_{ij}\) has a 2-dimensional tangent space. We trivialize it using the quaternion structure.
 
 **Setup:** For a 2-face \(F_{ij} = F_i \cap F_j\), the tangent space is:
@@ -539,7 +541,7 @@ let v_recovered = untrivialize(n, &trivialize(n, &v_tangent));
 assert!((v_recovered - v_tangent).norm() < EPS);
 ```
 
-**Key property (symplectic form preservation):**
+**Key property (symplectic form preservation):** (CH2021 Lemma 2.16)
 
 For vectors \(V_1, V_2\) **tangent to the facet** (i.e., \(\langle V_i, n \rangle = 0\)):
 \[
@@ -569,6 +571,8 @@ fn verify_symplectic_preservation(n: &Vector4<f64>, v1: &Vector4<f64>, v2: &Vect
 ---
 
 ### 1.11 Transition Matrices on 2-Faces
+
+**Source:** CH2021 Definition 2.17 (transition matrix), Lemma 2.18 (positive elliptic classification).
 
 For a non-Lagrangian 2-face \(F_{ij}\), the **transition matrix** \(\psi_F \in \mathrm{Sp}(2)\) relates the trivializations from the two adjacent facet normals:
 \[
@@ -602,8 +606,8 @@ fn compute_transition_matrix(n_i: &Vector4<f64>, n_j: &Vector4<f64>) -> Matrix2<
 assert!((psi.determinant() - 1.0).abs() < EPS);
 ```
 
-**Classification by trace (mathematical condition not encoded in Rust type):**
-- \(|\mathrm{tr}(\psi)| > 2\): Hyperbolic (cannot occur for polytope 2-faces)
+**Classification by trace** (CH2021 Lemma 2.18; see also Appendix A, Definition A.3):
+- \(|\mathrm{tr}(\psi)| > 2\): Hyperbolic (cannot occur for polytope 2-faces — the transition matrix is always positive elliptic)
 - \(|\mathrm{tr}(\psi)| = 2\): Parabolic = Lagrangian 2-face (ω(n_i, n_j) = 0)
 - \(|\mathrm{tr}(\psi)| < 2\): Elliptic = non-Lagrangian 2-face
 
@@ -628,6 +632,8 @@ fn assert_non_lagrangian(psi: &Matrix2<f64>, n_i: &Vector4<f64>, n_j: &Vector4<f
 ---
 
 ### 1.12 Rotation Number of 2-Faces
+
+**Source:** CH2021 Appendix A (rotation numbers on Sp(2)), Corollary 5.3 (range (0, 0.5) for non-Lagrangian 2-faces).
 
 For a non-Lagrangian 2-face \(F_{ij}\), the **rotation number** \(\rho(F) \in (0, 0.5)\) measures how much the Reeb flow "rotates" when crossing:
 \[
@@ -728,10 +734,18 @@ fn trivialize_two_face(
 
 **Consolidated TwoFaceEnriched (all fields from sections 1.5-1.7, 1.11-1.14):**
 
+**IMPORTANT: Trivialization Normal Convention**
+
+For a tube with facet sequence `[i, j, k, ...]`:
+- At 2-face F_{i,j}, we use n_i (the **exited facet's normal**) for trivialization
+- The transition matrix ψ_F relates τ_{n_i} to τ_{n_j} coordinates
+
+This convention is consistent: when flowing from facet i to facet j, we trivialize using the normal of the facet we're leaving (i).
+
 ```rust
 struct TwoFaceEnriched {
     // From 1.5: Basic identification
-    i: usize,                          // first facet index (i < j)
+    i: usize,                          // first facet index (i < j by convention)
     j: usize,                          // second facet index
     vertices: Vec<usize>,              // indices into global vertex list
     omega_ij: f64,                     // ω(n_i, n_j)
@@ -743,13 +757,17 @@ struct TwoFaceEnriched {
     flow_direction: Option<FlowDirection>,  // ItoJ or JtoI
 
     // From 1.11: Transition matrix (for non-Lagrangian)
-    transition_matrix: Matrix2<f64>,   // ψ_F ∈ Sp(2)
+    transition_matrix: Matrix2<f64>,   // ψ_F = τ_{n_j} ∘ τ_{n_i}^{-1} ∈ Sp(2)
 
     // From 1.12: Rotation number (for non-Lagrangian)
     rotation: f64,                     // ρ(F) ∈ (0, 0.5)
 
     // From 1.14: Trivialized polygon
-    polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{n_i} coordinates, CCW
+    // CONVENTION: polygon_2d uses the **exited facet's normal** for trivialization.
+    // For a root tube starting at F_{i,j}, this is n_i.
+    // The `entry_normal` field stores which normal was used.
+    entry_normal: Vector4<f64>,        // n_i or n_j depending on flow direction
+    polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{entry_normal} coordinates, CCW
     vertices_4d: Vec<Vector4<f64>>,    // original 4D vertex positions
     centroid_4d: Vector4<f64>,         // centroid for reconstruction
 }
@@ -807,6 +825,217 @@ const EPS_ROTATION: f64 = 0.01;      // rotation pruning margin (turns)
 - Tight tolerances for input validation (catch errors early)
 - Looser tolerances for derived quantities (numerical error accumulates)
 - Document when a tolerance is "engineering choice" vs mathematically motivated
+
+---
+
+### 1.17 Helper Functions (Geometry Utilities)
+
+**CCW sorting of 2D polygon vertices:**
+
+```rust
+/// Sort 2D points in counter-clockwise order around their centroid.
+/// Precondition: points form a convex polygon (no collinearity checks).
+fn sort_ccw(mut points: Vec<Vector2<f64>>) -> Vec<Vector2<f64>> {
+    if points.len() < 3 {
+        return points;
+    }
+
+    // Compute centroid
+    let centroid: Vector2<f64> = points.iter().sum::<Vector2<f64>>() / points.len() as f64;
+
+    // Sort by angle from centroid
+    points.sort_by(|a, b| {
+        let angle_a = (a[1] - centroid[1]).atan2(a[0] - centroid[0]);
+        let angle_b = (b[1] - centroid[1]).atan2(b[0] - centroid[0]);
+        angle_a.partial_cmp(&angle_b).unwrap()
+    });
+
+    points
+}
+```
+
+**Convex polygon intersection (Sutherland-Hodgman-style):**
+
+```rust
+/// Compute intersection of two convex polygons.
+/// Returns empty polygon if intersection is empty.
+/// Reference: O'Rourke, "Computational Geometry in C", Chapter 7.
+fn intersect_polygons(p1: &Polygon2D, p2: &Polygon2D) -> Polygon2D {
+    // Clip p1 against each edge of p2
+    let mut result = p1.vertices.clone();
+
+    for i in 0..p2.vertices.len() {
+        if result.is_empty() {
+            break;
+        }
+        let j = (i + 1) % p2.vertices.len();
+        let edge_start = &p2.vertices[i];
+        let edge_end = &p2.vertices[j];
+
+        result = clip_polygon_by_halfplane(&result, edge_start, edge_end);
+    }
+
+    Polygon2D { vertices: result }
+}
+
+/// Clip polygon by half-plane defined by edge (p1 -> p2).
+/// Keep points on the left side of the directed edge.
+fn clip_polygon_by_halfplane(
+    polygon: &[Vector2<f64>],
+    p1: &Vector2<f64>,
+    p2: &Vector2<f64>,
+) -> Vec<Vector2<f64>> {
+    let mut output = Vec::new();
+
+    for i in 0..polygon.len() {
+        let j = (i + 1) % polygon.len();
+        let curr = &polygon[i];
+        let next = &polygon[j];
+
+        let curr_inside = is_left_of_edge(curr, p1, p2);
+        let next_inside = is_left_of_edge(next, p1, p2);
+
+        if curr_inside {
+            output.push(*curr);
+            if !next_inside {
+                output.push(line_intersection(curr, next, p1, p2));
+            }
+        } else if next_inside {
+            output.push(line_intersection(curr, next, p1, p2));
+        }
+    }
+
+    output
+}
+
+fn is_left_of_edge(p: &Vector2<f64>, e1: &Vector2<f64>, e2: &Vector2<f64>) -> bool {
+    // Cross product of (e2-e1) and (p-e1)
+    let cross = (e2[0] - e1[0]) * (p[1] - e1[1]) - (e2[1] - e1[1]) * (p[0] - e1[0]);
+    cross >= -EPS  // Include points on the edge
+}
+
+fn line_intersection(
+    a1: &Vector2<f64>, a2: &Vector2<f64>,
+    b1: &Vector2<f64>, b2: &Vector2<f64>,
+) -> Vector2<f64> {
+    // Standard line-line intersection formula
+    let d1 = a2 - a1;
+    let d2 = b2 - b1;
+    let cross = d1[0] * d2[1] - d1[1] * d2[0];
+
+    if cross.abs() < EPS {
+        // Lines are parallel; return midpoint as fallback
+        return (a1 + b1) / 2.0;
+    }
+
+    let t = ((b1[0] - a1[0]) * d2[1] - (b1[1] - a1[1]) * d2[0]) / cross;
+    a1 + d1 * t
+}
+```
+
+**Point-in-polygon test:**
+
+```rust
+/// Test if point is inside a convex polygon (CCW vertices).
+/// Uses winding number method.
+fn point_in_polygon(p: &Vector2<f64>, polygon: &Polygon2D) -> bool {
+    if polygon.vertices.len() < 3 {
+        return false;
+    }
+
+    // For convex polygons: point is inside iff it's on the left of all edges
+    for i in 0..polygon.vertices.len() {
+        let j = (i + 1) % polygon.vertices.len();
+        if !is_left_of_edge(p, &polygon.vertices[i], &polygon.vertices[j]) {
+            return false;
+        }
+    }
+    true
+}
+```
+
+**Affine map composition:**
+
+```rust
+impl AffineMap2D {
+    fn identity() -> Self {
+        AffineMap2D {
+            matrix: Matrix2::identity(),
+            offset: Vector2::zeros(),
+        }
+    }
+
+    fn apply(&self, x: &Vector2<f64>) -> Vector2<f64> {
+        self.matrix * x + self.offset
+    }
+}
+
+/// Compose f ∘ g: (Ax + b) ∘ (Cx + d) = A(Cx + d) + b = (AC)x + (Ad + b)
+fn compose_affine(f: &AffineMap2D, g: &AffineMap2D) -> AffineMap2D {
+    AffineMap2D {
+        matrix: f.matrix * g.matrix,
+        offset: f.matrix * g.offset + f.offset,
+    }
+}
+
+fn apply_affine_map(f: &AffineMap2D, polygon: &Polygon2D) -> Polygon2D {
+    Polygon2D {
+        vertices: polygon.vertices.iter().map(|v| f.apply(v)).collect(),
+    }
+}
+```
+
+**Affine function operations:**
+
+```rust
+impl AffineFunc {
+    fn zero() -> Self {
+        AffineFunc {
+            gradient: Vector2::zeros(),
+            constant: 0.0,
+        }
+    }
+
+    fn eval(&self, x: &Vector2<f64>) -> f64 {
+        self.gradient.dot(x) + self.constant
+    }
+}
+
+/// Add two affine functions: (g₁·x + c₁) + (g₂·x + c₂) = (g₁+g₂)·x + (c₁+c₂)
+fn add_affine_funcs(f: &AffineFunc, g: &AffineFunc) -> AffineFunc {
+    AffineFunc {
+        gradient: f.gradient + g.gradient,
+        constant: f.constant + g.constant,
+    }
+}
+
+/// Compose affine function with affine map: f(Ax + b) where f(y) = g·y + c
+/// Result: g·(Ax + b) + c = (Aᵀg)·x + (g·b + c)
+fn compose_with_map(f: &AffineFunc, map: &AffineMap2D) -> AffineFunc {
+    AffineFunc {
+        gradient: map.matrix.transpose() * f.gradient,
+        constant: f.gradient.dot(&map.offset) + f.constant,
+    }
+}
+```
+
+**Polygon area (for emptiness check):**
+
+```rust
+fn polygon_area(p: &Polygon2D) -> f64 {
+    if p.vertices.len() < 3 {
+        return 0.0;
+    }
+
+    let mut area = 0.0;
+    for i in 0..p.vertices.len() {
+        let j = (i + 1) % p.vertices.len();
+        area += p.vertices[i][0] * p.vertices[j][1];
+        area -= p.vertices[j][0] * p.vertices[i][1];
+    }
+    (area / 2.0).abs()
+}
+```
 
 ---
 
@@ -1000,12 +1229,18 @@ assert!((normals[i].dot(&breakpoints[k+1]) - heights[i]).abs() < EPS);
 
 ### 2.5 Action of Piecewise Linear Reeb Trajectories
 
+**Source:** Thesis Section 6 (action-capacity-systolic), Hofer-Zehnder 1994 §3.4.
+
 For Reeb dynamics, **action equals period**:
 \[
 A(\gamma) = T = \sum_k \tau_k
 \]
 
-This follows from the Reeb vector definition and the contact form.
+**Proof sketch:** The Reeb vector \(R\) is defined by \(\alpha(R) = 1\) and \(\iota_R d\alpha = 0\). For a Reeb orbit \(\gamma\) parametrized by \(t \in [0, T]\):
+\[
+A(\gamma) = \int_\gamma \alpha = \int_0^T \alpha(\dot{\gamma}(t))\, dt = \int_0^T \alpha(R)\, dt = \int_0^T 1\, dt = T
+\]
+On polytopes, this holds piecewise on each facet since the Reeb vector is constant within each facet.
 
 ```rust
 fn action_from_segment_times(segment_times: &[f64]) -> f64 {
@@ -1157,6 +1392,8 @@ impl FacetSequence {
 
 ### 2.9 Tubes (Partial Trajectories)
 
+**Source:** CH2021 Definition 2.5 (linear flow), Definition 2.6 (linear flow composition), Definition 2.8 (symplectic flow graph). The "tube" terminology comes from visualizing the set of all trajectories with a fixed facet sequence as a 2-parameter family (like a tube in phase space).
+
 A **tube** represents all Reeb trajectories with a fixed combinatorial class (facet sequence).
 
 ```rust
@@ -1212,6 +1449,23 @@ fn create_root_tube(two_face: &TwoFaceEnriched) -> Tube {
     }
 }
 ```
+
+**Action lower bound** (for branch-and-bound pruning):
+
+The action function is affine over the start polygon: `action(s) = ⟨g, s⟩ + c`. To find the minimum action over the convex polygon `p_start`, we minimize an affine function over a convex set. For a convex polygon, the minimum occurs at a vertex.
+
+```rust
+impl Tube {
+    fn action_lower_bound(&self) -> f64 {
+        // Minimum of affine function over convex polygon = minimum over vertices
+        self.p_start.vertices.iter()
+            .map(|v| self.action_func.gradient.dot(v) + self.action_func.constant)
+            .fold(f64::INFINITY, f64::min)
+    }
+}
+```
+
+**Note:** For empty tubes (`p_start.vertices.is_empty()`), return `f64::INFINITY` (already pruned). This method is O(n) where n = number of vertices in `p_start`, which is typically small (≤ 10).
 
 ---
 
@@ -1391,9 +1645,18 @@ fn find_closed_orbits(tube: &Tube) -> Vec<(f64, Vector2<f64>)> {
     let det = a_minus_i.determinant();
 
     if det.abs() < EPS {
-        // Degenerate: line or plane of fixed points
-        // Handle separately...
-        return find_fixed_point_set(tube);
+        // Near-singular case: the flow map (A - I) is nearly singular.
+        // In the generic case, there is 0 or 1 fixed point per tube (see review §0.6).
+        // Near-singularity indicates either:
+        //   (a) A degenerate polytope (multiple fixed points), or
+        //   (b) Numerical instability near a bifurcation.
+        // Do not silently assume genericity; raise a runtime error.
+        panic!(
+            "Near-singular flow map in tube closure: det(A - I) = {:.2e}. \
+             This may indicate a degenerate polytope or numerical instability. \
+             Facet sequence: {:?}",
+            det, tube.facet_sequence
+        );
     }
 
     // Unique fixed point: s = (A - I)^{-1} (-b)
@@ -1599,11 +1862,13 @@ impl ClosedReebOrbit {
 
 ### 3.1 Algorithm Applicability Summary
 
-| Algorithm | Domain | Complexity | Notes |
-|-----------|--------|------------|-------|
-| Billiard | Lagrangian products \(K_1 \times K_2\) | \(O(n_1^3 \times n_2^3)\) | Most reliable |
-| HK2017 | All polytopes | \(O(F!)\) | Limited to ~10 facets |
-| Tube | Non-Lagrangian polytopes | \(O(F! \times \text{poly})\) | Requires no Lagrangian 2-faces |
+| Algorithm | Domain | Notes |
+|-----------|--------|-------|
+| Billiard | Lagrangian products \(K_1 \times K_2\) | Most reliable; see Rudolf 2022 Thm 4 |
+| HK2017 | All polytopes | Limited to ~10 facets in practice |
+| Tube | Non-Lagrangian polytopes | Requires no Lagrangian 2-faces; see CH2021 |
+
+**Complexity note:** Precise complexity analysis is not a priority for this implementation. The algorithms are exponential in the number of facets (factorial for permutation enumeration). For practical use, Billiard is fastest on Lagrangian products, HK2017 is limited by permutation enumeration, and Tube is limited by the branch-and-bound search space.
 
 ### 3.2 Billiard Algorithm (for Lagrangian Products)
 
@@ -1761,13 +2026,18 @@ This section lists mathematical properties that tests should verify. If any test
 
 ### 4.1 Ground Truth Capacity Values
 
-| Polytope | \(c_{\text{EHZ}}\) | Source | Notes |
-|----------|-----------|--------|-------|
-| Tesseract \([-1,1]^4\) | 4.0 | HK2017 Ex 4.6 | Primary test case |
-| Rectangle \(2 \times 1\) product | 1.0 | Scaling | |
-| Triangle × Triangle (r=1) | 1.5 | Computational | Circumradius 1 |
-| Pentagon × RotatedPentagon | 3.441 | HK-O 2024 Prop 1 | Counterexample to Viterbo |
-| 4-Simplex | 0.25 | Y. Nir 2013 | Non-Lagrangian product |
+| Polytope | \(c_{\text{EHZ}}\) | Source | Algorithms | Notes |
+|----------|-----------|--------|------------|-------|
+| Tesseract \([-1,1]^4\) | 4.0 | HK2017 Ex 4.6 | Billiard, HK2017 | Primary test case (Lagrangian product) |
+| Rectangle \(2 \times 1\) product | 1.0 | Scaling | Billiard, HK2017 | Lagrangian product |
+| Triangle × Triangle (r=1) | 1.5 | Computational | Billiard, HK2017 | Lagrangian product, circumradius 1, [NEEDS CITATION] |
+| Pentagon × RotatedPentagon | 3.441 | HK-O 2024 Prop 1 | Billiard, HK2017 | Lagrangian product, counterexample to Viterbo |
+| 4-Simplex (standard) | 0.25 | [UNVERIFIED] | HK2017 only | **WARNING:** conv{0, e₁, e₂, e₃, e₄} has 0 on boundary (invalid). Has Lagrangian 2-faces → Tube inapplicable. Citation "Y. Nir 2013" needs verification. |
+
+**Algorithm applicability key:**
+- **Billiard:** Only for Lagrangian products (K₁ × K₂ with q/p separation)
+- **HK2017:** All polytopes (but QP solver is incomplete for indefinite case)
+- **Tube:** Only for polytopes with NO Lagrangian 2-faces
 
 **Test pattern:**
 ```rust
@@ -2034,6 +2304,104 @@ fn test_closed_orbit_is_fixed_point(orbit_2d: &Vector2<f64>, tube: &Tube) {
 }
 ```
 
+**4.6.4 Flow map is symplectic (area-preserving):**
+```rust
+fn test_flow_map_symplectic(tube: &Tube) {
+    // For 2D symplectic maps, det(A) = 1
+    let det = tube.flow_map.matrix.determinant();
+    assert!((det - 1.0).abs() < EPS,
+        "Flow map not symplectic: det = {}", det);
+}
+```
+
+**4.6.5 Root tube initialization:**
+```rust
+fn test_root_tube_valid(two_face: &TwoFaceEnriched) {
+    let root = create_root_tube(two_face);
+
+    // p_start has positive area (non-empty)
+    assert!(polygon_area(&root.p_start) > EPS,
+        "Root tube p_start is empty or degenerate");
+
+    // Flow map is identity
+    assert!((root.flow_map.matrix - Matrix2::identity()).norm() < EPS);
+    assert!(root.flow_map.offset.norm() < EPS);
+
+    // Action function is zero
+    assert!(root.action_func.gradient.norm() < EPS);
+    assert!(root.action_func.constant.abs() < EPS);
+
+    // Rotation is zero
+    assert!(root.rotation.abs() < EPS);
+}
+```
+
+**4.6.6 Tube extension preserves symplecticity:**
+```rust
+fn test_tube_extension_symplectic(tube: &Tube, extended: &Tube) {
+    // Both should have det(A) = 1
+    assert!((tube.flow_map.matrix.determinant() - 1.0).abs() < EPS);
+    assert!((extended.flow_map.matrix.determinant() - 1.0).abs() < EPS);
+
+    // Rotation should increase by a positive amount in (0, 0.5)
+    let delta_rotation = extended.rotation - tube.rotation;
+    assert!(delta_rotation > 0.0 && delta_rotation < 0.5,
+        "Invalid rotation increment: {}", delta_rotation);
+}
+```
+
+**4.6.7 Independent Reeb flow verification:**
+```rust
+fn test_trajectory_no_intermediate_crossings(
+    orbit: &ClosedReebOrbit,
+    polytope_data: &PolytopeData,
+) {
+    // For each segment, verify the trajectory doesn't cross any other facet
+    for k in 0..orbit.segment_facets.len() {
+        let facet = orbit.segment_facets[k];
+        let start = &orbit.breakpoints[k];
+        let end = &orbit.breakpoints[k + 1];
+        let reeb = polytope_data.reeb_vector(facet);
+
+        // Check midpoint is still on the claimed facet
+        let mid = (start + end) / 2.0;
+        let h = polytope_data.heights[facet];
+        let n = &polytope_data.normals[facet];
+        assert!((n.dot(&mid) - h).abs() < EPS,
+            "Segment {} midpoint not on facet", k);
+
+        // Check midpoint doesn't violate any other facet constraint
+        for (j, (nj, &hj)) in polytope_data.normals.iter()
+            .zip(&polytope_data.heights).enumerate()
+        {
+            if j != facet {
+                assert!(nj.dot(&mid) <= hj + EPS,
+                    "Segment {} crosses facet {}", k, j);
+            }
+        }
+    }
+}
+```
+
+**4.6.8 Near-singular detection:**
+```rust
+#[test]
+fn test_near_singular_raises_error() {
+    // Construct a tube with nearly-singular flow map (det(A-I) ≈ 0)
+    // This should panic rather than silently return wrong results
+    let tube = Tube {
+        flow_map: AffineMap2D {
+            matrix: Matrix2::identity() + Matrix2::new(1e-12, 0.0, 0.0, 1e-12),
+            offset: Vector2::new(0.1, 0.1),
+        },
+        // ... other fields
+    };
+
+    let result = std::panic::catch_unwind(|| find_closed_orbits(&tube));
+    assert!(result.is_err(), "Should panic on near-singular flow map");
+}
+```
+
 ---
 
 ### 4.7 Polytope Data Consistency
@@ -2077,7 +2445,84 @@ fn test_two_face_enumeration(data: &PolytopeData) {
 
 ---
 
-### 4.8 Test Fixture Definitions
+### 4.8 Continuity Tests (Perturbed Lagrangian Products)
+
+A powerful testing strategy: perturb a Lagrangian product (with known capacity from Billiard algorithm) to break the Lagrangian structure, then run the Tube algorithm. The result should be close to the original capacity.
+
+**Rationale:** Capacity is continuous in the Hausdorff metric, so small perturbations should yield small capacity changes. This tests the Tube algorithm on "nearly Lagrangian" polytopes where we have approximate ground truth.
+
+```rust
+#[test]
+fn test_tube_vs_billiard_perturbed() {
+    // 1. Start with a Lagrangian product
+    let K_lagrangian = tesseract();
+    let c_billiard = billiard_capacity(&K_lagrangian);
+
+    // 2. Apply a small symplectic perturbation that breaks Lagrangian structure
+    // Example: small shear (q, p) → (q, p + εSq) where S is symmetric
+    let epsilon = 0.01;
+    let shear = symplectic_shear(epsilon);
+    let K_perturbed = apply_symplectomorphism(&K_lagrangian, &shear);
+
+    // 3. Verify no Lagrangian 2-faces (tube algorithm applicable)
+    let data = preprocess_polytope(&K_perturbed).unwrap();
+    assert!(!data.has_lagrangian_two_faces(),
+        "Perturbation didn't break Lagrangian structure");
+
+    // 4. Run tube algorithm
+    let c_tube = tube_capacity(&K_perturbed).unwrap();
+
+    // 5. Check continuity: |c_tube - c_billiard| should be O(ε²)
+    // (Capacity is symplectic invariant, but H-rep changes under shear affect geometry)
+    let relative_diff = (c_tube - c_billiard).abs() / c_billiard;
+    assert!(relative_diff < 0.1,
+        "Tube capacity {} differs from billiard {} by {:.1}%",
+        c_tube, c_billiard, relative_diff * 100.0);
+}
+
+fn symplectic_shear(epsilon: f64) -> Matrix4<f64> {
+    // Shear: (q1, q2, p1, p2) → (q1, q2, p1 + ε*q1, p2 + ε*q2)
+    // This is symplectic (det = 1, preserves ω)
+    let mut m = Matrix4::identity();
+    m[(2, 0)] = epsilon;
+    m[(3, 1)] = epsilon;
+    m
+}
+```
+
+**Testing near-Lagrangian numerical stability:**
+
+```rust
+#[test]
+fn test_near_lagrangian_stability() {
+    // Construct polytope with ω(n_i, n_j) ≈ 1e-6 for some 2-face
+    // This is "almost Lagrangian" and may stress numerical precision
+
+    for epsilon in [1e-3, 1e-6, 1e-9] {
+        let K = nearly_lagrangian_polytope(epsilon);
+        let data = preprocess_polytope(&K);
+
+        match data {
+            Ok(d) if d.has_lagrangian_two_faces() => {
+                // Correctly detected as Lagrangian at this threshold
+            }
+            Ok(d) => {
+                // Non-Lagrangian: tube should work or fail gracefully
+                let result = tube_capacity(&K);
+                // Either succeeds or returns meaningful error
+                assert!(result.is_ok() || matches!(result, Err(Error::NumericalInstability)));
+            }
+            Err(_) => {
+                // Preprocessing failed (acceptable for very small epsilon)
+            }
+        }
+    }
+}
+```
+
+---
+
+### 4.9 Test Fixture Definitions
 
 **Tesseract:**
 ```rust
@@ -2142,7 +2587,7 @@ fn hko_counterexample() -> LagrangianProductPolytope {
 ### Primary Sources (Algorithms)
 
 - **CH2021:** Chaidez-Hutchings, "Computing Reeb Dynamics on Four-Dimensional Convex Polytopes" (arXiv:2102.07401)
-- **HK2017:** Haim-Kislev, "On the Symplectic Size of Convex Polytopes" (arXiv:1712.03494)
+- **HK2017:** Haim-Kislev, "On the Symplectic Size of Convex Polytopes" (arXiv:1712.03494, December 2017). Note: Some older documents may refer to this as "HK2019" (journal publication year); we use "HK2017" (arXiv year) consistently.
 - **Rudolf 2022:** "The Minkowski Billiard Characterization of the EHZ-Capacity" (arXiv:2203.01718)
 
 ### Primary Sources (Ground Truth Values)
@@ -2155,3 +2600,43 @@ fn hko_counterexample() -> LagrangianProductPolytope {
 - **Hofer-Zehnder 1994:** "Symplectic Invariants and Hamiltonian Dynamics"
 - **Schneider 2014:** "Convex Bodies: The Brunn-Minkowski Theory"
 - **McDuff-Salamon 2017:** "Introduction to Symplectic Topology"
+
+---
+
+## Handoff Notes (for Next Agent)
+
+**Summary:** This document specifies the mathematical foundations and Rust representations for computing the EHZ capacity of convex polytopes in ℝ⁴.
+
+**Key Conventions:**
+
+1. **Truth hierarchy:** Math papers → Thesis → Spec math → Spec Rust. Never justify conventions by Rust code; always trace back to the math source.
+
+2. **Trivialization normal:** Use the **exited facet's normal** (the facet we're leaving). For a tube with `facet_sequence: [i, j, k, ...]`:
+   - Start 2-face F_{i,j} is trivialized using n_i (exited facet)
+   - After flowing along j to 2-face F_{j,k}, that 2-face is trivialized using n_j (exited facet)
+
+3. **Facet sequence semantics:** `[i, j]` means "at 2-face F_{i,j}, entered facet j from facet i, about to flow along j."
+
+4. **Rotation convention:** rot(init) = 0. Rotation is non-decreasing as one extends a trajectory. The algorithm uses ≥0 rotation increments.
+
+5. **Near-singular handling:** Runtime error if numerics turn nearly singular (e.g., det ≈ 0 when solving for fixed points). Do not silently assume genericity.
+
+6. **Testing strategy:** Don't rely solely on known capacity values. Use axioms (scaling, monotonicity, symplectic invariance), orbit validity tests, and internal invariants.
+
+**Algorithm Domain:**
+
+| Polytope Type | 2-Face Character | Applicable Algorithms |
+|---------------|------------------|----------------------|
+| Lagrangian products (K₁ × K₂) | ALL 2-faces Lagrangian | Billiard, HK2017 |
+| Generic polytopes | SOME 2-faces Lagrangian | HK2017 only |
+| Non-Lagrangian polytopes | NO 2-faces Lagrangian | Tube, HK2017 |
+
+**Known Limitations:**
+- No algorithm handles mixed Lagrangian/non-Lagrangian polytopes well
+- HK2017 QP solver is incomplete (indefinite quadratic requires global optimizer)
+- Pentagon × RotatedPentagon returns wrong value (known bug, under investigation)
+
+**Related Files:**
+- `review-spec-v2.md`: Detailed review with recommendations
+- `mathematical-claims.md`: Citation tracking for all claims
+- `test-propositions.md`: Mathematical propositions underlying tests
