@@ -569,6 +569,90 @@ A powerful test: take Lagrangian product with known capacity, perturb slightly t
 
 This tests tube algorithm on "nearly Lagrangian" polytopes where ground truth is approximately known.
 
+### 9.4 Actionable Test Cases (Falsification Mindset)
+
+The spec should include these concrete tests, designed to **catch bugs** not confirm correctness:
+
+#### 9.4.1 Trivialization Tests (§1.10)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| `trivialize(n, untrivialize(n, v)) == v` for random v | Round-trip broken |
+| `untrivialize(n, trivialize(n, w)) == w` for w ⊥ n | Inverse broken on tangent vectors |
+| `ω_4D(v1, v2) == ω_2D(τ(v1), τ(v2))` for v1, v2 ⊥ n | Symplectic preservation broken |
+| Near-Lagrangian: ω(n_i, n_j) = 1e-8, check τ still works | Numerical instability near degeneracy |
+| n_i ≈ n_j (nearly parallel normals) | Edge case in transition matrix |
+
+#### 9.4.2 Transition Matrix Tests (§1.11)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| `det(ψ) == 1` for all 2-faces | Symplecticity broken |
+| `|tr(ψ)| < 2` iff `|ω(n_i, n_j)| > EPS` | Lagrangian classification inconsistent |
+| `ψ_ji == ψ_ij^{-1}` | Direction dependence wrong |
+| Compose ψ around a closed facet loop = identity? | Global consistency |
+
+#### 9.4.3 Flow Map Tests (§2.10)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| `det(flow_map.matrix) == 1` after each extension | Area preservation broken |
+| `flow_map(p)` actually lands on exit 2-face | Flow computation wrong |
+| Time function gives positive time for valid flow direction | Sign error |
+| Time ≈ 0: point near exit 2-face already | Edge case |
+| Time very large: point far from exit 2-face | Numerical overflow |
+
+#### 9.4.4 Tube Invariant Tests (§2.9-2.11)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| Root tube: `p_start.area() > 0` | Initialization wrong |
+| After extension: `p_end ⊆ flow_map(p_start)` | Polygon intersection wrong |
+| Empty tube: extension returns None | False positives |
+| Non-empty tube: ∃ point in p_start that traces to p_end | False negatives |
+| `action_func(p) == traced_action(p)` for sample points | Action function wrong |
+| `rotation == Σ rotation_i` for visited 2-faces | Rotation accumulation wrong |
+
+#### 9.4.5 Fixed Point Tests (§2.11)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| `flow_map(fixed_point) == fixed_point` within EPS | Fixed point computation wrong |
+| `point_in_polygon(fixed_point, p_start)` | Containment test wrong |
+| Fixed point on polygon edge | Boundary case |
+| Near-singular: `|det(A - I)| < 1e-10` → error raised | Silent failure on degeneracy |
+
+#### 9.4.6 4D Reconstruction Tests (§2.12-2.13)
+
+| Test | What It Falsifies |
+|------|-------------------|
+| `‖breakpoints[0] - breakpoints[last]‖ < EPS` | Orbit doesn't close |
+| Each breakpoint on claimed 2-face | Reconstruction wrong |
+| Each segment midpoint on claimed facet | Segment leaves facet |
+| `velocity_k == R_{facet_k}` | Reeb velocity wrong |
+| `Σ segment_times == action_of_polygon(breakpoints)` | Action computation inconsistent |
+| **Independent check:** numerically integrate Reeb flow from breakpoint[k], verify it hits breakpoint[k+1] without intermediate facet crossings | Combinatorics wrong |
+
+#### 9.4.7 Polytope Edge Cases
+
+| Polytope | What It Tests |
+|----------|---------------|
+| Tesseract (Lagrangian product, c=4) | Baseline, billiard works |
+| Tesseract perturbed by symplectomorphism | Symplectic invariance |
+| Tesseract scaled by λ=2 | Scaling axiom (c=16) |
+| Tesseract perturbed to break Lagrangian structure | Tube algorithm on near-Lagrangian |
+| Random convex hull of 10 points (check 0 in interior) | Generic polytope |
+| Convex hull with nearly coplanar facets | Numerical sensitivity |
+| Polytope with exactly 5 facets (minimum for 4D with 0 in interior?) | Minimal case |
+
+#### 9.4.8 Algorithm Agreement Tests
+
+| Test | What It Falsifies |
+|------|-------------------|
+| Lagrangian product: `billiard(K) == hk2017(K)` | Algorithm inconsistency |
+| Perturbed Lagrangian: `tube(K') ≈ billiard(K)` for small perturbation | Continuity violation |
+| Same polytope, different vertex enumeration order: same result | Order dependence bug |
+
 ---
 
 ## 10. Recommendations Summary
