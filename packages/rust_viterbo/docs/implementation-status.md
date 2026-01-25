@@ -1,13 +1,11 @@
 # Code Audit Tracker
 
-Current implementation status for the rust_viterbo crate.
+> **⚠️ ARCHIVED CODE** — This document describes the v0.1.0 implementation which was deleted.
+> The code is preserved at git tag `v0.1.0-archive`. New implementation should follow [developer-spec-v2.md](developer-spec-v2.md).
 
-> **Related documents:**
-> - Mathematical claims with citations: see `mathematical-claims.md`
-> - Test infrastructure: see `test-documentation.md`
-> - Test case catalog: see `test-cases.md`
+Status of the archived rust_viterbo crate implementation.
 
-This document tracks invariants that need verification via debug_asserts, unit tests, or code comments.
+This document tracks what was verified in the old implementation. May be useful for understanding past issues.
 
 ## Status Legend
 - ❌ Not done

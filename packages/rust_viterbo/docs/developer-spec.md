@@ -1,8 +1,14 @@
 # Developer Specification for EHZ Capacity Algorithms
 
+> **⚠️ DEPRECATED** — This is the v1 spec. See **[developer-spec-v2.md](developer-spec-v2.md)** for the current specification.
+>
+> This document is retained for historical reference. The v2 spec focuses on the Tube algorithm with improved mathematical rigor and resolved ambiguities.
+
+---
+
 > **Audience:** Claude Code agents implementing the algorithms
 > **Prerequisite:** Read thesis chapter ([algorithms.tex](../../latex_viterbo/chapters/algorithms.tex)) for mathematical background
-> **Status:** This document consolidates all algorithm specifications. Implementation archived at tag `v0.1.0-archive`.
+> **Status:** DEPRECATED. Implementation archived at tag `v0.1.0-archive`.
 
 ## Table of Contents
 
