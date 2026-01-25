@@ -22,9 +22,15 @@ The developer-spec-v2.md is a substantial improvement in structure and mathemati
 
 These clarifications resolve several ambiguities identified below:
 
-### 0.1 Trivialization Basis (re: Section 3.1)
+### 0.1 Trivialization Basis (re: Section 3.1) — RESOLVED
 
-The quaternion-based trivialization τ(V) = (⟨V, jn⟩, ⟨V, kn⟩) may be **stale/incorrect**. While Kn, K'n are orthogonal to n (thus in the 3-facet hyperplane), they may **not lie in the 2-face plane**. This approach may be leftover from an older iteration that needs verification or replacement.
+The quaternion-based trivialization τ(V) = (⟨V, J'n⟩, ⟨V, J''n⟩) is **valid for non-Lagrangian 2-faces**.
+
+Key insight: The coordinate vectors J'n, J''n need not be tangent to the 2-face. We only need the 2-face to project non-degenerately onto these coordinates:
+- **Non-Lagrangian 2-faces:** Project to a 2D region → valid coordinate system
+- **Lagrangian 2-faces:** Jn lies in the 2-face tangent space (since ω(n₁, n₂) = ⟨Jn₁, n₂⟩ = 0 means Jn₁ ⊥ n₂, and Jn₁ ⊥ n₁ already), so the 2-face projects to a 1D line → degenerate
+
+This degeneracy is precisely why the tube algorithm doesn't handle Lagrangian 2-faces.
 
 ### 0.2 Rotation Convention (re: Section 4.3)
 
@@ -208,7 +214,7 @@ action_func: add_affine_funcs(&tube.action_func, &compose_with_map(&time_func, &
 
 ## 3. Ambiguities
 
-### 3.1 Trivialization: Which Normal? (POTENTIALLY STALE)
+### 3.1 Trivialization: Which Normal? (RESOLVED — see 0.1)
 
 **Location:** Section 1.14 vs Section 2.10
 
@@ -225,16 +231,12 @@ In Section 2.10 (line 1261):
 // 4. Convert to exit coords: q_2d = trivialize(n_curr, q_4d - centroid_exit)
 ```
 
-**Issue:** The trivialization is relative to a normal, but:
+**Remaining issue:** The trivialization is relative to a normal, but:
 - Section 1.14 takes `entry_normal` as a parameter (unclear which facet this refers to)
 - Section 2.10 uses `n_curr` (the current facet's normal)
 - `TwoFaceEnriched` does not clearly store which normal was used for its `polygon_2d`
 
-This could cause subtle bugs if entry vs exit normal is confused.
-
-**CRITICAL (per 0.1):** The quaternion-based trivialization τ(V) = (⟨V, jn⟩, ⟨V, kn⟩) may be **fundamentally broken**. While jn and kn are orthogonal to n (thus in the facet's 3D hyperplane), they may **not lie in the 2-face's 2D plane**. The 2-face is the intersection of two facets, so its tangent space is 2D, but jn and kn span a 2D subspace of the 3D facet tangent space—not necessarily the same 2D subspace.
-
-**Action needed:** Verify the trivialization formula against CH2021 or derive a correct basis for the 2-face tangent space.
+The trivialization formula itself is valid (see 0.1), but the **convention** (entry vs exit normal) needs to be documented consistently.
 
 ### 3.2 Closed vs Open Facet Sequences
 
