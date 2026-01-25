@@ -522,7 +522,56 @@ These sections properly cite sources:
 
 ---
 
-## 9. Recommendations Summary
+## 9. Testing Strategy Gap
+
+The spec has test cases (§4) but the testing strategy is incomplete for robust implementation.
+
+### 9.1 Algorithm Domain Classification
+
+| Polytope Type | 2-Face Character | Applicable Algorithms |
+|---------------|------------------|----------------------|
+| Lagrangian products (K₁ × K₂) | ALL 2-faces Lagrangian | Billiard, HK2017 |
+| Generic polytopes | SOME 2-faces Lagrangian | HK2017 only |
+| Non-Lagrangian polytopes | NO 2-faces Lagrangian | Tube, HK2017 |
+
+**Gap:** Spec §4.1 lists ground truth values but doesn't classify which algorithm applies to each. The 4-simplex entry is problematic:
+- conv{0, e₁, e₂, e₃, e₄} has 0 on boundary, not interior
+- Any 4-simplex has Lagrangian 2-faces → tube algorithm inapplicable
+
+**Needed:** Identify a polytope with NO Lagrangian 2-faces for tube algorithm end-to-end testing.
+
+### 9.2 Testing Without Ground Truth Values
+
+Testing correctness does NOT require known capacity values. The spec should emphasize:
+
+**Axiom tests (§4.2 exists, sufficient):**
+- Scaling: c(λK) = λ²c(K)
+- Monotonicity: K ⊆ L ⟹ c(K) ≤ c(L)
+- Symplectomorphism invariance
+- Continuity: perturb near Lagrangian → capacity changes smoothly
+
+**Orbit validity tests (§4.3 exists, sufficient):**
+- Closure, boundary, facet membership, Reeb velocity, action=period
+
+**Internal invariant tests (§4.6 is thin, needs expansion):**
+
+| Invariant | Test |
+|-----------|------|
+| Initial tube non-empty | Root tube p_start has positive area |
+| Tube well-formed | Either empty or contains ≥1 trajectory |
+| Combinatorics correct | Independent Reeb flow solver confirms breakpoints flow without intermediate facet hits |
+| Flow map symplectic | det(A) = 1 at each extension |
+| Action function correct | Trace trajectory numerically, compare summed times to action_func evaluation |
+
+### 9.3 Continuity Near Lagrangian Products
+
+A powerful test: take Lagrangian product with known capacity, perturb slightly to break Lagrangian structure, run tube algorithm, verify result is close to billiard result.
+
+This tests tube algorithm on "nearly Lagrangian" polytopes where ground truth is approximately known.
+
+---
+
+## 10. Recommendations Summary
 
 ### High Priority (Truth Flow)
 1. **Add citations for trivialization** (Section 1.10): τ_n definition, symplectic preservation theorem
@@ -535,13 +584,19 @@ These sections properly cite sources:
 6. Per 0.6: Replace `find_fixed_point_set` with runtime error on near-singular
 7. Define `action_lower_bound` for tube pruning (min of affine func over polygon vertices)
 
+### High Priority (Testing — per §9)
+8. **Expand §4.6** with internal invariant tests: flow map det=1, action function consistency, independent Reeb flow verification
+9. **Classify §4.1 ground truth** by applicable algorithm (billiard vs HK2017 vs tube)
+10. **Fix or remove 4-simplex entry** — current definition invalid (0 on boundary, has Lagrangian 2-faces)
+11. **Add continuity test strategy** — perturb Lagrangian products to test tube algorithm
+
 ### Medium Priority
-8. Complete helper function definitions (polygon intersection, CCW sort, etc.)
-9. Resolve HK2017 vs HK2019 naming inconsistency
-10. Document which normal (entry/exit) is used for each trivialization
+12. Complete helper function definitions (polygon intersection, CCW sort, etc.)
+13. Resolve HK2017 vs HK2019 naming inconsistency
+14. Document which normal (entry/exit) is used for each trivialization
 
 ### Low Priority
-11. Consolidate struct definitions
-12. Establish consistent Rust code style
-13. Complete test fixture code
-14. Delete or mark unverified complexity claims
+15. Consolidate struct definitions
+16. Establish consistent Rust code style
+17. Complete test fixture code
+18. Delete or mark unverified complexity claims
