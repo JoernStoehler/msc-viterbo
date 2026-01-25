@@ -712,32 +712,49 @@ For the Tube algorithm, we need each 2-face as a 2D polygon in trivialized coord
 ```rust
 // See below for the full TwoFaceEnriched struct definition
 
-fn trivialize_two_face(
+fn enrich_two_face(
     two_face: &TwoFace,
     vertices: &[Vector4<f64>],
-    entry_normal: &Vector4<f64>,  // n_i (entry facet) - for debugging
-    exit_normal: &Vector4<f64>,   // n_j (exit facet) - PRIMARY per CH2021
+    n_i: &Vector4<f64>,  // normal of facet i
+    n_j: &Vector4<f64>,  // normal of facet j
 ) -> TwoFaceEnriched {
+    // Determine flow direction and set flow-aware normals
+    let (entry_normal, exit_normal) = match two_face.flow_direction() {
+        Some(FlowDirection::ItoJ) => (n_i.clone(), n_j.clone()),
+        Some(FlowDirection::JtoI) => (n_j.clone(), n_i.clone()),
+        None => panic!("Cannot enrich Lagrangian 2-face for Tube algorithm"),
+    };
+
+    // Compute flow-aware transition matrix: entry→exit
+    let transition_matrix = compute_transition_matrix(&entry_normal, &exit_normal);
+
+    // Compute rotation number (unsigned, does not depend on flow direction)
+    let rotation = compute_rotation_number(&transition_matrix);
+
+    // Trivialize vertices using EXIT normal (CH2021 convention)
     let verts_4d: Vec<Vector4<f64>> = two_face.vertices.iter()
         .map(|&i| vertices[i])
         .collect();
-
     let centroid: Vector4<f64> = verts_4d.iter().sum::<Vector4<f64>>() / verts_4d.len() as f64;
-
-    // Trivialize relative to centroid using EXIT normal (CH2021 convention)
     let polygon_2d: Vec<Vector2<f64>> = verts_4d.iter()
-        .map(|v| trivialize(exit_normal, &(v - centroid)))
+        .map(|v| trivialize(&exit_normal, &(v - centroid)))
         .collect();
-
-    // Sort by angle for CCW ordering (standard: sort by atan2 from centroid)
     let polygon_2d = sort_ccw(polygon_2d);
 
     TwoFaceEnriched {
-        // ... copy fields from two_face ...
+        i: two_face.i,
+        j: two_face.j,
+        vertices: two_face.vertices.clone(),
+        omega_ij: two_face.omega_ij,
+        is_lagrangian: two_face.is_lagrangian(),
+        flow_direction: two_face.flow_direction(),
+        transition_matrix,
+        rotation,
+        entry_normal,
+        exit_normal,
         polygon_2d,
         vertices_4d: verts_4d,
         centroid_4d: centroid,
-        // ...
     }
 }
 ```
@@ -748,12 +765,14 @@ fn trivialize_two_face(
 
 Per CH2021 Definition 2.15: "Let ν denote the **outward unit normal vector to E**" where E is the facet the Reeb flow **points into** (the exit facet).
 
-For a tube with facet sequence `[i, j, k, ...]` (meaning: flow goes i → j → k):
-- At 2-face F_{i,j}, flow entered from facet i (entry) and will exit to facet j (exit)
-- **Primary trivialization uses n_j** (exit facet's normal) — this is the CH2021 convention
-- Transition matrix: ψ_F = τ_{n_j} ∘ τ_{n_i}^{-1} maps from entry to exit trivialization
+**Flow-direction-aware fields:** The `entry_normal`, `exit_normal`, and `transition_matrix` fields are computed based on actual flow direction, NOT the canonical i < j ordering:
 
-We store both normals for debugging: `entry_normal` (n_i) and `exit_normal` (n_j). The polygon_2d uses exit_normal.
+| Flow direction | entry_normal | exit_normal | transition_matrix |
+|----------------|--------------|-------------|-------------------|
+| ItoJ (ω > 0) | n_i | n_j | τ_{n_j} ∘ τ_{n_i}^{-1} |
+| JtoI (ω < 0) | n_j | n_i | τ_{n_i} ∘ τ_{n_j}^{-1} |
+
+This design means callers can use `entry_normal`, `exit_normal`, and `transition_matrix` directly without checking `flow_direction`.
 
 ```rust
 struct TwoFaceEnriched {
@@ -770,17 +789,18 @@ struct TwoFaceEnriched {
     flow_direction: Option<FlowDirection>,  // ItoJ or JtoI
 
     // From 1.11: Transition matrix (for non-Lagrangian)
-    transition_matrix: Matrix2<f64>,   // ψ_F = τ_{n_j} ∘ τ_{n_i}^{-1} ∈ Sp(2)
+    // FLOW-AWARE: This is τ_{exit} ∘ τ_{entry}^{-1}, the entry→exit coordinate map.
+    // For ItoJ: τ_{n_j} ∘ τ_{n_i}^{-1}. For JtoI: τ_{n_i} ∘ τ_{n_j}^{-1}.
+    transition_matrix: Matrix2<f64>,   // entry→exit map ∈ Sp(2)
 
     // From 1.12: Rotation number (for non-Lagrangian)
-    rotation: f64,                     // ρ(F) ∈ (0, 0.5)
+    rotation: f64,                     // ρ(F) ∈ (0, 0.5), unsigned
 
-    // From 1.14: Trivialized polygon
-    // CONVENTION (CH2021): polygon_2d uses the **exit facet's normal** for trivialization.
-    // For flow direction i → j: entry_normal = n_i, exit_normal = n_j.
-    // The primary trivialization uses exit_normal (per CH2021 Def 2.15).
-    entry_normal: Vector4<f64>,        // n_i (entry facet) - kept for debugging
-    exit_normal: Vector4<f64>,         // n_j (exit facet) - PRIMARY, per CH2021
+    // From 1.14: Trivialized polygon (FLOW-AWARE)
+    // CONVENTION (CH2021): polygon_2d uses exit_normal for trivialization.
+    // entry_normal and exit_normal are set based on flow_direction (see table above).
+    entry_normal: Vector4<f64>,        // normal of facet we entered from
+    exit_normal: Vector4<f64>,         // normal of facet we exit to (PRIMARY, per CH2021)
     polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{exit_normal} coordinates, CCW
     vertices_4d: Vec<Vector4<f64>>,    // original 4D vertex positions
     centroid_4d: Vector4<f64>,         // centroid for reconstruction
@@ -2090,6 +2110,38 @@ The relationship between tolerances (EPS, EPS_LAGRANGIAN, EPS_ROTATION, etc.) is
 
 This section lists mathematical properties that tests should verify. If any test fails, the code contains a bug (does not correspond to the mathematical "proof").
 
+### 4.0 Testing Philosophy
+
+**Language choice:** Tests can be written in Python and/or Rust. Each has tradeoffs:
+
+| Aspect | Rust | Python |
+|--------|------|--------|
+| DevOps friction | Higher (compile times) | Lower (immediate execution) |
+| CPU performance | Faster | Slower (but FFI bridges to Rust) |
+| Ease of writing | More boilerplate | More concise |
+| Libraries | nalgebra, proptest | numpy, hypothesis, pytest |
+| Debugging | println!, debugger | print, pdb, rich tracebacks |
+
+**Guidance:**
+- Use Python for exploratory tests, visualization, hypothesis-based property tests
+- Use Rust for performance-critical tests, tests that need deep integration with internals
+- Code duplication is acceptable while iterating — clean up later
+- Tests need not be perfect on first write; iterate like algorithm code
+
+**Optimization:**
+- Don't optimize prematurely
+- Only optimize after identifying a need AND profiling to find hotspots
+- "Fast enough" is good enough
+
+**Debugging approaches:**
+- Print/log statements (quick and dirty)
+- Debug assertions and invariant checks
+- Interactive debuggers (Rust: lldb/gdb; Python: pdb/ipdb)
+- Visualization (Python matplotlib/plotly for 2D projections)
+- Property-based testing to find edge cases (hypothesis/proptest)
+
+---
+
 ### 4.1 Ground Truth Capacity Values
 
 | Polytope | \(c_{\text{EHZ}}\) | Source | Algorithms | Notes |
@@ -2763,9 +2815,9 @@ fn hko_counterexample() -> LagrangianProductPolytope {
 1. **Truth hierarchy:** Math papers → Thesis → Spec math → Spec Rust. Never justify conventions by Rust code; always trace back to the math source.
 
 2. **Trivialization normal (CH2021):** Use the **exit facet's normal** (the facet we're entering). For a tube with `facet_sequence: [i, j, k, ...]`:
-   - Start 2-face F_{i,j} is trivialized using n_j (exit facet, per CH2021 Def 2.15)
-   - After flowing along j to 2-face F_{j,k}, that 2-face is trivialized using n_k (exit facet)
-   - Both entry_normal and exit_normal are stored; polygon_2d uses exit_normal
+   - Start 2-face F_{i,j} is trivialized using exit_normal (per CH2021 Def 2.15)
+   - TwoFaceEnriched fields are **flow-direction-aware**: entry_normal, exit_normal, and transition_matrix are computed based on actual flow direction, not the i < j convention
+   - Callers can use these fields directly without checking flow_direction
 
 3. **Facet sequence semantics:** `[i, j]` means "at 2-face F_{i,j}, entered facet j from facet i, about to flow along j."
 
