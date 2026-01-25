@@ -378,7 +378,16 @@ let non_lagrangian_two_faces: Vec<&TwoFace> = two_faces.iter()
 **Significance:**
 - The Tube algorithm requires non-Lagrangian 2-faces (Reeb flow crosses between facets)
 - A **Lagrangian product** \(K_1 \times K_2 \subset \mathbb{R}^2_q \times \mathbb{R}^2_p\) has ALL 2-faces Lagrangian
-- If some but not all 2-faces are Lagrangian, special handling may be needed
+- If some but not all 2-faces are Lagrangian, **no algorithm currently handles this case** (known limitation)
+
+**Why trivialization fails for Lagrangian 2-faces:**
+
+The quaternion-based trivialization τ(V) = (⟨V, Jn⟩, ⟨V, Kn⟩) requires the 2-face to project non-degenerately onto the coordinate vectors Jn, Kn.
+
+- **Non-Lagrangian 2-faces:** Project to a 2D region → valid coordinate system
+- **Lagrangian 2-faces:** When ω(n₁, n₂) = ⟨Jn₁, n₂⟩ = 0, the vector Jn₁ is perpendicular to n₂ (and already perpendicular to n₁), so Jn₁ lies in the 2-face tangent space. This means the 2-face projects to a 1D line → **degenerate**.
+
+This degeneracy is precisely why the tube algorithm doesn't handle Lagrangian 2-faces.
 
 ---
 
@@ -1427,6 +1436,11 @@ struct AffineFunc {
 }
 ```
 
+**Rotation convention:**
+- **rot(init) = 0:** A root tube (facet_sequence = [i, j]) has rotation = 0.
+- **Non-decreasing:** Rotation increments are always ≥ 0 as the tube extends. Each 2-face crossing adds its rotation number ρ(F) ∈ (0, 0.5).
+- **Pruning bound:** Total rotation for a minimum-action orbit is in (1, 2) turns (CH2021 Prop 1.10). We prune tubes with rotation > 2.
+
 **Mathematical conditions:**
 1. `p_start` is a convex polygon (intersection of start 2-face with tube constraints)
 2. `p_end = flow_map(p_start) ∩ (end 2-face polygon)`
@@ -2020,6 +2034,39 @@ fn tube_capacity(K: &PolytopeHRep) -> Result<f64, Error> {
 
 ---
 
+### 3.5 Known Limitations and Open Issues
+
+**Algorithm coverage gaps:**
+
+| Polytope Type | 2-Face Character | Status |
+|---------------|------------------|--------|
+| Lagrangian products | ALL Lagrangian | ✓ Billiard, HK2017 |
+| Non-Lagrangian | NO Lagrangian | ✓ Tube, HK2017 |
+| Mixed | SOME Lagrangian | ✗ No algorithm designed |
+
+**HK2017 QP solver incompleteness:**
+
+The quadratic form Q(σ, β) is **indefinite** (the symplectic form has mixed signs). The maximum may occur at:
+- Vertices (0D faces) of the feasible polytope
+- Edges (1D faces)
+- Higher-dimensional face interiors
+
+A complete implementation requires a global QCQP solver or exhaustive face enumeration. The current approach (checking only vertices) is **incomplete** and may miss the true maximum.
+
+**Pentagon × RotatedPentagon bug:**
+
+The billiard algorithm returns capacity ≈ 2.127 for the HK-O counterexample pentagon product, but the correct value is ≈ 3.441 (HK-O 2024 Prop 1). This is a known bug documented in `mathematical-claims.md`. Investigation is ongoing.
+
+**Missing tube algorithm test case:**
+
+No polytope with verified capacity and NO Lagrangian 2-faces is currently in the test suite. The cross-polytope `conv{±eᵢ}` is a candidate (verify no Lagrangian 2-faces first), but its capacity is not independently known.
+
+**Tolerance philosophy (deferred):**
+
+The relationship between tolerances (EPS, EPS_LAGRANGIAN, EPS_ROTATION, etc.) is not rigorously analyzed. Current approach: detect when numerics go wrong and error out, rather than theorize tolerance choices in advance.
+
+---
+
 ## 4. Test Cases and Verification Properties
 
 This section lists mathematical properties that tests should verify. If any test fails, the code contains a bug (does not correspond to the mathematical "proof").
@@ -2522,7 +2569,92 @@ fn test_near_lagrangian_stability() {
 
 ---
 
-### 4.9 Test Fixture Definitions
+### 4.9 Falsification Test Strategy
+
+Tests should be designed to **catch bugs**, not just confirm correctness. The following tables list specific tests organized by what failure they would reveal.
+
+**4.9.1 Trivialization Tests (§1.10):**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| `trivialize(n, untrivialize(n, v)) == v` for random v | Round-trip broken |
+| `untrivialize(n, trivialize(n, w)) == w` for w ⊥ n | Inverse broken on tangent vectors |
+| `ω_4D(v1, v2) == ω_2D(τ(v1), τ(v2))` for v1, v2 ⊥ n | Symplectic preservation broken |
+| Near-Lagrangian: ω(n_i, n_j) = 1e-8, check τ still works | Numerical instability near degeneracy |
+| n_i ≈ n_j (nearly parallel normals) | Edge case in transition matrix |
+
+**4.9.2 Transition Matrix Tests (§1.11):**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| `det(ψ) == 1` for all 2-faces | Symplecticity broken |
+| `\|tr(ψ)\| < 2` iff `\|ω(n_i, n_j)\| > EPS` | Lagrangian classification inconsistent |
+| `ψ_ji == ψ_ij^{-1}` | Direction dependence wrong |
+| Compose ψ around closed facet loop = identity? | Global consistency |
+
+**4.9.3 Flow Map Tests (§2.10):**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| `det(flow_map.matrix) == 1` after each extension | Area preservation broken |
+| `flow_map(p)` actually lands on exit 2-face | Flow computation wrong |
+| Time function gives positive time for valid flow direction | Sign error |
+| Time ≈ 0: point near exit 2-face already | Edge case |
+| Time very large: point far from exit 2-face | Numerical overflow |
+
+**4.9.4 Fixed Point Tests (§2.11):**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| `flow_map(fixed_point) == fixed_point` within EPS | Fixed point computation wrong |
+| `point_in_polygon(fixed_point, p_start)` | Containment test wrong |
+| Fixed point on polygon edge | Boundary case |
+| Near-singular: `\|det(A - I)\| < 1e-10` → error raised | Silent failure on degeneracy |
+
+**4.9.5 4D Reconstruction Tests (§2.12-2.13):**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| `‖breakpoints[0] - breakpoints[last]‖ < EPS` | Orbit doesn't close |
+| Each breakpoint on claimed 2-face | Reconstruction wrong |
+| Each segment midpoint on claimed facet | Segment leaves facet |
+| `velocity_k == R_{facet_k}` | Reeb velocity wrong |
+| `Σ segment_times == action_of_polygon(breakpoints)` | Action computation inconsistent |
+| Independent Reeb flow integration hits breakpoint[k+1] | Combinatorics wrong |
+
+**4.9.6 Polytope Edge Cases:**
+
+| Polytope | What It Tests |
+|----------|---------------|
+| Tesseract `[-1,1]⁴` | Baseline (Lagrangian product, c=4) |
+| Tesseract + symplectomorphism | Symplectic invariance |
+| Tesseract scaled by λ=2 | Scaling axiom (c=16) |
+| Tesseract perturbed to break Lagrangian | Tube on near-Lagrangian |
+| Cross-polytope `conv{±eᵢ}` | Tube on non-product (verify no Lagrangian 2-faces first) |
+| Random hull of 10 points | Generic polytope (reject if 0∉int or has Lagrangian 2-face) |
+| Nearly coplanar facets | Numerical sensitivity |
+| ω(n_i, n_j) ≈ 1e-6 | Stability near degeneracy |
+| 5-facet polytope | Minimal case for 4D |
+
+**4.9.7 Algorithm Agreement Tests:**
+
+| Test | What Failure Reveals |
+|------|---------------------|
+| Lagrangian product: `billiard(K) == hk2017(K)` | Algorithm inconsistency |
+| Perturbed Lagrangian: `tube(K') ≈ billiard(K)` | Continuity violation |
+| Same polytope, different vertex order: same result | Order dependence bug |
+
+**Cross-polytope as tube test candidate:**
+
+The cross-polytope `conv{±e₁, ±e₂, ±e₃, ±e₄}` has:
+- 0 in its interior ✓
+- 16 facets with normals proportional to (±1,±1,±1,±1)
+
+**Before using:** Verify ω(n_i, n_j) ≠ 0 for all adjacent facet pairs. If verified, this provides a non-Lagrangian-product test case for the tube algorithm.
+
+---
+
+### 4.10 Test Fixture Definitions
 
 **Tesseract:**
 ```rust
