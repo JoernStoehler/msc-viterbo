@@ -43,10 +43,9 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     fi
 fi
 
-# Verify installation succeeded
+# Verify installation succeeded (warn but don't block session)
 if ! "$HOME/.local/bin/gh" --version &>/dev/null; then
-    echo "gh CLI installation failed" >&2
-    exit 2  # Blocking error
+    echo "gh CLI installation failed (non-blocking)" >&2
 fi
 
 exit 0
