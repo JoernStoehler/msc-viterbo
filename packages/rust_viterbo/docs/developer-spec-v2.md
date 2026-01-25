@@ -715,7 +715,8 @@ For the Tube algorithm, we need each 2-face as a 2D polygon in trivialized coord
 fn trivialize_two_face(
     two_face: &TwoFace,
     vertices: &[Vector4<f64>],
-    entry_normal: &Vector4<f64>,
+    entry_normal: &Vector4<f64>,  // n_i (entry facet) - for debugging
+    exit_normal: &Vector4<f64>,   // n_j (exit facet) - PRIMARY per CH2021
 ) -> TwoFaceEnriched {
     let verts_4d: Vec<Vector4<f64>> = two_face.vertices.iter()
         .map(|&i| vertices[i])
@@ -723,9 +724,9 @@ fn trivialize_two_face(
 
     let centroid: Vector4<f64> = verts_4d.iter().sum::<Vector4<f64>>() / verts_4d.len() as f64;
 
-    // Trivialize relative to centroid
+    // Trivialize relative to centroid using EXIT normal (CH2021 convention)
     let polygon_2d: Vec<Vector2<f64>> = verts_4d.iter()
-        .map(|v| trivialize(entry_normal, &(v - centroid)))
+        .map(|v| trivialize(exit_normal, &(v - centroid)))
         .collect();
 
     // Sort by angle for CCW ordering (standard: sort by atan2 from centroid)
@@ -743,13 +744,16 @@ fn trivialize_two_face(
 
 **Consolidated TwoFaceEnriched (all fields from sections 1.5-1.7, 1.11-1.14):**
 
-**IMPORTANT: Trivialization Normal Convention**
+**IMPORTANT: Trivialization Normal Convention (CH2021)**
 
-For a tube with facet sequence `[i, j, k, ...]`:
-- At 2-face F_{i,j}, we use n_i (the **exited facet's normal**) for trivialization
-- The transition matrix ψ_F relates τ_{n_i} to τ_{n_j} coordinates
+Per CH2021 Definition 2.15: "Let ν denote the **outward unit normal vector to E**" where E is the facet the Reeb flow **points into** (the exit facet).
 
-This convention is consistent: when flowing from facet i to facet j, we trivialize using the normal of the facet we're leaving (i).
+For a tube with facet sequence `[i, j, k, ...]` (meaning: flow goes i → j → k):
+- At 2-face F_{i,j}, flow entered from facet i (entry) and will exit to facet j (exit)
+- **Primary trivialization uses n_j** (exit facet's normal) — this is the CH2021 convention
+- Transition matrix: ψ_F = τ_{n_j} ∘ τ_{n_i}^{-1} maps from entry to exit trivialization
+
+We store both normals for debugging: `entry_normal` (n_i) and `exit_normal` (n_j). The polygon_2d uses exit_normal.
 
 ```rust
 struct TwoFaceEnriched {
@@ -772,11 +776,12 @@ struct TwoFaceEnriched {
     rotation: f64,                     // ρ(F) ∈ (0, 0.5)
 
     // From 1.14: Trivialized polygon
-    // CONVENTION: polygon_2d uses the **exited facet's normal** for trivialization.
-    // For a root tube starting at F_{i,j}, this is n_i.
-    // The `entry_normal` field stores which normal was used.
-    entry_normal: Vector4<f64>,        // n_i or n_j depending on flow direction
-    polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{entry_normal} coordinates, CCW
+    // CONVENTION (CH2021): polygon_2d uses the **exit facet's normal** for trivialization.
+    // For flow direction i → j: entry_normal = n_i, exit_normal = n_j.
+    // The primary trivialization uses exit_normal (per CH2021 Def 2.15).
+    entry_normal: Vector4<f64>,        // n_i (entry facet) - kept for debugging
+    exit_normal: Vector4<f64>,         // n_j (exit facet) - PRIMARY, per CH2021
+    polygon_2d: Vec<Vector2<f64>>,     // vertices in τ_{exit_normal} coordinates, CCW
     vertices_4d: Vec<Vector4<f64>>,    // original 4D vertex positions
     centroid_4d: Vector4<f64>,         // centroid for reconstruction
 }
@@ -1709,9 +1714,9 @@ fn untrivialize_point(
     two_face: &TwoFaceEnriched,
 ) -> Vector4<f64> {
     // The 2D coordinates are relative to the 2-face's centroid
-    // using the trivialization basis {J*n_entry, K*n_entry}
-    let n_entry = two_face.entry_normal;
-    let offset_4d = untrivialize(&n_entry, point_2d);
+    // using the trivialization basis {J*n_exit, K*n_exit} (CH2021 convention)
+    let n_exit = two_face.exit_normal;
+    let offset_4d = untrivialize(&n_exit, point_2d);
     two_face.centroid_4d + offset_4d
 }
 ```
@@ -2743,9 +2748,10 @@ fn hko_counterexample() -> LagrangianProductPolytope {
 
 1. **Truth hierarchy:** Math papers → Thesis → Spec math → Spec Rust. Never justify conventions by Rust code; always trace back to the math source.
 
-2. **Trivialization normal:** Use the **exited facet's normal** (the facet we're leaving). For a tube with `facet_sequence: [i, j, k, ...]`:
-   - Start 2-face F_{i,j} is trivialized using n_i (exited facet)
-   - After flowing along j to 2-face F_{j,k}, that 2-face is trivialized using n_j (exited facet)
+2. **Trivialization normal (CH2021):** Use the **exit facet's normal** (the facet we're entering). For a tube with `facet_sequence: [i, j, k, ...]`:
+   - Start 2-face F_{i,j} is trivialized using n_j (exit facet, per CH2021 Def 2.15)
+   - After flowing along j to 2-face F_{j,k}, that 2-face is trivialized using n_k (exit facet)
+   - Both entry_normal and exit_normal are stored; polygon_2d uses exit_normal
 
 3. **Facet sequence semantics:** `[i, j]` means "at 2-face F_{i,j}, entered facet j from facet i, about to flow along j."
 
