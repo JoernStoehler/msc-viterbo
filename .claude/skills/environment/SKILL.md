@@ -69,6 +69,7 @@ This project supports two environments:
 | Rust (cargo, rustc) | Pre-installed | Pre-installed |
 | Python + uv | Pre-installed | Pre-installed |
 | Python packages | `uv sync --extra dev` | `uv sync --extra dev` |
+| gh CLI | Pre-installed | Auto-installed by `.claude/hooks/web-env-setup.sh` |
 
 ---
 
