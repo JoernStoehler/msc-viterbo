@@ -666,6 +666,8 @@ impl TwoFaceEnriched {
 - \(|\mathrm{tr}| = 2\): Parabolic (boundary case, Lagrangian)
 - \(|\mathrm{tr}| < 2\): Elliptic (rotation), with \(\rho \in (0, 0.5)\)
 
+**Why rotation is unsigned and flow-direction-independent:** The rotation number depends only on tr(ψ), and for any matrix M ∈ Sp(2), we have tr(M) = tr(M⁻¹). Since JtoI flow uses ψ⁻¹ instead of ψ, the rotation number is the same regardless of flow direction. This is why `rotation` is stored as a property of the 2-face itself, not of the flow direction.
+
 **Significance for Tube algorithm:** Total rotation of a closed orbit must equal an integer. The algorithm prunes paths where accumulated rotation exceeds 2 turns (per CH2021 Prop 1.10).
 
 ---
@@ -773,6 +775,12 @@ Per CH2021 Definition 2.15: "Let ν denote the **outward unit normal vector to E
 | JtoI (ω < 0) | n_j | n_i | τ_{n_i} ∘ τ_{n_j}^{-1} |
 
 This design means callers can use `entry_normal`, `exit_normal`, and `transition_matrix` directly without checking `flow_direction`.
+
+**Design rationale:** We considered two approaches:
+- **(A) Canonical fields:** Always store n_i, n_j, ψ_{i→j} regardless of flow direction. Callers check `flow_direction` and invert as needed.
+- **(B) Flow-aware fields:** Store actual entry/exit normals and the correct entry→exit transition matrix based on flow direction.
+
+We chose **(B)** because the Tube algorithm code becomes simpler and less error-prone — the extend_tube function can apply `transition_matrix` directly without flow-direction checks. The cost is more work in `enrich_two_face`, but that's computed once per 2-face.
 
 ```rust
 struct TwoFaceEnriched {

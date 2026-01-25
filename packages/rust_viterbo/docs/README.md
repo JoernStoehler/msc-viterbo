@@ -2,7 +2,7 @@
 
 Documentation for the `rust_viterbo` package - EHZ capacity computation for convex polytopes.
 
-> **Status:** ARCHIVED. Source code deleted. Implementation preserved at tag `v0.1.0-archive`.
+> **Status:** Ready for implementation. Previous code archived at tag `v0.1.0-archive`.
 
 ---
 
@@ -10,12 +10,12 @@ Documentation for the `rust_viterbo` package - EHZ capacity computation for conv
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
-| **[developer-spec.md](developer-spec.md)** | All three algorithm specifications | Re-implementing algorithms |
-| **[mathematical-claims.md](mathematical-claims.md)** | Mathematical claims with citations | Verifying correctness |
-| **[test-propositions.md](test-propositions.md)** | Test propositions and mappings | Understanding test coverage |
-| **[test-interpretation.md](test-interpretation.md)** | What test results mean | Interpreting test failures |
-| **[implementation-status.md](implementation-status.md)** | What worked and didn't | Learning from past attempt |
-| **[ffi-contract.md](ffi-contract.md)** | Python FFI API contract | Calling from Python |
+| **[developer-spec-v2.md](developer-spec-v2.md)** | **PRIMARY SPEC** — Tube algorithm specification | Implementing the algorithm |
+| [open-questions.md](open-questions.md) | Resolved design questions with rationale | Understanding past decisions |
+| [developer-spec.md](developer-spec.md) | DEPRECATED v1 spec (all three algorithms) | Historical reference only |
+| [implementation-status.md](implementation-status.md) | Status of archived v0.1.0 implementation | Learning from past attempt |
+| [mathematical-claims.md](mathematical-claims.md) | Mathematical claims with citations | Verifying correctness |
+| [ffi-contract.md](ffi-contract.md) | Python FFI API contract | Calling from Python |
 
 ---
 
@@ -77,10 +77,10 @@ For full algorithm specifications, see [developer-spec.md](developer-spec.md).
 
 The FFI crate (`ffi/`) is an archived stub that returns `NotImplementedError` for all capacity functions. Only `symplectic_form_4d()` still works.
 
-To re-implement:
-1. Read [developer-spec.md](developer-spec.md) for algorithms
+To implement:
+1. Read [developer-spec-v2.md](developer-spec-v2.md) for the Tube algorithm specification
 2. Read [ffi-contract.md](ffi-contract.md) for Python API
-3. Reference archived code via `git show v0.1.0-archive:packages/rust_viterbo/`
+3. Optionally reference archived code via `git show v0.1.0-archive:packages/rust_viterbo/`
 
 ---
 
