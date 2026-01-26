@@ -137,13 +137,6 @@ fn is_p_motion_achievable_at_vertex(
     alpha >= -tol && beta >= -tol
 }
 
-/// Check if a displacement can be achieved by the Reeb flow from K_p.
-/// Returns true if the displacement is parallel to some V_k (with positive coefficient),
-/// or in a cone of two V_k at a vertex.
-fn is_displacement_achievable(delta: &Vector2<f64>, k_p: &Polygon2D, tol: f64) -> bool {
-    find_p_position_for_q_motion(delta, k_p, tol).is_some()
-}
-
 /// Result of solving for a single edge combination.
 #[derive(Debug, Clone)]
 pub struct SolveResult {
@@ -293,14 +286,86 @@ pub fn solve_2bounce(
     best
 }
 
+/// Validate that a full 3-bounce orbit (6 segments) is achievable.
+///
+/// The 6 segments are:
+/// 1. q at q₀: p moves from p₂ to p₀
+/// 2. p at p₀: q moves from q₀ to q₁
+/// 3. q at q₁: p moves from p₀ to p₁
+/// 4. p at p₁: q moves from q₁ to q₂
+/// 5. q at q₂: p moves from p₁ to p₂
+/// 6. p at p₂: q moves from q₂ to q₀
+///
+/// Returns true if valid, false otherwise.
+fn validate_3bounce_orbit(
+    q0: &Vector2<f64>,
+    q1: &Vector2<f64>,
+    q2: &Vector2<f64>,
+    k_q: &Polygon2D,
+    k_p: &Polygon2D,
+    q0_vertex: usize,
+    q1_vertex: usize,
+    q2_vertex: usize,
+) -> bool {
+    let d01 = *q1 - *q0;
+    let d12 = *q2 - *q1;
+    let d20 = *q0 - *q2;
+
+    // Find where p must be during each q-motion phase
+    let p0_info = match find_p_position_for_q_motion(&d01, k_p, EPS) {
+        Some(info) => info,
+        None => return false,
+    };
+    let p1_info = match find_p_position_for_q_motion(&d12, k_p, EPS) {
+        Some(info) => info,
+        None => return false,
+    };
+    let p2_info = match find_p_position_for_q_motion(&d20, k_p, EPS) {
+        Some(info) => info,
+        None => return false,
+    };
+
+    // Get the actual p positions
+    let p0 = get_p_position(k_p, p0_info);
+    let p1 = get_p_position(k_p, p1_info);
+    let p2 = get_p_position(k_p, p2_info);
+
+    // At q₀: p must transition from p₂ to p₀
+    let delta_p_at_q0 = p0 - p2;
+    if !is_p_motion_achievable_at_vertex(&delta_p_at_q0, k_q, q0_vertex, EPS) {
+        return false;
+    }
+
+    // At q₁: p must transition from p₀ to p₁
+    let delta_p_at_q1 = p1 - p0;
+    if !is_p_motion_achievable_at_vertex(&delta_p_at_q1, k_q, q1_vertex, EPS) {
+        return false;
+    }
+
+    // At q₂: p must transition from p₁ to p₂
+    let delta_p_at_q2 = p2 - p1;
+    if !is_p_motion_achievable_at_vertex(&delta_p_at_q2, k_q, q2_vertex, EPS) {
+        return false;
+    }
+
+    true
+}
+
 /// Solve for the minimum action 3-bounce trajectory with the given edge combination.
 ///
-/// For 3-bounce:
-/// - Variables: (t_q0, t_q1, t_q2, t_p0, t_p1, t_p2) ∈ [0,1]⁶
-/// - Closure constraints: Σ Δq = 0 (2 equations), Σ Δp = 0 (2 equations)
-/// - Feasible region: 2D affine subspace ∩ [0,1]⁶
+/// For 3-bounce, the trajectory has 6 segments:
+/// 1. q at q₀: p moves
+/// 2. p fixed: q moves q₀ → q₁
+/// 3. q at q₁: p moves
+/// 4. p fixed: q moves q₁ → q₂
+/// 5. q at q₂: p moves
+/// 6. p fixed: q moves q₂ → q₀
 ///
-/// We enumerate vertices of this feasible polytope.
+/// Constraints:
+/// 1. All q-displacements must be achievable by the Reeb flow
+/// 2. All p-transitions at the bounces must be achievable by the Reeb flow
+///
+/// By vertex optimality, we enumerate all 8 vertices of [0,1]³ for q-parameters.
 pub fn solve_3bounce(
     k_q: &Polygon2D,
     k_p: &Polygon2D,
@@ -311,54 +376,62 @@ pub fn solve_3bounce(
 
     // Find vertices of the q-closure polytope
     let q_vertices = enumerate_closure_vertices(k_q, &combo.q_edges)?;
-    // Find vertices of the p-closure polytope
-    let p_vertices = enumerate_closure_vertices(k_p, &combo.p_edges)?;
 
+    let n_q = k_q.num_vertices();
     let mut best: Option<SolveResult> = None;
 
-    // Cartesian product of q and p vertices
+    // Enumerate q vertices (p positions are determined by q-motion constraints)
     for t_q in &q_vertices {
-        for t_p in &p_vertices {
-            let q0 = k_q.point_on_edge(combo.q_edges[0], t_q[0]);
-            let q1 = k_q.point_on_edge(combo.q_edges[1], t_q[1]);
-            let q2 = k_q.point_on_edge(combo.q_edges[2], t_q[2]);
+        let q0 = k_q.point_on_edge(combo.q_edges[0], t_q[0]);
+        let q1 = k_q.point_on_edge(combo.q_edges[1], t_q[1]);
+        let q2 = k_q.point_on_edge(combo.q_edges[2], t_q[2]);
 
-            let d01 = q1 - q0;
-            let d12 = q2 - q1;
-            let d20 = q0 - q2;
+        let d01 = q1 - q0;
+        let d12 = q2 - q1;
+        let d20 = q0 - q2;
 
-            // Skip degenerate: any two consecutive points coincident
-            if d01.norm() < MIN_ACTION || d12.norm() < MIN_ACTION || d20.norm() < MIN_ACTION {
-                continue;
-            }
+        // Skip degenerate: any two consecutive points coincident
+        if d01.norm() < MIN_ACTION || d12.norm() < MIN_ACTION || d20.norm() < MIN_ACTION {
+            continue;
+        }
 
-            // Skip collinear points (zero-area "triangle")
-            let cross = d01[0] * d12[1] - d01[1] * d12[0];
-            if cross.abs() < MIN_ACTION {
-                continue;
-            }
+        // Skip collinear points (zero-area "triangle")
+        let cross = d01[0] * d12[1] - d01[1] * d12[0];
+        if cross.abs() < MIN_ACTION {
+            continue;
+        }
 
-            // Check Reeb velocity constraint for all three displacements
-            if !is_displacement_achievable(&d01, k_p, EPS) {
-                continue;
-            }
-            if !is_displacement_achievable(&d12, k_p, EPS) {
-                continue;
-            }
-            if !is_displacement_achievable(&d20, k_p, EPS) {
-                continue;
-            }
+        // Get vertex indices for q₀, q₁, q₂
+        let q0_vertex = if t_q[0] < 0.5 {
+            combo.q_edges[0]
+        } else {
+            (combo.q_edges[0] + 1) % n_q
+        };
+        let q1_vertex = if t_q[1] < 0.5 {
+            combo.q_edges[1]
+        } else {
+            (combo.q_edges[1] + 1) % n_q
+        };
+        let q2_vertex = if t_q[2] < 0.5 {
+            combo.q_edges[2]
+        } else {
+            (combo.q_edges[2] + 1) % n_q
+        };
 
-            let action = compute_3bounce_action(&q0, &q1, &q2, k_p);
+        // Validate the full 6-segment orbit
+        if !validate_3bounce_orbit(&q0, &q1, &q2, k_q, k_p, q0_vertex, q1_vertex, q2_vertex) {
+            continue;
+        }
 
-            if action > MIN_ACTION {
-                if best.is_none() || action < best.as_ref().unwrap().action {
-                    best = Some(SolveResult {
-                        action,
-                        q_params: t_q.to_vec(),
-                        p_params: t_p.to_vec(),
-                    });
-                }
+        let action = compute_3bounce_action(&q0, &q1, &q2, k_p);
+
+        if action > MIN_ACTION {
+            if best.is_none() || action < best.as_ref().unwrap().action {
+                best = Some(SolveResult {
+                    action,
+                    q_params: t_q.to_vec(),
+                    p_params: vec![0.0, 0.0, 0.0], // Placeholder, p positions determined by q-motion
+                });
             }
         }
     }
