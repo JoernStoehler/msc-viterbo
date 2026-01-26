@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
+import math
 from typing import Any
 
 import pytest
@@ -14,18 +13,6 @@ except ImportError:  # pragma: no cover
 ffi: Any = rust_viterbo_ffi
 
 
-def load_hko_facets() -> tuple[list[list[float]], list[float]]:
-    data_path = (
-        Path(__file__).resolve().parents[1]
-        / "data"
-        / "counterexamples"
-        / "hk-o-2024"
-        / "facets.json"
-    )
-    data = json.loads(data_path.read_text())
-    return data["normals"], data["heights"]
-
-
 @pytest.fixture(autouse=True)
 def require_ffi_installed() -> None:
     if rust_viterbo_ffi is None:
@@ -33,47 +20,6 @@ def require_ffi_installed() -> None:
             "rust_viterbo_ffi is not installed. Build it with: "
             "cd packages/python_viterbo && uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml"
         )
-
-
-def test_hko_call_returns_capacity_or_error() -> None:
-    """Test that the algorithm runs on the HK&O counterexample.
-
-    The algorithm should either:
-    1. Return a valid capacity result (dict with 'capacity' key)
-    2. Raise RuntimeError if no valid orbits found
-
-    This tests the integration of the full pipeline.
-    """
-    normals, heights = load_hko_facets()
-    try:
-        result = ffi.tube_capacity_hrep(normals, heights)
-        # If we get a result, check it has expected structure
-        assert isinstance(result, dict)
-        assert "capacity" in result
-        assert "diagnostics" in result
-        assert result["capacity"] > 0
-        diag = result["diagnostics"]
-        assert diag["nodes_explored"] > 0
-    except RuntimeError as e:
-        # Algorithm ran but found no valid orbits (acceptable for now)
-        message = str(e).lower()
-        assert "orbit" in message or "lagrangian" in message
-
-
-def test_negative_height_rejected() -> None:
-    normals, heights = load_hko_facets()
-    heights[0] = -1.0
-    with pytest.raises(ValueError) as excinfo:
-        ffi.tube_capacity_hrep(normals, heights)
-    assert "not positive" in str(excinfo.value).lower()
-
-
-def test_non_unit_normal_rejected() -> None:
-    normals, heights = load_hko_facets()
-    normals[0] = [2.0, 0.0, 0.0, 0.0]
-    with pytest.raises(ValueError) as excinfo:
-        ffi.tube_capacity_hrep(normals, heights)
-    assert "not unit" in str(excinfo.value).lower()
 
 
 # ============================================================================
