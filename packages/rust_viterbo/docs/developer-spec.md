@@ -79,7 +79,7 @@ impl PolytopeRepEnriched {
 
 **Definitions / Representations of Reeb orbit:**
 - fully general: \( \gamma \in W^{1,2}([0,T], \partial K) \) with \( \int_0^T \dot\gamma(t) dt = 0 \) (closed) and \( \dot\gamma(t) \in \mathrm{conv}\{ 2/h_i J n_i : \gamma(t) \in F_i \} \) (Reeb flow differential inclusion) where \(F_i\) are the facets of \(K\) and \(R_i = 2/h_i J n_i\) are the Reeb vectors on each facet.
-- Reeb orbits can be piecewise linear, which can be represented by a cyclic sequence of breakpoints and break times \(\{(p_k, t_k)\}_{k=1}^N \subset \mathbb{R}^4 \times [0,T]\) with \(0 = t_1 < t_2 < \ldots < t_{N+1} = T\) and period \(T>0\). The segments lie on the polytope boundary, the breakpoints in particular have to lie on facet boundaries i.e. in the interior of a 0,1,2-face.
+- Reeb orbits can be piecewise linear, which can be represented by a cyclic sequence of breakpoints and break times \(\{(p_k, t_k)\}_{k=1}^N \subset \mathbb{R}^4 \times [0,T]\) with \(0 = t_1 \leq t_2 \leq \ldots \leq t_{N+1} = T\) and period \(T>0\). Zero-length segments (\(t_{k+1} = t_k\)) are allowed; the HK formula uses \(\beta_i \geq 0\). The segments lie on the polytope boundary, the breakpoints in particular have to lie on facet boundaries i.e. in the interior of a 0,1,2-face.
 - There always is a minimum action Reeb orbit that is piecewise linear, and takes every velocity \((p_{k+1} - p_k)/ (t_{k+1} - t_k)\) equal to some facet Reeb vector \(R_{i_k}\) (theorem in thesis) and even takes every Reeb vector at most once.
 - If the polytope has no lagrangian 2-faces, then all segments lie on the interior of 3-facets, i.e. no facet flows along a 0,1,2-face.
 - Some polytopes with lagrangian 2-faces have only minimum action orbits such that the orbit flows along a lagrangian 2-face with a breakpoint in the interior of the lagrangian 2-face.
@@ -104,7 +104,8 @@ impl SimpleReebOrbitEnriched {
         //   segment_facets.len() == num_segments
         //
         // Timing:
-        //   breaktimes strictly increasing
+        //   breaktimes non-decreasing (zero-length segments allowed)
+        //   period > 0 (non-trivial orbit)
         //
         // Geometry (for each segment k):
         //   breakpoints[k] and breakpoints[k+1] lie on facet segment_facets[k]

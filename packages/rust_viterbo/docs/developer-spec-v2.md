@@ -1445,8 +1445,13 @@ struct PiecewiseLinearReebTrajectory {
 **Mathematical conditions (not encoded in type):**
 1. Each breakpoint lies on \(\partial K\)
 2. Each segment lies on its claimed facet: both endpoints satisfy \(\langle n_i, p \rangle = h_i\)
-3. Velocity = Reeb vector: \((p_{k+1} - p_k) / \tau_k = R_{i_k}\)
-4. Times positive: \(\tau_k > 0\)
+3. Velocity = Reeb vector: \((p_{k+1} - p_k) / \tau_k = R_{i_k}\) (for \(\tau_k > 0\))
+4. Times non-negative: \(\tau_k \geq 0\) (zero-length segments allowed)
+5. Total period positive: \(T = \sum_k \tau_k > 0\) (rules out trivial orbit)
+
+**Note on zero-length segments:** The HK formula uses \(\beta_i \geq 0\) (non-strict).
+Zero-length segments (\(\tau_k = 0\)) contribute nothing to the action and are
+mathematically valid. For such segments, \(p_{k+1} = p_k\) (zero displacement).
 
 **Segment time formula (derived from velocity constraint):**
 
@@ -2151,14 +2156,23 @@ fn reconstruct_4d_orbit(
 
 **Assertions:**
 ```rust
-// All segment times are positive
-assert!(segment_times.iter().all(|&t| t > 0.0));
+// All segment times are non-negative
+assert!(segment_times.iter().all(|&t| t >= 0.0));
 
-// Segment displacements match Reeb velocities
+// Total period is positive (non-trivial orbit)
+let period: f64 = segment_times.iter().sum();
+assert!(period > EPS);
+
+// Segment displacements match Reeb velocities (skip zero-length segments)
 for k in 0..n_segments {
     let displacement = &breakpoints[k + 1] - &breakpoints[k];
-    let expected = polytope_data.reeb_vector(segment_facets[k]) * segment_times[k];
-    assert!((displacement - expected).norm() < EPS);
+    if segment_times[k] < EPS {
+        // Zero-length segment: displacement must also be zero
+        assert!(displacement.norm() < EPS);
+    } else {
+        let expected = polytope_data.reeb_vector(segment_facets[k]) * segment_times[k];
+        assert!((displacement - expected).norm() < EPS);
+    }
 }
 
 // Period equals action (for closed Reeb orbits)

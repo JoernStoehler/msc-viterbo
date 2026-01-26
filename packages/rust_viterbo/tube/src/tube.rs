@@ -478,7 +478,19 @@ pub struct ClosedReebOrbit {
 
 impl ClosedReebOrbit {
     /// Validate the orbit.
+    ///
+    /// Allows zero-length segments (τ_k = 0) as long as:
+    /// - Total period T > 0 (non-trivial orbit)
+    /// - Zero-length segments have zero displacement (b_{k+1} = b_k)
     pub fn validate(&self, data: &PolytopeData) -> TubeResult<()> {
+        // 0. Period must be positive (rules out trivial orbit)
+        if self.period <= EPS {
+            return Err(TubeError::ValidationFailed(format!(
+                "Period must be positive: T = {:.2e}",
+                self.period
+            )));
+        }
+
         // 1. Closure
         let n = self.breakpoints.len();
         if n < 2 {
@@ -518,11 +530,25 @@ impl ClosedReebOrbit {
             }
         }
 
-        // 3. Velocities match Reeb vectors
+        // 3. Velocities match Reeb vectors (skip zero-length segments)
         for k in 0..self.segment_facets.len() {
+            let time = self.segment_times[k];
+
+            // Zero-length segment: just verify displacement is also zero
+            if time < EPS {
+                let displacement = (&self.breakpoints[k + 1] - &self.breakpoints[k]).norm();
+                if displacement > EPS {
+                    return Err(TubeError::ValidationFailed(format!(
+                        "Segment {} has zero time but non-zero displacement: d = {:.2e}",
+                        k, displacement
+                    )));
+                }
+                continue; // Skip velocity check (would divide by zero)
+            }
+
             let i = self.segment_facets[k];
             let displacement = &self.breakpoints[k + 1] - &self.breakpoints[k];
-            let velocity = displacement / self.segment_times[k];
+            let velocity = displacement / time;
             let reeb = data.reeb(i);
 
             let velocity_error = (velocity - reeb).norm();
@@ -615,13 +641,25 @@ pub fn reconstruct_orbit(
         let exit_4d = current_4d + *reeb * time;
 
         breakpoints.push(exit_4d);
-        segment_times.push(time.max(0.0)); // Clamp small negatives
+        // Clamp small negatives to zero. Zero-length segments (τ_k = 0) are
+        // mathematically valid as long as total period T > 0. The HK formula
+        // uses β_i ≥ 0 (non-strict), and zero-length segments contribute
+        // nothing to the action.
+        segment_times.push(time.max(0.0));
         segment_facets.push(facet);
 
         current_4d = exit_4d;
     }
 
     let period: f64 = segment_times.iter().sum();
+
+    // Total period must be positive (rules out trivial orbit)
+    if period <= EPS {
+        return Err(TubeError::ValidationFailed(format!(
+            "Reconstructed orbit has zero period: T = {:.2e}",
+            period
+        )));
+    }
 
     Ok(ClosedReebOrbit {
         period,
