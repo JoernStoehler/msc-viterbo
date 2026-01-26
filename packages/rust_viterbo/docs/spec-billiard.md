@@ -3,7 +3,7 @@
 > **Audience:** Claude Code agents implementing the Billiard algorithm
 > **Prerequisite:** Read thesis chapter on algorithms; review HK2024 counterexample paper ([HK2024-counterexample.tex](../../../docs/papers/HK2024-counterexample/HK2024-counterexample.tex))
 > **Status:** Draft specification for standalone crate
-> **Reference Literature:** Rudolf 2022 "Minkowski billiards and symplectic capacities", Bezdek-Bezdek 2009 "Short billiard trajectories"
+> **Reference Literature:** Rudolf 2021 "Minkowski billiards and symplectic capacities" (JMD vol. 17), Bezdek-Bezdek 2009 "Short billiard trajectories"
 
 ---
 
@@ -12,7 +12,7 @@
 0. [Problem Statement](#0-problem-statement)
 1. [Mathematical Background](#1-mathematical-background)
    - 1.1 Minkowski Billiards and EHZ Capacity
-   - 1.2 The T°-Length (Dual Norm)
+   - 1.2 Action via Reeb Vectors
    - 1.3 Bounce Bound Theorem
    - 1.4 Billiard Trajectories as 4D Reeb Orbits
    - 1.5 Differential Inclusion Constraint
@@ -22,6 +22,7 @@
    - 2.3 Edge and Vertex Data
    - 2.4 Trajectory Representation
    - 2.5 Result
+   - 2.6 Helper Functions
 3. [Algorithm](#3-algorithm)
    - 3.1 Overview
    - 3.2 Preprocessing: Extract Lagrangian Factors
@@ -38,6 +39,8 @@
    - 5.1 Ground Truth Values
    - 5.2 Capacity Axioms
    - 5.3 Algorithm Agreement
+   - 5.4 Witness Validation Tests
+   - 5.5 Input Validation Tests
 6. [Crate Structure](#6-crate-structure)
 7. [References](#7-references)
 8. [Open Questions](#8-open-questions)
@@ -75,7 +78,7 @@ The Billiard algorithm:
 
 ### 1.1 Minkowski Billiards and EHZ Capacity
 
-**Source:** Rudolf 2022 Theorem 4, Gutkin-Tabachnikov 2002
+**Source:** Rudolf 2021 (JMD vol. 17), Gutkin-Tabachnikov 2002
 
 For a Lagrangian product \(K = K_q \times K_p\), the EHZ capacity has a billiard characterization:
 
@@ -113,7 +116,7 @@ The billiard literature (Rudolf 2022, HK2024) uses T°-length: \(\|v\|_{T^\circ}
 
 ### 1.3 Bounce Bound Theorem
 
-**Source:** Bezdek-Bezdek 2009 (Lemma 2.1), Rudolf 2022 (Theorem 4)
+**Source:** Bezdek-Bezdek 2009 (Lemma 2.1, Lemma 2.4), Rudolf 2021
 
 **Theorem (Bezdek-Bezdek):** In \(\mathbb{R}^n\), every closed convex curve that cannot be translated into the interior of a convex body \(K\) can have vertices removed (preserving the non-translatability property) until it has at most \(n+1\) vertices.
 
@@ -398,6 +401,107 @@ pub struct BilliardResult {
 }
 ```
 
+### 2.6 Helper Functions
+
+These functions are used throughout the algorithm but defined here for reference:
+
+```rust
+/// Compute T°-length (support function) of a displacement vector
+/// h_T(v) = max_{x ∈ T} ⟨v, x⟩ = max over vertices
+fn t_dual_length(v: &Vector2<f64>, t_vertices: &[Vector2<f64>]) -> f64 {
+    t_vertices.iter()
+        .map(|w| v.dot(w))
+        .fold(f64::NEG_INFINITY, f64::max)
+}
+
+/// Build a 2D polygon from H-representation (normals and heights)
+/// Returns None if the constraints don't form a bounded polygon
+fn polygon_from_facets(
+    normals: &[Vector2<f64>],
+    heights: &[f64],
+) -> Option<Polygon2D> {
+    // 1. Compute vertices by intersecting adjacent half-planes
+    // 2. Sort vertices in CCW order
+    // 3. Build Polygon2D structure
+    //
+    // Implementation: For each pair of consecutive edges (i, i+1 mod n),
+    // solve the 2x2 system: ⟨n_i, x⟩ = h_i and ⟨n_{i+1}, x⟩ = h_{i+1}
+    // to find the vertex at their intersection.
+
+    let n = normals.len();
+    if n < 3 { return None; }
+
+    let mut vertices = Vec::with_capacity(n);
+    for i in 0..n {
+        let j = (i + 1) % n;
+        // Solve: n_i · x = h_i, n_j · x = h_j
+        let det = normals[i][0] * normals[j][1] - normals[i][1] * normals[j][0];
+        if det.abs() < EPS { return None; }  // Parallel edges
+
+        let x = (heights[i] * normals[j][1] - heights[j] * normals[i][1]) / det;
+        let y = (normals[i][0] * heights[j] - normals[j][0] * heights[i]) / det;
+        vertices.push(Vector2::new(x, y));
+    }
+
+    Some(Polygon2D {
+        vertices,
+        normals: normals.to_vec(),
+        heights: heights.to_vec(),
+    })
+}
+
+/// Classify where a point lies on a polygon boundary
+enum BoundaryLocation {
+    EdgeInterior(usize),      // On edge i, not at a vertex
+    Vertex(usize, usize),     // At vertex between edges i and j
+    Interior,                 // Inside the polygon (not on boundary)
+    Exterior,                 // Outside the polygon
+}
+
+fn classify_boundary_point(
+    point: &Vector2<f64>,
+    polygon: &Polygon2D,
+    tol: f64,
+) -> BoundaryLocation {
+    let n = polygon.num_edges();
+
+    // Check distance to each edge
+    for i in 0..n {
+        let dist_to_edge = polygon.normals[i].dot(point) - polygon.heights[i];
+
+        if dist_to_edge.abs() < tol {
+            // Point is on edge i's supporting line
+            // Check if it's at a vertex (also close to adjacent edge)
+            let prev = (i + n - 1) % n;
+            let dist_to_prev = polygon.normals[prev].dot(point) - polygon.heights[prev];
+
+            if dist_to_prev.abs() < tol {
+                return BoundaryLocation::Vertex(prev, i);
+            }
+            return BoundaryLocation::EdgeInterior(i);
+        }
+
+        if dist_to_edge > tol {
+            return BoundaryLocation::Exterior;
+        }
+    }
+
+    BoundaryLocation::Interior
+}
+
+/// Check if point is on boundary or interior of polygon
+fn is_on_boundary_or_interior(
+    point: &Vector2<f64>,
+    polygon: &Polygon2D,
+    tol: f64,
+) -> bool {
+    !matches!(
+        classify_boundary_point(point, polygon, tol),
+        BoundaryLocation::Exterior
+    )
+}
+```
+
 ---
 
 ## 3. Algorithm
@@ -544,6 +648,24 @@ A = \sum_{i=0}^{k-1} \|q_{i+1} - q_i\|_{K_p^\circ}
 
 **Note:** The p-displacement contributes to "time" but not directly to "action" in the billiard formulation. The T°-length of the q-displacement gives the action.
 
+**Solution approach for k=2 (2-bounce):**
+
+For 2-bounce trajectories, the problem simplifies significantly:
+- Variables: \(t_{q,0}, t_{q,1}, t_{p,0}, t_{p,1} \in [0,1]\)
+- Closure: \(q_1 - q_0 + q_0 - q_1 = 0\) (automatically satisfied for 2-bounce back-and-forth)
+- The trajectory goes \(q_0 \to q_1 \to q_0\) in q-space
+
+For a 2-bounce, the minimum is achieved at the endpoints of the edge parameter range (corners of the constraint box), or where the gradient vanishes. Since the objective is piecewise linear, check all vertices of the feasible region.
+
+**Solution approach for k=3 (3-bounce):**
+
+For 3-bounce trajectories:
+1. Fix the edge combination \((e_{q,0}, e_{q,1}, e_{q,2})\) and \((e_{p,0}, e_{p,1}, e_{p,2})\)
+2. Parameterize: \(q_i = K_q.\text{point\_on\_edge}(e_{q,i}, t_{q,i})\)
+3. Closure constraint gives 2 linear equations (in 2D) for q and 2 for p
+4. With 6 variables and 4 linear constraints, we have a 2D feasible region
+5. Enumerate vertices of this polytope and evaluate action at each
+
 ```rust
 /// Solve for minimum action trajectory with given edge combination
 fn solve_billiard_lp(
@@ -553,18 +675,90 @@ fn solve_billiard_lp(
 ) -> Option<(f64, BilliardTrajectory)> {
     let k = combo.q_edges.len();
 
-    // For k=2 or k=3, we can solve analytically or use simple LP
-    // The constraints are linear in the edge parameters
-    // The objective (T°-length) is piecewise linear
+    match k {
+        2 => solve_2bounce(k_q, k_p, combo),
+        3 => solve_3bounce(k_q, k_p, combo),
+        _ => None,  // Only k=2,3 are valid per bounce bound theorem
+    }
+}
 
-    // Simplified approach: discretize and search
-    // (A complete implementation would use proper LP with piecewise linear objective)
+/// Solve 2-bounce case: enumerate corner cases
+fn solve_2bounce(
+    k_q: &Polygon2D,
+    k_p: &Polygon2D,
+    combo: &EdgeCombination,
+) -> Option<(f64, BilliardTrajectory)> {
+    let mut best: Option<(f64, BilliardTrajectory)> = None;
 
-    // ... implementation details ...
+    // For 2-bounce, try all combinations of edge endpoints
+    // t=0 means vertex at start of edge, t=1 means vertex at end
+    for &t_q0 in &[0.0, 1.0] {
+        for &t_q1 in &[0.0, 1.0] {
+            for &t_p0 in &[0.0, 1.0] {
+                for &t_p1 in &[0.0, 1.0] {
+                    if let Some(traj) = build_trajectory(k_q, k_p, combo,
+                        &[t_q0, t_q1], &[t_p0, t_p1]) {
+                        let action = compute_action(&traj, k_p);
+                        if action > MIN_ACTION {
+                            if best.is_none() || action < best.as_ref().unwrap().0 {
+                                best = Some((action, traj));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    best
+}
 
-    unimplemented!()
+/// Solve 3-bounce case: solve linear system + enumerate LP vertices
+fn solve_3bounce(
+    k_q: &Polygon2D,
+    k_p: &Polygon2D,
+    combo: &EdgeCombination,
+) -> Option<(f64, BilliardTrajectory)> {
+    // The closure constraint Σ(q_{i+1} - q_i) = 0 is linear in (t_q0, t_q1, t_q2)
+    // Combined with box constraints t ∈ [0,1]³, this defines a polytope
+    //
+    // Approach: parameterize t_q2 = f(t_q0, t_q1) from closure, then
+    // grid search over (t_q0, t_q1) ∈ [0,1]² with the constraint that
+    // t_q2 = f(t_q0, t_q1) ∈ [0,1]
+    //
+    // Similar for p-parameters.
+    //
+    // A more sophisticated approach would enumerate vertices of the
+    // 2D polytope defined by the closure + box constraints.
+
+    let mut best: Option<(f64, BilliardTrajectory)> = None;
+    let grid_size = 10;  // Discretization for initial search
+
+    for i in 0..=grid_size {
+        for j in 0..=grid_size {
+            let t_q0 = i as f64 / grid_size as f64;
+            let t_q1 = j as f64 / grid_size as f64;
+
+            // Solve for t_q2 from closure (may be infeasible)
+            if let Some(t_q2) = solve_closure_q(k_q, combo, t_q0, t_q1) {
+                if t_q2 >= 0.0 && t_q2 <= 1.0 {
+                    // Similarly solve for p-parameters
+                    // ... (symmetric logic for p)
+
+                    // Build and evaluate trajectory
+                    // ...
+                }
+            }
+        }
+    }
+    best
 }
 ```
+
+**Note:** The grid search is a simplification. A production implementation should:
+1. Solve the linear closure constraints analytically
+2. Intersect with box constraints to get a polytope
+3. Enumerate vertices of this polytope (finite set)
+4. Evaluate piecewise-linear objective at each vertex
 
 ### 3.6 Action Computation
 
@@ -696,6 +890,22 @@ fn test_pentagon_counterexample() {
         "2-bounce should find minimum");
     assert!((result_3bounce.capacity - expected).abs() < 1e-6,
         "3-bounce should find minimum (HK2024 proof line 300)");
+}
+
+#[test]
+fn test_tesseract_capacity() {
+    // Tesseract [-1,1]^4 = Square[-1,1]² × Square[-1,1]²
+    // Known capacity = 4.0 (HK2017 Example 4.6)
+    let square = Polygon2D::square(2.0);  // Side length 2, centered at origin
+
+    let result = billiard_capacity(&square, &square);
+
+    assert!((result.capacity - 4.0).abs() < 1e-6,
+        "Tesseract capacity: expected 4.0, got {}", result.capacity);
+
+    // Witness should be a 2-bounce trajectory
+    assert!(result.witness.num_bounces == 2,
+        "Tesseract minimum should be 2-bounce");
 }
 ```
 
@@ -862,6 +1072,53 @@ fn test_pentagon_witness_validity() {
 }
 ```
 
+### 5.5 Input Validation Tests
+
+The billiard algorithm only works for Lagrangian products. These tests verify proper rejection of invalid inputs.
+
+```rust
+#[test]
+fn test_rejects_non_lagrangian_product() {
+    // A polytope with mixed (q,p) facet normals is NOT a Lagrangian product
+    let mixed_normals = vec![
+        Vector4::new(1.0, 0.0, 0.0, 0.0),   // Pure q-facet
+        Vector4::new(0.0, 1.0, 0.0, 0.0),   // Pure q-facet
+        Vector4::new(0.0, 0.0, 1.0, 0.0),   // Pure p-facet
+        Vector4::new(0.5, 0.0, 0.5, 0.0),   // MIXED - not Lagrangian!
+    ];
+    let heights = vec![1.0; 4];
+    let hrep = PolytopeHRep { normals: mixed_normals, heights };
+
+    let result = extract_lagrangian_factors(&hrep);
+    assert!(result.is_none(), "Should reject non-Lagrangian polytope");
+}
+
+#[test]
+fn test_rejects_degenerate_polygon() {
+    // Polygon with collinear vertices (not valid)
+    let collinear_vertices = vec![
+        Vector2::new(0.0, 0.0),
+        Vector2::new(1.0, 0.0),
+        Vector2::new(2.0, 0.0),  // Collinear with first two
+    ];
+
+    // This should fail validation
+    let result = Polygon2D::from_vertices(&collinear_vertices);
+    assert!(result.is_err() || result.unwrap().validate().is_err());
+}
+
+#[test]
+fn test_rejects_polygon_with_origin_outside() {
+    // Polygon that doesn't contain 0 in interior (required for valid K)
+    let k_q = Polygon2D::square(1.0);
+    let k_p = translate_polygon(&Polygon2D::square(1.0), &Vector2::new(10.0, 10.0));
+    // k_p is now far from origin - should fail validation
+
+    assert!(k_p.validate().is_err(),
+        "Polygon with 0 outside should fail validation");
+}
+```
+
 ---
 
 ## 6. Crate Structure
@@ -950,4 +1207,4 @@ Input polygons with collinear vertices or 0 on the boundary should be rejected d
 
 ### 8.3 Higher Dimensions
 
-The billiard characterization extends to \(\mathbb{R}^{2n}\) for n > 2 (Rudolf 2022 Theorem 4). The bounce bound becomes n+1 (Bezdek-Bezdek Lemma 2.1), making enumeration O(edges^{n+1}).
+The billiard characterization extends to \(\mathbb{R}^{2n}\) for n > 2 (Rudolf 2021). The bounce bound becomes n+1 (Bezdek-Bezdek Lemma 2.1), making enumeration O(edges^{n+1}).
