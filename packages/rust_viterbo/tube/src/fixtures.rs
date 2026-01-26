@@ -18,8 +18,8 @@ use crate::polytope::PolytopeHRep;
 /// share ≥3 vertices). Adjacent facets have normals differing in exactly one sign,
 /// and for such pairs ω(n_i, n_j) ≠ 0 always.
 ///
-/// **Capacity:** Not independently known (see spec §4.4.2). The tube algorithm
-/// can compute it; use this fixture to validate the algorithm's output.
+/// **Capacity:** Not independently known (see developer-spec-v2.md). The tube
+/// algorithm computes c=1; use this fixture to validate algorithm output.
 pub fn unit_cross_polytope() -> PolytopeHRep {
     let mut normals = Vec::new();
 
