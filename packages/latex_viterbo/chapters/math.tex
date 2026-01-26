@@ -114,7 +114,7 @@ Since smoothness, or even differentiability everywhere, is lost when moving to p
         \[
             \dot{\gamma}(t) = J \nabla H(\gamma(t)).
         \]
-    \item[Contact form] Not all points have a full 3-dimensional tangent space on the boundary of a polytope. So we instead look at each facet \(F\) separately, and define on the relative interior a 1-form \(\alpha_i = \lambda|_{\operatorname{relint}(F)}\). While in the smooth case we only had 3-dimensional tangent spaces, and still do on facet interiors, where \(\alpha\) is indeed a contact form, we now also have 2-,1-,0-faces. In particular, we may have lagrangian 2-faces where \(\omega|_F=0\).
+    \item[Contact form] Not all points have a full 3-dimensional tangent space on the boundary of a polytope. So we instead look at each facet \(F\) separately, and define on the relative interior a 1-form \(\alpha_i = \lambda|_{\operatorname{relint}(F)}\). While in the smooth case we only had 3-dimensional tangent spaces, and still do on facet interiors, where \(\alpha\) is indeed a contact form, we now also have 2-,1-,0-faces. In particular, we may have Lagrangian 2-faces where \(\omega|_F=0\).
     \item[Reeb orbit] On the facet interiors, we still get a Reeb vector \(R\) with \(\alpha(R)=1\), \((d\alpha)(R,\cdot)=0\). The Reeb vector is indeed constant on the facet interior and can be calculated as
     \[
         R_i = \frac{2}{h_i} J n_i.
@@ -190,17 +190,17 @@ We now discuss the combinatorical structure of Reeb orbits on polytopes. This is
 \end{proof}
 
 \begin{lemma}[Reeb flow on 2-Faces]
-    Reeb orbits cross non-lagrangian 2-faces instantaneously.
-    Reeb orbits enter and exit lagrangian 2-faces from and into the boundary 1-faces or 0-faces. Their path inside the lagrangian 2-face is not uniquely defined, and can be any absolutely continuous \(W^{1,2}\) curve with velocities from \(\operatorname{conv}\{R_i, R_j\}\) that stays in the 2-face interior except for the endpoints.
+    Reeb orbits cross non-Lagrangian 2-faces instantaneously.
+    Reeb orbits enter and exit Lagrangian 2-faces from and into the boundary 1-faces or 0-faces. Their path inside the Lagrangian 2-face is not uniquely defined, and can be any absolutely continuous \(W^{1,2}\) curve with velocities from \(\operatorname{conv}\{R_i, R_j\}\) that stays in the 2-face interior except for the endpoints.
 \end{lemma}
 \begin{proof}
     Let \(F_{ij} = F_i \cap F_j\) be a 2-face. Note that the Reeb vectors are orthogonal to their facet normals, i.e. lie in the tangent space of the facet.
     The two facet normals are by irredundancy linearly independent, so the tangent space \(T_z F_{ij}\) is given as the orthogonal complement of \(\operatorname{span}\{n_i, n_j\}\).
-    Non-lagrangianness is equivalent to \(\omega(J n_i,J n_j) = \omega(n_i,n_j) \neq 0\).
+    Non-Lagrangianness is equivalent to \(\omega(J n_i,J n_j) = \omega(n_i,n_j) \neq 0\).
 
-    In the lagrangian case, the local neighborhood of a point on the 2-face's interior looks like this: We have the adjacent two facet interior, where the Reeb flow is parallel to the 2-face. So no orbit can enter or exit from the facet interiors into the 2-face interior. On the 2-face, the convex combinations of the two Reeb vectors are all tangent, so the Reeb flow can move in any convex direction inside the 2-face, as outlined in the lemma statement.
+    In the Lagrangian case, the local neighborhood of a point on the 2-face's interior looks like this: We have the adjacent two facet interior, where the Reeb flow is parallel to the 2-face. So no orbit can enter or exit from the facet interiors into the 2-face interior. On the 2-face, the convex combinations of the two Reeb vectors are all tangent, so the Reeb flow can move in any convex direction inside the 2-face, as outlined in the lemma statement.
 
-    In the non-lagrangian case, we have \(\omega(n_i,n_j) \neq 0\). No positive combination of the two Reeb vectors is orthogonal to both normals, so the Reeb flow cannot move inside the 2-face. Instead, it crosses the 2-face instantaneously. 
+    In the non-Lagrangian case, we have \(\omega(n_i,n_j) \neq 0\). No positive combination of the two Reeb vectors is orthogonal to both normals, so the Reeb flow cannot move inside the 2-face. Instead, it crosses the 2-face instantaneously. 
 \end{proof}
 
 \begin{lemma}[Reeb flow on 1-Faces]
@@ -217,7 +217,7 @@ We now discuss the combinatorical structure of Reeb orbits on polytopes. This is
     Trivially, zero velocity is not allowed, so the Reeb flow cannot stay in the 0-face.
 \end{proof}
 
-For the 1-faces and lagrangian 2-faces we have seen that the Reeb flow has a rather high degree of freedom.
+For the 1-faces and Lagrangian 2-faces we have seen that the Reeb flow has a rather high degree of freedom.
 We however want to algorithmically compute with Reeb orbits, so some statement about representative orbits that are more easy to handle is needed.
 
 \begin{definition}[Polygonal Reeb Orbit]
@@ -235,7 +235,7 @@ Polygonal Reeb orbits are easier to handle algorithmically, e.g. using a list of
     The homotopy preserves the action, i.e. \(A(\gamma_s) = A(\gamma_0)\) for all \(s \in [0,1]\).
 \end{theorem}
 \begin{proof}
-    The basic idea is to homotope a non-straight curve segment inside a 1-face or inside a lagrangian 2-face to a piecewise linear curve that uses only the facet Reeb vectors as velocities.
+    The basic idea is to homotope a non-straight curve segment inside a 1-face or inside a Lagrangian 2-face to a piecewise linear curve that uses only the facet Reeb vectors as velocities.
     To do this we need to find some polygonal Reeb orbit in the neighborhood of the original Reeb orbit. This is doable because locally, around some point in the face interior, we can consider the face boundary to be far away, and then just split the convex combination of Reeb vectors into distinct segments, where each segment has a pure velocity, but also only a fraction of the time.
     There also needs to be some compactness argument about how there's only finitely many times the orbit changes faces, which can come from observing that each point \(z\) has an infimum time along pure velocity Reeb flows to return to the face it is on, after leaving it. Some local consideration shows that the infimium is positive, and so the global infimum over the compact polytope surface is also positive, and so only finitely many face changes can happen in finite time.
     After finding such a polygonal Reeb orbit \(\gamma_1\) close to the original orbit \(\gamma_0\), we can do a linear homotopy between the two curves, which preserves the action since \(\lambda\) is linear in the velocity.
@@ -263,24 +263,24 @@ We wrote down the proof in more detail, and extracted a continuous homotopy inst
 
 \section{Trivialization of 2-Face Tangent Spaces}\label{sec:trivialization}
 
-For algorithmic purposes, we need to track how Reeb orbits evolve as they cross non-Lagrangian 2-faces.
-This requires a trivialization of the contact structure over 2-faces.
-The construction below follows~\cite{CH2021}, adapted to make the computational aspects explicit.
+To compute how Reeb orbits evolve across non-Lagrangian 2-faces, we need a trivialization of the contact structure that admits explicit matrix formulas.
+The construction follows~\cite{CH2021}.
 
 \subsection{Quaternion Structure on \texorpdfstring{\(\R^4\)}{R4}}
 
-The standard symplectic structure on \(\R^4\) extends to a quaternionic structure.
-We define three matrices that satisfy the quaternion algebra relations \(I^2 = J^2 = K^2 = IJK = -\Id\):
+The key insight is that quaternions provide a canonical orthonormal frame from any unit normal vector, which will define coordinates on each 2-face tangent space.
+
+The standard symplectic structure on \(\R^4\) extends to a quaternionic structure via three matrices satisfying \(I^2 = J^2 = K^2 = IJK = -\Id\):
 \begin{align}
   \QuatI &= J = \begin{pmatrix} 0 & 0 & -1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}, \label{eq:quat-i} \\
   \QuatJ &= \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}, \label{eq:quat-j} \\
   \QuatK &= \begin{pmatrix} 0 & 0 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ -1 & 0 & 0 & 0 \end{pmatrix}. \label{eq:quat-k}
 \end{align}
 
-These satisfy \(\QuatI = \QuatJ \QuatK\), \(\QuatJ = \QuatK \QuatI\), \(\QuatK = \QuatI \QuatJ\), and all are orthogonal: \(Q^T Q = \Id\) for \(Q \in \{\QuatI, \QuatJ, \QuatK\}\).
+These satisfy the cyclic relations \(\QuatI = \QuatJ \QuatK\), \(\QuatJ = \QuatK \QuatI\), \(\QuatK = \QuatI \QuatJ\).
+All three are orthogonal matrices: \(Q^T Q = \Id\) for \(Q \in \{\QuatI, \QuatJ, \QuatK\}\).
 
-Note that \(\QuatI = J\) coincides with the standard almost complex structure from Section~1.
-We use the notation \(\QuatI, \QuatJ, \QuatK\) following~\cite{CH2021} to emphasize the quaternionic algebra structure.
+The notation \(\QuatI, \QuatJ, \QuatK\) follows~\cite{CH2021}; note that \(\QuatI = J\) is the standard almost complex structure.
 
 \begin{lemma}[Orthonormal frame from unit vector]\label{lem:quat-frame}
   For any unit vector \(\nu \in S^3 \subset \R^4\), the vectors \(\{\nu, \QuatI\nu, \QuatJ\nu, \QuatK\nu\}\) form an orthonormal basis of \(\R^4\).
@@ -299,7 +299,8 @@ We use the notation \(\QuatI, \QuatJ, \QuatK\) following~\cite{CH2021} to emphas
 
 \subsection{The 2-Face Tangent Space}
 
-Let \(F = F_i \cap F_j\) be a non-Lagrangian 2-face with entry facet \(F_i\) (normal \(n_{\mathrm{entry}}\)) and exit facet \(F_j\) (normal \(n_{\mathrm{exit}}\)).
+When a Reeb orbit crosses a non-Lagrangian 2-face \(F = F_i \cap F_j\), it passes instantaneously from one adjacent facet to the other.
+We call \(F_i\) the \emph{entry facet} (the facet the orbit leaves) and \(F_j\) the \emph{exit facet} (the facet the orbit enters), with corresponding outward unit normals \(n_{\mathrm{entry}}\) and \(n_{\mathrm{exit}}\).
 The tangent space of \(F\) is the 2-dimensional subspace:
 \[
   TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}}) = \{ V \in \R^4 : \inner{V}{n_{\mathrm{entry}}} = 0 \text{ and } \inner{V}{n_{\mathrm{exit}}} = 0 \}.
@@ -327,7 +328,8 @@ To compute the inverse map explicitly, we need to identify basis vectors for \(T
       (\QuatK n_{\mathrm{exit}})^T
     \end{pmatrix}.
   \]
-  Then \(M\) is invertible for non-Lagrangian 2-faces, and the last two columns of \(M^{-1}\) give basis vectors \(b_1, b_2 \in TF\) such that:
+  For non-Lagrangian 2-faces, \(M\) is invertible.
+  The last two columns of \(M^{-1}\) give basis vectors \(b_1, b_2 \in TF\) satisfying:
   \begin{enumerate}
     \item \(b_1, b_2 \in TF\), i.e., \(\inner{b_k}{n_{\mathrm{entry}}} = \inner{b_k}{n_{\mathrm{exit}}} = 0\) for \(k=1,2\).
     \item \(\tau_{n_{\mathrm{exit}}}(b_1) = (1, 0)\) and \(\tau_{n_{\mathrm{exit}}}(b_2) = (0, 1)\).
@@ -338,6 +340,8 @@ To compute the inverse map explicitly, we need to identify basis vectors for \(T
   \]
 \end{proposition}
 \begin{proof}
+  We first show the columns of \(M^{-1}\) have the claimed properties, then establish invertibility in the non-Lagrangian case.
+
   The rows of \(M\) are the four vectors \(n_{\mathrm{entry}}, n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\), viewed as linear functionals.
   Thus \(M\) maps a vector \(V \in \R^4\) to its coordinates
   \[
@@ -350,10 +354,10 @@ To compute the inverse map explicitly, we need to identify basis vectors for \(T
   The same analysis with \(b_2 = c_4\) yields \(b_2 \in TF\) and \(\tau_{n_{\mathrm{exit}}}(b_2) = (0, 1)\).
 
   For invertibility, observe that \(M\) is singular iff its rows are linearly dependent.
-  The last two rows \(\QuatJ n_{\mathrm{exit}}\) and \(\QuatK n_{\mathrm{exit}}\) span a 2-dimensional subspace orthogonal to both \(n_{\mathrm{exit}}\) and \(\QuatI n_{\mathrm{exit}}\) (by Lemma~\ref{lem:quat-frame}).
-  Linear dependence occurs iff this 2-dimensional subspace lies in \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
-  Since the orthogonal complement of \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is \(\mathrm{span}\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}\), containment would require \(TF = \mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which happens exactly when \(\QuatI n_{\mathrm{exit}} \in \mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
-  This last condition is equivalent to \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = \inner{\QuatI n_{\mathrm{entry}}}{n_{\mathrm{exit}}} = 0\), the Lagrangian case.
+  By Lemma~\ref{lem:quat-frame}, the last three rows \(n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\) are orthonormal, hence linearly independent.
+  Thus \(M\) is singular iff \(n_{\mathrm{entry}} \in \mathrm{span}\{n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\).
+  This span equals \((\QuatI n_{\mathrm{exit}})^\perp\), so singularity is equivalent to \(\inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}} = 0\).
+  Since \(\QuatI^T = -\QuatI\), we have \(\inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}} = -\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}})\), so this vanishes exactly in the Lagrangian case.
 \end{proof}
 
 \begin{remark}[Why explicit basis vectors are necessary]\label{rem:explicit-basis-pitfall}
@@ -361,10 +365,12 @@ To compute the inverse map explicitly, we need to identify basis vectors for \(T
   \[
     \tau_{n_{\mathrm{exit}}}^{-1}(a, b) \stackrel{?}{=} a \cdot \QuatJ n_{\mathrm{exit}} + b \cdot \QuatK n_{\mathrm{exit}}.
   \]
-  This formula is \textbf{incorrect}.
-  The image of this map lies in \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which is the orthogonal complement of \(\mathrm{span}\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}\).
-  Meanwhile, the 2-face tangent space is \(TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}})\), the orthogonal complement of \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
-  These two 2-dimensional subspaces coincide only in the Lagrangian case \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = 0\), which is precisely when the trivialization is ill-defined.
+  This formula is \textbf{incorrect} because it targets the wrong subspace:
+  \begin{itemize}
+    \item Naive formula image: \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\} = \{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}^\perp\).
+    \item Actual tangent space: \(TF = \{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}^\perp\).
+  \end{itemize}
+  These 2-dimensional subspaces differ unless \(n_{\mathrm{entry}} \in \mathrm{span}\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}\), i.e., \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = 0\)---exactly when the trivialization is ill-defined.
 
   The explicit basis construction in Proposition~\ref{prop:explicit-basis} resolves this by computing vectors \(b_1, b_2\) that lie in \(TF\) while having the desired trivialization coordinates \((1,0)\) and \((0,1)\).
 \end{remark}
@@ -394,8 +400,14 @@ When a Reeb orbit crosses a non-Lagrangian 2-face \(F = F_i \cap F_j\), the triv
   Since \(\omega\) is non-degenerate on \(TF\) (by non-Lagrangianness), \(\psi_F\) preserves a non-degenerate 2-form, hence \(\det(\psi_F) = 1\).
 
   \textbf{(2)} We use the explicit formula from~\cite{CH2021} (Definition~2.15 and Lemma~2.17).
-  Let \(a_1 = \inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\), \(a_2 = \inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}}\), \(a_3 = \inner{n_{\mathrm{entry}}}{\QuatJ n_{\mathrm{exit}}}\), \(a_4 = \inner{n_{\mathrm{entry}}}{\QuatK n_{\mathrm{exit}}}\).
-  Since \(\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is an orthonormal basis, we have \(a_1^2 + a_2^2 + a_3^2 + a_4^2 = 1\).
+  Define the coefficients of \(n_{\mathrm{entry}}\) in the orthonormal basis from Lemma~\ref{lem:quat-frame}:
+  \[
+    a_1 = \inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}, \quad
+    a_2 = \inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}}, \quad
+    a_3 = \inner{n_{\mathrm{entry}}}{\QuatJ n_{\mathrm{exit}}}, \quad
+    a_4 = \inner{n_{\mathrm{entry}}}{\QuatK n_{\mathrm{exit}}}.
+  \]
+  Since \(\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is orthonormal, we have \(a_1^2 + a_2^2 + a_3^2 + a_4^2 = 1\).
   The transition matrix is:
   \[
     \psi_F = \frac{1}{a_2} \begin{pmatrix}
