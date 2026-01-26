@@ -261,6 +261,165 @@ We need the machinery of the Clarke dual action principle in order to prove this
 The original proof was given in \cite{HK2017}, with a discrete surgery on the polygonal Reeb orbit.
 We wrote down the proof in more detail, and extracted a continuous homotopy instead of a discrete surgery.
 
+\section{Trivialization of 2-Face Tangent Spaces}\label{sec:trivialization}
+
+For algorithmic purposes, we need to track how Reeb orbits evolve as they cross non-Lagrangian 2-faces.
+This requires a trivialization of the contact structure over 2-faces, which we now develop following~\cite{CH2021}.
+
+\subsection{Quaternion Structure on \texorpdfstring{\(\R^4\)}{R4}}
+
+The standard symplectic structure on \(\R^4\) extends to a quaternionic structure.
+We define three matrices that satisfy the quaternion algebra relations \(I^2 = J^2 = K^2 = IJK = -\Id\):
+\begin{align}
+  \QuatI &= J = \begin{pmatrix} 0 & 0 & -1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}, \label{eq:quat-i} \\
+  \QuatJ &= \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}, \label{eq:quat-j} \\
+  \QuatK &= \begin{pmatrix} 0 & 0 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ -1 & 0 & 0 & 0 \end{pmatrix}. \label{eq:quat-k}
+\end{align}
+
+These satisfy \(\QuatI = \QuatJ \QuatK\), \(\QuatJ = \QuatK \QuatI\), \(\QuatK = \QuatI \QuatJ\), and all are orthogonal: \(Q^T Q = \Id\) for \(Q \in \{\QuatI, \QuatJ, \QuatK\}\).
+
+Note that \(\QuatI = J\) is the standard almost complex structure from Section~1.
+The notation \(\QuatI, \QuatJ, \QuatK\) follows~\cite{CH2021} and emphasizes the quaternionic algebra.
+
+\begin{lemma}[Orthonormal frame from unit vector]\label{lem:quat-frame}
+  For any unit vector \(\nu \in S^3 \subset \R^4\), the vectors \(\{\nu, \QuatI\nu, \QuatJ\nu, \QuatK\nu\}\) form an orthonormal basis of \(\R^4\).
+\end{lemma}
+\begin{proof}
+  Since \(\QuatI, \QuatJ, \QuatK\) are orthogonal matrices, we have \(\abs{\QuatI\nu} = \abs{\QuatJ\nu} = \abs{\QuatK\nu} = 1\).
+  For orthogonality, using \(\QuatI^T = -\QuatI\) (since \(\QuatI^2 = -\Id\)):
+  \[
+    \inner{\nu}{\QuatI\nu} = \inner{\QuatI^T\nu}{\nu} = -\inner{\QuatI\nu}{\nu} = -\inner{\nu}{\QuatI\nu},
+  \]
+  so \(\inner{\nu}{\QuatI\nu} = 0\). Similarly for \(\QuatJ, \QuatK\).
+  For \(\inner{\QuatI\nu}{\QuatJ\nu} = \inner{\nu}{\QuatI^T\QuatJ\nu} = -\inner{\nu}{\QuatI\QuatJ\nu} = -\inner{\nu}{\QuatK\nu} = 0\).
+  The other pairs follow by cyclic permutation.
+\end{proof}
+
+\subsection{The 2-Face Tangent Space}
+
+Let \(F = F_i \cap F_j\) be a non-Lagrangian 2-face with entry facet \(F_i\) (normal \(n_{\mathrm{entry}}\)) and exit facet \(F_j\) (normal \(n_{\mathrm{exit}}\)).
+The tangent space of \(F\) is the 2-dimensional subspace:
+\[
+  TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}}) = \{ V \in \R^4 : \inner{V}{n_{\mathrm{entry}}} = 0 \text{ and } \inner{V}{n_{\mathrm{exit}}} = 0 \}.
+\]
+
+\begin{definition}[Trivialization of 2-face tangent space]\label{def:trivialization}
+  For a unit vector \(\nu \in S^3\), define the \emph{quaternionic trivialization} \(\tau_\nu: \R^4 \to \R^2\) by
+  \[
+    \tau_\nu(V) = \bigl( \inner{V}{\QuatJ\nu}, \inner{V}{\QuatK\nu} \bigr).
+  \]
+  This is a linear map that projects onto the \(\QuatJ\nu, \QuatK\nu\) coordinates in the orthonormal frame from Lemma~\ref{lem:quat-frame}.
+\end{definition}
+
+When restricted to a 2-face tangent space \(TF\), the trivialization \(\tau_{n_{\mathrm{exit}}}\) becomes an isomorphism \(TF \xrightarrow{\sim} \R^2\), provided the 2-face is non-Lagrangian.
+To compute the inverse, we need explicit basis vectors for \(TF\).
+
+\begin{proposition}[Explicit basis for 2-face tangent space]\label{prop:explicit-basis}
+  Let \(F = F_i \cap F_j\) be a non-Lagrangian 2-face with normals \(n_{\mathrm{entry}}, n_{\mathrm{exit}}\).
+  Define the \(4 \times 4\) matrix
+  \[
+    M = \begin{pmatrix}
+      n_{\mathrm{entry}}^T \\
+      n_{\mathrm{exit}}^T \\
+      (\QuatJ n_{\mathrm{exit}})^T \\
+      (\QuatK n_{\mathrm{exit}})^T
+    \end{pmatrix}.
+  \]
+  Then \(M\) is invertible for non-Lagrangian 2-faces, and the last two columns of \(M^{-1}\) give basis vectors \(b_1, b_2 \in TF\) such that:
+  \begin{enumerate}
+    \item \(b_1, b_2 \in TF\), i.e., \(\inner{b_k}{n_{\mathrm{entry}}} = \inner{b_k}{n_{\mathrm{exit}}} = 0\) for \(k=1,2\).
+    \item \(\tau_{n_{\mathrm{exit}}}(b_1) = (1, 0)\) and \(\tau_{n_{\mathrm{exit}}}(b_2) = (0, 1)\).
+  \end{enumerate}
+  Thus for any \(V \in TF\), we have
+  \[
+    V = \inner{V}{\QuatJ n_{\mathrm{exit}}} \cdot b_1 + \inner{V}{\QuatK n_{\mathrm{exit}}} \cdot b_2.
+  \]
+\end{proposition}
+\begin{proof}
+  The matrix \(M\) maps \(\R^4\) to \(\R^4\) via the coordinates \((\inner{\cdot}{n_{\mathrm{entry}}}, \inner{\cdot}{n_{\mathrm{exit}}}, \inner{\cdot}{\QuatJ n_{\mathrm{exit}}}, \inner{\cdot}{\QuatK n_{\mathrm{exit}}})\).
+  The inverse \(M^{-1}\) has columns \(c_1, c_2, c_3, c_4\) satisfying \(M c_k = e_k\).
+
+  For \(c_3\): we need \(\inner{c_3}{n_{\mathrm{entry}}} = 0\), \(\inner{c_3}{n_{\mathrm{exit}}} = 0\), \(\inner{c_3}{\QuatJ n_{\mathrm{exit}}} = 1\), \(\inner{c_3}{\QuatK n_{\mathrm{exit}}} = 0\).
+  The first two conditions give \(c_3 \in TF\), and the last two give \(\tau_{n_{\mathrm{exit}}}(c_3) = (1, 0)\).
+  Similarly for \(c_4 = b_2\).
+
+  Invertibility of \(M\) fails iff the rows are linearly dependent.
+  This happens iff \(\QuatJ n_{\mathrm{exit}}\) and \(\QuatK n_{\mathrm{exit}}\) lie in \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\), which is equivalent to \(TF = \mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\).
+  But \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\} = (n_{\mathrm{exit}})^\perp \cap (\QuatI n_{\mathrm{exit}})^\perp\), which equals \(TF\) only when \(\QuatI n_{\mathrm{exit}} \in \mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\), i.e., when \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = 0\) (Lagrangian case).
+\end{proof}
+
+\begin{remark}[Why explicit basis vectors are necessary]
+  One might naively expect \(\tau_{n_{\mathrm{exit}}}^{-1}(a, b) = a \cdot \QuatJ n_{\mathrm{exit}} + b \cdot \QuatK n_{\mathrm{exit}}\), but this is \textbf{incorrect}.
+  The image of this map lies in \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which is a \emph{different} 2-dimensional subspace than \(TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}})\).
+  The explicit basis construction in Proposition~\ref{prop:explicit-basis} correctly identifies vectors in \(TF\) with the desired trivialization coordinates.
+\end{remark}
+
+\subsection{Transition Matrices}\label{sec:transition-matrix}
+
+When a Reeb orbit crosses a non-Lagrangian 2-face \(F = F_i \cap F_j\), the trivialization coordinates transform by a \emph{transition matrix}.
+
+\begin{definition}[Transition matrix]
+  For a non-Lagrangian 2-face \(F\) with entry normal \(n_{\mathrm{entry}}\) and exit normal \(n_{\mathrm{exit}}\), the transition matrix \(\psi_F \in \mathrm{GL}(2, \R)\) is defined by
+  \[
+    \psi_F = \tau_{n_{\mathrm{exit}}} \circ \tau_{n_{\mathrm{entry}}}^{-1}: \R^2 \to \R^2.
+  \]
+  That is, \(\psi_F\) converts coordinates in the entry trivialization to coordinates in the exit trivialization.
+\end{definition}
+
+\begin{theorem}[Properties of transition matrices]\label{thm:transition-matrix}
+  For a non-Lagrangian 2-face \(F\), the transition matrix \(\psi_F\) satisfies:
+  \begin{enumerate}
+    \item \(\psi_F \in \mathrm{Sp}(2) = \mathrm{SL}(2, \R)\), i.e., \(\det(\psi_F) = 1\).
+    \item \(\mathrm{tr}(\psi_F) = 2\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\).
+    \item For adjacent facets of a convex polytope, \(\abs{\mathrm{tr}(\psi_F)} < 2\).
+  \end{enumerate}
+\end{theorem}
+\begin{proof}
+  \textbf{(1)} The transition matrix preserves the symplectic form on \(TF\) induced by restriction of \(\omega\).
+  Since \(\omega\) is non-degenerate on \(TF\) (by non-Lagrangianness), \(\psi_F\) preserves a non-degenerate 2-form, hence \(\det(\psi_F) = 1\).
+
+  \textbf{(2)} Using the explicit formula from~\cite{CH2021}, Definition~2.15 and Lemma~2.17:
+  Let \(a_1 = \inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\), \(a_2 = \inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}}\), \(a_3 = \inner{n_{\mathrm{entry}}}{\QuatJ n_{\mathrm{exit}}}\), \(a_4 = \inner{n_{\mathrm{entry}}}{\QuatK n_{\mathrm{exit}}}\).
+  Since \(\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is an orthonormal basis, we have \(a_1^2 + a_2^2 + a_3^2 + a_4^2 = 1\).
+  The transition matrix is:
+  \[
+    \psi_F = \frac{1}{a_2} \begin{pmatrix}
+      a_1 a_2 - a_3 a_4 & -(a_2^2 + a_4^2) \\
+      a_2^2 + a_3^2 & a_1 a_2 + a_3 a_4
+    \end{pmatrix}.
+  \]
+  Computing the trace: \(\mathrm{tr}(\psi_F) = \frac{1}{a_2}(a_1 a_2 - a_3 a_4 + a_1 a_2 + a_3 a_4) = 2a_1 = 2\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\).
+
+  \textbf{(3)} For adjacent facets of a convex polytope, the normals point ``outward,'' so \(\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}} \in (-1, 1)\).
+  Equality \(\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}} = \pm 1\) would require the normals to be parallel or anti-parallel, but then the facets would be parallel and couldn't share a 2-face.
+  Thus \(\abs{\mathrm{tr}(\psi_F)} = 2\abs{\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}} < 2\).
+\end{proof}
+
+\subsection{Rotation Numbers}\label{sec:rotation-number}
+
+The trace condition \(\abs{\mathrm{tr}(\psi_F)} < 2\) means \(\psi_F\) is an elliptic element of \(\mathrm{SL}(2,\R)\), i.e., conjugate to a rotation.
+
+\begin{definition}[Rotation number of a 2-face]
+  For a non-Lagrangian 2-face \(F\) with transition matrix \(\psi_F\), define the \emph{rotation number} (in turns, i.e., \(1 = 2\pi\)) as
+  \[
+    \rho(F) = \frac{1}{2\pi} \arccos\Bigl(\frac{\mathrm{tr}(\psi_F)}{2}\Bigr) = \frac{1}{2\pi} \arccos\bigl(\inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\bigr).
+  \]
+\end{definition}
+
+\begin{corollary}[Rotation number range]\label{cor:rotation-range}
+  For any non-Lagrangian 2-face of a convex polytope, the rotation number satisfies \(\rho(F) \in (0, \tfrac{1}{2})\).
+\end{corollary}
+\begin{proof}
+  By Theorem~\ref{thm:transition-matrix}(3), \(\mathrm{tr}(\psi_F)/2 = \inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}} \in (-1, 1)\).
+  Therefore \(\arccos(\mathrm{tr}(\psi_F)/2) \in (0, \pi)\), giving \(\rho(F) \in (0, \tfrac{1}{2})\).
+\end{proof}
+
+\begin{remark}[Geometric interpretation]
+  The rotation number measures the angle (in turns) between the contact planes at entry and exit.
+  More precisely, when the Reeb orbit enters the 2-face and immediately exits, the contact structure ``twists'' by angle \(2\pi\rho(F)\).
+  For closed orbits, the total rotation \(\sum_F \rho(F)\) over all crossed 2-faces must satisfy constraints from Conley--Zehnder index theory; see~\cite{CH2021}, Proposition~1.10.
+\end{remark}
+
 \section{Polytopes as the Limit of Smooth Bodies}
 
 With the preliminary discussion of Reeb dynamics on polytopes done, we now move to show that it indeed arises as the limit of smooth bodies.
