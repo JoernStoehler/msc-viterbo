@@ -254,6 +254,68 @@ fn clip_polygon_by_halfplane(
     output
 }
 
+/// Intersect a line with a convex polygon, returning segment endpoints.
+///
+/// Line is parameterized as: point + t * direction
+/// Returns None if no intersection, or Some((t_min, t_max)) for the segment.
+pub fn intersect_line_polygon(
+    point: &Vector2<f64>,
+    direction: &Vector2<f64>,
+    polygon: &Polygon2D,
+) -> Option<(f64, f64)> {
+    if polygon.is_empty() || direction.norm() < EPS {
+        return None;
+    }
+
+    let mut t_min = f64::NEG_INFINITY;
+    let mut t_max = f64::INFINITY;
+
+    // For each edge, compute where the line crosses
+    for i in 0..polygon.vertices.len() {
+        let j = (i + 1) % polygon.vertices.len();
+        let e1 = &polygon.vertices[i];
+        let e2 = &polygon.vertices[j];
+
+        // Edge normal (pointing inward for CCW polygon)
+        let edge = e2 - e1;
+        let normal = Vector2::new(-edge[1], edge[0]); // perpendicular
+
+        let denom = direction.dot(&normal);
+        let numer = (e1 - point).dot(&normal);
+
+        if denom.abs() < EPS {
+            // Line parallel to edge
+            // numer = (e1 - point).dot(normal)
+            // For point to be inside the half-plane: (point - e1).dot(normal) >= 0
+            // i.e., -numer >= 0, i.e., numer <= 0
+            if numer > EPS {
+                // Line is outside this half-plane
+                return None;
+            }
+            // Line is inside or on the edge - continue
+        } else {
+            let t = numer / denom;
+            if denom > 0.0 {
+                // Entering half-plane
+                t_min = t_min.max(t);
+            } else {
+                // Leaving half-plane
+                t_max = t_max.min(t);
+            }
+        }
+
+        if t_min > t_max + EPS {
+            return None;
+        }
+    }
+
+    if t_min > t_max + EPS {
+        None
+    } else {
+        Some((t_min, t_max))
+    }
+}
+
 /// Compute intersection of two convex polygons using Sutherland-Hodgman algorithm.
 pub fn intersect_polygons(p1: &Polygon2D, p2: &Polygon2D) -> Polygon2D {
     if p1.is_empty() || p2.is_empty() {
@@ -430,6 +492,68 @@ mod tests {
         let x = Vector2::new(1.0, 2.0);
         // f(x) = 2*1 + 3*2 + 5 = 13
         assert_relative_eq!(f.eval(&x), 13.0, epsilon = 1e-14);
+    }
+
+    #[test]
+    fn test_intersect_line_polygon_horizontal() {
+        // Square [-1, 1]^2 with horizontal line y=0
+        let square = Polygon2D::new(vec![
+            Vector2::new(-1.0, -1.0),
+            Vector2::new(1.0, -1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 1.0),
+        ]);
+
+        // Line: (0, 0) + t*(-1, 0) = (-t, 0)
+        let point = Vector2::new(0.0, 0.0);
+        let direction = Vector2::new(-1.0, 0.0);
+
+        let result = intersect_line_polygon(&point, &direction, &square);
+        assert!(result.is_some(), "Should find intersection");
+
+        let (t_min, t_max) = result.unwrap();
+        // Line enters at x=1 (t=-1) and exits at x=-1 (t=1)
+        assert_relative_eq!(t_min, -1.0, epsilon = 1e-10);
+        assert_relative_eq!(t_max, 1.0, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_intersect_line_polygon_vertical() {
+        // Square [-1, 1]^2 with vertical line x=0.5
+        let square = Polygon2D::new(vec![
+            Vector2::new(-1.0, -1.0),
+            Vector2::new(1.0, -1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 1.0),
+        ]);
+
+        let point = Vector2::new(0.5, 0.0);
+        let direction = Vector2::new(0.0, 1.0);
+
+        let result = intersect_line_polygon(&point, &direction, &square);
+        assert!(result.is_some(), "Should find intersection");
+
+        let (t_min, t_max) = result.unwrap();
+        // Line enters at y=-1 (t=-1) and exits at y=1 (t=1)
+        assert_relative_eq!(t_min, -1.0, epsilon = 1e-10);
+        assert_relative_eq!(t_max, 1.0, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_intersect_line_polygon_outside() {
+        // Square [-1, 1]^2 with line y=2 (outside)
+        let square = Polygon2D::new(vec![
+            Vector2::new(-1.0, -1.0),
+            Vector2::new(1.0, -1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 1.0),
+        ]);
+
+        let point = Vector2::new(0.0, 2.0);
+        let direction = Vector2::new(1.0, 0.0);
+
+        let result = intersect_line_polygon(&point, &direction, &square);
+        assert!(result.is_none(), "Line outside should have no intersection");
     }
 
     #[test]

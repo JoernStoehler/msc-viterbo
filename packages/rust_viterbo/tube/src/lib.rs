@@ -174,10 +174,21 @@ mod integration_tests {
 
         match tube::find_closed_orbits(&tube) {
             Ok(orbits) => {
-                eprintln!("Found {} orbits", orbits.len());
+                eprintln!("Found {} parabolic fixed points", orbits.len());
                 for (i, (action, fp)) in orbits.iter().enumerate() {
-                    eprintln!("  Orbit {}: action={:.4}, fixed_point={}", i, action, fp);
-                    eprintln!("    In p_start: {}", tube.p_start.contains(fp));
+                    eprintln!("  Fixed point {}: 2D_action={:.4}, in_p_start={}, in_p_end={}",
+                        i, action, tube.p_start.contains(fp), tube.p_end.contains(fp));
+
+                    // Verify flow_map(fp) = fp
+                    let mapped = tube.flow_map.apply(fp);
+                    let fp_error = (mapped - fp).norm();
+                    eprintln!("    |flow_map(fp) - fp| = {:.2e}", fp_error);
+
+                    // Try reconstruction
+                    match tube::reconstruct_orbit(fp, &tube, &data) {
+                        Ok(orbit) => eprintln!("    Reconstructed period: {:.4}", orbit.period),
+                        Err(e) => eprintln!("    Reconstruction error: {}", e),
+                    }
                 }
             }
             Err(e) => eprintln!("find_closed_orbits error: {:?}", e),

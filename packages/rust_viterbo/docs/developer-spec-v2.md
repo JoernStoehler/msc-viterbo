@@ -1965,6 +1965,24 @@ To find closed orbits, solve for fixed points of the flow map:
 \psi(s) = s \quad \Leftrightarrow \quad (A - I) s = -b
 \]
 
+**Two cases arise based on \(\det(A - I)\):**
+
+1. **Hyperbolic case** (\(\det(A - I) \neq 0\)): Unique fixed point \(s = (A - I)^{-1}(-b)\). Check if \(s \in P_{\text{start}}\).
+
+2. **Parabolic case** (\(\det(A - I) \approx 0\)): The flow map is a shear transformation. Fixed points form a **line** (or may not exist if the system is inconsistent).
+   - Find the kernel direction of \((A - I)\)
+   - Find a particular solution to \((A - I)s = -b\) (if solvable)
+   - Intersect the fixed-point line with \(P_{\text{start}}\) to find valid orbits
+
+**Mathematical background for shear matrices:**
+
+For a 2D shear matrix like \(A = \begin{pmatrix} 1 & k \\ 0 & 1 \end{pmatrix}\), we have:
+- \(A - I = \begin{pmatrix} 0 & k \\ 0 & 0 \end{pmatrix}\) with \(\det(A - I) = 0\)
+- Kernel direction: perpendicular to the non-zero row, e.g., \((1, 0)\)
+- Fixed points satisfy the single constraint from the non-zero row
+
+This arises naturally in polytopes like the cross-polytope where the flow around certain closed tubes produces shear dynamics.
+
 ```rust
 fn find_closed_orbits(tube: &Tube) -> Vec<(f64, Vector2<f64>)> {
     // Solve (A - I) s = -b
@@ -1973,31 +1991,57 @@ fn find_closed_orbits(tube: &Tube) -> Vec<(f64, Vector2<f64>)> {
 
     let det = a_minus_i.determinant();
 
-    if det.abs() < EPS {
-        // Near-singular case: the flow map (A - I) is nearly singular.
-        // In the generic case, there is 0 or 1 fixed point per tube (see review §0.6).
-        // Near-singularity indicates either:
-        //   (a) A degenerate polytope (multiple fixed points), or
-        //   (b) Numerical instability near a bifurcation.
-        // Do not silently assume genericity; raise a runtime error.
-        panic!(
-            "Near-singular flow map in tube closure: det(A - I) = {:.2e}. \
-             This may indicate a degenerate polytope or numerical instability. \
-             Facet sequence: {:?}",
-            det, tube.facet_sequence
-        );
+    if det.abs() >= EPS {
+        // Hyperbolic case: unique fixed point
+        let s = a_minus_i.try_inverse().unwrap() * neg_b;
+
+        if !point_in_polygon(&s, &tube.p_start) {
+            return vec![];
+        }
+
+        let action = tube.action_func.gradient.dot(&s) + tube.action_func.constant;
+        return vec![(action, s)];
     }
 
-    // Unique fixed point: s = (A - I)^{-1} (-b)
-    let s = a_minus_i.try_inverse().unwrap() * neg_b;
+    // Parabolic case: det(A - I) ≈ 0, shear matrix
+    // There's a line of fixed points (or no fixed points if system is inconsistent)
+    find_parabolic_fixed_points(tube, &a_minus_i, &neg_b)
+}
 
-    // Check if fixed point is in p_start (standard: winding number or crossing number test)
-    if !point_in_polygon(&s, &tube.p_start) {
-        return vec![];
+fn find_parabolic_fixed_points(
+    tube: &Tube,
+    a_minus_i: &Matrix2<f64>,
+    neg_b: &Vector2<f64>,
+) -> Vec<(f64, Vector2<f64>)> {
+    // Find kernel direction (perpendicular to non-zero row)
+    let kernel_dir = find_kernel_direction(a_minus_i);
+
+    // Find particular solution (if system is consistent)
+    let particular = match find_particular_solution(a_minus_i, neg_b) {
+        Some(s) => s,
+        None => return vec![], // Inconsistent system
+    };
+
+    // Intersect fixed-point line with p_start polygon
+    let (t_min, t_max) = match intersect_line_polygon(&particular, &kernel_dir, &tube.p_start) {
+        Some(bounds) => bounds,
+        None => return vec![],
+    };
+
+    // Return orbit candidates at segment endpoints (minimum action is at an endpoint
+    // since action is linear along the line)
+    let mut orbits = vec![];
+    for &t in &[t_min, t_max] {
+        if t.is_finite() {
+            let s = particular + kernel_dir * t;
+            if tube.p_start.contains(&s) {
+                let action = tube.action_func.eval(&s);
+                orbits.push((action, s));
+            }
+        }
     }
-
-    let action = tube.action_func.gradient.dot(&s) + tube.action_func.constant;
-    vec![(action, s)]
+    orbits.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    orbits
 }
 ```
 

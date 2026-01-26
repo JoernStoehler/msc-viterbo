@@ -107,24 +107,25 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> TubeResult<TubeResult2> {
 
         for extension in extensions {
             match extension {
-                Extension::Closed(orbit_result) => {
+                Extension::Closed(closed_tube, _action_estimate, fixed_point_2d) => {
                     orbits_found += 1;
-                    let (action, fixed_point_2d) = orbit_result;
 
-                    if action < best_action {
-                        // Reconstruct and validate orbit
-                        match reconstruct_orbit(&fixed_point_2d, &tube, &data) {
-                            Ok(orbit) => {
+                    // Reconstruct and validate orbit from the closed tube
+                    match reconstruct_orbit(&fixed_point_2d, &closed_tube, &data) {
+                        Ok(orbit) => {
+                            // Use the reconstructed period as the true action
+                            let true_action = orbit.period;
+
+                            if true_action > 0.0 && true_action < best_action {
                                 // Validate orbit
                                 if orbit.validate(&data).is_ok() {
-                                    best_action = action;
+                                    best_action = true_action;
                                     best_orbit = Some(orbit);
                                 }
                             }
-                            Err(e) => {
-                                // Log but continue
-                                eprintln!("Warning: Could not reconstruct orbit: {}", e);
-                            }
+                        }
+                        Err(_) => {
+                            // Reconstruction failed - skip this orbit
                         }
                     }
                 }
@@ -152,8 +153,8 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> TubeResult<TubeResult2> {
 
 /// Result of extending a tube.
 enum Extension {
-    /// A closed tube with a closed orbit (action, fixed point in 2D).
-    Closed((f64, nalgebra::Vector2<f64>)),
+    /// A closed tube with a closed orbit (tube, action, fixed point in 2D).
+    Closed(Tube, f64, nalgebra::Vector2<f64>),
     /// An open tube that can be extended further.
     Open(Tube),
 }
@@ -182,8 +183,8 @@ fn get_extensions(tube: &Tube, data: &PolytopeData) -> TubeResult<Vec<Extension>
                     // Find closed orbits
                     match find_closed_orbits(&extended) {
                         Ok(orbits) => {
-                            for orbit in orbits {
-                                extensions.push(Extension::Closed(orbit));
+                            for (action, fixed_point) in orbits {
+                                extensions.push(Extension::Closed(extended.clone(), action, fixed_point));
                             }
                         }
                         Err(TubeError::NearSingularFlowMap { .. }) => {

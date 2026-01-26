@@ -13,8 +13,8 @@ use crate::consts::{EPS, EPS_ROTATION};
 use crate::error::{TubeError, TubeResult};
 use crate::geom::action_of_closed_polygon;
 use crate::polygon::{
-    add_affine_funcs, compose_affine, compose_func_with_map, intersect_polygons, AffineFunc,
-    AffineMap2D, Polygon2D,
+    add_affine_funcs, compose_affine, compose_func_with_map, intersect_line_polygon,
+    intersect_polygons, AffineFunc, AffineMap2D, Polygon2D,
 };
 use crate::polytope::{PolytopeData, TwoFaceEnriched};
 use crate::symplectic::{apply_j, apply_k};
@@ -292,6 +292,10 @@ fn compute_facet_flow(
 ///
 /// For a closed tube, the flow map ψ maps the start 2-face to itself.
 /// Fixed points ψ(s) = s correspond to closed orbits.
+///
+/// Two cases:
+/// 1. **Hyperbolic**: det(A - I) ≠ 0 → unique fixed point, check if in p_start
+/// 2. **Parabolic**: det(A - I) ≈ 0 (shear matrix) → line of fixed points, intersect with p_start
 pub fn find_closed_orbits(tube: &Tube) -> TubeResult<Vec<(f64, Vector2<f64>)>> {
     if !tube.is_closed() {
         return Ok(Vec::new());
@@ -303,23 +307,160 @@ pub fn find_closed_orbits(tube: &Tube) -> TubeResult<Vec<(f64, Vector2<f64>)>> {
 
     let det = a_minus_i.determinant();
 
-    if det.abs() < EPS {
-        return Err(TubeError::NearSingularFlowMap {
-            determinant: det,
-            facet_sequence: tube.facet_sequence.clone(),
-        });
+    if det.abs() >= EPS {
+        // Hyperbolic case: unique fixed point
+        let s = a_minus_i.try_inverse().unwrap() * neg_b;
+
+        // Check if fixed point is in p_start
+        if !tube.p_start.contains(&s) {
+            return Ok(Vec::new());
+        }
+
+        let action = tube.action_func.eval(&s);
+        return Ok(vec![(action, s)]);
     }
 
-    // Unique fixed point
-    let s = a_minus_i.try_inverse().unwrap() * neg_b;
+    // Parabolic case: det(A - I) ≈ 0, shear matrix
+    // There's a line of fixed points (or no fixed points if system is inconsistent)
+    find_parabolic_fixed_points(tube, &a_minus_i, &neg_b)
+}
 
-    // Check if fixed point is in p_start
-    if !tube.p_start.contains(&s) {
-        return Ok(Vec::new());
+/// Handle the parabolic case where det(A - I) ≈ 0.
+///
+/// For a shear matrix like [[1, k], [0, 1]], A - I = [[0, k], [0, 0]].
+/// The kernel is spanned by (1, 0) (or a similar direction).
+/// Fixed points satisfy (A - I)s = -b, which may have:
+/// - No solutions (inconsistent)
+/// - A line of solutions: s = s_particular + t * kernel_direction
+fn find_parabolic_fixed_points(
+    tube: &Tube,
+    a_minus_i: &Matrix2<f64>,
+    neg_b: &Vector2<f64>,
+) -> TubeResult<Vec<(f64, Vector2<f64>)>> {
+    // Find kernel direction: look for non-zero column or row
+    // For a rank-1 matrix, the kernel is 1-dimensional
+    let kernel_dir = find_kernel_direction(a_minus_i);
+
+    // Try to find a particular solution
+    // For a 2x2 singular matrix with rank 1, we solve the non-zero row
+    let particular = match find_particular_solution(a_minus_i, neg_b) {
+        Some(s) => s,
+        None => {
+            // System is inconsistent: no fixed points
+            return Ok(Vec::new());
+        }
+    };
+
+    // Fixed point line: particular + t * kernel_dir
+    // Intersect with p_start polygon
+    let intersection = match intersect_line_polygon(&particular, &kernel_dir, &tube.p_start) {
+        Some((t_min, t_max)) => (t_min, t_max),
+        None => return Ok(Vec::new()),
+    };
+
+    // Compute orbits at segment endpoints
+    let mut orbits = Vec::new();
+
+    for &t in &[intersection.0, intersection.1] {
+        if t.is_finite() {
+            let s = particular + kernel_dir * t;
+            if tube.p_start.contains(&s) {
+                let action = tube.action_func.eval(&s);
+                orbits.push((action, s));
+            }
+        }
     }
 
-    let action = tube.action_func.eval(&s);
-    Ok(vec![(action, s)])
+    // Also check for minimum action along the segment
+    // Action(t) = ⟨g, particular + t * kernel⟩ + c = action_at_particular + t * ⟨g, kernel⟩
+    let g_dot_kernel = tube.action_func.gradient.dot(&kernel_dir);
+    if g_dot_kernel.abs() > EPS {
+        // Action is linear in t, so minimum is at one of the endpoints (already included)
+    } else {
+        // Action is constant along the line - any point works, return midpoint
+        let t_mid = (intersection.0 + intersection.1) / 2.0;
+        if t_mid.is_finite() {
+            let s = particular + kernel_dir * t_mid;
+            if tube.p_start.contains(&s) {
+                let action = tube.action_func.eval(&s);
+                // Only add if not already present
+                if !orbits.iter().any(|(_, p)| (p - s).norm() < EPS) {
+                    orbits.push((action, s));
+                }
+            }
+        }
+    }
+
+    // Sort by action
+    orbits.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    Ok(orbits)
+}
+
+/// Find a direction in the kernel of a singular 2x2 matrix.
+fn find_kernel_direction(m: &Matrix2<f64>) -> Vector2<f64> {
+    // For a singular matrix, at least one column is linearly dependent
+    // Kernel direction: perpendicular to any non-zero row
+    let row0 = Vector2::new(m[(0, 0)], m[(0, 1)]);
+    let row1 = Vector2::new(m[(1, 0)], m[(1, 1)]);
+
+    // Use the row with larger norm
+    let (row, _) = if row0.norm() >= row1.norm() {
+        (row0, row1)
+    } else {
+        (row1, row0)
+    };
+
+    if row.norm() < EPS {
+        // Zero matrix: any direction works
+        return Vector2::new(1.0, 0.0);
+    }
+
+    // Perpendicular to the row
+    let kernel = Vector2::new(-row[1], row[0]);
+    kernel / kernel.norm()
+}
+
+/// Find a particular solution to (A - I)s = -b for a singular matrix.
+/// Returns None if the system is inconsistent.
+fn find_particular_solution(a_minus_i: &Matrix2<f64>, neg_b: &Vector2<f64>) -> Option<Vector2<f64>> {
+    // Find the non-zero row (the one with constraints)
+    let row0 = Vector2::new(a_minus_i[(0, 0)], a_minus_i[(0, 1)]);
+    let row1 = Vector2::new(a_minus_i[(1, 0)], a_minus_i[(1, 1)]);
+
+    let norm0 = row0.norm();
+    let norm1 = row1.norm();
+
+    if norm0 < EPS && norm1 < EPS {
+        // Zero matrix: any point is a fixed point if b = 0
+        if neg_b.norm() < EPS {
+            return Some(Vector2::zeros());
+        } else {
+            return None; // Inconsistent
+        }
+    }
+
+    // Use the row with larger norm as the constraint
+    let (primary_row, primary_b, secondary_row, secondary_b) = if norm0 >= norm1 {
+        (row0, neg_b[0], row1, neg_b[1])
+    } else {
+        (row1, neg_b[1], row0, neg_b[0])
+    };
+
+    // Constraint: ⟨primary_row, s⟩ = primary_b
+    // Choose s to lie on this line, e.g., s = (primary_b / ||row||²) * row
+    let norm_sq = primary_row.norm_squared();
+    let s = primary_row * (primary_b / norm_sq);
+
+    // Check consistency: if secondary row is non-trivial, it must also be satisfied
+    if secondary_row.norm() > EPS {
+        let residual = secondary_row.dot(&s) - secondary_b;
+        if residual.abs() > EPS {
+            return None; // Inconsistent system
+        }
+    }
+
+    Some(s)
 }
 
 /// A closed Reeb orbit.
@@ -573,7 +714,7 @@ mod tests {
 
     #[test]
     fn test_find_closed_orbits_identity() {
-        // Identity flow map: every point is a fixed point
+        // Identity flow map: every point is a fixed point (parabolic case with zero matrix)
         let polygon = Polygon2D::new(vec![
             Vector2::new(0.0, 0.0),
             Vector2::new(1.0, 0.0),
@@ -589,9 +730,60 @@ mod tests {
             rotation: 1.5,
         };
 
-        // Identity map has det(A - I) = 0, so should return error
+        // Identity map has A - I = 0, b = 0, so all points are fixed
+        // Should find some fixed points (parabolic case)
         let result = find_closed_orbits(&tube);
-        assert!(result.is_err());
+        assert!(result.is_ok());
+        let orbits = result.unwrap();
+        // Should find at least one fixed point
+        assert!(!orbits.is_empty());
+    }
+
+    #[test]
+    fn test_find_closed_orbits_parabolic_shear() {
+        // Shear flow map: [[1, k], [0, 1]] with k ≠ 0
+        // Fixed points satisfy: (A - I)s = -b
+        // A - I = [[0, k], [0, 0]], so s[1] = -b[1] / k (constraint on y)
+        // For b = (0, 0), all points with any y satisfy the constraint
+        // For b = (-1, 0), fixed points have y = 0
+        let polygon = Polygon2D::new(vec![
+            Vector2::new(-1.0, -1.0),
+            Vector2::new(1.0, -1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 1.0),
+        ]);
+
+        let k = 4.0;
+        let tube = Tube {
+            facet_sequence: vec![0, 1, 2, 0, 1],
+            p_start: polygon.clone(),
+            p_end: polygon.clone(),
+            // Shear matrix
+            flow_map: AffineMap2D::new(
+                Matrix2::new(1.0, k, 0.0, 1.0),
+                Vector2::new(0.0, 0.0), // b = 0
+            ),
+            action_func: AffineFunc {
+                gradient: Vector2::new(1.0, 0.0), // Action = x
+                constant: 0.0,
+            },
+            rotation: 1.5,
+        };
+
+        // A - I = [[0, 4], [0, 0]], kernel = (1, 0)
+        // (A - I)s = 0 requires 4*s[1] = 0, so s[1] = 0
+        // Fixed point line: y = 0, any x
+        let orbits = find_closed_orbits(&tube).unwrap();
+        assert!(!orbits.is_empty(), "Should find parabolic fixed points");
+
+        // All fixed points should have y ≈ 0
+        for (_, fp) in &orbits {
+            assert!(fp[1].abs() < 1e-10, "Fixed point y should be 0, got {}", fp[1]);
+        }
+
+        // The minimum action should be at x = -1 (left edge of polygon)
+        let (min_action, _) = orbits.iter().min_by(|a, b| a.0.partial_cmp(&b.0).unwrap()).unwrap();
+        assert_relative_eq!(*min_action, -1.0, epsilon = 1e-10);
     }
 
     #[test]
