@@ -18,7 +18,8 @@ use crate::polytope::PolytopeHRep;
 /// share ≥3 vertices). Adjacent facets have normals differing in exactly one sign,
 /// and for such pairs ω(n_i, n_j) ≠ 0 always.
 ///
-/// **Expected capacity:** c_EHZ = √2 ≈ 1.414
+/// **Capacity:** Not independently known (see spec §4.4.2). The tube algorithm
+/// can compute it; use this fixture to validate the algorithm's output.
 pub fn unit_cross_polytope() -> PolytopeHRep {
     let mut normals = Vec::new();
 
@@ -33,21 +34,12 @@ pub fn unit_cross_polytope() -> PolytopeHRep {
         }
     }
 
-    // With normals (±1, ±1, ±1, ±1)/2 and heights = 1,
-    // the vertices are at ±e_i where e_i are standard basis vectors.
-    // Check: ⟨(1,1,1,1)/2, (1,0,0,0)⟩ = 1/2, so (1,0,0,0) is on the boundary.
-    // For height = 1, the vertex is at 2*e_i? No, let's compute properly.
-    //
-    // For a vertex to satisfy all constraints with some tight:
-    // The cross-polytope conv{±e_i} has vertices at ±e_i.
-    // With normal n = (1,1,1,1)/2, the constraint ⟨n, x⟩ ≤ h is satisfied
-    // by e_1 = (1,0,0,0) with ⟨n, e_1⟩ = 0.5.
-    // So if h = 1, then height h corresponds to scaling the polytope by 2.
-    //
-    // Let's use heights = 1/√(1/4 + 1/4 + 1/4 + 1/4) = 1/1 = 1 for unit normals.
-    // Actually the normals are already unit: ||(1,1,1,1)/2|| = √4/4 = 1.
+    // With normals (±1, ±1, ±1, ±1)/2 and heights = 0.5,
+    // vertices are at ±eᵢ where eᵢ are standard basis vectors.
+    // Check: ⟨(1,1,1,1)/2, (1,0,0,0)⟩ = 1/2 = 0.5, so e₁ is on the boundary.
+    // Normals are unit: ||(1,1,1,1)/2|| = √(4·1/4)/2 = 1.
 
-    PolytopeHRep::new(normals, vec![1.0; 16])
+    PolytopeHRep::new(normals, vec![0.5; 16])
 }
 
 /// Create a scaled cross-polytope.

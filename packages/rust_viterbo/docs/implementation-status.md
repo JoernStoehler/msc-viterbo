@@ -110,12 +110,13 @@ The tests pass because the optima for test cases happen to be at vertices or edg
 - Cross-polytope (16-cell): NoValidOrbits (rotations ~1.8)
 - 24-cell: NoValidOrbits (rotations 0.5-0.7)
 
-All closure candidates have rotation ≠ 1.0. This suggests either:
-1. These polytopes don't have short periodic orbits of the required type
-2. The rotation accumulation may have an error
-3. The CH2021 paper uses specially constructed polytopes
+**Update (2026-01-26)**: Fixed parabolic flow map handling. Cross-polytope now finds
+valid orbits with capacity c = 1 for `conv{±eᵢ}`. The algorithm correctly:
+1. Detects parabolic case (det(A-I) ≈ 0)
+2. Finds fixed point line and intersects with valid polygon region
+3. Reconstructs 4D orbit from 2D fixed point
 
-**Status**: Algorithm runs but finding a polytope with valid orbits requires more investigation.
+**Status**: Cross-polytope works. Other polytopes may need further investigation.
 
 ### 4. Cross-Algorithm Agreement ✅ IMPROVED
 
@@ -124,8 +125,8 @@ All closure candidates have rotation ≠ 1.0. This suggests either:
 | Billiard vs HK2019 on tesseract | ✅ Both=4.0 | HK2019 QP fixed |
 | Billiard vs HK2019 on random products | ✅ <1% error | 3 proptests passing |
 | Billiard vs HK2019 on triangle×triangle | ⚠️ Slow | HK2019 with 6!=720 perms takes ~0.1s |
-| Tube vs Billiard on tesseract | ❌ N/A | Tube returns NoValidOrbits (Lagrangian degeneracy) |
-| All three on non-Lagrangian polytope | ❌ Missing | Need non-Lagrangian polytope with known capacity |
+| Tube vs Billiard on tesseract | ❌ N/A | Tube correctly rejects (Lagrangian 2-faces) |
+| Tube on cross-polytope | ✅ c=1 | Finds valid orbit; capacity not independently verifiable |
 
 ### 5. Specification Gaps
 

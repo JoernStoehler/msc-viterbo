@@ -35,7 +35,7 @@ Before testing capacity, we must understand what properties of polytopes affect 
 | F=8 | Tesseract, Rectangle | ✓ capacity_known_values.rs |
 | F=10 | Pentagon×Pentagon | ✗ BROKEN (fixture wrong) |
 | F=12 | Hexagon×Hexagon | ✗ Not implemented |
-| F=16 | 16-cell | ✗ Not implemented |
+| F=16 | 16-cell | ✓ tube/src/fixtures.rs |
 
 ### 0.2 Lagrangian Product Structure
 
@@ -54,7 +54,7 @@ Before testing capacity, we must understand what properties of polytopes affect 
 | Triangle×Triangle | Yes | ✓ | ✓ | Fails |
 | Pentagon×Pentagon | Yes | ✓ | Timeout | Fails |
 | 4-simplex | No | N/A | ✓ | ? |
-| 16-cell | No | N/A | ✓ | ? |
+| 16-cell | No | N/A | ✓ | ✓ (c=1) |
 | Perturbed tesseract | No | N/A | ✓ | ✓ |
 
 **Implementation status:**
@@ -283,14 +283,18 @@ c_EHZ(R(a,b) × R(a,b)) = 4·min(a,b)² = 4b²
 
 **Statement:** For the 16-cell (dual of tesseract):
 ```
-c_EHZ(16-cell) = ??? (UNKNOWN)
+c_EHZ(16-cell) = ??? (UNKNOWN from literature)
 ```
 
-**Note:** 16-cell is NOT a Lagrangian product. Only HK2019 applies.
+**Note:** 16-cell is NOT a Lagrangian product. Both HK2019 and tube algorithm apply.
+
+**Computed:** Tube algorithm finds c = 1 for unit cross-polytope `conv{±eᵢ}` (2026-01-26).
+Not independently verified from literature.
 
 **Conjecture:** c(tesseract) · c(16-cell) ≥ 4? (capacity-volume analog of Mahler)
+With c(tesseract) = 4 and c(16-cell) = 1, this gives 4·1 = 4, achieving equality.
 
-**Tested:** ✗
+**Tested:** ✓ (tube algorithm)
 
 ### 2.7 24-cell: c = ?
 
@@ -821,6 +825,9 @@ c(K) · c(K°) ≥ 4
 with equality for cubes/cross-polytopes?
 
 **Test:** Compute c(tesseract) · c(16-cell), check relationship.
+
+**Result (2026-01-26):** c(tesseract) = 4 (known), c(16-cell) = 1 (tube algorithm).
+Product: 4 · 1 = 4, achieving conjectured equality!
 
 ### 11.2 Mahler's inequality connection
 

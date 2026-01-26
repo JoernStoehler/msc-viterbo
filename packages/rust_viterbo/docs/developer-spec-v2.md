@@ -3260,6 +3260,7 @@ fn unit_tesseract() -> PolytopeHRep {
 fn unit_cross_polytope() -> PolytopeHRep {
     // conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
     // 16 facets with normals (±1,±1,±1,±1)/2
+    // Heights = 0.5 because ⟨(1,1,1,1)/2, e₁⟩ = 0.5
     let mut normals = Vec::new();
     for s1 in [-1.0, 1.0] {
         for s2 in [-1.0, 1.0] {
@@ -3270,7 +3271,7 @@ fn unit_cross_polytope() -> PolytopeHRep {
             }
         }
     }
-    PolytopeHRep { normals, heights: vec![1.0; 16] }
+    PolytopeHRep { normals, heights: vec![0.5; 16] }
 }
 ```
 
