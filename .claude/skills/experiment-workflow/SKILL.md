@@ -18,7 +18,7 @@ description: Planning or executing thesis experiments. Covers the lifecycle from
 
 **Don't compress ideas.** When capturing a research idea, preserve the intellectual labor that went into articulating it. A one-line note in the table loses the nuance, connections, and decision points. Write the detailed section.
 
-**One experiment can have multiple variants.** If an experiment explores multiple families or parameter settings (e.g., comparing "convex hull of random points" vs "intersection of random halfplanes"), keep it as one experiment entry. Each variant gets its own config file in `config/<label>/` (e.g., `convex-hull.json`, `halfplane-intersection.json`). Running the experiment processes ALL config files in that directory — no CLI argument to select which one. Output goes to `data/<label>/<config-name>/`. This makes the command deterministic and complete. Don't create separate table rows for each variant.
+**One experiment can have multiple variants.** If an experiment explores multiple families or parameter settings (e.g., comparing "convex hull of random points" vs "intersection of random halfplanes"), keep it as one experiment entry. Each variant gets its own config file in `config/<label>/` (e.g., `convex-hull.json`, `halfplane-intersection.json`). The set of commands to run must be **obvious from the repo state** — no mental recall or documentation lookup required. A new person or agent should be able to figure out what to run (e.g., "run for each config file in the directory"). Don't create separate table rows for each variant.
 
 **Ideas have broader context.** An experiment idea doesn't exist only in experiments.md. It connects to:
 - Conversations where the idea emerged
