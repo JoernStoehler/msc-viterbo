@@ -815,71 +815,14 @@ pub use algorithm::billiard_capacity;
 
 ## 8. Open Questions
 
-### 8.1 Pentagon Capacity Bug
+### 8.1 Billiard-to-Reeb Orbit Mapping
 
-**Status:** Under investigation
+A k-bounce billiard corresponds to a 2k-segment Reeb orbit alternating between q-facets and p-facets. The exact mapping of segment times to T°-lengths should be derived when implementing witness orbit reconstruction.
 
-The current implementation returns ≈ 2.127 instead of the correct ≈ 3.441 for the pentagon × rotated pentagon. This is documented in `mathematical-claims.md`. Possible causes:
-- Incorrect T°-length computation
-- Missing edge combinations
-- Sign error in velocity constraint
-- Incorrect polygon orientation
+### 8.2 Degenerate Polygons
 
-### 8.2 Relationship Between Billiard and Reeb Orbit Representations
+Input polygons with collinear vertices or 0 on the boundary should be rejected during validation.
 
-**Question:** How exactly do the billiard trajectory parameters (edge positions, bounce points) map to the 4D Reeb orbit representation (facet sequence, segment times)?
+### 8.3 Higher Dimensions
 
-**Partial answer:** A k-bounce billiard corresponds to a 2k-segment Reeb orbit alternating between q-facets and p-facets. The segment times are related to the T°-lengths of each segment.
-
-### 8.3 Handling Non-Convex or Degenerate Polygons
-
-**Question:** What happens if K_q or K_p is degenerate (e.g., has collinear vertices, or 0 is on the boundary)?
-
-**Current approach:** Validate input and reject degenerate cases.
-
-### 8.4 Extension to Higher Dimensions
-
-**Question:** Can the billiard characterization extend to \(\mathbb{R}^{2n}\) for n > 2?
-
-**Answer:** Yes, but the bounce bound becomes n+1 (Bezdek-Bezdek), making enumeration more expensive. The formula \(c_{\text{EHZ}} = \) min T°-length still holds (Rudolf 2022 Theorem 4).
-
----
-
-## Appendix A: Derivation of the T°-Length Formula
-
-The \(T^\circ\)-length of a vector \(v\) is defined as:
-\[
-\|v\|_{T^\circ} = \max_{x \in T} \langle v, x \rangle = h_T(v)
-\]
-
-This is the **support function** of \(T\) evaluated at \(v\).
-
-For a polygon with vertices \(\{w_k\}\), the maximum is achieved at a vertex (extrema of linear functions over convex sets occur at extreme points):
-\[
-\|v\|_{T^\circ} = \max_k \langle v, w_k \rangle
-\]
-
-**Connection to Reeb dynamics:**
-
-For a Lagrangian product \(K_q \times K_p\), a Reeb orbit on \(\partial(K_q \times K_p)\) alternates between:
-- Motion in q-space with velocity proportional to \(J n_p\) (when on a p-facet)
-- Motion in p-space with velocity proportional to \(J n_q\) (when on a q-facet)
-
-The action of a Reeb orbit equals its period (for Reeb flow). The period accumulated while moving distance \(\Delta q\) in q-space, with p on a facet of K_p, is:
-\[
-\Delta t = \frac{h_p}{2} |\Delta q| / |J n_p| = \frac{h_p}{2} |\Delta q|
-\]
-
-Summing over all segments and using the definition of T°-length gives the billiard formula.
-
----
-
-## Appendix B: Why Only 3 Bounces Suffice in 2D
-
-**Theorem (Bezdek-Bezdek):** Let \(\gamma\) be a closed convex curve in \(\mathbb{R}^n\) that cannot be translated into the interior of a convex body K. Then \(\gamma\) can have vertices removed (keeping the non-translatability property) until it has at most \(n+1\) vertices.
-
-**Proof sketch:** Uses Helly's theorem. If \(\gamma\) has \(n+2\) or more vertices, consider the half-spaces "blocking" each vertex. By Helly, if every \(n+1\) of them intersect, all of them intersect. But if the curve can't be translated inside, the blocking constraints must be inconsistent, so some vertex is redundant.
-
-**For n=2:** This gives at most 3 vertices = 3 bounces.
-
-The minimum-action closed billiard trajectory is automatically non-translatable (otherwise we could reduce the action), so the bound applies.
+The billiard characterization extends to \(\mathbb{R}^{2n}\) for n > 2 (Rudolf 2022 Theorem 4). The bounce bound becomes n+1 (Bezdek-Bezdek Lemma 2.1), making enumeration O(edges^{n+1}).
