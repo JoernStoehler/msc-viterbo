@@ -264,7 +264,8 @@ We wrote down the proof in more detail, and extracted a continuous homotopy inst
 \section{Trivialization of 2-Face Tangent Spaces}\label{sec:trivialization}
 
 For algorithmic purposes, we need to track how Reeb orbits evolve as they cross non-Lagrangian 2-faces.
-This requires a trivialization of the contact structure over 2-faces, which we now develop following~\cite{CH2021}.
+This requires a trivialization of the contact structure over 2-faces.
+The construction below follows~\cite{CH2021}, adapted to make the computational aspects explicit.
 
 \subsection{Quaternion Structure on \texorpdfstring{\(\R^4\)}{R4}}
 
@@ -278,21 +279,22 @@ We define three matrices that satisfy the quaternion algebra relations \(I^2 = J
 
 These satisfy \(\QuatI = \QuatJ \QuatK\), \(\QuatJ = \QuatK \QuatI\), \(\QuatK = \QuatI \QuatJ\), and all are orthogonal: \(Q^T Q = \Id\) for \(Q \in \{\QuatI, \QuatJ, \QuatK\}\).
 
-Note that \(\QuatI = J\) is the standard almost complex structure from Section~1.
-The notation \(\QuatI, \QuatJ, \QuatK\) follows~\cite{CH2021} and emphasizes the quaternionic algebra.
+Note that \(\QuatI = J\) coincides with the standard almost complex structure from Section~1.
+We use the notation \(\QuatI, \QuatJ, \QuatK\) following~\cite{CH2021} to emphasize the quaternionic algebra structure.
 
 \begin{lemma}[Orthonormal frame from unit vector]\label{lem:quat-frame}
   For any unit vector \(\nu \in S^3 \subset \R^4\), the vectors \(\{\nu, \QuatI\nu, \QuatJ\nu, \QuatK\nu\}\) form an orthonormal basis of \(\R^4\).
 \end{lemma}
 \begin{proof}
   Since \(\QuatI, \QuatJ, \QuatK\) are orthogonal matrices, we have \(\abs{\QuatI\nu} = \abs{\QuatJ\nu} = \abs{\QuatK\nu} = 1\).
-  For orthogonality, using \(\QuatI^T = -\QuatI\) (since \(\QuatI^2 = -\Id\)):
+  For orthogonality, observe that \(\QuatI^T = -\QuatI\) (since \(\QuatI^2 = -\Id\) and \(\QuatI\) is orthogonal).
+  Therefore:
   \[
     \inner{\nu}{\QuatI\nu} = \inner{\QuatI^T\nu}{\nu} = -\inner{\QuatI\nu}{\nu} = -\inner{\nu}{\QuatI\nu},
   \]
-  so \(\inner{\nu}{\QuatI\nu} = 0\). Similarly for \(\QuatJ, \QuatK\).
-  For \(\inner{\QuatI\nu}{\QuatJ\nu} = \inner{\nu}{\QuatI^T\QuatJ\nu} = -\inner{\nu}{\QuatI\QuatJ\nu} = -\inner{\nu}{\QuatK\nu} = 0\).
-  The other pairs follow by cyclic permutation.
+  which implies \(\inner{\nu}{\QuatI\nu} = 0\). The same argument applies to \(\QuatJ\) and \(\QuatK\).
+  For the remaining pairs, we compute \(\inner{\QuatI\nu}{\QuatJ\nu} = \inner{\nu}{\QuatI^T\QuatJ\nu} = -\inner{\nu}{\QuatI\QuatJ\nu} = -\inner{\nu}{\QuatK\nu} = 0\).
+  The pairs \((\QuatJ\nu, \QuatK\nu)\) and \((\QuatK\nu, \QuatI\nu)\) follow by cyclic permutation.
 \end{proof}
 
 \subsection{The 2-Face Tangent Space}
@@ -312,7 +314,7 @@ The tangent space of \(F\) is the 2-dimensional subspace:
 \end{definition}
 
 When restricted to a 2-face tangent space \(TF\), the trivialization \(\tau_{n_{\mathrm{exit}}}\) becomes an isomorphism \(TF \xrightarrow{\sim} \R^2\), provided the 2-face is non-Lagrangian.
-To compute the inverse, we need explicit basis vectors for \(TF\).
+To compute the inverse map explicitly, we need to identify basis vectors for \(TF\) that have prescribed trivialization coordinates.
 
 \begin{proposition}[Explicit basis for 2-face tangent space]\label{prop:explicit-basis}
   Let \(F = F_i \cap F_j\) be a non-Lagrangian 2-face with normals \(n_{\mathrm{entry}}, n_{\mathrm{exit}}\).
@@ -336,22 +338,35 @@ To compute the inverse, we need explicit basis vectors for \(TF\).
   \]
 \end{proposition}
 \begin{proof}
-  The matrix \(M\) maps \(\R^4\) to \(\R^4\) via the coordinates \((\inner{\cdot}{n_{\mathrm{entry}}}, \inner{\cdot}{n_{\mathrm{exit}}}, \inner{\cdot}{\QuatJ n_{\mathrm{exit}}}, \inner{\cdot}{\QuatK n_{\mathrm{exit}}})\).
-  The inverse \(M^{-1}\) has columns \(c_1, c_2, c_3, c_4\) satisfying \(M c_k = e_k\).
+  The rows of \(M\) are the four vectors \(n_{\mathrm{entry}}, n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\), viewed as linear functionals.
+  Thus \(M\) maps a vector \(V \in \R^4\) to its coordinates
+  \[
+    MV = \bigl(\inner{V}{n_{\mathrm{entry}}}, \inner{V}{n_{\mathrm{exit}}}, \inner{V}{\QuatJ n_{\mathrm{exit}}}, \inner{V}{\QuatK n_{\mathrm{exit}}}\bigr)^T.
+  \]
+  Denote the columns of \(M^{-1}\) by \(c_1, c_2, c_3, c_4\). The defining property \(M c_k = e_k\) means that each \(c_k\) has value 1 when paired with the \(k\)-th row of \(M\) and value 0 for all other rows.
 
-  For \(c_3\): we need \(\inner{c_3}{n_{\mathrm{entry}}} = 0\), \(\inner{c_3}{n_{\mathrm{exit}}} = 0\), \(\inner{c_3}{\QuatJ n_{\mathrm{exit}}} = 1\), \(\inner{c_3}{\QuatK n_{\mathrm{exit}}} = 0\).
-  The first two conditions give \(c_3 \in TF\), and the last two give \(\tau_{n_{\mathrm{exit}}}(c_3) = (1, 0)\).
-  Similarly for \(c_4 = b_2\).
+  Setting \(b_1 = c_3\): the conditions \(M c_3 = e_3\) state that \(\inner{c_3}{n_{\mathrm{entry}}} = 0\), \(\inner{c_3}{n_{\mathrm{exit}}} = 0\), \(\inner{c_3}{\QuatJ n_{\mathrm{exit}}} = 1\), and \(\inner{c_3}{\QuatK n_{\mathrm{exit}}} = 0\).
+  The first two conditions place \(c_3\) in \(\ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}}) = TF\), while the last two give \(\tau_{n_{\mathrm{exit}}}(c_3) = (1, 0)\).
+  The same analysis with \(b_2 = c_4\) yields \(b_2 \in TF\) and \(\tau_{n_{\mathrm{exit}}}(b_2) = (0, 1)\).
 
-  Invertibility of \(M\) fails iff the rows are linearly dependent.
-  This happens iff \(\QuatJ n_{\mathrm{exit}}\) and \(\QuatK n_{\mathrm{exit}}\) lie in \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\), which is equivalent to \(TF = \mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\).
-  But \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\} = (n_{\mathrm{exit}})^\perp \cap (\QuatI n_{\mathrm{exit}})^\perp\), which equals \(TF\) only when \(\QuatI n_{\mathrm{exit}} \in \mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\), i.e., when \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = 0\) (Lagrangian case).
+  For invertibility, observe that \(M\) is singular iff its rows are linearly dependent.
+  The last two rows \(\QuatJ n_{\mathrm{exit}}\) and \(\QuatK n_{\mathrm{exit}}\) span a 2-dimensional subspace orthogonal to both \(n_{\mathrm{exit}}\) and \(\QuatI n_{\mathrm{exit}}\) (by Lemma~\ref{lem:quat-frame}).
+  Linear dependence occurs iff this 2-dimensional subspace lies in \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
+  Since the orthogonal complement of \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is \(\mathrm{span}\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}\), containment would require \(TF = \mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which happens exactly when \(\QuatI n_{\mathrm{exit}} \in \mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
+  This last condition is equivalent to \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = \inner{\QuatI n_{\mathrm{entry}}}{n_{\mathrm{exit}}} = 0\), the Lagrangian case.
 \end{proof}
 
-\begin{remark}[Why explicit basis vectors are necessary]
-  One might naively expect \(\tau_{n_{\mathrm{exit}}}^{-1}(a, b) = a \cdot \QuatJ n_{\mathrm{exit}} + b \cdot \QuatK n_{\mathrm{exit}}\), but this is \textbf{incorrect}.
-  The image of this map lies in \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which is a \emph{different} 2-dimensional subspace than \(TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}})\).
-  The explicit basis construction in Proposition~\ref{prop:explicit-basis} correctly identifies vectors in \(TF\) with the desired trivialization coordinates.
+\begin{remark}[Why explicit basis vectors are necessary]\label{rem:explicit-basis-pitfall}
+  \textbf{Common pitfall:} One might naively expect the inverse trivialization to be
+  \[
+    \tau_{n_{\mathrm{exit}}}^{-1}(a, b) \stackrel{?}{=} a \cdot \QuatJ n_{\mathrm{exit}} + b \cdot \QuatK n_{\mathrm{exit}}.
+  \]
+  This formula is \textbf{incorrect}.
+  The image of this map lies in \(\mathrm{span}\{\QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\), which is the orthogonal complement of \(\mathrm{span}\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}\}\).
+  Meanwhile, the 2-face tangent space is \(TF = \ker(n_{\mathrm{entry}}) \cap \ker(n_{\mathrm{exit}})\), the orthogonal complement of \(\mathrm{span}\{n_{\mathrm{entry}}, n_{\mathrm{exit}}\}\).
+  These two 2-dimensional subspaces coincide only in the Lagrangian case \(\omega(n_{\mathrm{entry}}, n_{\mathrm{exit}}) = 0\), which is precisely when the trivialization is ill-defined.
+
+  The explicit basis construction in Proposition~\ref{prop:explicit-basis} resolves this by computing vectors \(b_1, b_2\) that lie in \(TF\) while having the desired trivialization coordinates \((1,0)\) and \((0,1)\).
 \end{remark}
 
 \subsection{Transition Matrices}\label{sec:transition-matrix}
@@ -378,7 +393,7 @@ When a Reeb orbit crosses a non-Lagrangian 2-face \(F = F_i \cap F_j\), the triv
   \textbf{(1)} The transition matrix preserves the symplectic form on \(TF\) induced by restriction of \(\omega\).
   Since \(\omega\) is non-degenerate on \(TF\) (by non-Lagrangianness), \(\psi_F\) preserves a non-degenerate 2-form, hence \(\det(\psi_F) = 1\).
 
-  \textbf{(2)} Using the explicit formula from~\cite{CH2021}, Definition~2.15 and Lemma~2.17:
+  \textbf{(2)} We use the explicit formula from~\cite{CH2021} (Definition~2.15 and Lemma~2.17).
   Let \(a_1 = \inner{n_{\mathrm{entry}}}{n_{\mathrm{exit}}}\), \(a_2 = \inner{n_{\mathrm{entry}}}{\QuatI n_{\mathrm{exit}}}\), \(a_3 = \inner{n_{\mathrm{entry}}}{\QuatJ n_{\mathrm{exit}}}\), \(a_4 = \inner{n_{\mathrm{entry}}}{\QuatK n_{\mathrm{exit}}}\).
   Since \(\{n_{\mathrm{exit}}, \QuatI n_{\mathrm{exit}}, \QuatJ n_{\mathrm{exit}}, \QuatK n_{\mathrm{exit}}\}\) is an orthonormal basis, we have \(a_1^2 + a_2^2 + a_3^2 + a_4^2 = 1\).
   The transition matrix is:
