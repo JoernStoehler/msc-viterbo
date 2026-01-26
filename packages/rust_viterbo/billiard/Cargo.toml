@@ -8,8 +8,9 @@ description = "Billiard algorithm for EHZ capacity of Lagrangian product polytop
 
 [dependencies]
 nalgebra = "0.33"
-itertools = "0.13"
+itertools = "0.14"
 thiserror = "2"
 
 [dev-dependencies]
 approx = "0.5"
+hk2017 = { path = "../hk2017" }
