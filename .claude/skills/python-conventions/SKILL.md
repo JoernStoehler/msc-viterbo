@@ -5,55 +5,55 @@ description: Work on Python experiments in packages/python_viterbo. Use for layo
 
 # Python Conventions (python_viterbo)
 
-## CRITICAL: Read this skill before working on Python code
+## Example: polytope-database
 
-Agents MUST read this entire skill file before proposing or implementing Python code. Do not skip sections. Do not make up conventions that are not documented here.
+Before reading abstract conventions, look at a concrete example:
 
-## Terminology
+```
+packages/python_viterbo/
+├── src/viterbo/experiments/polytope_database/
+│   ├── __init__.py
+│   ├── SPEC.md              # Research question, columns, invariants
+│   └── stage_build.py       # Builds stub DataFrame, saves to Parquet
+├── data/polytope-database/
+│   └── stub.parquet         # Output artifact
+└── tests/test_polytope_database.py
+```
 
-- **label**: A short identifier for an experiment (e.g., `counterexample-hko`, `dimension-5-probing`). Used consistently across folder names, tracking table rows, and thesis section labels.
-- **stage**: A discrete step in an experiment pipeline (e.g., `build`, `analyze`, `plot`).
+Run it: `uv run python -m viterbo.experiments.polytope_database.stage_build`
+Test it: `uv run pytest tests/test_polytope_database.py`
+
+This experiment demonstrates: SPEC.md, stage entrypoint, data output, tests.
 
 ## Directory layout
 
 All paths relative to `packages/python_viterbo/`:
 
-| Artifact | Path | Notes |
-|----------|------|-------|
-| Experiment code | `src/viterbo/experiments/<label>/` | One folder per experiment |
-| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<stage>.py` | CLI-invocable modules |
-| Experiment spec | `src/viterbo/experiments/<label>/SPEC.md` | Research question, success criteria |
-| Shared helpers | `src/viterbo/common/` | Avoid premature abstraction |
-| Configs | `config/<label>/<variant>.json` | Parameters for reproducible runs |
-| Data artifacts | `data/<label>/` | Outputs from experiments (Git LFS for large files) |
-| Assets for thesis | `../latex_viterbo/assets/<label>/` | Plots, figures, tables |
+| Artifact | Path | Example |
+|----------|------|---------|
+| Experiment code | `src/viterbo/experiments/<label>/` | `experiments/polytope_database/` |
+| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<name>.py` | `stage_build.py` |
+| Experiment spec | `src/viterbo/experiments/<label>/SPEC.md` | Required for non-trivial experiments |
+| Data artifacts | `data/<label>/` | `data/polytope-database/stub.parquet` |
+| Configs | `config/<label>/<variant>.json` | Optional, for parameterized runs |
+| Tests | `tests/test_<label>.py` | `tests/test_polytope_database.py` |
+| Thesis assets | `../latex_viterbo/assets/<label>/` | Plots, figures |
 
 ## Commands
 
 | Task | Command |
 |------|---------|
-| Lint | `scripts/lint.sh` (runs ruff format, ruff check --fix, pyright) |
-| All tests | `uv run pytest tests/` |
-| Targeted tests | `uv run pytest <path>` |
+| Sync deps | `cd packages/python_viterbo && uv sync --extra dev` |
+| Lint | `cd packages/python_viterbo && uv run ruff format . && uv run ruff check --fix .` |
+| Type check | `cd packages/python_viterbo && uv run pyright` |
+| All tests | `cd packages/python_viterbo && uv run pytest tests/` |
+| Run stage | `uv run python -m viterbo.experiments.<label>.stage_<name>` |
 
-## Stage invocation
+## Code style
 
-```bash
-uv run python -m viterbo.experiments.<label>.stage_<stage> [--config config/<label>/<variant>.json]
-```
-
-## Code conventions
-
-- Follow ML/data-science best practices.
-- Docstrings: inputs/outputs, side effects, shapes/dtypes, contracts.
-- Prefer pure functions.
-- Comments explain WHY, not WHAT.
-- Cite sources for non-obvious claims (paper refs, file paths, line numbers).
-
-## Plots and assets
-
-- Python generates layout/style; LaTeX only includes the result.
-- Output to `packages/latex_viterbo/assets/<label>/`.
-- Use descriptive filenames (e.g., `orbit-projection.png`, not `fig1.png`).
+- Docstrings: inputs/outputs, shapes/dtypes for arrays
+- Pure functions preferred
+- Comments explain WHY, not WHAT
+- Cite sources (paper refs, file:line) for non-obvious claims
 
 [proposed]
