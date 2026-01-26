@@ -2480,27 +2480,53 @@ fn test_monotonicity_axiom() {
 
 **4.2.3 Symplectomorphism Invariance:** \(c(AK) = c(K)\) for \(A \in \mathrm{Sp}(4)\)
 
-```rust
-#[test]
-fn test_symplectic_invariance() {
-    let K = tesseract();
+**Philosophy:** Use property-based testing. For any polytope \(K\) and any symplectomorphism \(\varphi \in \mathrm{Sp}(4)\):
+1. \(\varphi(K)\) is a valid polytope (assertion 1)
+2. \(c_{\text{EHZ}}(K) = c_{\text{EHZ}}(\varphi(K))\) (assertion 2)
 
-    // Test multiple Sp(4) elements: rotations, shears, exchanges
-    for A in sample_sp4_elements() {
-        let K_transformed = apply_symplectomorphism(&K, &A);
+```rust
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn symplectic_invariance_random(
+        K in arb_polytope(),           // Random polytope generator
+        phi in arb_symplectomorphism() // Random Sp(4) element
+    ) {
+        // Assertion 1: φ(K) is a valid polytope
+        let K_transformed = apply_symplectomorphism(&K, &phi);
+        prop_assert!(validate_polytope(&K_transformed).is_ok(),
+            "φ(K) is not a valid polytope");
+
+        // Assertion 2: capacity is preserved
         let c_K = compute_capacity(&K).capacity;
         let c_transformed = compute_capacity(&K_transformed).capacity;
-
-        assert!((c_K - c_transformed).abs() < EPS * c_K,
-            "Symplectic invariance failed for {:?}", A);
+        prop_assert!((c_K - c_transformed).abs() < EPS * c_K,
+            "Symplectic invariance failed: c(K)={}, c(φK)={}", c_K, c_transformed);
     }
 }
 ```
 
-**Sp(4) generators to test:**
-- Block rotations: \(R(\theta) \oplus R(\phi)\)
+**Sp(4) generators for random sampling:**
+
+```rust
+/// Generate random Sp(4) element via Iwasawa decomposition or product of generators
+fn arb_symplectomorphism() -> impl Strategy<Value = Matrix4<f64>> {
+    prop_oneof![
+        arb_block_rotation(),      // R(θ) ⊕ R(φ)
+        arb_symplectic_shear(),    // (q,p) ↦ (q, p + Sq)
+        arb_symplectic_exchange(), // Coordinate swaps
+        arb_random_sp4(),          // Full random Sp(4) via Iwasawa
+    ]
+}
+```
+
+**Special fixtures (known edge cases):**
+- Identity: \(\varphi = I\) (sanity check)
+- Pure rotations: \(R(\theta) \oplus I_2\) and \(I_2 \oplus R(\theta)\)
 - Shears: \((q, p) \mapsto (q, p + Sq)\) for symmetric \(S\)
 - Symplectic exchanges: swap \((q_1, p_1) \leftrightarrow (q_2, p_2)\)
+- Near-degenerate: Large shear parameters (tests numerical stability)
 
 ---
 
