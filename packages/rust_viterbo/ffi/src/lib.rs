@@ -86,10 +86,11 @@ fn symplectic_form_4d(a: [f64; 4], b: [f64; 4]) -> f64 {
 /// point. If the true maximum is on the boundary, the result may be incorrect.
 /// See the hk2017 crate documentation for details.
 #[pyfunction]
-#[pyo3(signature = (normals, heights))]
+#[pyo3(signature = (normals, heights, use_graph_pruning=false))]
 fn hk2017_capacity_hrep(
     normals: Vec<[f64; 4]>,
     heights: Vec<f64>,
+    use_graph_pruning: bool,
 ) -> PyResult<Hk2017ResultPy> {
     // Convert to nalgebra vectors
     let normals_vec: Vec<Vector4<f64>> = normals
@@ -99,8 +100,13 @@ fn hk2017_capacity_hrep(
 
     let polytope = PolytopeHRep::new(normals_vec, heights);
 
-    // Use naive enumeration (graph pruning has known issues)
-    let config = Hk2017Config::naive();
+    // Both variants pass all tests and share the QP solver code.
+    // Naive is default for simplicity; GraphPruned is ~20x faster for tesseract.
+    let config = if use_graph_pruning {
+        Hk2017Config::graph_pruned()
+    } else {
+        Hk2017Config::naive()
+    };
 
     match hk2017_capacity(&polytope, &config) {
         Ok(result) => Ok(Hk2017ResultPy {
@@ -215,7 +221,7 @@ fn hk2019_capacity_hrep(
     _unit_tol: f64,
 ) -> PyResult<f64> {
     // Delegate to hk2017 and return just the capacity for backwards compatibility
-    let result = hk2017_capacity_hrep(normals, heights)?;
+    let result = hk2017_capacity_hrep(normals, heights, false)?;
     Ok(result.capacity)
 }
 
