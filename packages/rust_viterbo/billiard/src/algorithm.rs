@@ -109,48 +109,17 @@ mod tests {
 
     #[test]
     fn test_pentagon_counterexample() {
-        // Pentagon × RotatedPentagon(90°)
+        // Pentagon × RotatedPentagon(90°) from HK-O 2024 counterexample paper.
+        // The minimum is a 2-bounce diagonal trajectory v0 → v2 → v0.
         // Expected capacity: 2*cos(π/10)*(1 + cos(π/5)) ≈ 3.441
         let pentagon = Polygon2D::regular_pentagon();
         let rotated = pentagon.rotate(PI / 2.0);
 
-        // Debug: manually compute the diagonal action
-        let v0 = pentagon.vertices[0];
-        let v2 = pentagon.vertices[2];
-        let diagonal_action = crate::action::compute_2bounce_action(&v0, &v2, &rotated);
-        println!("Manual diagonal action (v0 to v2): {}", diagonal_action);
-
-        // Debug: check what we get for edge combo (0, 2) at t=(0,0)
-        let q0 = pentagon.point_on_edge(0, 0.0);
-        let q1 = pentagon.point_on_edge(2, 0.0);
-        println!("q0 from edge 0, t=0: {:?}", q0);
-        println!("q1 from edge 2, t=0: {:?}", q1);
-        println!("v0={:?}, v2={:?}", v0, v2);
-
-        // Debug: check Reeb constraint for the edge v0→v1
-        let edge_delta = pentagon.vertices[1] - pentagon.vertices[0];
-        println!("Edge delta (v0→v1): {:?}", edge_delta);
-
-        // Print the velocity directions from rotated pentagon
-        println!("Velocity directions from T (rotated pentagon):");
-        for k in 0..5 {
-            let n = rotated.normals[k];
-            let h = rotated.heights[k];
-            let v_k = -n * (2.0 / h);
-            println!("  V_{} = {:?} (from n={:?}, h={})", k, v_k, n, h);
-        }
-
         let result = billiard_capacity_from_polygons(&pentagon, &rotated).unwrap();
 
-        println!("Found capacity: {}", result.capacity);
-        println!("Witness: {} bounces", result.witness.num_bounces);
-        println!("  q_edges: {:?}", result.witness.q_edges);
-        println!("  q_params: {:?}", result.witness.q_params);
-        println!("  q_positions: {:?}", result.witness.q_positions);
-
         let expected = 2.0 * (PI / 10.0).cos() * (1.0 + (PI / 5.0).cos());
-
         assert_relative_eq!(result.capacity, expected, epsilon = 1e-6);
+        assert_eq!(result.witness.num_bounces, 2);
     }
 
     #[test]

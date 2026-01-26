@@ -699,7 +699,11 @@ For a fixed edge combination, we solve for the parameters that:
 \sum_{i=0}^{k-1} (p_{i+1 \mod k} - p_i) = 0
 \]
 
-3. **Differential inclusion:** For each segment, the velocity direction must be compatible with the Reeb flow. This is automatically satisfied when we use the T°-length formulation (the billiard dynamics encode the Reeb constraint).
+3. **Differential inclusion:** For each segment, the velocity direction must be compatible with the Reeb flow:
+   - **q-motion segments** (p on ∂K_p): q̇ must be in the cone of velocity directions V_k = -(2/h_k)n_k for active p-edges. This determines where p must be on ∂K_p given the q-displacement direction.
+   - **p-motion segments** (q on ∂K_q): ṗ must be in the cone of velocity directions W_k = (2/h_k)n_k for active q-edges. This must be **explicitly validated** for each p-transition at a bounce point.
+
+   **Warning:** It is NOT sufficient to only check q-displacement achievability. The p-transitions at each bounce must also be validated. See `findings-orbit-validation-2026-01-26.md` for details on this subtle issue.
 
 **Objective:** Minimize action
 \[
@@ -716,12 +720,16 @@ For 2-bounce trajectories, the problem simplifies significantly:
 - The trajectory goes \(q_0 \to q_1 \to q_0\) in q-space
 
 **Why vertex enumeration is correct (per Section 1.5):**
-1. The feasible region is a 4D box \([0,1]^4\) (closure is automatic)
+1. The feasible region is a subset of the 4D box \([0,1]^4\) (not all corners yield valid orbits)
 2. The action function is piecewise linear convex in the parameters
 3. By the **Vertex Optimality Theorem** (Section 1.5), the minimum is at a vertex
-4. Vertices of the box are exactly the 16 points with \(t_i \in \{0, 1\}\)
+4. Vertices of the box are the 16 points with \(t_i \in \{0, 1\}\), but **not all are feasible**
 
-Therefore, checking all corner combinations is **exact**, not an approximation.
+Therefore, checking all corner combinations and filtering for valid orbits is **exact**, not an approximation.
+
+**Validation required for each candidate:**
+1. q-displacement achievability (determines p position during q-motion)
+2. p-transition achievability at each bounce (p must be able to move between required positions)
 
 **Solution approach for k=3 (3-bounce):**
 
