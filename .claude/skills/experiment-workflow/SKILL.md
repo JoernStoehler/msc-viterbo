@@ -7,6 +7,14 @@ description: Run thesis experiments from ideation through publication. Use when 
 
 This skill covers the lifecycle of a research experiment from initial idea to thesis publication.
 
+## CRITICAL: Read this skill before working on experiments
+
+Agents MUST read this entire skill file before proposing or implementing experiments. Do not skip sections. Do not make up conventions that are not documented here.
+
+## Terminology
+
+- **label**: A short identifier for an experiment (e.g., `counterexample-hko`, `dimension-5-probing`). Used consistently across ALL locations.
+
 ## Workflow stages
 
 1. **Ideation** — Capture and deconfuse the research question
@@ -18,19 +26,22 @@ Agents typically work on one stage (~80% of sessions). You can proceed through m
 
 ## Where things live
 
+All paths use the same `<label>` consistently:
+
 | Artifact | Location |
 |----------|----------|
 | Tracking table | `packages/latex_viterbo/experiments.md` |
 | Experiment code | `packages/python_viterbo/src/viterbo/experiments/<label>/` |
-| Specification | `<experiment folder>/SPEC.md` |
-| Rust-only specs | `packages/rust_viterbo/docs/<label>.md` (rare) |
-| Polished writeups | `packages/latex_viterbo/chapters/appendix-detailed-experiments.tex` |
-| Plots/figures | `packages/latex_viterbo/assets/<label>/` |
+| Specification | `packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md` |
+| Configs | `packages/python_viterbo/config/<label>/<variant>.json` |
 | Data artifacts | `packages/python_viterbo/data/<label>/` |
+| Plots/figures | `packages/latex_viterbo/assets/<label>/` |
+| Polished writeups | `packages/latex_viterbo/chapters/appendix-detailed-experiments.tex` |
+| Rust-only specs | `packages/rust_viterbo/docs/<label>.md` (rare) |
+
+**Labels unify everything**: the experiment folder name, thesis section label, tracking table row, config folder, data folder, and asset folder all use the same label.
 
 **Polished writeups** go in a single growing file (`appendix-detailed-experiments.tex`). Each experiment becomes a `\section{<label>}`. If the file gets unwieldy, we can split to folder + `\input` later.
-
-**Labels** unify everything: the experiment folder name, thesis section label, tracking table row, and asset folder all use the same label (e.g., `counterexample-hko`, `dimension-5-probing`).
 
 ## Stage 1: Ideation
 
