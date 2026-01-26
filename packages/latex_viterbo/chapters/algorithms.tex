@@ -197,11 +197,14 @@ We can expand the definition to also classify non-closed finite-length trajector
 
   We can enumerate the facet index sequences satisfying these three conditions by building a search tree (or rather, a forest) as follows:
   \begin{itemize}
-    \item The root nodes are all 2-faces \((i_0, i_1)\).
+    \item The root nodes are all 2-faces \((i_0, i_1)\). These are called \emph{initial tubes}.
     \item We go from a node \(i_0, \ldots, i_k\) to a node \(i_0, \ldots, i_k, i_{k+1}\) if the sequence satisfies still the adjacency conditions and simplicity condition.
-    \item We mark nodes of the form \(i_0, i_1, \ldots, i_m = i_0, i_{m+1} = i_1\) as ``closeable'', since searching them covers the search over all simple closed Reeb orbits.
-    \item We drop leaf nodes that are not closeable, i.e. where no next facet and implied 2-face can be picked without violating the adjacency or simplicity conditions, and yet the sequence didn't end on the 2-face it started on.
+    \item A tube is \emph{next-step closeable} if \(i_0 = i_k\) (first facet equals last facet). Extending such a tube by \(i_1\) yields a closed tube.
+    \item A tube is \emph{closed} if \(i_{k-1} = i_0\) and \(i_k = i_1\), i.e., the sequence ends with the same two facets it started with. Equivalently, the start 2-face equals the end 2-face. We mark closed nodes for searching since they cover all simple closed Reeb orbits.
+    \item We drop leaf nodes that cannot lead to closed tubes, i.e. where no next facet can be picked without violating the adjacency or simplicity conditions, and the sequence is not yet closed.
   \end{itemize}
+
+  Every closed tube is the one-step extension of a unique next-step closeable tube. Closed tubes have minimum length 5 (corresponding to 3 distinct facets), because flow direction antisymmetry prevents returning to the entry facet after a single transition.
 \end{lemma}
 
 There are three useful pruning lemmas that allow us to skip large parts of the tree during the search for minimum action closed Reeb orbits.

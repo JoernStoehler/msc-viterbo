@@ -1391,6 +1391,18 @@ For orbits not involving Lagrangian 2-faces, adjacency constraints apply:
 1. Each consecutive pair \((i_k, i_{k+1})\) must share a non-Lagrangian 2-face
 2. Flow direction must match: \(\omega(n_{i_k}, n_{i_{k+1}}) > 0\) (or the reverse, consistently)
 
+**Terminology for tube closure:**
+
+- **Initial tube:** A tube with facet_sequence = \([i_0, i_1]\) (length 2). Represents zero-length trajectories at a single 2-face.
+- **Closed tube:** A non-initial tube where start 2-face = end 2-face. For sequence \([i_0, i_1, \ldots, i_m]\), this means \(i_{m-1} = i_0\) AND \(i_m = i_1\). Minimum length is 4.
+- **Next-step closeable tube:** A tube where first facet = last facet (\(i_0 = i_m\)). Extending with \(i_1\) yields a closed tube (if geometrically valid).
+
+**Lemma (closed tubes have length ≥ 4):** A closed tube cannot have length 3. Proof: Flow direction on 2-face \(F_{i,j}\) is determined by \(\omega(n_i, n_j)\). If flow enters facet \(j\) from \(i\), it cannot exit back to \(i\) because \(\omega(n_j, n_i) = -\omega(n_i, n_j)\) has opposite sign. Thus at least 3 distinct facets are needed, giving minimum sequence \([i_0, i_1, i_2, i_0, i_1]\) of length 5... but wait, that's length 5. Actually minimum is \([i_0, i_1, i_0, i_1]\) which requires checking if \(F_{i_1, i_0}\) allows flow back to \(i_1\) — this fails by the same antisymmetry argument. So minimum closed tube visits 3 facets: \([i_0, i_1, i_2, i_0, i_1]\), length 5. \(\blacksquare\)
+
+**Correction:** The minimum closed tube has length 4: sequence \([i_0, i_1, i_0, i_1]\) if and only if there exist two 2-faces \(F_{i_0, i_1}\) allowing bidirectional flow, which is impossible for non-Lagrangian 2-faces (antisymmetry). So minimum length is actually **5** (3 distinct facets). <!-- TODO: verify this lemma carefully -->
+
+**Lemma:** Every closed tube is the one-step extension of a unique next-step closeable tube. Proof: Remove the last element \(i_1\) from the closed tube's sequence. \(\blacksquare\)
+
 ```rust
 struct FacetSequence {
     facets: Vec<usize>,  // [i_0, i_1, ..., i_m]
@@ -1411,21 +1423,26 @@ impl FacetSequence {
         true
     }
 
-    fn is_closeable(&self, two_faces: &[TwoFace]) -> bool {
-        // Sequence [i_0, ..., i_m] is closeable if:
-        // 1. Length >= 3 (need at least 2 transitions to form a loop)
-        // 2. Last facet equals first facet (i_m == i_0)
-        // 3. The closing transition (i_{m-1} → i_1) has an adjacent 2-face
-        if self.facets.len() < 3 {
-            return false;
+    fn is_initial(&self) -> bool {
+        self.facets.len() == 2
+    }
+
+    fn is_next_step_closeable(&self) -> bool {
+        // A tube is next-step closeable if first facet = last facet.
+        // Extending with facets[1] then yields a closed tube (if geometrically valid).
+        self.facets.len() >= 3 && self.facets[0] == self.facets[self.facets.len() - 1]
+    }
+
+    fn is_closed(&self) -> bool {
+        // A tube is closed if start 2-face = end 2-face and it's not initial.
+        // Start 2-face: F_{facets[0], facets[1]}
+        // End 2-face: F_{facets[m-1], facets[m]} where m = len - 1
+        // Equality requires: facets[m-1] = facets[0] AND facets[m] = facets[1]
+        if self.facets.len() < 4 {
+            return false;  // Initial (len 2) or too short (len 3 impossible)
         }
-        if self.facets[self.facets.len() - 1] != self.facets[0] {
-            return false;
-        }
-        // Check adjacency for closing edge: from second-to-last to second facet
-        let i_prev = self.facets[self.facets.len() - 2];
-        let i_next = self.facets[1];
-        two_faces.iter().any(|f| (f.i == i_prev && f.j == i_next) || (f.i == i_next && f.j == i_prev))
+        let m = self.facets.len() - 1;
+        self.facets[m - 1] == self.facets[0] && self.facets[m] == self.facets[1]
     }
 }
 ```
@@ -1434,7 +1451,7 @@ impl FacetSequence {
 
 ### 2.9 Tubes (Partial Trajectories)
 
-**Source:** CH2021 Definition 2.5 (linear flow), Definition 2.6 (linear flow composition), Definition 2.8 (symplectic flow graph). The "tube" terminology comes from visualizing the set of all trajectories with a fixed facet sequence as a 2-parameter family (like a tube in phase space).
+**Source:** This thesis (Stöhler 2026). The mathematical foundations (linear flows, flow composition) come from CH2021 Definitions 2.5-2.8, but the "tube" terminology and data structure are original to this thesis. The name comes from visualizing the set of all trajectories with a fixed facet sequence as a 2-parameter family (like a tube in phase space).
 
 A **tube** represents all Reeb trajectories with a fixed combinatorial class (facet sequence).
 
@@ -1570,38 +1587,45 @@ fn compute_facet_flow(
     debug_assert!(r_dot_n.abs() > EPS, "Lagrangian 2-face or degenerate");
 
     // For a point p_2d in entry 2-face coordinates:
-    // 1. Convert to 4D: p_4d = untrivialize(n_prev, p_2d) + centroid_entry
+    // 1. Convert to 4D: p_4d = untrivialize(entry_triv_normal, p_2d) + centroid_entry
     // 2. Compute time: t = (h_next - ⟨p_4d, n_next⟩) / ⟨R_curr, n_next⟩
     // 3. Flow: q_4d = p_4d + t * R_curr
-    // 4. Convert to exit coords: q_2d = trivialize(n_curr, q_4d - centroid_exit)
+    // 4. Convert to exit coords: q_2d = trivialize(exit_triv_normal, q_4d - centroid_exit)
+    //
+    // IMPORTANT: Per CH2021 convention (§1.10), trivialization uses the EXIT facet's normal.
+    // - Entry 2-face F_{prev,curr} is trivialized with n_curr (we're entering curr)
+    // - Exit 2-face F_{curr,next} is trivialized with n_next (we're entering next)
+    // These are stored in TwoFaceEnriched.exit_normal.
+    //
+    // <!-- NEEDS VERIFICATION: If bugs occur, check this normal convention first. -->
 
-    // Entry trivialization basis vectors in 4D
-    let n_prev = polytope_data.normal(prev_facet);
-    let j_n_prev = J_MATRIX * n_prev;
-    let k_n_prev = K_MATRIX * n_prev;
+    // Entry trivialization basis vectors in 4D (use exit_normal per CH2021)
+    let entry_triv_normal = &entry_2face.exit_normal;  // = n_curr
+    let j_n_entry = J_MATRIX * entry_triv_normal;
+    let k_n_entry = K_MATRIX * entry_triv_normal;
     let c_entry = entry_2face.centroid_4d;
 
-    // Exit trivialization basis vectors in 4D
-    let n_curr = polytope_data.normal(curr_facet);
-    let j_n_curr = J_MATRIX * n_curr;
-    let k_n_curr = K_MATRIX * n_curr;
+    // Exit trivialization basis vectors in 4D (use exit_normal per CH2021)
+    let exit_triv_normal = &exit_2face.exit_normal;    // = n_next
+    let j_n_exit = J_MATRIX * exit_triv_normal;
+    let k_n_exit = K_MATRIX * exit_triv_normal;
     let c_exit = exit_2face.centroid_4d;
 
     // Build the affine map and time function
     //
     // For p_2d = (a, b):
-    //   p_4d = a * J*n_prev + b * K*n_prev + c_entry
-    //   ⟨p_4d, n_next⟩ = a * ⟨J*n_prev, n_next⟩ + b * ⟨K*n_prev, n_next⟩ + ⟨c_entry, n_next⟩
+    //   p_4d = a * J*entry_triv_normal + b * K*entry_triv_normal + c_entry
+    //   ⟨p_4d, n_next⟩ = a * ⟨J*entry_triv_normal, n_next⟩ + b * ⟨K*entry_triv_normal, n_next⟩ + ⟨c_entry, n_next⟩
     //
     //   t = (h_next - ⟨p_4d, n_next⟩) / r_dot_n
     //     = (h_next - ⟨c_entry, n_next⟩) / r_dot_n
-    //       - (a * ⟨J*n_prev, n_next⟩ + b * ⟨K*n_prev, n_next⟩) / r_dot_n
+    //       - (a * ⟨J*entry_triv_normal, n_next⟩ + b * ⟨K*entry_triv_normal, n_next⟩) / r_dot_n
     //
     // Time function: t(p_2d) = t_const + ⟨t_grad, p_2d⟩
     let t_const = (h_next - c_entry.dot(&n_next)) / r_dot_n;
     let t_grad = Vector2::new(
-        -j_n_prev.dot(&n_next) / r_dot_n,
-        -k_n_prev.dot(&n_next) / r_dot_n,
+        -j_n_entry.dot(&n_next) / r_dot_n,
+        -k_n_entry.dot(&n_next) / r_dot_n,
     );
     let time_func = AffineFunc { gradient: t_grad, constant: t_const };
 
@@ -1609,30 +1633,30 @@ fn compute_facet_flow(
     //   q_4d - c_exit = (p_4d - c_entry) + (c_entry - c_exit) + t * R_curr
     //
     // Trivialize in exit coordinates:
-    //   q_2d[0] = ⟨q_4d - c_exit, J*n_curr⟩
-    //   q_2d[1] = ⟨q_4d - c_exit, K*n_curr⟩
+    //   q_2d[0] = ⟨q_4d - c_exit, J*exit_triv_normal⟩
+    //   q_2d[1] = ⟨q_4d - c_exit, K*exit_triv_normal⟩
 
     // Build 2x2 matrix A and offset b for q_2d = A * p_2d + b
     //
     // Components of A come from how (a, b) → p_4d → q_4d → q_2d
     // Including the time dependence on p_2d
 
-    // Direct term: trivialize(n_curr, untrivialize(n_prev, e_i))
+    // Direct term: trivialize(exit_triv_normal, untrivialize(entry_triv_normal, e_i))
     // This is the transition matrix ψ from section 1.11
-    let psi = compute_transition_matrix(&n_prev, &n_curr);
+    let psi = compute_transition_matrix(entry_triv_normal, exit_triv_normal);
 
     // Time-dependent term: derivative of (t * R_curr) w.r.t. p_2d, trivialized
     // dt/d(p_2d) = t_grad
     // d(t * R_curr)/d(p_2d) = R_curr ⊗ t_grad (outer product)
-    // Trivialized: [⟨R_curr, J*n_curr⟩, ⟨R_curr, K*n_curr⟩] ⊗ t_grad
-    let r_triv = Vector2::new(r_curr.dot(&j_n_curr), r_curr.dot(&k_n_curr));
+    // Trivialized: [⟨R_curr, J*exit_triv_normal⟩, ⟨R_curr, K*exit_triv_normal⟩] ⊗ t_grad
+    let r_triv = Vector2::new(r_curr.dot(&j_n_exit), r_curr.dot(&k_n_exit));
 
     // Matrix: A = ψ + r_triv ⊗ t_grad
     let a_matrix = psi + r_triv * t_grad.transpose();
 
-    // Offset: b = trivialize(n_curr, c_entry - c_exit + t_const * R_curr)
+    // Offset: b = trivialize(exit_triv_normal, c_entry - c_exit + t_const * R_curr)
     let delta_c = c_entry - c_exit + r_curr * t_const;
-    let b_offset = Vector2::new(delta_c.dot(&j_n_curr), delta_c.dot(&k_n_curr));
+    let b_offset = Vector2::new(delta_c.dot(&j_n_exit), delta_c.dot(&k_n_exit));
 
     let flow_map = AffineMap2D { matrix: a_matrix, offset: b_offset };
 
@@ -1690,7 +1714,7 @@ fn extend_tube(
 
 ### 2.11 Tube Closure (Finding Periodic Orbits)
 
-A tube is **closeable** if its facet sequence returns to the starting 2-face.
+To find closed Reeb orbits within a **closed tube** (see §2.8 for terminology), solve for fixed points of the flow map. Since start 2-face = end 2-face for a closed tube, the flow map \(\psi\) maps the start 2-face to itself, and fixed points correspond to periodic orbits.
 
 To find closed orbits, solve for fixed points of the flow map:
 \[
@@ -2023,7 +2047,7 @@ A complete implementation requires a global QCQP solver. Checking only vertices 
 
 ### 3.4 Tube Algorithm (Branch and Bound)
 
-**Source:** Chaidez-Hutchings 2021, "Computing Reeb Dynamics on Polytopes"
+**Source:** This thesis (Stöhler 2026), Section \ref{sec:algo-ours}. The algorithm extends CH2021's mathematical framework (Reeb dynamics on polytopes, linear flows, symplectic flow graphs) with a branch-and-bound search over "tubes" — sets of trajectories sharing a combinatorial class. The "tube" terminology and the specific algorithmic structure are original to this thesis.
 
 **Input:** Polytope with **no Lagrangian 2-faces** (i.e., \(\omega(n_i, n_j) \neq 0\) for all adjacent facet pairs).
 
@@ -2729,7 +2753,31 @@ The cross-polytope `conv{±e₁, ±e₂, ±e₃, ±e₄}` has:
 - 0 in its interior ✓
 - 16 facets with normals proportional to (±1,±1,±1,±1)
 
-**Before using:** Verify ω(n_i, n_j) ≠ 0 for all adjacent facet pairs. If verified, this provides a non-Lagrangian-product test case for the tube algorithm.
+**Unit test: Cross-polytope has no Lagrangian 2-faces:**
+```rust
+#[test]
+fn test_cross_polytope_no_lagrangian_2faces() {
+    let cross = cross_polytope();
+    let data = preprocess_polytope(&cross).unwrap();
+
+    for two_face in &data.two_faces {
+        let omega = symplectic_form(
+            &data.normals[two_face.i],
+            &data.normals[two_face.j]
+        );
+        assert!(
+            omega.abs() > EPS_LAGRANGIAN,
+            "Cross-polytope has Lagrangian 2-face F_{},{}: ω = {:.2e}",
+            two_face.i, two_face.j, omega
+        );
+    }
+
+    // If this test passes, cross-polytope is valid for tube algorithm testing
+    assert!(!data.has_lagrangian_two_faces());
+}
+```
+
+If this test passes, the cross-polytope provides a non-Lagrangian-product test case for the tube algorithm. Its capacity is not independently known, but we can verify orbit validity and algorithm consistency.
 
 ---
 
@@ -2747,6 +2795,30 @@ fn tesseract() -> PolytopeHRep {
         ],
         heights: vec![1.0; 8],
     }
+}
+```
+
+**Cross-polytope (for tube algorithm testing):**
+```rust
+fn cross_polytope() -> PolytopeHRep {
+    // Cross-polytope = conv{±e₁, ±e₂, ±e₃, ±e₄}
+    // Has 16 facets with normals (±1,±1,±1,±1)/2
+    let mut normals = Vec::new();
+    let mut heights = Vec::new();
+
+    for s1 in [-1.0, 1.0] {
+        for s2 in [-1.0, 1.0] {
+            for s3 in [-1.0, 1.0] {
+                for s4 in [-1.0, 1.0] {
+                    let n = Vector4::new(s1, s2, s3, s4) / 2.0;  // normalize
+                    normals.push(n);
+                    heights.push(1.0);  // 0 at center, vertices at distance 1
+                }
+            }
+        }
+    }
+
+    PolytopeHRep { normals, heights }
 }
 ```
 
@@ -2852,3 +2924,79 @@ fn hko_counterexample() -> LagrangianProductPolytope {
 - `review-spec-v2.md`: Detailed review with recommendations
 - `mathematical-claims.md`: Citation tracking for all claims
 - `test-propositions.md`: Mathematical propositions underlying tests
+
+---
+
+## 5. Implementation Guide
+
+This section provides guidance for agents implementing the tube algorithm.
+
+### 5.1 Scope
+
+**Current implementation target:** Tube algorithm only (Section 3.4). Billiard and HK2017 algorithms are out of scope for now.
+
+### 5.2 Crate Structure
+
+Start simple:
+- `packages/rust_viterbo/tube/` — Main implementation crate
+- `packages/rust_viterbo/ffi/` — Python bindings (existing, to be updated)
+
+Refactor into separate `geom` and `algorithm` crates later if needed.
+
+### 5.3 Dependencies
+
+- Use `nalgebra` for linear algebra (`Vector4<f64>`, `Matrix2<f64>`, etc.)
+- Avoid magic type aliases; `Vector4<f64>` is clear and readable
+
+### 5.4 Development Approach
+
+**TDD with falsification mindset:**
+1. Write tests that would CATCH bugs, not just confirm correctness
+2. Actively seek weak points in code, tests, AND spec
+3. If something seems wrong in the spec, escalate — don't silently work around it
+
+**Move carefully:**
+- This is complex work; don't try to implement everything at once
+- Verify each component before building on it
+- Use debug assertions liberally during development
+
+**Correctness over performance:**
+- Get it working correctly first
+- Only optimize after profiling identifies actual bottlenecks
+
+### 5.5 Escalation Boundaries
+
+**Stop and escalate if:**
+- Rust environment setup takes >10 minutes
+- Unit test suite takes >3 minutes total
+- You encounter unexpected behavior that doesn't resolve with minor adjustments
+- You find what appears to be a spec error
+
+### 5.6 Subagent Usage
+
+Use `Task()` subagents for:
+- Detailed coding work (stay focused on architecture)
+- Debugging sessions
+- Exploratory investigation
+
+Run one subagent at a time to avoid conflicts.
+
+### 5.7 Checkpoints
+
+Suggested implementation order:
+1. **Polytope data structures** — H-rep, validation, basic symplectic primitives
+2. **2-face enumeration** — Find all 2-faces, classify Lagrangian vs non-Lagrangian
+3. **Trivialization** — Implement and test τ, τ⁻¹, verify symplectic preservation
+4. **Root tubes** — Initialize tubes at each 2-face
+5. **Tube extension** — Flow map, action function, rotation accumulation
+6. **Closure detection** — Identify next-step closeable and closed tubes
+7. **Fixed point finding** — Solve ψ(s) = s for closed tubes
+8. **4D reconstruction** — Convert 2D fixed points to 4D orbits, validate
+9. **Branch-and-bound** — Full algorithm with pruning
+10. **FFI bindings** — Expose to Python
+
+### 5.8 Verification Markers
+
+The following sections have been flagged for verification if bugs occur:
+- **Flow map computation (§2.10):** Uses `exit_normal` from enriched 2-faces. If orbits don't close or fixed points are wrong, check this first.
+- **Closed tube minimum length:** Claimed to be 5 (3 distinct facets). Verify the antisymmetry argument.
