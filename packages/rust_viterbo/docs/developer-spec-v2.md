@@ -460,26 +460,16 @@ struct Polygon2D {
 
 ### 1.9 Quaternion Structure
 
-For trivializing 2-faces, we use the quaternion matrices on \(\mathbb{R}^4\). The quaternion basis is \(\{1, I, J, K\}\) where \(1\) is the identity and \(I, J, K\) are the three imaginary quaternions.
-
-**Key insight:** The Reeb vector on a facet with normal \(n\) is \(R = \frac{2}{h} Jn\). Therefore:
-- \(n\): normal to facet (constant along flow)
-- \(Jn\): Reeb flow direction
-- \(Kn, In\): transverse directions (the 2D plane we trivialize to)
+For trivializing 2-faces, we use the quaternion matrices on \(\mathbb{R}^4\):
 
 \[
+I = \text{identity}, \quad
 J = \begin{pmatrix} 0 & 0 & -1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}, \quad
-K = \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}, \quad
-I = JK
+K = \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}
 \]
 
 ```rust
-const J_MATRIX: Matrix4<f64> = Matrix4::new(
-    0.0,  0.0, -1.0,  0.0,
-    0.0,  0.0,  0.0, -1.0,
-    1.0,  0.0,  0.0,  0.0,
-    0.0,  1.0,  0.0,  0.0,
-);
+/// J is already defined above as J_MATRIX
 
 const K_MATRIX: Matrix4<f64> = Matrix4::new(
     0.0, -1.0,  0.0,  0.0,
@@ -487,20 +477,15 @@ const K_MATRIX: Matrix4<f64> = Matrix4::new(
     0.0,  0.0,  0.0,  1.0,
     0.0,  0.0, -1.0,  0.0,
 );
-
-const I_MATRIX: Matrix4<f64> = J_MATRIX * K_MATRIX;  // Computed at compile time or runtime
 ```
 
-**Relations:** \(I^2 = J^2 = K^2 = -1\), and \(IJ = K\), \(JK = I\), \(KI = J\).
+**Relations:** \(I^2 = J^2 = K^2 = IJK = -I\)
 
 ```rust
-assert_eq!(J_MATRIX * J_MATRIX, -Matrix4::identity());  // J² = -1
-assert_eq!(K_MATRIX * K_MATRIX, -Matrix4::identity());  // K² = -1
-assert_eq!(I_MATRIX * I_MATRIX, -Matrix4::identity());  // I² = -1
-assert_eq!(J_MATRIX * K_MATRIX, I_MATRIX);              // JK = I
+assert_eq!(J_MATRIX * J_MATRIX, -Matrix4::identity());  // J² = -I
+assert_eq!(K_MATRIX * K_MATRIX, -Matrix4::identity());  // K² = -I
+assert_eq!(J_MATRIX * K_MATRIX, -(K_MATRIX * J_MATRIX));  // JK = -KJ
 ```
-
-**Orthonormal basis:** For any unit vector \(n\), the set \(\{n, Jn, Kn, In\}\) forms an orthonormal basis of \(\mathbb{R}^4\).
 
 ---
 
@@ -508,7 +493,7 @@ assert_eq!(J_MATRIX * K_MATRIX, I_MATRIX);              // JK = I
 
 **Source:** CH2021 Definition 2.15 (quaternionic trivialization), Lemma 2.16 (symplectic preservation).
 
-Each non-Lagrangian 2-face \(F_{ij}\) has a 2-dimensional tangent space. We trivialize it using the quaternion structure, projecting onto the plane transverse to the Reeb flow.
+Each non-Lagrangian 2-face \(F_{ij}\) has a 2-dimensional tangent space. We trivialize it using the quaternion structure.
 
 **Setup:** For a 2-face \(F_{ij} = F_i \cap F_j\), the tangent space is:
 \[
@@ -518,76 +503,73 @@ This is 2-dimensional (intersection of two hyperplanes in 4D).
 
 **Definition:** The trivialization \(\tau_n: \mathbb{R}^4 \to \mathbb{R}^2\) with respect to unit normal \(n\):
 \[
-\tau_n(V) = (\langle V, Kn \rangle, \langle V, In \rangle)
+\tau_n(V) = (\langle V, Jn \rangle, \langle V, Kn \rangle)
 \]
-
-This uses the basis \(\{Kn, In\}\), which spans the 2D plane transverse to both \(n\) (facet normal) and \(Jn\) (Reeb flow direction).
 
 ```rust
 fn trivialize(n: &Vector4<f64>, v: &Vector4<f64>) -> Vector2<f64> {
+    let jn = J_MATRIX * n;
     let kn = K_MATRIX * n;
-    let i_n = I_MATRIX * n;  // I = JK
-    Vector2::new(v.dot(&kn), v.dot(&i_n))
+    Vector2::new(v.dot(&jn), v.dot(&kn))
 }
 ```
 
-**Note:** This function can be applied to any \(V \in \mathbb{R}^4\), but its geometric meaning requires \(V\) in the transverse plane (i.e., \(\langle V, n \rangle = 0\) and \(\langle V, Jn \rangle = 0\)).
+**Note:** This function can be applied to any \(V \in \mathbb{R}^4\), but its geometric meaning requires \(V\) tangent to the facet (i.e., \(\langle V, n \rangle = 0\)).
 
 **Inverse:** Given 2D coordinates \((a, b)\) and the trivialization basis:
 \[
-\tau_n^{-1}(a, b) = a \cdot Kn + b \cdot In
+\tau_n^{-1}(a, b) = a \cdot Jn + b \cdot Kn
 \]
 
 ```rust
 fn untrivialize(n: &Vector4<f64>, coords: &Vector2<f64>) -> Vector4<f64> {
+    let jn = J_MATRIX * n;
     let kn = K_MATRIX * n;
-    let i_n = I_MATRIX * n;
-    kn * coords[0] + i_n * coords[1]
+    jn * coords[0] + kn * coords[1]
 }
 ```
 
 **Assertions:**
 ```rust
-let kn = K_MATRIX * n;
-let i_n = I_MATRIX * n;
-
-// Kn and In are orthonormal
-assert!(kn.dot(&i_n).abs() < EPS);  // orthogonal
-assert!((kn.norm() - 1.0).abs() < EPS);  // unit length
-assert!((i_n.norm() - 1.0).abs() < EPS);  // unit length
-
-// Kn and In are perpendicular to both n and Jn
-assert!(kn.dot(n).abs() < EPS);
-assert!(i_n.dot(n).abs() < EPS);
 let jn = J_MATRIX * n;
-assert!(kn.dot(&jn).abs() < EPS);
-assert!(i_n.dot(&jn).abs() < EPS);
+let kn = K_MATRIX * n;
 
-// Round-trip: untrivialize ∘ trivialize = identity on transverse vectors
-let v_transverse = /* any vector in span{Kn, In} */;
-let v_recovered = untrivialize(n, &trivialize(n, &v_transverse));
-assert!((v_recovered - v_transverse).norm() < EPS);
+// Jn and Kn are orthonormal (basis for the tangent hyperplane restricted to symplectic complement)
+assert!(jn.dot(&kn).abs() < EPS);  // orthogonal
+assert!((jn.norm() - 1.0).abs() < EPS);  // unit length
+assert!((kn.norm() - 1.0).abs() < EPS);  // unit length
+
+// Jn and Kn are tangent to the facet (perpendicular to n)
+assert!(jn.dot(n).abs() < EPS);
+assert!(kn.dot(n).abs() < EPS);
+
+// Round-trip: untrivialize ∘ trivialize = identity on tangent vectors
+// (only holds for vectors perpendicular to n)
+let v_tangent = /* any vector with v.dot(n) == 0 */;
+let v_recovered = untrivialize(n, &trivialize(n, &v_tangent));
+assert!((v_recovered - v_tangent).norm() < EPS);
 ```
 
 **Key property (symplectic form preservation):** (CH2021 Lemma 2.16)
 
-For vectors \(V_1, V_2\) in the transverse plane \(\text{span}\{Kn, In\}\):
+For vectors \(V_1, V_2\) **tangent to the facet** (i.e., \(\langle V_i, n \rangle = 0\)):
 \[
 \omega(V_1, V_2) = \omega_{\text{std}}(\tau_n(V_1), \tau_n(V_2))
 \]
 where \(\omega_{\text{std}}(x, y) = x_1 y_2 - x_2 y_1\) is the standard 2D symplectic form.
+
+**Mathematical condition (not encoded in Rust type):** The symplectic form preservation only holds when both input vectors are perpendicular to \(n\).
 
 ```rust
 fn symplectic_form_2d(x: &Vector2<f64>, y: &Vector2<f64>) -> f64 {
     x[0] * y[1] - x[1] * y[0]
 }
 
-// Verification (requires v1, v2 in transverse plane):
+// Verification (requires v1, v2 tangent to facet):
 fn verify_symplectic_preservation(n: &Vector4<f64>, v1: &Vector4<f64>, v2: &Vector4<f64>) {
-    let jn = J_MATRIX * n;
-    // Precondition: v1, v2 are in the transverse plane
-    assert!(v1.dot(n).abs() < EPS && v1.dot(&jn).abs() < EPS);
-    assert!(v2.dot(n).abs() < EPS && v2.dot(&jn).abs() < EPS);
+    // Precondition: v1, v2 are tangent to the facet
+    assert!(v1.dot(n).abs() < EPS, "v1 not tangent to facet");
+    assert!(v2.dot(n).abs() < EPS, "v2 not tangent to facet");
 
     let omega_4d = symplectic_form(v1, v2);
     let omega_2d = symplectic_form_2d(&trivialize(n, v1), &trivialize(n, v2));
@@ -617,8 +599,8 @@ fn compute_transition_matrix(n_i: &Vector4<f64>, n_j: &Vector4<f64>) -> Matrix2<
     let e1 = Vector2::new(1.0, 0.0);
     let e2 = Vector2::new(0.0, 1.0);
 
-    let v1 = untrivialize(n_i, &e1);  // Kn_i
-    let v2 = untrivialize(n_i, &e2);  // In_i (where I = JK)
+    let v1 = untrivialize(n_i, &e1);  // Jn_i
+    let v2 = untrivialize(n_i, &e2);  // Kn_i
 
     let col1 = trivialize(n_j, &v1);
     let col2 = trivialize(n_j, &v2);
