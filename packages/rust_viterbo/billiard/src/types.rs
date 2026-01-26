@@ -159,28 +159,35 @@ pub struct EdgeCombination {
 }
 
 /// A k-bounce billiard trajectory.
+///
+/// For a k-bounce trajectory, the 4D path alternates between:
+/// - q-motion (when on a p-facet): q moves while p stays fixed
+/// - p-motion (when on a q-facet): p moves while q stays fixed
+///
+/// The `p_positions[i]` gives the p-position during the q-motion from q_i → q_{i+1 mod k}.
 #[derive(Debug, Clone)]
 pub struct BilliardTrajectory {
     /// Number of bounces.
     pub num_bounces: usize,
     /// Bounce points in q-space (on ∂K_q).
     pub q_positions: Vec<Vector2<f64>>,
-    /// Corresponding p-positions (on ∂K_p).
+    /// The p-position during each q-motion segment.
+    /// `p_positions[i]` is where p is during q_i → q_{i+1 mod k}.
     pub p_positions: Vec<Vector2<f64>>,
-    /// Edge parameters t ∈ [0,1] for q-positions.
+    /// Edge parameters t ∈ [0,1] for q-positions on their respective edges.
     pub q_params: Vec<f64>,
-    /// Edge parameters t ∈ [0,1] for p-positions.
-    pub p_params: Vec<f64>,
-    /// Edge indices in K_q.
+    /// Edge indices in K_q where each bounce point lies.
     pub q_edges: Vec<usize>,
-    /// Edge indices in K_p.
-    pub p_edges: Vec<usize>,
     /// Total action (= T°-length = capacity).
     pub action: f64,
 }
 
 impl BilliardTrajectory {
-    /// Convert to 4D breakpoints.
+    /// Convert to 4D breakpoints at the start of each q-motion segment.
+    ///
+    /// Returns points `(q_i, p_i)` where `p_i` is the p-position during the q-motion
+    /// from `q_i` to `q_{i+1 mod k}`. These are the positions where the trajectory
+    /// transitions from p-motion to q-motion.
     pub fn to_4d_breakpoints(&self) -> Vec<Vector4<f64>> {
         self.q_positions
             .iter()

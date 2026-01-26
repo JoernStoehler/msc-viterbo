@@ -22,7 +22,8 @@ name = "billiard"
 version = "0.1.0"
 dependencies = [
  "approx",
- "itertools 0.13.0",
+ "hk2017",
+ "itertools",
  "nalgebra",
  "thiserror",
 ]
@@ -56,7 +57,7 @@ name = "hk2017"
 version = "0.1.0"
 dependencies = [
  "approx",
- "itertools 0.14.0",
+ "itertools",
  "nalgebra",
  "thiserror",
 ]
@@ -68,15 +69,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79cf5c93f93228cf8efb3ba362535fb11199ac548a09ce117c9b1adc3030d706"
 dependencies = [
  "rustversion",
-]
-
-[[package]]
-name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
 ]
 
 [[package]]

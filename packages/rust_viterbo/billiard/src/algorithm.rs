@@ -142,3 +142,83 @@ mod tests {
         assert_relative_eq!(c_scaled, lambda * lambda * c_base, epsilon = 1e-6);
     }
 }
+
+/// Integration tests comparing billiard and HK2017 algorithms.
+///
+/// These tests verify that both algorithms produce the same capacity
+/// for Lagrangian products where both can be applied.
+#[cfg(test)]
+mod hk2017_comparison_tests {
+    use super::*;
+    use crate::polygon::Polygon2D;
+    use crate::types::LagrangianProduct;
+    use approx::assert_relative_eq;
+    use hk2017::{hk2017_capacity, Hk2017Config, PolytopeHRep};
+
+    /// Helper to run both algorithms and compare results.
+    fn compare_algorithms(k_q: &Polygon2D, k_p: &Polygon2D, tolerance: f64) {
+        // Run billiard algorithm
+        let billiard_result = billiard_capacity_from_polygons(k_q, k_p)
+            .expect("billiard should succeed");
+
+        // Convert to H-rep for HK2017
+        let product = LagrangianProduct::new(k_q.clone(), k_p.clone())
+            .expect("valid product");
+        let (normals, heights) = product.to_hrep();
+        let polytope = PolytopeHRep::new(normals, heights);
+
+        // Run HK2017 algorithm
+        let hk_result = hk2017_capacity(&polytope, &Hk2017Config::naive())
+            .expect("hk2017 should succeed");
+
+        // Compare capacities
+        assert_relative_eq!(
+            billiard_result.capacity,
+            hk_result.capacity,
+            epsilon = tolerance,
+            max_relative = tolerance
+        );
+    }
+
+    #[test]
+    fn test_tesseract_both_algorithms() {
+        // Tesseract = Square × Square, capacity = 4.0
+        let square = Polygon2D::square(2.0).unwrap();
+        compare_algorithms(&square, &square, 1e-6);
+    }
+
+    #[test]
+    fn test_rectangle_product_both_algorithms() {
+        // Rectangle × Square
+        // Rectangle with half-widths (1, 2), Square with half-width 1
+        let rect = Polygon2D::from_vertices(vec![
+            nalgebra::Vector2::new(-1.0, -2.0),
+            nalgebra::Vector2::new(1.0, -2.0),
+            nalgebra::Vector2::new(1.0, 2.0),
+            nalgebra::Vector2::new(-1.0, 2.0),
+        ])
+        .unwrap();
+        let square = Polygon2D::square(2.0).unwrap();
+
+        compare_algorithms(&rect, &square, 1e-6);
+    }
+
+    #[test]
+    fn test_square_product_scaled() {
+        // Scaled tesseract: (2*Square) × (2*Square)
+        // Capacity should be 4 * 4.0 = 16.0 by scaling axiom
+        let square = Polygon2D::square(2.0).unwrap();
+        let scaled = square.scale(2.0);
+
+        compare_algorithms(&scaled, &scaled, 1e-6);
+    }
+
+    #[test]
+    fn test_different_squares() {
+        // Small Square × Large Square
+        let small = Polygon2D::square(1.0).unwrap();
+        let large = Polygon2D::square(4.0).unwrap();
+
+        compare_algorithms(&small, &large, 1e-6);
+    }
+}

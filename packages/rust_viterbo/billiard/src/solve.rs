@@ -35,11 +35,13 @@ fn p_velocity_direction(k_q: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
 }
 
 /// Find where p must be on ∂K_p to achieve q-motion direction delta.
-/// Returns Some((edge_idx, t)) if achievable:
-/// - t = 0.5 means interior of edge (p on edge edge_idx)
-/// - t = 0.0 means at vertex edge_idx (start of edge)
-/// - t = 1.0 means at vertex edge_idx + 1 (end of edge)
-/// Returns None if not achievable.
+///
+/// Returns `Some((edge_idx, t))` if achievable:
+/// - `t = 0.5` means interior of edge (p on edge edge_idx)
+/// - `t = 0.0` means at vertex edge_idx (start of edge)
+/// - `t = 1.0` means at vertex edge_idx + 1 (end of edge)
+///
+/// Returns `None` if not achievable.
 fn find_p_position_for_q_motion(
     delta: &Vector2<f64>,
     k_p: &Polygon2D,
@@ -141,8 +143,11 @@ fn is_p_motion_achievable_at_vertex(
 #[derive(Debug, Clone)]
 pub struct SolveResult {
     pub action: f64,
+    /// Edge parameters t ∈ [0,1] for q-positions on their respective edges.
     pub q_params: Vec<f64>,
-    pub p_params: Vec<f64>,
+    /// The p-positions during each q-motion segment.
+    /// For k-bounce: p_positions[i] is where p is during q_i → q_{i+1 mod k}.
+    pub p_positions: Vec<Vector2<f64>>,
 }
 
 /// Validate that a full 2-bounce orbit (4 segments) is achievable.
@@ -266,19 +271,19 @@ pub fn solve_2bounce(
                 continue;
             }
 
-            let (_p_fwd, _p_back) = orbit_valid.unwrap();
+            let (p_fwd, p_back) = orbit_valid.unwrap();
             let action = compute_2bounce_action(&q0, &q1, k_p);
 
-            if action > MIN_ACTION {
-                if best.is_none() || action < best.as_ref().unwrap().action {
-                    // For p_params, we store t=0 if at vertex, t=0.5 if on edge
-                    // (This is an approximation; we could compute exact params if needed)
-                    best = Some(SolveResult {
-                        action,
-                        q_params: vec![t_q0, t_q1],
-                        p_params: vec![0.0, 0.0], // Placeholder, p positions are determined by q-motion
-                    });
-                }
+            if action > MIN_ACTION
+                && (best.is_none() || action < best.as_ref().unwrap().action)
+            {
+                // p_positions[i] = where p is during q_i → q_{i+1 mod k}
+                // p_fwd: during q₀→q₁, p_back: during q₁→q₀
+                best = Some(SolveResult {
+                    action,
+                    q_params: vec![t_q0, t_q1],
+                    p_positions: vec![p_fwd, p_back],
+                });
             }
         }
     }
@@ -296,7 +301,9 @@ pub fn solve_2bounce(
 /// 5. q at q₂: p moves from p₁ to p₂
 /// 6. p at p₂: q moves from q₂ to q₀
 ///
-/// Returns true if valid, false otherwise.
+/// Returns `Some((p0, p1, p2))` if valid, where p_i is the p-position during q_i → q_{i+1 mod 3}.
+/// Returns `None` if the orbit is not achievable.
+#[allow(clippy::too_many_arguments)]
 fn validate_3bounce_orbit(
     q0: &Vector2<f64>,
     q1: &Vector2<f64>,
@@ -306,24 +313,15 @@ fn validate_3bounce_orbit(
     q0_vertex: usize,
     q1_vertex: usize,
     q2_vertex: usize,
-) -> bool {
+) -> Option<(Vector2<f64>, Vector2<f64>, Vector2<f64>)> {
     let d01 = *q1 - *q0;
     let d12 = *q2 - *q1;
     let d20 = *q0 - *q2;
 
     // Find where p must be during each q-motion phase
-    let p0_info = match find_p_position_for_q_motion(&d01, k_p, EPS) {
-        Some(info) => info,
-        None => return false,
-    };
-    let p1_info = match find_p_position_for_q_motion(&d12, k_p, EPS) {
-        Some(info) => info,
-        None => return false,
-    };
-    let p2_info = match find_p_position_for_q_motion(&d20, k_p, EPS) {
-        Some(info) => info,
-        None => return false,
-    };
+    let p0_info = find_p_position_for_q_motion(&d01, k_p, EPS)?;
+    let p1_info = find_p_position_for_q_motion(&d12, k_p, EPS)?;
+    let p2_info = find_p_position_for_q_motion(&d20, k_p, EPS)?;
 
     // Get the actual p positions
     let p0 = get_p_position(k_p, p0_info);
@@ -333,22 +331,22 @@ fn validate_3bounce_orbit(
     // At q₀: p must transition from p₂ to p₀
     let delta_p_at_q0 = p0 - p2;
     if !is_p_motion_achievable_at_vertex(&delta_p_at_q0, k_q, q0_vertex, EPS) {
-        return false;
+        return None;
     }
 
     // At q₁: p must transition from p₀ to p₁
     let delta_p_at_q1 = p1 - p0;
     if !is_p_motion_achievable_at_vertex(&delta_p_at_q1, k_q, q1_vertex, EPS) {
-        return false;
+        return None;
     }
 
     // At q₂: p must transition from p₁ to p₂
     let delta_p_at_q2 = p2 - p1;
     if !is_p_motion_achievable_at_vertex(&delta_p_at_q2, k_q, q2_vertex, EPS) {
-        return false;
+        return None;
     }
 
-    true
+    Some((p0, p1, p2))
 }
 
 /// Solve for the minimum action 3-bounce trajectory with the given edge combination.
@@ -374,8 +372,8 @@ pub fn solve_3bounce(
     assert_eq!(combo.q_edges.len(), 3);
     assert_eq!(combo.p_edges.len(), 3);
 
-    // Find vertices of the q-closure polytope
-    let q_vertices = enumerate_closure_vertices(k_q, &combo.q_edges)?;
+    // Enumerate all vertices of the q-parameter cube [0,1]³
+    let q_vertices = unit_cube_vertices();
 
     let n_q = k_q.num_vertices();
     let mut best: Option<SolveResult> = None;
@@ -418,63 +416,39 @@ pub fn solve_3bounce(
             (combo.q_edges[2] + 1) % n_q
         };
 
-        // Validate the full 6-segment orbit
-        if !validate_3bounce_orbit(&q0, &q1, &q2, k_q, k_p, q0_vertex, q1_vertex, q2_vertex) {
+        // Validate the full 6-segment orbit and get p positions
+        let orbit_valid =
+            validate_3bounce_orbit(&q0, &q1, &q2, k_q, k_p, q0_vertex, q1_vertex, q2_vertex);
+
+        if orbit_valid.is_none() {
             continue;
         }
 
+        let (p0, p1, p2) = orbit_valid.unwrap();
         let action = compute_3bounce_action(&q0, &q1, &q2, k_p);
 
-        if action > MIN_ACTION {
-            if best.is_none() || action < best.as_ref().unwrap().action {
-                best = Some(SolveResult {
-                    action,
-                    q_params: t_q.to_vec(),
-                    p_params: vec![0.0, 0.0, 0.0], // Placeholder, p positions determined by q-motion
-                });
-            }
+        if action > MIN_ACTION
+            && (best.is_none() || action < best.as_ref().unwrap().action)
+        {
+            // p_positions[i] = where p is during q_i → q_{i+1 mod k}
+            best = Some(SolveResult {
+                action,
+                q_params: t_q.to_vec(),
+                p_positions: vec![p0, p1, p2],
+            });
         }
     }
 
     best
 }
 
-/// Enumerate vertices of {t ∈ [0,1]³ : closure constraint holds}.
+/// Generate all 8 vertices of the unit cube [0,1]³.
 ///
-/// The closure constraint is: Σ_{i=0}^{2} (x_{i+1} - x_i) = 0
-/// where x_i = point_on_edge(e_i, t_i).
-///
-/// This gives 2 linear equations in 3 variables, defining a 1D affine subspace.
-/// Vertices occur where this line intersects edges of the cube [0,1]³.
-fn enumerate_closure_vertices(_polygon: &Polygon2D, edges: &[usize]) -> Option<Vec<[f64; 3]>> {
-    assert_eq!(edges.len(), 3);
-
-    // Build the closure constraint matrix.
-    // closure: (v1 - v0) + (v2 - v1) + (v0 - v2) = 0 is automatic,
-    // but we want: x_0 + x_1 + x_2 closes, where x_i = v_i + t_i * (v_{i+1} - v_i)
-    //
-    // Let d_i = edge_end(e_i) - edge_start(e_i) be the edge direction.
-    // Then x_i = edge_start(e_i) + t_i * d_i
-    //
-    // Closure: x_0 - x_1 + x_1 - x_2 + x_2 - x_0 = 0 is trivial.
-    // But for billiards, closure means: (x_1 - x_0) + (x_2 - x_1) + (x_0 - x_2) = 0
-    // which is always true!
-    //
-    // Wait, that's not the constraint. Let me re-read the spec.
-    //
-    // Actually, for 3-bounce the trajectory visits q0 -> q1 -> q2 -> q0.
-    // The closure constraint is that the sum of displacements is zero:
-    // (q1 - q0) + (q2 - q1) + (q0 - q2) = 0
-    // which is always satisfied (telescoping sum).
-    //
-    // So for 3-bounce on fixed edges, the feasible region is just [0,1]³ for q
-    // and [0,1]³ for p, independently. The closure is automatic!
-    //
-    // This means we should enumerate all 8 vertices for q and all 8 for p.
-
-    let mut vertices = Vec::new();
-
-    // All 8 vertices of [0,1]³
+/// For 3-bounce trajectories, the closure constraint (sum of displacements = 0)
+/// is a telescoping sum that's always satisfied, so there's no actual constraint
+/// on the q-parameters. The feasible region is the full cube [0,1]³.
+fn unit_cube_vertices() -> Vec<[f64; 3]> {
+    let mut vertices = Vec::with_capacity(8);
     for &t0 in &[0.0, 1.0] {
         for &t1 in &[0.0, 1.0] {
             for &t2 in &[0.0, 1.0] {
@@ -482,18 +456,13 @@ fn enumerate_closure_vertices(_polygon: &Polygon2D, edges: &[usize]) -> Option<V
             }
         }
     }
-
-    if vertices.is_empty() {
-        None
-    } else {
-        Some(vertices)
-    }
+    vertices
 }
 
 /// Build a BilliardTrajectory from solve results.
 pub fn build_trajectory(
     k_q: &Polygon2D,
-    k_p: &Polygon2D,
+    _k_p: &Polygon2D,
     combo: &EdgeCombination,
     result: &SolveResult,
 ) -> BilliardTrajectory {
@@ -506,21 +475,12 @@ pub fn build_trajectory(
         .map(|(&edge, &t)| k_q.point_on_edge(edge, t))
         .collect();
 
-    let p_positions: Vec<Vector2<f64>> = combo
-        .p_edges
-        .iter()
-        .zip(&result.p_params)
-        .map(|(&edge, &t)| k_p.point_on_edge(edge, t))
-        .collect();
-
     BilliardTrajectory {
         num_bounces,
         q_positions,
-        p_positions,
+        p_positions: result.p_positions.clone(),
         q_params: result.q_params.clone(),
-        p_params: result.p_params.clone(),
         q_edges: combo.q_edges.clone(),
-        p_edges: combo.p_edges.clone(),
         action: result.action,
     }
 }
