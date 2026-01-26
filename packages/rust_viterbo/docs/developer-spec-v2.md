@@ -3325,11 +3325,12 @@ fn unit_tesseract() -> PolytopeHRep {
 }
 ```
 
-**Unit cross-polytope** (for tube algorithm, c = unknown):
+**Unit cross-polytope** (for tube algorithm, c = 1.0 empirically):
 ```rust
 fn unit_cross_polytope() -> PolytopeHRep {
     // conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
     // 16 facets with normals (±1,±1,±1,±1)/2
+    // Heights = 0.5: each facet passes through a vertex e_i, and n·e_i = 1/2
     let mut normals = Vec::new();
     for s1 in [-1.0, 1.0] {
         for s2 in [-1.0, 1.0] {
@@ -3340,7 +3341,7 @@ fn unit_cross_polytope() -> PolytopeHRep {
             }
         }
     }
-    PolytopeHRep { normals, heights: vec![1.0; 16] }
+    PolytopeHRep { normals, heights: vec![0.5; 16] }
 }
 ```
 
