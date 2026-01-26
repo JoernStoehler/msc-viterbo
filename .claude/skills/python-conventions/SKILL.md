@@ -63,5 +63,3 @@ uv run pytest tests/         # Test
 - Docstrings: inputs, outputs, shapes/dtypes
 - Pure functions preferred
 - Comments explain WHY, not WHAT
-
-[proposed]

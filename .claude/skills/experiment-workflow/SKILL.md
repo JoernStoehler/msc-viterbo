@@ -90,5 +90,3 @@ When finishing work:
 1. Update tracking table
 2. Ensure SPEC.md reflects current state
 3. Commit with message referencing label
-
-[proposed]
