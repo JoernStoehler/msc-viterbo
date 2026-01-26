@@ -1,0 +1,85 @@
+%% Creator: Inkscape inkscape 0.92.5, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'thirdedge.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{253.07033896bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,1.19213144)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{thirdedge.pdf}}%
+    \put(0.4803546,0.67256434){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\left(\phi_t^T\right)^{-1}\circ s_2$\end{tabular}}}}%
+    \put(0.46721755,1.08086059){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\phi_t \circ s_1$\end{tabular}}}}%
+    \put(0.81469013,0.65246836){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\square(1)$\end{tabular}}}}%
+    \put(0.91434879,0.83085449){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{\sqrt{3}}{2}$\end{tabular}}}}%
+    \put(0.6091047,1.13400832){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{\sqrt{3}}{2}$\end{tabular}}}}%
+    \put(0.24205658,1.03885211){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\Delta$\end{tabular}}}}%
+    \put(0.94210779,0.41368891){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$1$\end{tabular}}}}%
+    \put(0.61261237,0.72775503){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$1$\end{tabular}}}}%
+    \put(0.67405048,1.18175428){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\diamondsuit\left(\frac{\sqrt{3}}{2},a_1(t),\frac{\sqrt{3}}{2}\right)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{thirdedge.pdf}}%
+    \put(0.36078873,1.0070056){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{1}{2}$\end{tabular}}}}%
+    \put(0.06147967,1.008477){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-\frac{1}{2}$\end{tabular}}}}%
+    \put(0.23251778,0.9371998){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-\frac{1}{2\sqrt{3}}$\end{tabular}}}}%
+    \put(0.23974693,1.14178537){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{1}{\sqrt{3}}$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{thirdedge.pdf}}%
+    \put(0.22738968,0.80447079){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$J\Delta$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{thirdedge.pdf}}%
+    \put(0.08180391,0.73731634){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-J\Delta$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{thirdedge.pdf}}%
+    \put(-0.00098401,0.47320825){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-2J\Delta$\end{tabular}}}}%
+    \put(0.14558136,0.3825277){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-J\Delta + t$\end{tabular}}}}%
+    \put(0.50718049,0.4808999){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$T^*(t)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{thirdedge.pdf}}%
+    \put(0.71234598,0.83894325){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$a_1(t)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{thirdedge.pdf}}%
+    \put(0.3379929,0.54382145){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{thirdedge.pdf}}%
+  \end{picture}%
+\endgroup%
