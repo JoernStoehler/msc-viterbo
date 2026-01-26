@@ -28,6 +28,8 @@ mod polytope;
 mod trivialization;
 mod tube;
 mod algorithm;
+#[cfg(test)]
+mod debug_transition;
 
 pub use consts::*;
 pub use error::{Error, Result};
