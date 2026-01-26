@@ -18,31 +18,6 @@
 - Convenience scripts are in `scripts/` and `packages/*/scripts/`. Many support `--help` for extra info.
 - We loosely follow literate programming practices, so documentation of the codebase is in the code files.
 
-## Agent Work Practices (CRITICAL)
-
-### Read relevant skills BEFORE working
-- If task involves Python/experiments → read `python-conventions/SKILL.md` and `experiment-workflow/SKILL.md`
-- If task involves Rust → read `rust-conventions/SKILL.md`
-- If task involves LaTeX → read `latex-conventions/SKILL.md`
-- Do NOT make up conventions. Follow what's documented. If conventions are missing or unclear, note this and propose additions.
-
-### Cite sources for all claims
-- When stating facts about the codebase, cite file paths and line numbers.
-- When stating facts from papers or docs, cite the source.
-- When estimating (sizes, counts, complexity), state explicitly that it's an estimate and explain the basis.
-- Do NOT make up numbers or claim things without sources.
-
-### Do work instead of asking permission
-- If you can answer a question by reading files or running commands, do that instead of asking Jörn.
-- Do exploratory work BEFORE presenting options. Don't ask "should I look into X?" — just look into X.
-- Only ask for permission/decisions when you genuinely cannot proceed without input.
-- When presenting options, include your analysis and recommendation, not just "which do you prefer?"
-
-### Be precise
-- Use absolute file paths, not ambiguous references.
-- Define terms before using them.
-- If something is unclear in the codebase, note the ambiguity explicitly.
-
 ## Environment Dependencies
 Two environments exist: **local devcontainer** (Jörn's machine) and **Claude Code web** (agents). Both support Rust and Python dev. See `.claude/skills/environment/SKILL.md` for details.
 
