@@ -90,41 +90,26 @@ where:
 
 **Intuition:** The "table" is \(K_q\), and the "metric" (determining reflection angles and lengths) comes from \(K_p\).
 
-### 1.2 The T°-Length (Dual Norm)
+### 1.2 Action via Reeb Vectors
 
-For a convex body \(T \subset \mathbb{R}^2\) containing 0 in its interior, the **\(T^\circ\)-length** of a vector \(v \in \mathbb{R}^2\) is:
+The primary formulation uses Reeb vectors directly. For a q-segment where p lies on edge k of K_p:
 
+**Reeb vector:** \(R_k = \frac{2}{h_{p,k}} J_{2D} n_{p,k}\)
+
+**Displacement-time relation:**
+- If p is in the **interior** of edge k: \(\Delta q = t \cdot R_k\) where \(t\) is the segment time
+- If p is at a **vertex** (edges k₁, k₂ meet): \(\Delta q = \alpha R_{k_1} + \beta R_{k_2}\) where \(\alpha, \beta \geq 0\) and segment time \(t = \alpha + \beta\)
+
+**Action = total time:**
 \[
-\|v\|_{T^\circ} = h_T(v) = \max_{x \in T} \langle v, x \rangle
+\text{Action} = \sum_{\text{segments}} t_i
 \]
 
-For a polygon \(T\) with vertices \(\{w_0, \ldots, w_{m-1}\}\):
+This is consistent with the general Reeb orbit framework: action equals the period of the closed characteristic.
 
-\[
-\|v\|_{T^\circ} = \max_{0 \leq k < m} \langle v, w_k \rangle
-\]
+**Equivalence to T°-length (literature formulation):**
 
-The **\(T^\circ\)-length of a polygonal curve** \(\gamma = [p_0, p_1, \ldots, p_m]\) is:
-
-\[
-\|\gamma\|_{T^\circ} = \sum_{i=0}^{m-1} \|p_{i+1} - p_i\|_{T^\circ}
-\]
-
-```rust
-/// Compute T°-length of a vector using T's vertices
-fn t_dual_length(v: &Vector2<f64>, t_vertices: &[Vector2<f64>]) -> f64 {
-    t_vertices.iter()
-        .map(|w| v.dot(w))
-        .fold(f64::NEG_INFINITY, f64::max)
-}
-
-/// Compute T°-length of a polygonal curve
-fn curve_t_dual_length(curve: &[Vector2<f64>], t_vertices: &[Vector2<f64>]) -> f64 {
-    curve.windows(2)
-        .map(|seg| t_dual_length(&(seg[1] - seg[0]), t_vertices))
-        .sum()
-}
-```
+The billiard literature (Rudolf 2022, HK2024) uses T°-length: \(\|v\|_{T^\circ} = h_T(v) = \max_{x \in T} \langle v, x \rangle\). The capacity equals the minimum T°-length of closed billiard trajectories. This is equivalent to the Reeb formulation via the relation between support functions and Reeb vectors.
 
 ### 1.3 Bounce Bound Theorem
 
@@ -163,37 +148,63 @@ Bounce 3: (q₃, p₃) where q₃ ∈ ∂K_q, p₃ ∈ interior or edge of K_p
 
 ### 1.5 Differential Inclusion Constraint
 
-On a facet of \(K_q \times K_p\), the Reeb vector determines the allowed velocities. The key constraint is that velocities must satisfy the **differential inclusion**.
+On a facet of \(K_q \times K_p\), the Reeb vector determines the allowed velocities.
 
-**For a q-segment** (moving in q-space while p is on the boundary of K_p):
-
-If the constant \(p\)-point lies on edge \(k\) of \(K_p\) (in the interior of the edge), then:
+**Reeb vector formula:**
 \[
-\dot{q} = \frac{2}{h_{p,k}} J_{2D} n_{p,k}
+R_k = \frac{2}{h_k} J_{2D} n_k
 \]
+where \(h_k\) is the facet height and \(n_k\) is the outward unit normal, \(J_{2D} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}\).
 
-where:
-- \(h_{p,k}\) is the height of edge \(k\) of \(K_p\) (distance from origin to edge)
-- \(n_{p,k}\) is the outward unit normal to edge \(k\)
-- \(J_{2D} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}\) is the 2D rotation by 90°
+**Constraint verification (for q-segments, p on ∂K_p):**
 
-If the \(p\)-point lies at a **vertex** of \(K_p\) (intersection of edges \(k_1\) and \(k_2\)):
-\[
-\dot{q} \in \text{conv}\left\{ \frac{2}{h_{p,k_1}} J_{2D} n_{p,k_1}, \frac{2}{h_{p,k_2}} J_{2D} n_{p,k_2} \right\}
-\]
+| p location | Constraint | Time extraction |
+|------------|------------|-----------------|
+| Edge k interior | \(\Delta q = t \cdot R_k\) | \(t = \|\Delta q\| / \|R_k\|\) |
+| Vertex (edges k₁, k₂) | \(\Delta q = \alpha R_{k_1} + \beta R_{k_2}\), \(\alpha,\beta \geq 0\) | \(t = \alpha + \beta\) |
 
-**Symmetrically for p-segments** (q on boundary of K_q).
-
-**Implication:** At vertices, there is freedom in choosing the velocity direction from a convex cone. This is why billiard trajectories can have bounces at polygon vertices with "generalized" reflection.
+**Symmetrically for p-segments** (q on ∂K_q): same formulas with q and p roles swapped.
 
 ```rust
-/// Compute Reeb velocity direction for motion in q-space
-/// when p is on edge k of K_p
-fn q_velocity_on_p_edge(k_p: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
+/// Compute Reeb vector for motion in q-space when p is on edge k of K_p
+fn reeb_vector_q(k_p: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
     let n = k_p.normals[edge_idx];
     let h = k_p.heights[edge_idx];
-    let j_n = Vector2::new(-n[1], n[0]);  // J_{2D} * n = rotate 90° CCW
-    j_n * (2.0 / h)
+    Vector2::new(-n[1], n[0]) * (2.0 / h)  // J_{2D} * n * (2/h)
+}
+
+/// Check if displacement is valid for edge interior (returns segment time if valid)
+fn check_edge_constraint(delta: &Vector2<f64>, reeb: &Vector2<f64>, tol: f64) -> Option<f64> {
+    let reeb_norm = reeb.norm();
+    if reeb_norm < tol { return None; }
+
+    // Check parallelism: delta × reeb ≈ 0
+    let cross = delta[0] * reeb[1] - delta[1] * reeb[0];
+    if cross.abs() > tol * reeb_norm { return None; }
+
+    // Check same direction: delta · reeb > 0
+    let dot = delta.dot(reeb);
+    if dot < -tol { return None; }
+
+    Some(dot / (reeb_norm * reeb_norm))  // t = (Δq · R) / |R|²
+}
+
+/// Check if displacement is in cone of two Reeb vectors (returns α, β if valid)
+fn check_vertex_constraint(
+    delta: &Vector2<f64>, r1: &Vector2<f64>, r2: &Vector2<f64>, tol: f64
+) -> Option<(f64, f64)> {
+    // Solve: delta = α·r1 + β·r2
+    let det = r1[0] * r2[1] - r1[1] * r2[0];
+    if det.abs() < tol { return None; }  // Degenerate (parallel Reeb vectors)
+
+    let alpha = (delta[0] * r2[1] - delta[1] * r2[0]) / det;
+    let beta = (r1[0] * delta[1] - r1[1] * delta[0]) / det;
+
+    if alpha >= -tol && beta >= -tol {
+        Some((alpha.max(0.0), beta.max(0.0)))
+    } else {
+        None
+    }
 }
 ```
 
@@ -660,8 +671,9 @@ For typical polygons (5-20 edges), this is very fast (< 1ms).
 From HK-O 2024:
 - \(K\) = regular pentagon with vertices at \((\cos(2\pi k/5), \sin(2\pi k/5))\)
 - \(T\) = K rotated by 90°
-- Minimum trajectory: 2-bounce along a diagonal
 - \(c_{\text{EHZ}} = 2 \cos(\pi/10)(1 + \cos(\pi/5)) \approx 3.441\)
+
+**Important:** Both 2-bounce and 3-bounce searches should find this minimum. The HK2024 proof (line 300) shows that certain 3-bounce trajectories with x₂ at vertex v₄ achieve exactly the same action as 2-bounce diagonals. This validates both code paths.
 
 ```rust
 #[test]
@@ -669,11 +681,21 @@ fn test_pentagon_counterexample() {
     let k = regular_pentagon();  // circumradius 1
     let t = rotate_polygon(&k, PI / 2.0);  // 90° rotation
 
-    let result = billiard_capacity(&k, &t);
-
     let expected = 2.0 * (PI / 10.0).cos() * (1.0 + (PI / 5.0).cos());
+
+    // Test full algorithm
+    let result = billiard_capacity(&k, &t);
     assert!((result.capacity - expected).abs() < 1e-6,
         "Pentagon capacity: expected {}, got {}", expected, result.capacity);
+
+    // Test that both bounce classes find the minimum
+    let result_2bounce = billiard_capacity_k_bounce(&k, &t, 2);
+    let result_3bounce = billiard_capacity_k_bounce(&k, &t, 3);
+
+    assert!((result_2bounce.capacity - expected).abs() < 1e-6,
+        "2-bounce should find minimum");
+    assert!((result_3bounce.capacity - expected).abs() < 1e-6,
+        "3-bounce should find minimum (HK2024 proof line 300)");
 }
 ```
 
@@ -734,6 +756,109 @@ fn test_billiard_vs_hk2017() {
     let rel_error = (c_billiard - c_hk2017).abs() / c_billiard;
     assert!(rel_error < 0.01,
         "Algorithms disagree: billiard={}, hk2017={}", c_billiard, c_hk2017);
+}
+```
+
+### 5.4 Witness Validation Tests
+
+The witness trajectory must satisfy geometric constraints. These tests catch bugs where the capacity value is correct but the witness is invalid.
+
+```rust
+/// Validate that a witness trajectory satisfies all constraints
+fn validate_witness(
+    witness: &BilliardTrajectory,
+    k_q: &Polygon2D,
+    k_p: &Polygon2D,
+    tol: f64,
+) -> Result<(), String> {
+    let k = witness.num_bounces;
+
+    // 1. Closure: sum of displacements = 0
+    let mut q_sum = Vector2::zeros();
+    let mut p_sum = Vector2::zeros();
+    for i in 0..k {
+        q_sum += witness.q_positions[(i + 1) % k] - witness.q_positions[i];
+        p_sum += witness.p_positions[(i + 1) % k] - witness.p_positions[i];
+    }
+    if q_sum.norm() > tol {
+        return Err(format!("q-closure violated: sum = {:?}", q_sum));
+    }
+    if p_sum.norm() > tol {
+        return Err(format!("p-closure violated: sum = {:?}", p_sum));
+    }
+
+    // 2. Boundary: q_i ∈ ∂K_q, p_i ∈ ∂K_p (or interior for generalized bounces)
+    for (i, q) in witness.q_positions.iter().enumerate() {
+        if !is_on_boundary_or_interior(q, k_q, tol) {
+            return Err(format!("q[{}] = {:?} not on ∂K_q", i, q));
+        }
+    }
+    for (i, p) in witness.p_positions.iter().enumerate() {
+        if !is_on_boundary_or_interior(p, k_p, tol) {
+            return Err(format!("p[{}] = {:?} not on ∂K_p", i, p));
+        }
+    }
+
+    // 3. Reeb constraint: Δq in cone(R) for each segment
+    let mut computed_action = 0.0;
+    for i in 0..k {
+        let delta_q = witness.q_positions[(i + 1) % k] - witness.q_positions[i];
+        let p_pos = witness.p_positions[i];
+
+        let segment_time = match classify_boundary_point(&p_pos, k_p, tol) {
+            BoundaryLocation::EdgeInterior(edge_idx) => {
+                let reeb = reeb_vector_q(k_p, edge_idx);
+                check_edge_constraint(&delta_q, &reeb, tol)
+                    .ok_or(format!("Segment {}: Δq not parallel to Reeb", i))?
+            }
+            BoundaryLocation::Vertex(e1, e2) => {
+                let r1 = reeb_vector_q(k_p, e1);
+                let r2 = reeb_vector_q(k_p, e2);
+                let (alpha, beta) = check_vertex_constraint(&delta_q, &r1, &r2, tol)
+                    .ok_or(format!("Segment {}: Δq not in Reeb cone", i))?;
+                alpha + beta
+            }
+            BoundaryLocation::Interior => {
+                return Err(format!("p[{}] in interior, not on boundary", i));
+            }
+        };
+        computed_action += segment_time;
+    }
+
+    // 4. Action consistency: computed action ≈ returned capacity
+    if (computed_action - witness.action).abs() > tol {
+        return Err(format!(
+            "Action mismatch: computed {} vs returned {}",
+            computed_action, witness.action
+        ));
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_witness_validity() {
+    for _ in 0..100 {
+        let k_q = random_polygon(5);
+        let k_p = random_polygon(5);
+
+        let result = billiard_capacity(&k_q, &k_p);
+        validate_witness(&result.witness, &k_q, &k_p, CONSTRAINT_TOL)
+            .expect("Witness should be valid");
+    }
+}
+
+#[test]
+fn test_pentagon_witness_validity() {
+    let k = regular_pentagon();
+    let t = rotate_polygon(&k, PI / 2.0);
+
+    let result = billiard_capacity(&k, &t);
+    validate_witness(&result.witness, &k, &t, CONSTRAINT_TOL)
+        .expect("Pentagon witness should be valid");
+
+    // Additionally verify it's a 2-bounce or valid 3-bounce
+    assert!(result.witness.num_bounces == 2 || result.witness.num_bounces == 3);
 }
 ```
 
