@@ -49,7 +49,9 @@ def test_billiard_tesseract_capacity() -> None:
     result = ffi.billiard_capacity_hrep(normals, heights)
 
     assert isinstance(result, dict)
-    assert abs(result["capacity"] - 4.0) < 1e-6, f"Expected 4.0, got {result['capacity']}"
+    assert abs(result["capacity"] - 4.0) < 1e-6, (
+        f"Expected 4.0, got {result['capacity']}"
+    )
     assert result["witness"] is not None
     assert len(result["witness"]["breakpoints"]) == 4
 

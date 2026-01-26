@@ -5,11 +5,15 @@ description: Run thesis experiments from ideation through publication. Use when 
 
 # Experiment Workflow
 
-This skill covers the lifecycle of a research experiment from initial idea to thesis publication.
+## Example: polytope-database
 
-## CRITICAL: Read this skill before working on experiments
+See `packages/python_viterbo/src/viterbo/experiments/polytope_database/` for a complete example:
 
-Agents MUST read this entire skill file before proposing or implementing experiments. Do not skip sections. Do not make up conventions that are not documented here.
+- `SPEC.md` — Research question, column definitions, invariants
+- `stage_build.py` — Builds stub DataFrame with fake data
+- `tests/test_polytope_database.py` — Tests for invariants and roundtrip
+
+This example is at "Execution" stage with stub data. Study it before creating new experiments.
 
 ## Terminology
 
