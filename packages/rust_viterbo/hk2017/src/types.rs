@@ -229,6 +229,8 @@ pub struct RejectionHistogram {
     pub singular_kkt: usize,
     /// Permutations rejected because Q <= 0.
     pub non_positive_q: usize,
+    /// Permutations rejected because constraints not satisfied.
+    pub constraint_violation: usize,
     /// Permutations rejected for other reasons.
     pub other: usize,
 }
@@ -236,7 +238,11 @@ pub struct RejectionHistogram {
 impl RejectionHistogram {
     /// Total number of rejections.
     pub fn total(&self) -> usize {
-        self.negative_beta + self.singular_kkt + self.non_positive_q + self.other
+        self.negative_beta
+            + self.singular_kkt
+            + self.non_positive_q
+            + self.constraint_violation
+            + self.other
     }
 
     /// Record a rejection reason.
@@ -245,6 +251,7 @@ impl RejectionHistogram {
             RejectionReason::NegativeBeta => self.negative_beta += 1,
             RejectionReason::SingularKkt => self.singular_kkt += 1,
             RejectionReason::NonPositiveQ => self.non_positive_q += 1,
+            RejectionReason::ConstraintViolation => self.constraint_violation += 1,
             RejectionReason::Other => self.other += 1,
         }
     }
@@ -259,6 +266,9 @@ pub enum RejectionReason {
     SingularKkt,
     /// Q value was non-positive.
     NonPositiveQ,
+    /// Solution doesn't satisfy equality constraints (height/closure).
+    /// This happens when the constraint system is over-determined or inconsistent.
+    ConstraintViolation,
     /// Other reason.
     Other,
 }
