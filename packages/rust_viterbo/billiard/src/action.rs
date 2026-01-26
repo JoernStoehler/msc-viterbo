@@ -95,39 +95,16 @@ mod tests {
         use std::f64::consts::PI;
 
         // Pentagon K with vertices at (cos(2πk/5), sin(2πk/5))
-        let pentagon = Polygon2D::regular_pentagon();
-
         // T = K rotated by 90°
+        // The diagonal v0→v2→v0 has action = 2*cos(π/10)*(1 + cos(π/5)) ≈ 3.441
+        let pentagon = Polygon2D::regular_pentagon();
         let t = pentagon.rotate(PI / 2.0);
 
-        // Diagonal from v0 to v2
         let v0 = pentagon.vertices[0];
         let v2 = pentagon.vertices[2];
+        let action = compute_2bounce_action(&v0, &v2, &t);
 
-        println!("v0 = {:?}", v0);
-        println!("v2 = {:?}", v2);
-        println!("diagonal = {:?}", v2 - v0);
-
-        // Print T vertices
-        println!("T vertices:");
-        for (i, v) in t.vertices.iter().enumerate() {
-            println!("  w{} = {:?}", i, v);
-        }
-
-        // Compute T°-length of the diagonal
-        let d = v2 - v0;
-        let t_length_forward = crate::polygon::t_dual_length(&d, &t);
-        let t_length_backward = crate::polygon::t_dual_length(&(-d), &t);
-
-        println!("T°-length of d = {}", t_length_forward);
-        println!("T°-length of -d = {}", t_length_backward);
-        println!("Total action = {}", t_length_forward + t_length_backward);
-
-        // Expected from HK-O 2024: 2*cos(π/10)*(1 + cos(π/5))
         let expected = 2.0 * (PI / 10.0).cos() * (1.0 + (PI / 5.0).cos());
-        println!("Expected = {}", expected);
-
-        // This test is for debugging, let's just check it runs
-        assert!(t_length_forward + t_length_backward > 0.0);
+        assert_relative_eq!(action, expected, epsilon = 1e-9);
     }
 }
