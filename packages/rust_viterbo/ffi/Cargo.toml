@@ -1,14 +1,17 @@
-# ARCHIVED - Returns NotImplemented errors
-# See docs/ffi-contract.md for the API spec
-# Re-implement from docs/developer-spec.md when needed
+# FFI bindings for Python
+# Provides Python access to EHZ capacity algorithms
 
 [package]
 name = "rust_viterbo_ffi"
-version = "0.2.0"  # Bumped to indicate archived stub
-edition = "2021"
+version = "0.3.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
+hk2017 = { path = "../hk2017" }
+nalgebra = "0.33"
