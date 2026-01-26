@@ -1,0 +1,4 @@
+{
+  "_comment": "Test configuration for CI/test runs",
+  "output_dir": "data/counterexample-hko"
+}
