@@ -1,8 +1,15 @@
 # Experiments Tracking
 
-Quick-scan table for all research questions and experiments. See `.claude/skills/experiment-workflow/` for the full workflow.
+This is a living document tracking research ideas and experiments for the thesis. It is not a rigid specification.
+
+**Structure:**
+- The **table** is a quick-scan index — brief entries for scanning
+- Each experiment has a **detailed section** below (e.g., `## random-polytope-sys-distribution`) that preserves full reasoning, sub-questions, connections, and context
+- Don't compress ideas into minimal table notes; write the detailed section
 
 **Status values:** Ideation | Specified | In progress | Executed | Polished | Abandoned | Failed | Superseded
+
+See `.claude/skills/experiment-workflow/` for the full workflow.
 
 | Label | Status | Research Question | Notes |
 |-------|--------|-------------------|-------|
