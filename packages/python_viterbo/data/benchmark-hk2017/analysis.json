@@ -1,0 +1,100 @@
+{
+  "facet_stats": [
+    {
+      "n_facets": 5,
+      "n_samples": 5,
+      "theoretical_perms": 320,
+      "observed_perms_mean": 320.0,
+      "observed_perms_std": 0.0,
+      "wall_time_mean_ms": 0.2535406000333751,
+      "wall_time_std_ms": 0.029995468664937335,
+      "time_per_perm_us": 0.7923143751042971,
+      "capacity_mean": 0.017172436820444552,
+      "capacity_std": 0.017093408611611485
+    },
+    {
+      "n_facets": 8,
+      "n_samples": 5,
+      "theoretical_perms": 109592,
+      "observed_perms_mean": 109592.0,
+      "observed_perms_std": 0.0,
+      "wall_time_mean_ms": 110.63453120000304,
+      "wall_time_std_ms": 7.218527735295495,
+      "time_per_perm_us": 1.0095128403533382,
+      "capacity_mean": 4.0,
+      "capacity_std": 0.0
+    },
+    {
+      "n_facets": 9,
+      "n_samples": 5,
+      "theoretical_perms": 986400,
+      "observed_perms_mean": 986400.0,
+      "observed_perms_std": 0.0,
+      "wall_time_mean_ms": 1302.8428035999923,
+      "wall_time_std_ms": 53.940679906953875,
+      "time_per_perm_us": 1.3208057619626847,
+      "capacity_mean": 0.004360195287769023,
+      "capacity_std": 0.003236479731411668
+    }
+  ],
+  "scaling_model": {
+    "log_log_slope": 1.0590749857519002,
+    "log_log_intercept": -7.5033318268904345,
+    "log_log_r_squared": 0.9997315571268762,
+    "power_coefficient": 0.0005512446552783325,
+    "power_exponent": 1.0590749857519002,
+    "time_per_perm_us_mean": 1.0408776591401068,
+    "time_per_perm_us_std": 0.2168926007482668
+  },
+  "budget_tables": [
+    {
+      "budget_seconds": 1.0,
+      "max_facets_estimated": 8,
+      "max_perms_estimated": 109592,
+      "note": ""
+    },
+    {
+      "budget_seconds": 5.0,
+      "max_facets_estimated": 9,
+      "max_perms_estimated": 986400,
+      "note": ""
+    },
+    {
+      "budget_seconds": 10.0,
+      "max_facets_estimated": 9,
+      "max_perms_estimated": 986400,
+      "note": ""
+    },
+    {
+      "budget_seconds": 30.0,
+      "max_facets_estimated": 10,
+      "max_perms_estimated": 9864090,
+      "note": ""
+    },
+    {
+      "budget_seconds": 60.0,
+      "max_facets_estimated": 10,
+      "max_perms_estimated": 9864090,
+      "note": ""
+    },
+    {
+      "budget_seconds": 300.0,
+      "max_facets_estimated": 10,
+      "max_perms_estimated": 9864090,
+      "note": "FFI limit is 10 facets"
+    }
+  ],
+  "summary": {
+    "total_records": 15,
+    "successful_records": 15,
+    "facet_counts_tested": [
+      5,
+      8,
+      9
+    ],
+    "scaling_formula": "time_ms = 5.5124e-04 * perms^1.059",
+    "time_per_perm_us": 1.0408776591401068,
+    "r_squared": 0.9997315571268762,
+    "practical_limit": "10 facets (FFI enforced)"
+  }
+}
