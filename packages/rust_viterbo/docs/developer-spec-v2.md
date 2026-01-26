@@ -249,13 +249,10 @@ J(q_1, q_2, p_1, p_2) = (-p_1, -p_2, q_1, q_2)
 ```rust
 use nalgebra::{Vector4, Vector2, Matrix2, Matrix4};
 
-/// The standard complex structure J as a matrix
-const J_MATRIX: Matrix4<f64> = Matrix4::new(
-    0.0,  0.0, -1.0,  0.0,
-    0.0,  0.0,  0.0, -1.0,
-    1.0,  0.0,  0.0,  0.0,
-    0.0,  1.0,  0.0,  0.0,
-);
+/// The standard almost complex structure (symplectic J matrix).
+/// This is QUAT_I in CH2021's quaternion notation (see §1.9).
+/// Used for symplectic form and Reeb vectors.
+const J_MATRIX: Matrix4<f64> = QUAT_I;
 
 let reeb_vectors: Vec<Vector4<f64>> = (0..num_facets)
     .map(|i| (J_MATRIX * normals[i]) * (2.0 / heights[i]))
@@ -460,31 +457,79 @@ struct Polygon2D {
 
 ### 1.9 Quaternion Structure
 
-For trivializing 2-faces, we use the quaternion matrices on \(\mathbb{R}^4\):
+**Source:** CH2021 §2.3 (quaternionic trivialization).
 
+For trivializing 2-faces, we use the quaternion matrices \(\mathbf{i}, \mathbf{j}, \mathbf{k} \in \mathrm{SO}(4)\) from CH2021, where \(\mathbf{i}\) is the standard almost complex structure (symplectic J).
+
+**Naming convention:** We use `QUAT_I`, `QUAT_J`, `QUAT_K` to match CH2021's notation and avoid confusion with the symplectic matrix J.
+
+In coordinates \((x_1, x_2, y_1, y_2)\) (CH2021 convention):
 \[
-I = \text{identity}, \quad
-J = \begin{pmatrix} 0 & 0 & -1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}, \quad
-K = \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}
+\mathbf{i} = \begin{pmatrix} 0 & 0 & -1 & 0 \\ 0 & 0 & 0 & -1 \\ 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{pmatrix}, \quad
+\mathbf{j} = \begin{pmatrix} 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & -1 & 0 \end{pmatrix}, \quad
+\mathbf{k} = \begin{pmatrix} 0 & 0 & 0 & -1 \\ 0 & 0 & 1 & 0 \\ 0 & -1 & 0 & 0 \\ 1 & 0 & 0 & 0 \end{pmatrix}
 \]
 
 ```rust
-/// J is already defined above as J_MATRIX
+/// QUAT_I = standard almost complex structure (symplectic J)
+/// This is also J_MATRIX from §1.2
+const QUAT_I: Matrix4<f64> = Matrix4::new(
+    0.0,  0.0, -1.0,  0.0,
+    0.0,  0.0,  0.0, -1.0,
+    1.0,  0.0,  0.0,  0.0,
+    0.0,  1.0,  0.0,  0.0,
+);
 
-const K_MATRIX: Matrix4<f64> = Matrix4::new(
+const QUAT_J: Matrix4<f64> = Matrix4::new(
     0.0, -1.0,  0.0,  0.0,
     1.0,  0.0,  0.0,  0.0,
     0.0,  0.0,  0.0,  1.0,
     0.0,  0.0, -1.0,  0.0,
 );
+
+const QUAT_K: Matrix4<f64> = Matrix4::new(
+    0.0,  0.0,  0.0, -1.0,
+    0.0,  0.0,  1.0,  0.0,
+    0.0, -1.0,  0.0,  0.0,
+    1.0,  0.0,  0.0,  0.0,
+);
 ```
 
-**Relations:** \(I^2 = J^2 = K^2 = IJK = -I\)
+**Quaternion relations:** \(\mathbf{i}^2 = \mathbf{j}^2 = \mathbf{k}^2 = \mathbf{ijk} = -I\), and \(\mathbf{ij} = \mathbf{k}\), \(\mathbf{jk} = \mathbf{i}\), \(\mathbf{ki} = \mathbf{j}\).
 
 ```rust
-assert_eq!(J_MATRIX * J_MATRIX, -Matrix4::identity());  // J² = -I
-assert_eq!(K_MATRIX * K_MATRIX, -Matrix4::identity());  // K² = -I
-assert_eq!(J_MATRIX * K_MATRIX, -(K_MATRIX * J_MATRIX));  // JK = -KJ
+assert_eq!(QUAT_I * QUAT_I, -Matrix4::identity());  // i² = -I
+assert_eq!(QUAT_J * QUAT_J, -Matrix4::identity());  // j² = -I
+assert_eq!(QUAT_K * QUAT_K, -Matrix4::identity());  // k² = -I
+assert_eq!(QUAT_I * QUAT_J, QUAT_K);                // ij = k
+assert_eq!(QUAT_J * QUAT_K, QUAT_I);                // jk = i
+assert_eq!(QUAT_K * QUAT_I, QUAT_J);                // ki = j
+```
+
+**Key properties for trivialization:**
+- \(\omega_0(u, v) = \langle \mathbf{i} u, v \rangle\) (symplectic form via \(\mathbf{i}\))
+- \(\omega_0(\mathbf{j}\nu, \mathbf{k}\nu) = 1\) for any unit vector \(\nu\)
+- \(\{\mathbf{i}\nu, \mathbf{j}\nu, \mathbf{k}\nu\}\) is orthonormal for any unit \(\nu\)
+
+```rust
+// Symplectic form via QUAT_I
+fn symplectic_form(u: &Vector4<f64>, v: &Vector4<f64>) -> f64 {
+    (QUAT_I * u).dot(v)
+}
+
+// For any unit normal n:
+let n = random_unit_vector();
+let in_ = QUAT_I * n;
+let jn = QUAT_J * n;
+let kn = QUAT_K * n;
+
+// Orthonormality
+assert!(in_.dot(&jn).abs() < EPS);
+assert!(in_.dot(&kn).abs() < EPS);
+assert!(jn.dot(&kn).abs() < EPS);
+
+// Symplectic property: ω(jn, kn) = 1
+assert!((symplectic_form(&jn, &kn) - 1.0).abs() < EPS);
 ```
 
 ---
@@ -501,80 +546,169 @@ T_p F_{ij} = \{ V \in \mathbb{R}^4 : \langle V, n_i \rangle = 0 \text{ and } \la
 \]
 This is 2-dimensional (intersection of two hyperplanes in 4D).
 
-**Definition:** The trivialization \(\tau_n: \mathbb{R}^4 \to \mathbb{R}^2\) with respect to unit normal \(n\):
+**Definition:** The trivialization \(\tau_n: T_p F \to \mathbb{R}^2\) with respect to unit normal \(n\) (CH2021 Definition 2.15):
 \[
-\tau_n(V) = (\langle V, Jn \rangle, \langle V, Kn \rangle)
+\tau_n(V) = (\langle V, \mathbf{j}n \rangle, \langle V, \mathbf{k}n \rangle)
 \]
+where \(\mathbf{j}, \mathbf{k}\) are the quaternion matrices (see §1.9).
 
 ```rust
 fn trivialize(n: &Vector4<f64>, v: &Vector4<f64>) -> Vector2<f64> {
-    let jn = J_MATRIX * n;
-    let kn = K_MATRIX * n;
+    let jn = QUAT_J * n;
+    let kn = QUAT_K * n;
     Vector2::new(v.dot(&jn), v.dot(&kn))
 }
 ```
 
-**Note:** This function can be applied to any \(V \in \mathbb{R}^4\), but its geometric meaning requires \(V\) tangent to the facet (i.e., \(\langle V, n \rangle = 0\)).
+**CRITICAL:** This function maps 4D vectors to 2D coordinates. It is an **isomorphism** when restricted to a 2-face tangent space TF, but it does NOT have a simple inverse formula. See below.
 
-**Inverse:** Given 2D coordinates \((a, b)\) and the trivialization basis:
-\[
-\tau_n^{-1}(a, b) = a \cdot Jn + b \cdot Kn
-\]
+**Why trivialize works on 2-faces (CH2021 Lemma 2.16):**
+- For a 2-face F at intersection of facets with normals \(n_i\) (entry) and \(n_j\) (exit)
+- TF ⊂ T(F_exit), since the 2-face lies on the exit facet
+- \(\{\mathbf{i}n_j, \mathbf{j}n_j, \mathbf{k}n_j\}\) is an orthonormal basis for T(F_exit)
+- Any \(V \in TF\) can be written in this basis; \(\tau_{n_j}(V)\) extracts the \(\mathbf{j}, \mathbf{k}\) components
 
+**WRONG inverse (from old spec, DO NOT USE):**
 ```rust
-fn untrivialize(n: &Vector4<f64>, coords: &Vector2<f64>) -> Vector4<f64> {
-    let jn = J_MATRIX * n;
-    let kn = K_MATRIX * n;
-    jn * coords[0] + kn * coords[1]
-}
+// WRONG: This gives a vector in span{jn, kn}, NOT in TF
+// fn untrivialize_WRONG(n: &Vector4<f64>, coords: &Vector2<f64>) -> Vector4<f64> {
+//     QUAT_J * n * coords[0] + QUAT_K * n * coords[1]
+// }
 ```
+
+**CORRECT inverse requires explicit basis vectors in TF.** See §1.10.1 below.
 
 **Assertions:**
 ```rust
-let jn = J_MATRIX * n;
-let kn = K_MATRIX * n;
+let jn = QUAT_J * n;
+let kn = QUAT_K * n;
 
-// Jn and Kn are orthonormal (basis for the tangent hyperplane restricted to symplectic complement)
+// jn and kn are orthonormal
 assert!(jn.dot(&kn).abs() < EPS);  // orthogonal
 assert!((jn.norm() - 1.0).abs() < EPS);  // unit length
 assert!((kn.norm() - 1.0).abs() < EPS);  // unit length
 
-// Jn and Kn are tangent to the facet (perpendicular to n)
+// jn and kn are tangent to the facet (perpendicular to n)
 assert!(jn.dot(n).abs() < EPS);
 assert!(kn.dot(n).abs() < EPS);
 
-// Round-trip: untrivialize ∘ trivialize = identity on tangent vectors
-// (only holds for vectors perpendicular to n)
-let v_tangent = /* any vector with v.dot(n) == 0 */;
-let v_recovered = untrivialize(n, &trivialize(n, &v_tangent));
-assert!((v_recovered - v_tangent).norm() < EPS);
+// Symplectic: ω(jn, kn) = 1
+assert!((symplectic_form(&jn, &kn) - 1.0).abs() < EPS);
 ```
 
 **Key property (symplectic form preservation):** (CH2021 Lemma 2.16)
 
-For vectors \(V_1, V_2\) **tangent to the facet** (i.e., \(\langle V_i, n \rangle = 0\)):
+For vectors \(V_1, V_2\) **in the 2-face tangent space TF**:
 \[
 \omega(V_1, V_2) = \omega_{\text{std}}(\tau_n(V_1), \tau_n(V_2))
 \]
 where \(\omega_{\text{std}}(x, y) = x_1 y_2 - x_2 y_1\) is the standard 2D symplectic form.
 
-**Mathematical condition (not encoded in Rust type):** The symplectic form preservation only holds when both input vectors are perpendicular to \(n\).
-
 ```rust
 fn symplectic_form_2d(x: &Vector2<f64>, y: &Vector2<f64>) -> f64 {
     x[0] * y[1] - x[1] * y[0]
 }
+```
 
-// Verification (requires v1, v2 tangent to facet):
-fn verify_symplectic_preservation(n: &Vector4<f64>, v1: &Vector4<f64>, v2: &Vector4<f64>) {
-    // Precondition: v1, v2 are tangent to the facet
-    assert!(v1.dot(n).abs() < EPS, "v1 not tangent to facet");
-    assert!(v2.dot(n).abs() < EPS, "v2 not tangent to facet");
+---
 
-    let omega_4d = symplectic_form(v1, v2);
-    let omega_2d = symplectic_form_2d(&trivialize(n, v1), &trivialize(n, v2));
-    assert!((omega_4d - omega_2d).abs() < EPS);
+### 1.10.1 Explicit Basis Vectors for 2-Face Reconstruction
+
+**Source:** Derived from CH2021 Definition 2.15. See `trivialization-derivation.md` for full derivation.
+
+To reconstruct 4D points from 2D coordinates, we need **explicit basis vectors** that lie IN the 2-face tangent space TF.
+
+**Setup:** For a 2-face F at intersection of facets with normals \(n_{\text{entry}}\) and \(n_{\text{exit}}\):
+\[
+TF = \{ V \in \mathbb{R}^4 : \langle V, n_{\text{entry}} \rangle = 0 \text{ and } \langle V, n_{\text{exit}} \rangle = 0 \}
+\]
+
+**Exit basis:** Find \(b_1^{\text{exit}}, b_2^{\text{exit}} \in TF\) such that:
+- \(\tau_{n_{\text{exit}}}(b_1^{\text{exit}}) = (1, 0)\)
+- \(\tau_{n_{\text{exit}}}(b_2^{\text{exit}}) = (0, 1)\)
+
+This means:
+- \(\langle b_1^{\text{exit}}, \mathbf{j} n_{\text{exit}} \rangle = 1\), \(\langle b_1^{\text{exit}}, \mathbf{k} n_{\text{exit}} \rangle = 0\)
+- \(\langle b_2^{\text{exit}}, \mathbf{j} n_{\text{exit}} \rangle = 0\), \(\langle b_2^{\text{exit}}, \mathbf{k} n_{\text{exit}} \rangle = 1\)
+
+**Matrix formulation:** Define \(M_{\text{exit}}\) with rows \([n_{\text{entry}}, n_{\text{exit}}, \mathbf{j} n_{\text{exit}}, \mathbf{k} n_{\text{exit}}]\):
+\[
+b_1^{\text{exit}} = M_{\text{exit}}^{-1} \cdot [0, 0, 1, 0]^T \quad \text{(3rd column of } M_{\text{exit}}^{-1}\text{)}
+\]
+\[
+b_2^{\text{exit}} = M_{\text{exit}}^{-1} \cdot [0, 0, 0, 1]^T \quad \text{(4th column of } M_{\text{exit}}^{-1}\text{)}
+\]
+
+```rust
+fn compute_exit_basis(n_entry: &Vector4<f64>, n_exit: &Vector4<f64>) -> [Vector4<f64>; 2] {
+    let jn_exit = QUAT_J * n_exit;
+    let kn_exit = QUAT_K * n_exit;
+
+    // Build matrix M with rows: n_entry, n_exit, jn_exit, kn_exit
+    let m = Matrix4::from_rows(&[
+        n_entry.transpose(),
+        n_exit.transpose(),
+        jn_exit.transpose(),
+        kn_exit.transpose(),
+    ]);
+
+    let m_inv = m.try_inverse().expect("Degenerate 2-face: M not invertible");
+
+    // Extract 3rd and 4th columns
+    [m_inv.column(2).into(), m_inv.column(3).into()]
 }
+```
+
+**Entry basis:** Similarly, using \(n_{\text{entry}}\) for trivialization:
+```rust
+fn compute_entry_basis(n_entry: &Vector4<f64>, n_exit: &Vector4<f64>) -> [Vector4<f64>; 2] {
+    let jn_entry = QUAT_J * n_entry;
+    let kn_entry = QUAT_K * n_entry;
+
+    let m = Matrix4::from_rows(&[
+        n_entry.transpose(),
+        n_exit.transpose(),
+        jn_entry.transpose(),
+        kn_entry.transpose(),
+    ]);
+
+    let m_inv = m.try_inverse().expect("Degenerate 2-face: M not invertible");
+    [m_inv.column(2).into(), m_inv.column(3).into()]
+}
+```
+
+**Reconstruction (the correct "untrivialize"):**
+```rust
+fn untrivialize_with_basis(
+    coords: &Vector2<f64>,
+    basis: &[Vector4<f64>; 2],
+    centroid: &Vector4<f64>,
+) -> Vector4<f64> {
+    centroid + coords[0] * basis[0] + coords[1] * basis[1]
+}
+```
+
+**Assertions:**
+```rust
+// Basis vectors lie in TF (perpendicular to BOTH normals)
+assert!(b_exit[0].dot(&n_entry).abs() < EPS);
+assert!(b_exit[0].dot(&n_exit).abs() < EPS);
+assert!(b_exit[1].dot(&n_entry).abs() < EPS);
+assert!(b_exit[1].dot(&n_exit).abs() < EPS);
+
+// Basis gives correct coordinates under trivialization
+let jn_exit = QUAT_J * n_exit;
+let kn_exit = QUAT_K * n_exit;
+assert!((b_exit[0].dot(&jn_exit) - 1.0).abs() < EPS);
+assert!(b_exit[0].dot(&kn_exit).abs() < EPS);
+assert!(b_exit[1].dot(&jn_exit).abs() < EPS);
+assert!((b_exit[1].dot(&kn_exit) - 1.0).abs() < EPS);
+
+// Round-trip works for vectors in TF
+let v = 0.3 * b_exit[0] + 0.7 * b_exit[1];  // A vector in TF
+let coords = trivialize(&n_exit, &v);
+let v_recovered = coords[0] * b_exit[0] + coords[1] * b_exit[1];
+assert!((v_recovered - v).norm() < EPS);
 ```
 
 ---
@@ -583,36 +717,82 @@ fn verify_symplectic_preservation(n: &Vector4<f64>, v1: &Vector4<f64>, v2: &Vect
 
 **Source:** CH2021 Definition 2.17 (transition matrix), Lemma 2.18 (positive elliptic classification).
 
-For a non-Lagrangian 2-face \(F_{ij}\), the **transition matrix** \(\psi_F \in \mathrm{Sp}(2)\) relates the trivializations from the two adjacent facet normals:
+For a non-Lagrangian 2-face \(F\) at intersection of facets with normals \(n_{\text{entry}}\) and \(n_{\text{exit}}\), the **transition matrix** \(\psi_F \in \mathrm{Sp}(2)\) converts entry-trivialization coordinates to exit-trivialization coordinates:
 \[
-\psi_F = \tau_{n_j} \circ \tau_{n_i}^{-1}
+\psi_F = \tau_{n_{\text{exit}}} \circ \tau_{n_{\text{entry}}}^{-1}
 \]
 
-This is a 2×2 symplectic matrix encoding how coordinates transform when crossing the 2-face.
+**Two equivalent computation methods:**
+
+**Method A: Using explicit basis vectors (recommended)**
+
+Since \(\tau_{n_{\text{entry}}}^{-1}(1,0) = b_1^{\text{entry}}\) and \(\tau_{n_{\text{entry}}}^{-1}(0,1) = b_2^{\text{entry}}\):
 
 ```rust
-// See section 1.14 for the full TwoFaceEnriched struct definition
+fn compute_transition_matrix_basis(
+    b_entry: &[Vector4<f64>; 2],
+    n_exit: &Vector4<f64>,
+) -> Matrix2<f64> {
+    let jn_exit = QUAT_J * n_exit;
+    let kn_exit = QUAT_K * n_exit;
 
-fn compute_transition_matrix(n_i: &Vector4<f64>, n_j: &Vector4<f64>) -> Matrix2<f64> {
-    // ψ_F maps τ_{n_i} coordinates to τ_{n_j} coordinates
-    // Column k of ψ is τ_{n_j}(τ_{n_i}^{-1}(e_k))
-    let e1 = Vector2::new(1.0, 0.0);
-    let e2 = Vector2::new(0.0, 1.0);
-
-    let v1 = untrivialize(n_i, &e1);  // Jn_i
-    let v2 = untrivialize(n_i, &e2);  // Kn_i
-
-    let col1 = trivialize(n_j, &v1);
-    let col2 = trivialize(n_j, &v2);
-
-    Matrix2::from_columns(&[col1, col2])
+    // Column k of ψ is τ_{n_exit}(b_k^entry)
+    Matrix2::new(
+        b_entry[0].dot(&jn_exit), b_entry[1].dot(&jn_exit),
+        b_entry[0].dot(&kn_exit), b_entry[1].dot(&kn_exit),
+    )
 }
+```
+
+**Method B: CH2021 direct formula (for verification)**
+
+From CH2021 Lemma 2.17, using:
+\[
+a_1 = \langle n_{\text{entry}}, n_{\text{exit}} \rangle, \quad
+a_2 = \langle \mathbf{i} n_{\text{entry}}, n_{\text{exit}} \rangle, \quad
+a_3 = \langle \mathbf{j} n_{\text{entry}}, n_{\text{exit}} \rangle, \quad
+a_4 = \langle \mathbf{k} n_{\text{entry}}, n_{\text{exit}} \rangle
+\]
+
+\[
+\psi_F = \frac{1}{a_2} \begin{pmatrix} a_1 a_2 - a_3 a_4 & -(a_2^2 + a_4^2) \\ a_2^2 + a_3^2 & a_1 a_2 + a_3 a_4 \end{pmatrix}
+\]
+
+```rust
+fn compute_transition_matrix_ch2021(
+    n_entry: &Vector4<f64>,
+    n_exit: &Vector4<f64>,
+) -> Matrix2<f64> {
+    let a1 = n_entry.dot(n_exit);
+    let a2 = (QUAT_I * n_entry).dot(n_exit);
+    let a3 = (QUAT_J * n_entry).dot(n_exit);
+    let a4 = (QUAT_K * n_entry).dot(n_exit);
+
+    debug_assert!(a2.abs() > EPS, "a2 ≈ 0 indicates Lagrangian 2-face or wrong flow direction");
+
+    let inv_a2 = 1.0 / a2;
+    Matrix2::new(
+        inv_a2 * (a1 * a2 - a3 * a4), inv_a2 * -(a2 * a2 + a4 * a4),
+        inv_a2 * (a2 * a2 + a3 * a3), inv_a2 * (a1 * a2 + a3 * a4),
+    )
+}
+```
+
+**Cross-validation:** Both methods should give the same result:
+```rust
+let psi_basis = compute_transition_matrix_basis(&b_entry, &n_exit);
+let psi_ch2021 = compute_transition_matrix_ch2021(&n_entry, &n_exit);
+assert!((psi_basis - psi_ch2021).norm() < EPS, "Methods disagree!");
 ```
 
 **Assertions:**
 ```rust
-// ψ is always symplectic: det(ψ) = 1
+// ψ is symplectic: det(ψ) = 1
 assert!((psi.determinant() - 1.0).abs() < EPS);
+
+// Trace formula: tr(ψ) = 2⟨n_entry, n_exit⟩
+let expected_trace = 2.0 * n_entry.dot(&n_exit);
+assert!((psi.trace() - expected_trace).abs() < EPS);
 ```
 
 **Classification by trace** (CH2021 Lemma 2.18; see also Appendix A, Definition A.3):
@@ -642,33 +822,70 @@ fn assert_non_lagrangian(psi: &Matrix2<f64>, n_i: &Vector4<f64>, n_j: &Vector4<f
 
 ### 1.12 Rotation Number of 2-Faces
 
-**Source:** CH2021 Appendix A (rotation numbers on Sp(2)), Corollary 5.3 (range (0, 0.5) for non-Lagrangian 2-faces).
+**Source:** CH2021 Appendix A (rotation numbers on Sp(2)), Lemma 2.17 (positive elliptic), Corollary 5.3.
 
-For a non-Lagrangian 2-face \(F_{ij}\), the **rotation number** \(\rho(F) \in (0, 0.5)\) measures how much the Reeb flow "rotates" when crossing:
+For a non-Lagrangian 2-face \(F\), the **rotation number** \(\rho(F) \in (0, 0.5)\) measures how much the Reeb flow "rotates" when crossing.
+
+**Formula:**
 \[
 \rho(F) = \frac{1}{2\pi} \arccos\left(\frac{1}{2} \mathrm{tr}(\psi_F)\right)
 \]
+
+**Why \(|\mathrm{tr}(\psi)| < 2\) is guaranteed (CH2021 Lemma 2.17):**
+
+From the trace formula in §1.11:
+\[
+\mathrm{tr}(\psi_F) = 2 \langle n_{\text{entry}}, n_{\text{exit}} \rangle
+\]
+
+Since \(n_{\text{entry}}\) and \(n_{\text{exit}}\) are distinct unit normals of adjacent facets:
+- They cannot be equal (distinct facets): \(\langle n_{\text{entry}}, n_{\text{exit}} \rangle \neq 1\)
+- They cannot be opposite (convexity prevents this for adjacent facets): \(\langle n_{\text{entry}}, n_{\text{exit}} \rangle \neq -1\)
+- Therefore: \(|\mathrm{tr}(\psi_F)| < 2\) always holds
+
+This means \(\psi_F\) is **always elliptic** for non-Lagrangian 2-faces. Clamping is only for floating point robustness:
 
 ```rust
 impl TwoFaceEnriched {
     fn rotation_number(&self) -> f64 {
         let trace = self.transition_matrix.trace();
-        // Clamp to [-2, 2] to handle floating point errors; values outside this range
-        // would indicate a non-elliptic matrix, which shouldn't occur for non-Lagrangian 2-faces.
-        let half_trace_clamped = (0.5 * trace).clamp(-1.0, 1.0);
-        half_trace_clamped.acos() / (2.0 * std::f64::consts::PI)
+
+        // Sanity check: tr = 2⟨n_entry, n_exit⟩, which is in (-2, 2) for valid 2-faces
+        debug_assert!(trace.abs() < 2.0 + EPS,
+            "Transition matrix not elliptic: tr = {}", trace);
+
+        // Clamp only for floating point robustness
+        let half_trace = (0.5 * trace).clamp(-1.0 + EPS, 1.0 - EPS);
+        half_trace.acos() / (2.0 * std::f64::consts::PI)
     }
 }
 ```
 
+**Simpler direct formula:** Since tr(ψ) = 2⟨n_entry, n_exit⟩:
+\[
+\rho(F) = \frac{1}{2\pi} \arccos\left(\langle n_{\text{entry}}, n_{\text{exit}} \rangle\right)
+\]
+
+The rotation is just the **angle between the normals** divided by 2π:
+
+```rust
+fn rotation_number_direct(n_entry: &Vector4<f64>, n_exit: &Vector4<f64>) -> f64 {
+    let cos_angle = n_entry.dot(n_exit).clamp(-1.0 + EPS, 1.0 - EPS);
+    cos_angle.acos() / (2.0 * std::f64::consts::PI)
+}
+```
+
 **Classification by trace:**
-- \(|\mathrm{tr}| > 2\): Hyperbolic (impossible for non-Lagrangian 2-faces of polytopes)
-- \(|\mathrm{tr}| = 2\): Parabolic (boundary case, Lagrangian)
-- \(|\mathrm{tr}| < 2\): Elliptic (rotation), with \(\rho \in (0, 0.5)\)
+- \(|\mathrm{tr}| > 2\): Hyperbolic — **cannot occur** for polytope 2-faces
+- \(|\mathrm{tr}| = 2\): Parabolic — impossible (requires parallel normals)
+- \(|\mathrm{tr}| < 2\): Elliptic — always, with \(\rho \in (0, 0.5)\)
 
-**Why rotation is unsigned and flow-direction-independent:** The rotation number depends only on tr(ψ), and for any matrix M ∈ Sp(2), we have tr(M) = tr(M⁻¹). Since JtoI flow uses ψ⁻¹ instead of ψ, the rotation number is the same regardless of flow direction. This is why `rotation` is stored as a property of the 2-face itself, not of the flow direction.
+**Why rotation is flow-direction-independent:** tr(ψ) = tr(ψ⁻¹) for symplectic matrices, so the rotation number is the same for both flow directions.
 
-**Significance for Tube algorithm:** Total rotation of a closed orbit must equal an integer. The algorithm prunes paths where accumulated rotation exceeds 2 turns (per CH2021 Prop 1.10).
+**Significance for Tube algorithm (CH2021 Prop 1.8):**
+- Every Reeb orbit has total rotation \(\rho > 1\) turn
+- Action-minimizing orbits have \(\rho \leq 2\) turns
+- The algorithm prunes paths where accumulated rotation exceeds 2 turns
 
 ---
 
@@ -1394,12 +1611,27 @@ For orbits not involving Lagrangian 2-faces, adjacency constraints apply:
 **Terminology for tube closure:**
 
 - **Initial tube:** A tube with facet_sequence = \([i_0, i_1]\) (length 2). Represents zero-length trajectories at a single 2-face.
-- **Closed tube:** A non-initial tube where start 2-face = end 2-face. For sequence \([i_0, i_1, \ldots, i_m]\), this means \(i_{m-1} = i_0\) AND \(i_m = i_1\). Minimum length is 4.
-- **Next-step closeable tube:** A tube where first facet = last facet (\(i_0 = i_m\)). Extending with \(i_1\) yields a closed tube (if geometrically valid).
+- **Closed tube:** A non-initial tube where start 2-face = end 2-face. For sequence \([i_0, i_1, \ldots, i_m]\), this means \(i_{m-1} = i_0\) AND \(i_m = i_1\).
+- **Next-step closeable tube:** A tube where first facet = last facet (\(i_0 = i_{m-1}\)). Extending with \(i_1\) yields a closed tube (if geometrically valid).
 
-**Lemma (closed tubes have length ≥ 4):** A closed tube cannot have length 3. Proof: Flow direction on 2-face \(F_{i,j}\) is determined by \(\omega(n_i, n_j)\). If flow enters facet \(j\) from \(i\), it cannot exit back to \(i\) because \(\omega(n_j, n_i) = -\omega(n_i, n_j)\) has opposite sign. Thus at least 3 distinct facets are needed, giving minimum sequence \([i_0, i_1, i_2, i_0, i_1]\) of length 5... but wait, that's length 5. Actually minimum is \([i_0, i_1, i_0, i_1]\) which requires checking if \(F_{i_1, i_0}\) allows flow back to \(i_1\) — this fails by the same antisymmetry argument. So minimum closed tube visits 3 facets: \([i_0, i_1, i_2, i_0, i_1]\), length 5. \(\blacksquare\)
+**Lemma (minimum closed tube length is 5):**
 
-**Correction:** The minimum closed tube has length 4: sequence \([i_0, i_1, i_0, i_1]\) if and only if there exist two 2-faces \(F_{i_0, i_1}\) allowing bidirectional flow, which is impossible for non-Lagrangian 2-faces (antisymmetry). So minimum length is actually **5** (3 distinct facets). <!-- TODO: verify this lemma carefully -->
+A closed tube requires at least 3 distinct facets, giving minimum sequence length 5.
+
+*Proof:* Consider whether length 4 is possible with sequence \([i, j, i, j]\):
+- This would require: flow from facet \(i\) to \(j\) at 2-face \(F_{i,j}\), then flow from \(j\) back to \(i\) at 2-face \(F_{j,i}\).
+- But \(F_{i,j} = F_{j,i}\) (same 2-face, unordered).
+- Flow direction at a 2-face is fixed by \(\omega(n_i, n_j)\): if \(\omega(n_i, n_j) > 0\), flow always goes \(i \to j\).
+- By antisymmetry, \(\omega(n_j, n_i) = -\omega(n_i, n_j) < 0\), so flow cannot go \(j \to i\) at this 2-face.
+- Therefore length 4 is impossible for non-Lagrangian 2-faces.
+
+Minimum is length 5 with 3 distinct facets: \([i_0, i_1, i_2, i_0, i_1]\). \(\blacksquare\)
+
+*Example:* For facets A, B, C with compatible flow directions:
+- Start at 2-face (A, B), flow A → B
+- Cross to 2-face (B, C), flow B → C
+- Cross to 2-face (C, A), flow C → A
+- Return to 2-face (A, B), completing the closed orbit
 
 **Lemma:** Every closed tube is the one-step extension of a unique next-step closeable tube. Proof: Remove the last element \(i_1\) from the closed tube's sequence. \(\blacksquare\)
 
@@ -1599,17 +1831,17 @@ fn compute_facet_flow(
     //
     // <!-- NEEDS VERIFICATION: If bugs occur, check this normal convention first. -->
 
-    // Entry trivialization basis vectors in 4D (use exit_normal per CH2021)
-    let entry_triv_normal = &entry_2face.exit_normal;  // = n_curr
-    let j_n_entry = J_MATRIX * entry_triv_normal;
-    let k_n_entry = K_MATRIX * entry_triv_normal;
+    // UPDATED: Use explicit basis vectors from §1.10.1 instead of the wrong
+    // untrivialize formula. The basis vectors lie IN the 2-face tangent space.
+    let b_entry = entry_2face.basis_exit;  // [bExit₁, bExit₂] for entry 2-face
+    let b_exit = exit_2face.basis_exit;    // [bExit₁, bExit₂] for exit 2-face
     let c_entry = entry_2face.centroid_4d;
-
-    // Exit trivialization basis vectors in 4D (use exit_normal per CH2021)
-    let exit_triv_normal = &exit_2face.exit_normal;    // = n_next
-    let j_n_exit = J_MATRIX * exit_triv_normal;
-    let k_n_exit = K_MATRIX * exit_triv_normal;
     let c_exit = exit_2face.centroid_4d;
+
+    // For trivialization we still need QUAT_J and QUAT_K applied to normals
+    let exit_triv_normal = &exit_2face.exit_normal;
+    let jn_exit = QUAT_J * exit_triv_normal;
+    let kn_exit = QUAT_K * exit_triv_normal;
 
     // Build the affine map and time function
     //
@@ -2376,12 +2608,15 @@ fn test_symplectic_form_properties() {
 fn test_quaternion_relations() {
     let v = random_unit_vector();
 
-    // J² = K² = -I
-    assert!((J_MATRIX * J_MATRIX * v + v).norm() < EPS);
-    assert!((K_MATRIX * K_MATRIX * v + v).norm() < EPS);
+    // i² = j² = k² = -I (quaternion relations)
+    assert!((QUAT_I * QUAT_I * v + v).norm() < EPS);
+    assert!((QUAT_J * QUAT_J * v + v).norm() < EPS);
+    assert!((QUAT_K * QUAT_K * v + v).norm() < EPS);
 
-    // JK = -KJ
-    assert!((J_MATRIX * K_MATRIX * v + K_MATRIX * J_MATRIX * v).norm() < EPS);
+    // ij = k, jk = i, ki = j
+    assert!(((QUAT_I * QUAT_J - QUAT_K) * v).norm() < EPS);
+    assert!(((QUAT_J * QUAT_K - QUAT_I) * v).norm() < EPS);
+    assert!(((QUAT_K * QUAT_I - QUAT_J) * v).norm() < EPS);
 }
 ```
 
@@ -2412,6 +2647,52 @@ fn test_rotation_number_range() {
                 "Rotation {} not in (0, 0.5)", rho);
         }
     }
+}
+```
+
+**4.5.5 Cross-polytope trivialization test (regression for bug found 2026-01-26):**
+
+This test exposed the original trivialization bug where the inverse formula was wrong.
+
+```rust
+#[test]
+fn test_cross_polytope_trivialization() {
+    // Adjacent facet normals from 16-cell (cross-polytope)
+    let n_entry = Vector4::new(1.0, 1.0, 1.0, 1.0).normalize();
+    let n_exit = Vector4::new(1.0, 1.0, 1.0, -1.0).normalize();
+
+    // Compute basis vectors using the CORRECT method (§1.10.1)
+    let b_exit = compute_exit_basis(&n_entry, &n_exit);
+    let b_entry = compute_entry_basis(&n_entry, &n_exit);
+
+    // Basis vectors must lie in 2-face tangent space (perp to BOTH normals)
+    for b in &b_exit {
+        assert!(b.dot(&n_entry).abs() < EPS, "bExit not perp to n_entry");
+        assert!(b.dot(&n_exit).abs() < EPS, "bExit not perp to n_exit");
+    }
+    for b in &b_entry {
+        assert!(b.dot(&n_entry).abs() < EPS, "bEntry not perp to n_entry");
+        assert!(b.dot(&n_exit).abs() < EPS, "bEntry not perp to n_exit");
+    }
+
+    // Compute transition matrix both ways and verify they match
+    let psi_basis = compute_transition_matrix_basis(&b_entry, &n_exit);
+    let psi_ch2021 = compute_transition_matrix_ch2021(&n_entry, &n_exit);
+    assert!((psi_basis - psi_ch2021).norm() < EPS, "Methods disagree!");
+
+    // Transition matrix must be symplectic
+    assert!((psi_basis.determinant() - 1.0).abs() < EPS,
+        "det(ψ) = {}, expected 1.0", psi_basis.determinant());
+
+    // Trace must equal 2⟨n_entry, n_exit⟩
+    let expected_trace = 2.0 * n_entry.dot(&n_exit);
+    assert!((psi_basis.trace() - expected_trace).abs() < EPS,
+        "tr(ψ) = {}, expected {}", psi_basis.trace(), expected_trace);
+
+    // Rotation number should be valid
+    let rho = psi_basis.trace().abs().min(2.0 - EPS);
+    let rotation = (0.5 * rho).acos() / (2.0 * std::f64::consts::PI);
+    assert!(rotation > 0.0 && rotation < 0.5);
 }
 ```
 
