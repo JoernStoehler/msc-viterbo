@@ -1,5 +1,5 @@
 [workspace]
-members = ["hk2017", "ffi"]
+members = ["hk2017", "tube", "ffi"]
 resolver = "2"
 
 [workspace.package]
