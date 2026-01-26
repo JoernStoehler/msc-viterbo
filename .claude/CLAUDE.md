@@ -38,3 +38,6 @@ Two environments exist: **local devcontainer** (Jörn's machine) and **Claude Co
 - Make direct, explicit requests for permissions, clarifications, reviews, feedback and decisions when needed.
 - Use Jörn's time wisely. Don't delegate work to him that you can do yourself.
 - Leave long-term thesis project management to Jörn, you can help but he has more experience with long-running academic projects.
+- Be precise and concrete, not vague or metaphorical. Don't use pseudo-profound phrases that obscure meaning.
+- After making a mistake: pause, think carefully, then state concretely what was done wrong. Don't rush to respond with unclear apologies.
+- When explaining conventions or structures: describe the actual purpose and mechanics, not just formatting rules.
