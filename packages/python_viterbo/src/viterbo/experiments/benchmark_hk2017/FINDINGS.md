@@ -29,11 +29,15 @@ During this experiment, we discovered and fixed a critical bug in the HK2017 sol
 
 ### The Problem
 
-The KKT solver could return invalid solutions when the constraint system was over-determined or inconsistent. For example, a 4-facet permutation in R⁴ has:
-- 4 variables (β values)
-- 5 equality constraints (1 height + 4 closure)
+The KKT solver could return invalid solutions when the constraint system was over-determined or inconsistent.
 
-For general-position normals (like a simplex), no solution exists, but the LU solver returned garbage that violated constraints.
+**Terminology:** A "k-facet permutation" means we consider an ordered subset of k facets from the polytope's F total facets. The HK2017 algorithm enumerates all ordered subsets of sizes 2 to F. For a k-facet permutation, only k of the β values can be nonzero.
+
+For example, a 4-facet permutation in R⁴ has:
+- 4 variables (β values for the 4 selected facets)
+- 5 equality constraints (1 height + 4 closure components)
+
+For general-position normals (like a simplex), this over-determined system has no solution, but the LU solver returned garbage that violated constraints.
 
 ### The Symptom
 
@@ -101,6 +105,9 @@ Most rejections are due to:
 
 Given a polytope with F facets:
 1. Compute theoretical permutations: `perms = Σₖ₌₂^F (F! / (F-k)!)`
+   - This counts all ordered subsets (permutations) of size k, summed for k from 2 to F
+   - F!/(F-k)! = F × (F-1) × ... × (F-k+1) is the number of k-permutations of F items
+   - Example: F=5 gives 5×4 + 5×4×3 + 5×4×3×2 + 5×4×3×2×1 = 20 + 60 + 120 + 120 = 320
 2. Estimate naive time: `time_ms ≈ perms / 1000`
 3. GraphPruned is 2-7x faster depending on polytope structure
 

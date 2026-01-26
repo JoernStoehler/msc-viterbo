@@ -2,7 +2,7 @@
 
 > **Audience:** Claude Code agents implementing the HK2017 algorithm
 > **Prerequisite:** Read thesis chapter on algorithms; review HK2017 paper ([HK2017-EHZ-polytopes.tex](../../../docs/papers/HK2017-EHZ-polytopes/HK2017-EHZ-polytopes.tex))
-> **Status:** Draft specification for standalone crate
+> **Status:** Implemented and tested (both Naive and GraphPruned enumeration verified)
 > **Reference Implementation:** [pazithaimkislev/EHZ-capacity](https://github.com/pazithaimkislev/EHZ-capacity) (MATLAB)
 
 ---
@@ -625,6 +625,11 @@ fn compute_q(beta: &[f64], h: &DMatrix<f64>) -> f64 {
 ### 3.5 Graph-Based Pruning (Optional)
 
 **Source:** HK2017 Remark 3.11
+
+> **Verification Status:** Both Naive and GraphPruned enumeration have been tested and produce
+> identical capacity values on all test polytopes (simplex, tesseract, rectangles). The constraint
+> verification fix (detecting infeasible permutations via residual check) was critical for achieving
+> agreement. See `benchmark-hk2017` experiment FINDINGS.md for details.
 
 Build an undirected graph G where:
 - Vertices = facets {0, ..., F-1}
