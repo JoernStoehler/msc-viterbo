@@ -1,59 +1,67 @@
 ---
 name: python-conventions
-description: Work on Python experiments in packages/python_viterbo. Use for layout conventions, stage entrypoints, lint/test commands, and asset/plot handling.
+description: Creating or modifying Python code in packages/python_viterbo. Covers directory layout, stage entrypoints, config files, data outputs, tests, lint commands.
 ---
 
-# Python Conventions (python_viterbo)
+# Python Conventions
 
-## Example: polytope-database
+## Example: example-pipeline
 
-Before reading abstract conventions, look at a concrete example:
+Study `src/viterbo/experiments/example_pipeline/` before creating experiments:
 
 ```
-packages/python_viterbo/
-├── src/viterbo/experiments/polytope_database/
-│   ├── __init__.py
-│   ├── SPEC.md              # Research question, columns, invariants
-│   └── stage_build.py       # Builds stub DataFrame, saves to Parquet
-├── data/polytope-database/
-│   └── stub.parquet         # Output artifact
-└── tests/test_polytope_database.py
+src/viterbo/experiments/example_pipeline/
+├── SPEC.md           # Research question, method, success criteria
+├── stage_build.py    # Stage 1: generate data
+├── stage_analyze.py  # Stage 2: compute results
+└── stage_plot.py     # Stage 3: create figures
+
+config/example-pipeline/
+└── default.json      # Parameters for reproducible runs
+
+data/example-pipeline/
+├── synthetic_data.json
+└── results.json
+
+tests/test_example_pipeline.py
 ```
 
-Run it: `uv run python -m viterbo.experiments.polytope_database.stage_build`
-Test it: `uv run pytest tests/test_polytope_database.py`
+Run stages:
+```bash
+uv run python -m viterbo.experiments.example_pipeline.stage_build
+uv run python -m viterbo.experiments.example_pipeline.stage_analyze
+uv run python -m viterbo.experiments.example_pipeline.stage_plot
+```
 
-This experiment demonstrates: SPEC.md, stage entrypoint, data output, tests.
-
-## Directory layout
+## Directory Layout
 
 All paths relative to `packages/python_viterbo/`:
 
-| Artifact | Path | Example |
-|----------|------|---------|
-| Experiment code | `src/viterbo/experiments/<label>/` | `experiments/polytope_database/` |
-| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<name>.py` | `stage_build.py` |
-| Experiment spec | `src/viterbo/experiments/<label>/SPEC.md` | Required for non-trivial experiments |
-| Data artifacts | `data/<label>/` | `data/polytope-database/stub.parquet` |
-| Configs | `config/<label>/<variant>.json` | Optional, for parameterized runs |
-| Tests | `tests/test_<label>.py` | `tests/test_polytope_database.py` |
-| Thesis assets | `../latex_viterbo/assets/<label>/` | Plots, figures |
+| Artifact | Path |
+|----------|------|
+| Experiment code | `src/viterbo/experiments/<label>/` |
+| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<name>.py` |
+| Spec | `src/viterbo/experiments/<label>/SPEC.md` |
+| Configs | `config/<label>/<variant>.json` |
+| Data artifacts | `data/<label>/` |
+| Tests | `tests/test_<label>.py` |
+| Thesis assets | `../latex_viterbo/assets/<label>/` |
 
 ## Commands
 
-| Task | Command |
-|------|---------|
-| Sync deps | `cd packages/python_viterbo && uv sync --extra dev` |
-| Lint | `cd packages/python_viterbo && uv run ruff format . && uv run ruff check --fix .` |
-| Type check | `cd packages/python_viterbo && uv run pyright` |
-| All tests | `cd packages/python_viterbo && uv run pytest tests/` |
-| Run stage | `uv run python -m viterbo.experiments.<label>.stage_<name>` |
+```bash
+cd packages/python_viterbo
+uv sync --extra dev          # Install dependencies
+uv run ruff format .         # Format
+uv run ruff check --fix .    # Lint
+uv run pyright               # Type check
+uv run pytest tests/         # Test
+```
 
-## Code style
+## Code Style
 
-- Docstrings: inputs/outputs, shapes/dtypes for arrays
+- Docstrings: inputs, outputs, shapes/dtypes
 - Pure functions preferred
 - Comments explain WHY, not WHAT
-- Cite sources (paper refs, file:line) for non-obvious claims
 
 [proposed]

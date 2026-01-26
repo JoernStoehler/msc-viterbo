@@ -1,148 +1,94 @@
 ---
 name: experiment-workflow
-description: Run thesis experiments from ideation through publication. Use when brainstorming research questions, writing specs, executing experiments, or polishing for thesis.
+description: Planning or executing thesis experiments. Covers the lifecycle from ideation through polishing, tracking table, SPEC.md format, stage structure.
 ---
 
 # Experiment Workflow
 
-## Example: polytope-database
+## Example: example-pipeline
 
-See `packages/python_viterbo/src/viterbo/experiments/polytope_database/` for a complete example:
-
-- `SPEC.md` — Research question, column definitions, invariants
-- `stage_build.py` — Builds stub DataFrame with fake data
-- `tests/test_polytope_database.py` — Tests for invariants and roundtrip
-
-This example is at "Execution" stage with stub data. Study it before creating new experiments.
+Study `src/viterbo/experiments/example_pipeline/` for a complete teaching example:
+- SPEC.md with research question, method, success criteria
+- Multiple stages: `stage_build.py` → `stage_analyze.py` → `stage_plot.py`
+- Config file at `config/example-pipeline/default.json`
+- Tests at `tests/test_example_pipeline.py`
 
 ## Terminology
 
-- **label**: A short identifier for an experiment (e.g., `counterexample-hko`, `dimension-5-probing`). Used consistently across ALL locations.
+- **label**: Short identifier (e.g., `polytope-database`). Used consistently in folder names, tracking table, config, data, assets.
 
-## Workflow stages
+## Workflow Stages
 
-1. **Ideation** — Capture and deconfuse the research question
-2. **Specification** — Plan execution with clear success criteria
-3. **Execution** — Implement, run, analyze (OODA loop)
-4. **Polishing** — Prepare artifacts, code, and writeup for thesis
+1. **Ideation** — Turn vague idea into clear research question
+2. **Specification** — Write SPEC.md with success criteria
+3. **Execution** — Implement and run
+4. **Polishing** — Clean up for thesis publication
 
-Agents typically work on one stage (~80% of sessions). You can proceed through multiple stages in one session, but results tend to be subpar—these are long-horizon tasks, and agents excel at medium-horizon work.
-
-## Where things live
-
-All paths use the same `<label>` consistently:
+## Where Things Live
 
 | Artifact | Location |
 |----------|----------|
 | Tracking table | `packages/latex_viterbo/experiments.md` |
 | Experiment code | `packages/python_viterbo/src/viterbo/experiments/<label>/` |
-| Specification | `packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md` |
-| Configs | `packages/python_viterbo/config/<label>/<variant>.json` |
-| Data artifacts | `packages/python_viterbo/data/<label>/` |
-| Plots/figures | `packages/latex_viterbo/assets/<label>/` |
+| SPEC.md | `packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md` |
+| Configs | `packages/python_viterbo/config/<label>/` |
+| Data | `packages/python_viterbo/data/<label>/` |
+| Thesis assets | `packages/latex_viterbo/assets/<label>/` |
 | Polished writeups | `packages/latex_viterbo/chapters/appendix-detailed-experiments.tex` |
-| Rust-only specs | `packages/rust_viterbo/docs/<label>.md` (rare) |
 
-**Labels unify everything**: the experiment folder name, thesis section label, tracking table row, config folder, data folder, and asset folder all use the same label.
-
-**Polished writeups** go in a single growing file (`appendix-detailed-experiments.tex`). Each experiment becomes a `\section{<label>}`. If the file gets unwieldy, we can split to folder + `\input` later.
-
-## Stage 1: Ideation
-
-**Goal:** Turn a vague idea into a clear, answerable research question.
-
-**Process:**
-1. Write down the question in plain language
-2. Deconfuse: What exactly would a "yes" or "no" answer look like?
-3. Identify what's already known (prior work, related experiments in the thesis)
-4. Note what's still unclear or needs Jörn's input
-
-**Artifact:** New row in `packages/latex_viterbo/experiments.md`:
+## SPEC.md Template
 
 ```markdown
-| label | Ideation | The research question | Any notes |
+# <label> Experiment
+
+**Status:** Ideation / Specified / In Progress / Complete
+
+## Research Question
+
+What are we trying to learn?
+
+## Method
+
+How will we answer the question?
+
+## Success Criteria
+
+What outcome means "it worked"?
+
+## Expected Outputs
+
+- data/<label>/...
+- assets/<label>/...
 ```
 
-Mark as `[proposed]` until Jörn approves. No folder needed yet—just the tracking entry.
+## Stage Details
 
-## Stage 2: Specification
+### Ideation
 
-**Goal:** Plan execution with enough detail that another agent could implement it.
+Add row to tracking table (`experiments.md`). Mark `[proposed]`. No folder yet.
 
-**Process:**
-1. Define success/failure criteria explicitly
-2. Identify required inputs (data, algorithms, dependencies)
-3. Sketch implementation approach
-4. Estimate what artifacts will be produced
-5. Note which thesis section(s) this feeds into (if known)
+### Specification
 
-**Artifact:** Create the experiment folder and write `SPEC.md`:
+Create experiment folder with SPEC.md. Update tracking table to "Specified".
 
-```
-packages/python_viterbo/src/viterbo/experiments/<label>/
-└── SPEC.md
-```
+### Execution
 
-Update tracking table status to "Specified".
+Implement stages, run, produce data. See `python-conventions` skill for code structure.
 
-**SPEC.md should include:**
-- Research question (copied from tracking table)
-- Inputs: what data/code is needed
-- Method: implementation approach
-- Success criteria: what outcome means "it worked"
-- Expected outputs: data files, plots, metrics
+### Polishing
 
-## Stage 3: Execution
+Clean up code, generate publication-quality figures, write thesis section.
 
-**Goal:** Implement and run the experiment, producing results.
+## Approval Markers
 
-This is standard work: analyze requirements, write code, run it, interpret outputs. Use the OODA loop—observe, orient, decide, act—adapting on the fly while paying attention to outer context. Most agents know how to do this given a clear spec.
+Use `[proposed]` for agent-proposed content. Only Jörn removes these markers.
+Ambiguous responses ("sounds fine") do not count as approval.
 
-**Context for execution agents:**
-- See `python-conventions` skill for experiment code structure
-- See `rust-conventions` skill if modifying algorithms
-- SPEC.md in the experiment folder has success criteria
+## Handoff
 
-**Artifact:** Working code, data artifacts, preliminary results. Update tracking table status to "Executed" or "In progress".
-
-## Stage 4: Polishing
-
-**Goal:** Prepare everything for thesis publication.
-
-**Process:**
-1. Clean up code (lint, tests, docstrings where non-obvious)
-2. Finalize data artifacts with clear naming
-3. Generate publication-quality plots/tables → `packages/latex_viterbo/assets/<label>/`
-4. Write experiment section in `appendix-detailed-experiments.tex` with interpretation
-5. Self-review against the thesis's high standards
-6. Update tracking table status to "Polished" or "Complete"
-
-**Done when:** Passes your self-review against thesis standards. Jörn reviews as fallback for complex interpretations or if thesis standards were misunderstood.
-
-## Abandoned / Failed / Superseded experiments
-
-Experiments don't always succeed. When abandoning:
-
-1. Update tracking table: status → "Abandoned" / "Failed" / "Superseded by X"
-2. Clean up code: remove dead implementation, but keep a stub with:
-   - The original SPEC.md (or summary of it)
-   - Brief explanation of why abandoned (saves future agents time)
-3. Optionally note in thesis appendix if the failure is instructive
-
-## Approval markers
-
-Use `[proposed]` for agent-proposed content awaiting Jörn's review.
-
-**Critical:** Never write "approved" markers without Jörn's explicit approval. Ambiguous responses ("sounds fine") do not count as approval.
-
-Only Jörn removes `[proposed]` markers.
-
-## Handoff between stages
-
-When finishing a stage:
-1. Update the tracking table with current status
-2. Ensure SPEC.md (if exists) reflects current state
-3. Commit changes with clear message referencing the label (e.g., "counterexample-hko: complete specification")
-4. If blocked or needing input, note it explicitly in SPEC.md or tracking table
+When finishing work:
+1. Update tracking table
+2. Ensure SPEC.md reflects current state
+3. Commit with message referencing label
 
 [proposed]
