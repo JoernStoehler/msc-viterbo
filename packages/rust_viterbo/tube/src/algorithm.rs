@@ -59,10 +59,12 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> TubeResult<TubeResult2> {
     // Preprocess polytope
     let data = PolytopeData::from_hrep(hrep)?;
 
-    // Check that we have at least one non-Lagrangian 2-face to work with
-    if data.two_faces_enriched.is_empty() {
-        return Err(TubeError::AllTwoFacesLagrangian {
-            total: data.two_faces.len(),
+    // Check for Lagrangian 2-faces (tube algorithm requires NONE)
+    if data.has_lagrangian_two_faces() {
+        let indices = data.lagrangian_two_face_indices();
+        return Err(TubeError::LagrangianTwoFaces {
+            count: indices.len(),
+            indices,
         });
     }
 
@@ -226,15 +228,12 @@ mod tests {
     }
 
     #[test]
-    fn test_tesseract_has_non_lagrangian_2faces() {
-        // The tesseract has SOME Lagrangian 2-faces (like e₁,e₂ with ω=0)
-        // but also non-Lagrangian ones (like e₁,e₃ with ω=1).
-        // So the algorithm will not reject it with AllTwoFacesLagrangian.
+    fn test_tesseract_rejected_for_lagrangian_2faces() {
+        // The tesseract has Lagrangian 2-faces, so the tube algorithm should reject it
         let tesseract = unit_tesseract();
-        let data = PolytopeData::from_hrep(&tesseract).unwrap();
+        let result = tube_capacity(&tesseract);
 
-        // Verify it has both types
-        assert!(data.has_lagrangian_two_faces(), "Should have some Lagrangian 2-faces");
-        assert!(!data.two_faces_enriched.is_empty(), "Should have non-Lagrangian 2-faces");
+        assert!(matches!(result, Err(TubeError::LagrangianTwoFaces { .. })),
+            "Expected LagrangianTwoFaces error, got {:?}", result);
     }
 }

@@ -1,8 +1,8 @@
 //! Test fixtures for the tube algorithm.
 //!
 //! This module provides standard polytopes for testing:
-//! - Unit cross-polytope (16 facets, no Lagrangian 2-faces)
-//! - Unit tesseract (8 facets, all 2-faces Lagrangian)
+//! - Unit cross-polytope (16 facets, has ~40 Lagrangian 2-faces - REJECTED by tube algorithm)
+//! - Unit tesseract (8 facets, all 2-faces Lagrangian - REJECTED by tube algorithm)
 
 use nalgebra::Vector4;
 
@@ -14,11 +14,12 @@ use crate::polytope::PolytopeHRep;
 /// It has 16 facets with normals proportional to (±1, ±1, ±1, ±1).
 ///
 /// **Note on Lagrangian 2-faces:** The cross-polytope has SOME Lagrangian 2-faces
-/// (approximately 40 out of 120 pairs), but also many non-Lagrangian ones.
-/// The tube algorithm can still work on it, unlike the tesseract where ALL 2-faces
-/// are Lagrangian.
+/// (approximately 40 out of 120 pairs). The tube algorithm requires NO Lagrangian
+/// 2-faces, so it will REJECT the cross-polytope. This is a spec finding: the
+/// cross-polytope was proposed as a candidate assuming it had no Lagrangian 2-faces,
+/// but verification showed otherwise.
 ///
-/// **Expected capacity:** c_EHZ = √2 ≈ 1.414 (needs verification)
+/// **Expected capacity:** c_EHZ = √2 ≈ 1.414 (cannot be verified with tube algorithm)
 pub fn unit_cross_polytope() -> PolytopeHRep {
     let mut normals = Vec::new();
 
@@ -130,8 +131,8 @@ mod tests {
         assert!(lagrangian_count > 0, "Expected some Lagrangian 2-faces, found {}", lagrangian_count);
         assert!(non_lagrangian_count > 0, "Expected some non-Lagrangian 2-faces, found {}", non_lagrangian_count);
 
-        // Verify the tube algorithm can work (has non-Lagrangian 2-faces)
-        // This makes it different from the tesseract where ALL 2-faces are Lagrangian
+        // Note: The tube algorithm requires NO Lagrangian 2-faces, so it will
+        // reject the cross-polytope. Having non-Lagrangian 2-faces is not sufficient.
     }
 
     #[test]
@@ -139,11 +140,12 @@ mod tests {
         let cross = unit_cross_polytope();
         let data = PolytopeData::from_hrep(&cross).unwrap();
 
-        // Cross-polytope has both Lagrangian and non-Lagrangian 2-faces
+        // Cross-polytope has Lagrangian 2-faces, so tube algorithm will reject it
         assert!(data.has_lagrangian_two_faces(),
-            "Cross-polytope should have some Lagrangian 2-faces");
+            "Cross-polytope should have Lagrangian 2-faces");
+        // It also has non-Lagrangian 2-faces (enriched), but that's not sufficient
         assert!(!data.two_faces_enriched.is_empty(),
-            "Cross-polytope should have non-Lagrangian 2-faces (enriched)");
+            "Cross-polytope should have non-Lagrangian 2-faces too");
     }
 
     #[test]

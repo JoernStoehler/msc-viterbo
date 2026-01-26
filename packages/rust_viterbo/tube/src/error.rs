@@ -9,12 +9,14 @@ pub enum TubeError {
     #[error("Invalid polytope: {0}")]
     InvalidPolytope(String),
 
-    /// All 2-faces are Lagrangian, making the tube algorithm inapplicable.
-    /// (The tube algorithm requires at least one non-Lagrangian 2-face to define flow.)
-    #[error("All {total} 2-faces are Lagrangian. Tube algorithm requires at least one non-Lagrangian 2-face.")]
-    AllTwoFacesLagrangian {
-        /// Total number of 2-faces.
-        total: usize,
+    /// The polytope has Lagrangian 2-faces, making the tube algorithm inapplicable.
+    /// (The tube algorithm requires NO Lagrangian 2-faces.)
+    #[error("Polytope has {count} Lagrangian 2-faces at indices {indices:?}. Tube algorithm requires NO Lagrangian 2-faces.")]
+    LagrangianTwoFaces {
+        /// Number of Lagrangian 2-faces.
+        count: usize,
+        /// Indices of Lagrangian 2-faces (as (i, j) pairs).
+        indices: Vec<(usize, usize)>,
     },
 
     /// No closed orbit was found (all tubes pruned).
