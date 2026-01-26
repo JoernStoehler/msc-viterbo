@@ -1831,64 +1831,76 @@ fn compute_facet_flow(
     //
     // <!-- NEEDS VERIFICATION: If bugs occur, check this normal convention first. -->
 
-    // UPDATED: Use explicit basis vectors from §1.10.1 instead of the wrong
-    // untrivialize formula. The basis vectors lie IN the 2-face tangent space.
-    let b_entry = entry_2face.basis_exit;  // [bExit₁, bExit₂] for entry 2-face
-    let b_exit = exit_2face.basis_exit;    // [bExit₁, bExit₂] for exit 2-face
+    // Use explicit basis vectors from §1.10.1. These lie IN the 2-face tangent space.
+    let b_entry = &entry_2face.basis_exit;  // [bExit₁, bExit₂] for entry 2-face
+    let b_exit = &exit_2face.basis_exit;    // [bExit₁, bExit₂] for exit 2-face
     let c_entry = entry_2face.centroid_4d;
     let c_exit = exit_2face.centroid_4d;
 
-    // For trivialization we still need QUAT_J and QUAT_K applied to normals
-    let exit_triv_normal = &exit_2face.exit_normal;
-    let jn_exit = QUAT_J * exit_triv_normal;
-    let kn_exit = QUAT_K * exit_triv_normal;
+    // For converting 4D → 2D at exit, we need QUAT_J and QUAT_K applied to exit normal
+    let n_exit = &exit_2face.exit_normal;
+    let jn_exit = QUAT_J * n_exit;
+    let kn_exit = QUAT_K * n_exit;
 
-    // Build the affine map and time function
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DERIVATION: Flow map in 2D coordinates
     //
-    // For p_2d = (a, b):
-    //   p_4d = a * J*entry_triv_normal + b * K*entry_triv_normal + c_entry
-    //   ⟨p_4d, n_next⟩ = a * ⟨J*entry_triv_normal, n_next⟩ + b * ⟨K*entry_triv_normal, n_next⟩ + ⟨c_entry, n_next⟩
+    // Given p_2d = (a, b) in entry-2-face coordinates, the flow is:
     //
-    //   t = (h_next - ⟨p_4d, n_next⟩) / r_dot_n
-    //     = (h_next - ⟨c_entry, n_next⟩) / r_dot_n
-    //       - (a * ⟨J*entry_triv_normal, n_next⟩ + b * ⟨K*entry_triv_normal, n_next⟩) / r_dot_n
+    // 1. Convert to 4D using explicit basis:
+    //    p_4d = c_entry + a * b_entry[0] + b * b_entry[1]
     //
-    // Time function: t(p_2d) = t_const + ⟨t_grad, p_2d⟩
+    // 2. Compute time to reach exit hyperplane ⟨z, n_next⟩ = h_next:
+    //    t = (h_next - ⟨p_4d, n_next⟩) / ⟨R_curr, n_next⟩
+    //
+    // 3. Flow: q_4d = p_4d + t * R_curr
+    //
+    // 4. Convert to exit 2-face coordinates:
+    //    q_2d = (⟨q_4d - c_exit, jn_exit⟩, ⟨q_4d - c_exit, kn_exit⟩)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Step 2: Time function t(p_2d) = t_const + ⟨t_grad, p_2d⟩
+    //
+    // ⟨p_4d, n_next⟩ = ⟨c_entry, n_next⟩ + a⟨b_entry[0], n_next⟩ + b⟨b_entry[1], n_next⟩
+    //
+    // t = (h_next - ⟨c_entry, n_next⟩ - a⟨b_entry[0], n_next⟩ - b⟨b_entry[1], n_next⟩) / r_dot_n
     let t_const = (h_next - c_entry.dot(&n_next)) / r_dot_n;
     let t_grad = Vector2::new(
-        -j_n_entry.dot(&n_next) / r_dot_n,
-        -k_n_entry.dot(&n_next) / r_dot_n,
+        -b_entry[0].dot(&n_next) / r_dot_n,
+        -b_entry[1].dot(&n_next) / r_dot_n,
     );
     let time_func = AffineFunc { gradient: t_grad, constant: t_const };
 
-    // Flow map: q_4d = p_4d + t * R_curr
-    //   q_4d - c_exit = (p_4d - c_entry) + (c_entry - c_exit) + t * R_curr
+    // Step 4: Build q_2d = A * p_2d + b
     //
-    // Trivialize in exit coordinates:
-    //   q_2d[0] = ⟨q_4d - c_exit, J*exit_triv_normal⟩
-    //   q_2d[1] = ⟨q_4d - c_exit, K*exit_triv_normal⟩
-
-    // Build 2x2 matrix A and offset b for q_2d = A * p_2d + b
+    // q_4d = c_entry + a*b_entry[0] + b*b_entry[1] + t*R_curr
+    // q_4d - c_exit = (c_entry - c_exit) + a*b_entry[0] + b*b_entry[1] + t*R_curr
     //
-    // Components of A come from how (a, b) → p_4d → q_4d → q_2d
-    // Including the time dependence on p_2d
+    // q_2d[0] = ⟨q_4d - c_exit, jn_exit⟩
+    //         = ⟨c_entry - c_exit, jn_exit⟩
+    //           + a⟨b_entry[0], jn_exit⟩ + b⟨b_entry[1], jn_exit⟩
+    //           + t⟨R_curr, jn_exit⟩
+    //
+    // The "a" coefficient in q_2d[0] is:
+    //   ⟨b_entry[0], jn_exit⟩ + ⟨R_curr, jn_exit⟩ * (∂t/∂a)
+    // = ⟨b_entry[0], jn_exit⟩ + ⟨R_curr, jn_exit⟩ * t_grad[0]
 
-    // Direct term: trivialize(exit_triv_normal, untrivialize(entry_triv_normal, e_i))
-    // This is the transition matrix ψ from section 1.11
-    let psi = compute_transition_matrix(entry_triv_normal, exit_triv_normal);
+    // Transition matrix: trivialize entry basis vectors in exit coordinates
+    // ψ[i,j] = ⟨b_entry[j], (QUAT_J or QUAT_K) * n_exit⟩
+    let psi = Matrix2::new(
+        b_entry[0].dot(&jn_exit), b_entry[1].dot(&jn_exit),
+        b_entry[0].dot(&kn_exit), b_entry[1].dot(&kn_exit),
+    );
 
-    // Time-dependent term: derivative of (t * R_curr) w.r.t. p_2d, trivialized
-    // dt/d(p_2d) = t_grad
-    // d(t * R_curr)/d(p_2d) = R_curr ⊗ t_grad (outer product)
-    // Trivialized: [⟨R_curr, J*exit_triv_normal⟩, ⟨R_curr, K*exit_triv_normal⟩] ⊗ t_grad
-    let r_triv = Vector2::new(r_curr.dot(&j_n_exit), r_curr.dot(&k_n_exit));
+    // Reeb vector trivialized in exit coordinates
+    let r_triv = Vector2::new(r_curr.dot(&jn_exit), r_curr.dot(&kn_exit));
 
-    // Matrix: A = ψ + r_triv ⊗ t_grad
+    // Full flow matrix: A = ψ + r_triv ⊗ t_grad
     let a_matrix = psi + r_triv * t_grad.transpose();
 
-    // Offset: b = trivialize(exit_triv_normal, c_entry - c_exit + t_const * R_curr)
+    // Offset: b = τ_exit(c_entry - c_exit + t_const * R_curr)
     let delta_c = c_entry - c_exit + r_curr * t_const;
-    let b_offset = Vector2::new(delta_c.dot(&j_n_exit), delta_c.dot(&k_n_exit));
+    let b_offset = Vector2::new(delta_c.dot(&jn_exit), delta_c.dot(&kn_exit));
 
     let flow_map = AffineMap2D { matrix: a_matrix, offset: b_offset };
 
