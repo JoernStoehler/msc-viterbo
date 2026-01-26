@@ -1,0 +1,86 @@
+%% Creator: Inkscape inkscape 0.92.5, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'secondedge.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{252.84364862bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,1.19320026)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{secondedge.pdf}}%
+    \put(0.48078527,0.67316733){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\left(\phi_t^T\right)^{-1}\circ s_2$\end{tabular}}}}%
+    \put(0.46763644,1.08182965){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\phi_t \circ s_1$\end{tabular}}}}%
+    \put(0.81542055,0.65305333){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\square(1)$\end{tabular}}}}%
+    \put(0.914272,0.81740873){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{\sqrt{3}}{2}$\end{tabular}}}}%
+    \put(0.6096508,1.13502503){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{\sqrt{3}}{2}$\end{tabular}}}}%
+    \put(0.2422736,1.0397835){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\Delta$\end{tabular}}}}%
+    \put(0.94428198,0.415541){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$1$\end{tabular}}}}%
+    \put(0.60661419,0.72946731){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$1$\end{tabular}}}}%
+    \put(0.67824089,1.17653808){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\diamondsuit\left(\frac{\sqrt{3}}{2},\frac{\sqrt{3}}{2},a_2(t)\right)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{secondedge.pdf}}%
+    \put(0.3611122,1.00790844){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{1}{2}$\end{tabular}}}}%
+    \put(0.06153479,1.00938116){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-\frac{1}{2}$\end{tabular}}}}%
+    \put(0.23272625,0.93804006){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-\frac{1}{2\sqrt{3}}$\end{tabular}}}}%
+    \put(0.23996188,1.14280905){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$\frac{1}{\sqrt{3}}$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{secondedge.pdf}}%
+    \put(0.22759355,0.80519205){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$J\Delta$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{secondedge.pdf}}%
+    \put(0.08187725,0.73797739){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-J\Delta$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{secondedge.pdf}}%
+    \put(-0.00098489,0.47363252){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-2J\Delta$\end{tabular}}}}%
+    \put(0.48908365,0.81051643){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$-J\Delta + t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{secondedge.pdf}}%
+    \put(0.51032481,0.48402066){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$T^*(t)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{secondedge.pdf}}%
+    \put(0.57824055,0.93901903){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$a_2(t)$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{secondedge.pdf}}%
+    \put(0.3353186,0.64979228){\color[rgb]{0,0,0}\makebox(0,0)[lt]{\lineheight{1.25}\smash{\begin{tabular}[t]{l}$t$\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{secondedge.pdf}}%
+  \end{picture}%
+\endgroup%

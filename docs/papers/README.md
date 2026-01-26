@@ -9,9 +9,13 @@ For the full workflow on adding new papers, see `.claude/skills/paper-reading/SK
 
 | Folder | arXiv | Citation | Key Content |
 |--------|-------|----------|-------------|
-| `HK2017-EHZ-polytopes/` | 1712.03494 | HK2017 | HK combinatorial capacity formula (Theorem 1) |
+| `HK2017-EHZ-polytopes/` | 1712.03494 | HK2017 | HK combinatorial capacity formula (Theorem 1); **this is HK's MSc thesis** |
 | `HK2024-counterexample/` | 2405.16513 | HK2024 | Pentagon x Pentagon counterexample |
 | `CH2021-systolic/` | 2008.10111 | CH2021 | Chaidez-Hutchings computational methods |
+| `Rudolf2022-worm-problem/` | 2203.02043 | Rudolf2022 | Viterbo's conjecture as worm problem; Minkowski billiards |
+| `Irie2019-loop-spaces/` | 1907.09749 | Irie2019 | SH capacity = EHZ capacity; HZ subadditivity |
+| `AK2019-SH-clarke/` | 1907.07779 | AK2019 | Abbondandolo-Kang: SH via Clarke's dual action |
+| `Irie2010-billiard-trajectory/` | 1010.3170 | Irie2010 | Short periodic billiard trajectory; at most n+1 bounces |
 
 ## Quick Reference
 

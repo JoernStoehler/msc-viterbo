@@ -22,63 +22,57 @@ Papers live in `docs/papers/`. Check existing folders first:
 ls -la docs/papers/
 ```
 
-## [proposed] Download workflow
+## Download workflow
 
-1. **Get arXiv ID** from URL (e.g., `https://arxiv.org/abs/2405.16513` -> ID is `2405.16513`)
+**Use the download script:**
+```bash
+scripts/download-arxiv.sh <arxiv-id> <folder-name>
+# Example:
+scripts/download-arxiv.sh 2203.02043 Rudolf2022-worm-problem
+```
 
-2. **Create folder** with naming convention:
-   - Pattern: `docs/papers/CITATIONKEY-short-description/`
-   - Citation key: Author initials + year (matches BibTeX)
-   - Examples: `HK2017-EHZ-polytopes/`, `CH2021-systolic/`
+**Folder naming convention:**
+- Single author: `Surname + Year + description` (e.g., `Rudolf2022-worm-problem`, `Irie2019-loop-spaces`)
+- Multiple authors: `Initials + Year + description` (e.g., `HK2024-counterexample`, `AK2019-SH-clarke`)
 
-3. **Download and extract source** (TeX, not PDF):
-   ```bash
-   mkdir -p docs/papers/HK2024-counterexample
-   cd docs/papers/HK2024-counterexample
-   wget https://arxiv.org/e-print/2405.16513 -O source.tar.gz
-   tar -xzf source.tar.gz
-   rm source.tar.gz
-   ls -la  # see what files extracted
-   ```
+The script handles format detection (tar.gz vs gzip'd single file) automatically.
 
-   **Keep source files as-is** - don't rename them. They may have internal `\input{}` references that would break.
+### After downloading checklist
 
-4. **Update docs/papers/README.md** table with:
-   - Folder name
-   - arXiv ID
-   - Citation key
-   - Key content description
-
-5. **Add BibTeX entry** to `packages/latex_viterbo/references.bib`:
+1. **Update `docs/papers/README.md`** - add row to the table
+2. **Add BibTeX to `packages/latex_viterbo/references.bib`** - websearch `arXiv <id>` for title/authors:
    ```bibtex
-   @article{HK2024,
-     title        = {A Counterexample to Viterbo's Conjecture},
-     author       = {Haim-Kislev, Pazit and Ostrover, Yaron},
-     year         = {2024},
+   @article{Rudolf2022,
+     title        = {Viterbo's conjecture as a worm problem},
+     author       = {Rudolf, Daniel},
+     year         = {2022},
      journal      = {arXiv preprint},
-     eprint       = {2405.16513},
+     eprint       = {2203.02043},
      archivePrefix= {arXiv},
      primaryClass = {math.SG},
      note         = {Brief description of key results.}
    }
    ```
+3. **Verify extraction** - `ls -la docs/papers/<folder>/` to see files
 
-## [proposed] Reading papers
+## Reading papers
 
 **Read the .tex files directly.** They are plain text and more reliable than PDF parsing.
 
+**Watch for custom macros:** Some papers define shortcuts like `\bthm` instead of `\begin{theorem}`. If standard searches return nothing, check the preamble for `\def\bthm` or similar. Search for both patterns:
+
 ```bash
-# List files in a paper folder
-ls -la docs/papers/CH2021-systolic/
+# Standard LaTeX theorem environments
+grep -n "begin{theorem}\|begin{definition}\|begin{lemma}" docs/papers/FOLDER/*.tex
 
-# Find theorems, definitions, lemmas
-grep -n "begin{theorem}\|begin{definition}\|begin{lemma}" docs/papers/HK2017-EHZ-polytopes/*.tex
+# Custom macros (common in some papers)
+grep -n "\\\\bthm\|\\\\blem\|\\\\bprop\|\\\\bdefi" docs/papers/FOLDER/*.tex
 
-# Find where a label is defined
-grep -n "\\\\label{" docs/papers/CH2021-systolic/*.tex
+# Find all labels
+grep -n "\\\\label{" docs/papers/FOLDER/*.tex
 ```
 
-## [proposed] Labels vs Numbers (TeX vs PDF)
+## Labels vs Numbers (TeX vs PDF)
 
 TeX files use **labels** (e.g., `\label{thm:main}`), while PDFs show **numbers** (e.g., "Theorem 3.2"). This matters when:
 - A human asks about "Theorem 3.2" but you're reading TeX
@@ -102,7 +96,7 @@ TeX files use **labels** (e.g., `\label{thm:main}`), while PDFs show **numbers**
 
 **Do not rely on PDF for math content** - PDF parsing mangles formulas (missing signs, broken fractions, extra symbols). Use PDF only to verify theorem numbering if absolutely necessary.
 
-## [proposed] Folder naming rationale
+## Folder naming rationale
 
 The scheme `CITATIONKEY-description/` with original filenames inside enables:
 - **Discoverability**: Find papers by author, year, or topic via folder names
