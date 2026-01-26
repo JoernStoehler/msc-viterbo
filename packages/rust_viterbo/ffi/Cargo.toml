@@ -1,10 +1,9 @@
-# ARCHIVED - Returns NotImplemented errors
+# Python FFI for EHZ capacity algorithms
 # See docs/ffi-contract.md for the API spec
-# Re-implement from docs/developer-spec.md when needed
 
 [package]
 name = "rust_viterbo_ffi"
-version = "0.2.0"  # Bumped to indicate archived stub
+version = "0.3.0"  # Tube algorithm implemented
 edition = "2021"
 
 [lib]
@@ -12,3 +11,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
+tube = { path = "../tube" }
+nalgebra = "0.33"

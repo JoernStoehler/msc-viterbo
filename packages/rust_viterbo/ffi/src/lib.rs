@@ -1,39 +1,75 @@
-//! ARCHIVED STUB - Implementation deleted
+//! Python FFI for EHZ capacity algorithms.
 //!
-//! This crate previously provided Python FFI for EHZ capacity algorithms.
-//! The implementation has been archived at tag `v0.1.0-archive`.
-//!
-//! To re-implement:
-//! 1. Read `docs/developer-spec.md` for algorithm specifications
-//! 2. Read `docs/ffi-contract.md` for the Python API contract
-//! 3. Reference the archived code via `git show v0.1.0-archive:packages/rust_viterbo/`
+//! This crate provides Python bindings for the tube algorithm and related
+//! geometric computations.
 
-use pyo3::exceptions::PyNotImplementedError;
+use nalgebra::Vector4;
+use pyo3::exceptions::{PyNotImplementedError, PyValueError};
 use pyo3::prelude::*;
+use tube::{PolytopeHRep, tube_capacity};
 
 const ARCHIVED_MSG: &str =
     "Archived. See docs/developer-spec.md to re-implement, or checkout tag v0.1.0-archive";
 
 /// Return the symplectic form ω(x,y) in R^4.
 ///
-/// This is the only function that still works - it's a simple computation.
+/// ω(x, y) = q₁p₁' + q₂p₂' - p₁q₁' - p₂q₂'
+/// where x = (q₁, q₂, p₁, p₂) and y = (q₁', q₂', p₁', p₂')
 #[pyfunction]
 fn symplectic_form_4d(a: [f64; 4], b: [f64; 4]) -> f64 {
-    // ω(x, y) = q₁p₁' + q₂p₂' - p₁q₁' - p₂q₂'
-    // where x = (q₁, q₂, p₁, p₂) and y = (q₁', q₂', p₁', p₂')
     a[0] * b[2] + a[1] * b[3] - a[2] * b[0] - a[3] * b[1]
 }
 
-/// Entry point for the tube capacity algorithm (H-rep only).
-/// ARCHIVED - Returns NotImplementedError.
+/// Compute EHZ capacity using the tube algorithm.
+///
+/// The tube algorithm applies to polytopes with NO Lagrangian 2-faces
+/// (i.e., ω(nᵢ, nⱼ) ≠ 0 for all adjacent facet pairs).
+///
+/// # Arguments
+/// * `normals` - List of unit outward facet normals (each as [q1, q2, p1, p2])
+/// * `heights` - List of facet heights (must be positive, implying 0 ∈ int(K))
+/// * `unit_tol` - Tolerance for unit normal validation (default: 1e-9)
+///
+/// # Returns
+/// * `float` - The EHZ capacity (minimum action of closed Reeb orbits)
+///
+/// # Raises
+/// * `ValueError` - If input validation fails or polytope has Lagrangian 2-faces
 #[pyfunction]
-#[pyo3(signature = (_normals, _heights, _unit_tol=1e-9))]
+#[pyo3(signature = (normals, heights, unit_tol=1e-9))]
 fn tube_capacity_hrep(
-    _normals: Vec<[f64; 4]>,
-    _heights: Vec<f64>,
-    _unit_tol: f64,
+    normals: Vec<[f64; 4]>,
+    heights: Vec<f64>,
+    unit_tol: f64,
 ) -> PyResult<f64> {
-    Err(PyNotImplementedError::new_err(ARCHIVED_MSG))
+    // Convert normals to nalgebra vectors
+    let normals: Vec<Vector4<f64>> = normals
+        .into_iter()
+        .map(|n| Vector4::new(n[0], n[1], n[2], n[3]))
+        .collect();
+
+    // Validate unit normals
+    for (i, n) in normals.iter().enumerate() {
+        let norm = n.norm();
+        if (norm - 1.0).abs() > unit_tol {
+            return Err(PyValueError::new_err(format!(
+                "Normal {} is not a unit vector: ||n|| = {}",
+                i, norm
+            )));
+        }
+    }
+
+    // Create H-rep
+    let hrep = PolytopeHRep::new(normals, heights).map_err(|e| {
+        PyValueError::new_err(format!("Invalid polytope: {}", e))
+    })?;
+
+    // Run tube algorithm
+    let (capacity, _orbit) = tube_capacity(&hrep).map_err(|e| {
+        PyValueError::new_err(format!("Tube algorithm failed: {}", e))
+    })?;
+
+    Ok(capacity)
 }
 
 /// Compute EHZ capacity using the Minkowski billiard algorithm.

@@ -1,7 +1,48 @@
-# Code Audit Tracker
+# Implementation Status
 
-> **⚠️ ARCHIVED CODE** — This document describes the v0.1.0 implementation which was deleted.
-> The code is preserved at git tag `v0.1.0-archive`. New implementation should follow [developer-spec-v2.md](developer-spec-v2.md).
+## Current Status (2026-01-26)
+
+A new tube algorithm implementation has been created following [developer-spec-v2.md](developer-spec-v2.md).
+
+### Tube Crate (`packages/rust_viterbo/tube/`)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Symplectic primitives | ✅ Done | J, K matrices, ω form |
+| H-rep polytope | ✅ Done | Input validation |
+| 2-face enumeration | ⚠️ Partial | Checks all pairs, not just adjacent |
+| Trivialization (τ, τ⁻¹) | ✅ Done | Quaternion basis |
+| Transition matrices | ✅ Done | det ≠ 1 issue noted |
+| Tube data structure | ✅ Done | Affine maps, action functions |
+| Tube extension | ✅ Done | Flow map computation |
+| Fixed point finding | ✅ Done | Closure detection |
+| 4D reconstruction | ✅ Done | With validation |
+| Branch-and-bound | ✅ Done | With pruning |
+| FFI bindings | ✅ Done | tube_capacity_hrep |
+
+### Known Limitations
+
+1. **2-face enumeration**: Currently checks ALL facet pairs, not just geometrically adjacent ones. This causes false positives for Lagrangian 2-face detection. Proper implementation requires vertex enumeration.
+
+2. **Transition matrix determinant**: The spec claims det(ψ) = 1 (symplectic), but testing shows det ≠ 1 for general normal pairs. This may be a spec issue or additional conditions not captured.
+
+3. **Placeholder polygons**: 2-face polygons are placeholders (unit squares). Need proper vertex enumeration to compute actual 2-face vertices.
+
+### Tests
+
+34 tests passing:
+- Geometry: 12 tests (J/K matrices, symplectic form, polygon ops)
+- Polytope: 7 tests (H-rep validation, Reeb vectors, 2-face detection)
+- Trivialization: 7 tests (roundtrip, basis, transition)
+- Tube: 6 tests (affine maps, closure detection)
+- Algorithm: 2 tests (Lagrangian rejection, cross-polytope)
+
+---
+
+# Archived Code Audit (v0.1.0)
+
+> **⚠️ ARCHIVED CODE** — This section describes the v0.1.0 implementation which was deleted.
+> The code is preserved at git tag `v0.1.0-archive`.
 
 Status of the archived rust_viterbo crate implementation.
 
