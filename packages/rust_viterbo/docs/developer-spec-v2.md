@@ -1445,8 +1445,10 @@ struct PiecewiseLinearReebTrajectory {
 **Mathematical conditions (not encoded in type):**
 1. Each breakpoint lies on \(\partial K\)
 2. Each segment lies on its claimed facet: both endpoints satisfy \(\langle n_i, p \rangle = h_i\)
-3. Velocity = Reeb vector: \((p_{k+1} - p_k) / \tau_k = R_{i_k}\)
-4. Times positive: \(\tau_k > 0\)
+3. Velocity = Reeb vector: \((p_{k+1} - p_k) / \tau_k = R_{i_k}\) (when \(\tau_k > 0\))
+4. Times non-negative: \(\tau_k \geq 0\)
+
+> **ZERO-TIME TRANSITION:** A segment may have \(\tau_k = 0\) when a breakpoint lies at the intersection of three or more facets (a vertex or edge of the polytope). In this case, condition 3 becomes vacuously true since \(p_{k+1} = p_k\). The orbit "instantaneously" transitions between facet sequences without physical flow. This is valid and contributes zero action.
 
 **Segment time formula (derived from velocity constraint):**
 
@@ -1474,10 +1476,15 @@ fn compute_segment_time(
 
 **Assertions:**
 ```rust
-// Velocity matches Reeb vector
-let velocity = (breakpoints[k+1] - breakpoints[k]) / segment_times[k];
-let expected_velocity = &reeb_vectors[segment_facets[k]];
-assert!((velocity - expected_velocity).norm() < EPS);
+// Velocity matches Reeb vector (ZERO-TIME NOTE: skip if segment_times[k] == 0)
+if segment_times[k] > EPS {
+    let velocity = (breakpoints[k+1] - breakpoints[k]) / segment_times[k];
+    let expected_velocity = &reeb_vectors[segment_facets[k]];
+    assert!((velocity - expected_velocity).norm() < EPS);
+} else {
+    // Zero-time segment: breakpoints must coincide
+    assert!((breakpoints[k+1] - breakpoints[k]).norm() < EPS);
+}
 
 // Both endpoints on claimed facet
 assert!((normals[i].dot(&breakpoints[k]) - heights[i]).abs() < EPS);
@@ -1494,6 +1501,8 @@ For Reeb dynamics, **action equals period**:
 \[
 A(\gamma) = T = \sum_k \tau_k
 \]
+
+> **ZERO-TIME NOTE:** Zero-time segments (\(\tau_k = 0\)) contribute zero to this sum, which is correct: no physical flow means no action contribution. The action formulas `action_from_segment_times` and `action_from_breakpoints_and_facets` both handle zero-time segments correctly without special cases.
 
 **Proof sketch:** The Reeb vector \(R\) is defined by \(\alpha(R) = 1\) and \(\iota_R d\alpha = 0\). For a Reeb orbit \(\gamma\) parametrized by \(t \in [0, T]\):
 \[
@@ -1720,8 +1729,10 @@ struct AffineFunc {
 
 **Rotation convention:**
 - **rot(init) = 0:** A root tube (facet_sequence = [i, j]) has rotation = 0.
-- **Non-decreasing:** Rotation increments are always ≥ 0 as the tube extends. Each 2-face crossing adds its rotation number ρ(F) ∈ (0, 0.5).
+- **Non-decreasing:** Rotation increments are always > 0 as the tube extends. Each 2-face crossing adds its rotation number ρ(F) ∈ (0, 0.5).
 - **Pruning bound:** Total rotation for a minimum-action orbit is in (1, 2) turns (CH2021 Prop 1.10). We prune tubes with rotation > 2.
+
+> **ZERO-TIME NOTE:** Even zero-time transitions add positive rotation. The rotation number ρ(F) depends only on the 2-face geometry (the angle between facet normals), not on the time spent flowing. A zero-time transition still "crosses" the 2-face combinatorially, contributing its full rotation increment to the tube's total rotation.
 
 **Mathematical conditions:**
 1. `p_start` is a convex polygon (intersection of start 2-face with tube constraints)
@@ -1913,8 +1924,11 @@ fn compute_facet_flow(
 // Flow map is symplectic (area-preserving)
 assert!((flow_map.matrix.determinant() - 1.0).abs() < EPS);
 
-// Time is positive for valid flow direction
-// (may be negative if we're flowing the wrong way, which should be caught by empty intersection)
+// Time is non-negative for valid flow direction
+// ZERO-TIME NOTE: t = 0 is valid when a starting point already lies on the exit 2-face
+// (i.e., the point is at a vertex or edge where 3+ facets meet). This produces a
+// zero-time transition contributing zero action. Negative time indicates wrong flow
+// direction, which should be caught by empty polygon intersection.
 ```
 
 #### Extending a Tube
@@ -2123,6 +2137,8 @@ fn reconstruct_4d_orbit(
         .collect();
 
     // Compute segment times from displacement and Reeb velocity
+    // ZERO-TIME NOTE: When breakpoints[k+1] == breakpoints[k], this correctly yields t_k = 0.
+    // This happens at vertices where 3+ facets meet.
     let segment_times: Vec<f64> = (0..n_segments)
         .map(|k| {
             let facet_idx = segment_facets[k];
@@ -2148,10 +2164,11 @@ fn reconstruct_4d_orbit(
 
 **Assertions:**
 ```rust
-// All segment times are positive
-assert!(segment_times.iter().all(|&t| t > 0.0));
+// All segment times are non-negative (ZERO-TIME NOTE: allow t == 0)
+assert!(segment_times.iter().all(|&t| t >= 0.0));
 
 // Segment displacements match Reeb velocities
+// (ZERO-TIME NOTE: this holds even when t_k = 0, since displacement = 0 = 0 * R_i)
 for k in 0..n_segments {
     let displacement = &breakpoints[k + 1] - &breakpoints[k];
     let expected = polytope_data.reeb_vector(segment_facets[k]) * segment_times[k];
@@ -2160,7 +2177,7 @@ for k in 0..n_segments {
 
 // Period equals action (for closed Reeb orbits)
 let action = action_of_closed_polygon(&breakpoints);
-assert!((period - action).abs() < EPS * period);
+assert!((period - action).abs() < EPS * period.max(EPS));  // Guard against period ≈ 0
 ```
 
 ---
@@ -2199,14 +2216,23 @@ impl ClosedReebOrbit {
         }
 
         // 4. Velocities match Reeb vectors
+        // ZERO-TIME NOTE: When segment_times[k] == 0, check displacement == 0 instead
         for k in 0..self.segment_facets.len() {
             let i = self.segment_facets[k];
             let displacement = &self.breakpoints[k + 1] - &self.breakpoints[k];
-            let velocity = displacement / self.segment_times[k];
             let reeb = (J_MATRIX * hrep.normals[i]) * (2.0 / hrep.heights[i]);
 
-            if (velocity - reeb).norm() > EPS * reeb.norm() {
-                return Err(ValidationError::VelocityMismatch(k));
+            if self.segment_times[k] < EPS {
+                // Zero-time segment: breakpoints must coincide
+                if displacement.norm() > EPS {
+                    return Err(ValidationError::ZeroTimeNonzeroDisplacement(k));
+                }
+            } else {
+                // Positive-time segment: velocity must match Reeb
+                let velocity = displacement / self.segment_times[k];
+                if (velocity - reeb).norm() > EPS * reeb.norm() {
+                    return Err(ValidationError::VelocityMismatch(k));
+                }
             }
         }
 
@@ -3130,8 +3156,8 @@ Tests should be designed to **catch bugs**, not just confirm correctness. The fo
 |------|---------------------|
 | `det(flow_map.matrix) == 1` after each extension | Area preservation broken |
 | `flow_map(p)` actually lands on exit 2-face | Flow computation wrong |
-| Time function gives positive time for valid flow direction | Sign error |
-| Time ≈ 0: point near exit 2-face already | Edge case |
+| Time function gives non-negative time for valid flow direction | Sign error (ZERO-TIME NOTE: t=0 is valid) |
+| Time == 0: point already on exit 2-face | Zero-time transition (valid edge case) |
 | Time very large: point far from exit 2-face | Numerical overflow |
 
 **4.9.4 Fixed Point Tests (§2.11):**
