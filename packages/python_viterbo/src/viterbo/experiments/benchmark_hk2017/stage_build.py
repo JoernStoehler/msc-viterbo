@@ -39,6 +39,7 @@ class TimingResult:
     n_facets: int
     n_points: int  # For random hulls; 0 for fixed polytopes
     rep: int
+    algorithm: str  # "naive" or "graph_pruned"
     wall_time_ms: float
     capacity: float
     permutations_evaluated: int
@@ -189,9 +190,16 @@ def make_random_hull(
 
 
 def time_hk2017(
-    normals: list[list[float]], heights: list[float]
+    normals: list[list[float]],
+    heights: list[float],
+    use_graph_pruning: bool = False,
 ) -> tuple[float, float, int, int]:
     """Time HK2017 capacity computation.
+
+    Args:
+        normals: Unit outward normal vectors.
+        heights: Distances from origin to facets.
+        use_graph_pruning: If True, use graph-based cycle enumeration.
 
     Returns:
         (wall_time_ms, capacity, perms_evaluated, perms_rejected)
@@ -204,7 +212,7 @@ def time_hk2017(
         )
 
     start = time.perf_counter()
-    result = ffi.hk2017_capacity_hrep(normals, heights)
+    result = ffi.hk2017_capacity_hrep(normals, heights, use_graph_pruning)
     elapsed = time.perf_counter() - start
 
     return (
@@ -215,6 +223,56 @@ def time_hk2017(
     )
 
 
+def _time_polytope(
+    family: str,
+    n_facets: int,
+    n_points: int,
+    rep: int,
+    normals: list[list[float]],
+    heights: list[float],
+    algorithms: list[str],
+) -> list[TimingResult]:
+    """Time a single polytope with all specified algorithms."""
+    results = []
+    for algo in algorithms:
+        use_graph_pruning = algo == "graph_pruned"
+        try:
+            wall_time, capacity, evaluated, rejected = time_hk2017(
+                normals, heights, use_graph_pruning
+            )
+            results.append(
+                TimingResult(
+                    family=family,
+                    n_facets=n_facets,
+                    n_points=n_points,
+                    rep=rep,
+                    algorithm=algo,
+                    wall_time_ms=wall_time,
+                    capacity=capacity,
+                    permutations_evaluated=evaluated,
+                    permutations_rejected=rejected,
+                    success=True,
+                )
+            )
+        except Exception as e:
+            results.append(
+                TimingResult(
+                    family=family,
+                    n_facets=n_facets,
+                    n_points=n_points,
+                    rep=rep,
+                    algorithm=algo,
+                    wall_time_ms=0,
+                    capacity=0,
+                    permutations_evaluated=0,
+                    permutations_rejected=0,
+                    success=False,
+                    error=str(e),
+                )
+            )
+    return results
+
+
 def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
     """Run the full benchmark suite."""
     rng = random.Random(cfg["seed"])
@@ -222,45 +280,18 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
 
     facet_counts = cfg["facet_counts"]
     reps = cfg["repetitions"]
+    algorithms = cfg.get("algorithms", ["naive", "graph_pruned"])
 
-    # Note: Skip simplex for now - it triggers verification errors in debug builds
-    # TODO: Investigate simplex construction or HK2017 algorithm edge cases
+    print(f"Testing algorithms: {algorithms}")
 
     # 1. Benchmark tesseract (8 facets) - known to work, capacity = 4.0
     if 8 in facet_counts:
         print("Benchmarking tesseract (8 facets)...")
         normals, heights = make_tesseract_hrep()
         for rep in range(reps):
-            try:
-                wall_time, capacity, evaluated, rejected = time_hk2017(normals, heights)
-                results.append(
-                    TimingResult(
-                        family="tesseract",
-                        n_facets=8,
-                        n_points=0,
-                        rep=rep,
-                        wall_time_ms=wall_time,
-                        capacity=capacity,
-                        permutations_evaluated=evaluated,
-                        permutations_rejected=rejected,
-                        success=True,
-                    )
-                )
-            except Exception as e:
-                results.append(
-                    TimingResult(
-                        family="tesseract",
-                        n_facets=8,
-                        n_points=0,
-                        rep=rep,
-                        wall_time_ms=0,
-                        capacity=0,
-                        permutations_evaluated=0,
-                        permutations_rejected=0,
-                        success=False,
-                        error=str(e),
-                    )
-                )
+            results.extend(
+                _time_polytope("tesseract", 8, 0, rep, normals, heights, algorithms)
+            )
 
     # 2. Benchmark random hulls
     # In 4D: 5 points -> 5 facets (simplex), 6-7 points -> 8-10 facets
@@ -269,7 +300,8 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
 
     # Exclude 8 facets since we already have tesseract
     target_facets = [f for f in facet_counts if f != 8]
-    random_results_by_facets: dict[int, list[TimingResult]] = {f: [] for f in target_facets}
+    # Track count per facet (independent of algorithm)
+    polytope_count_by_facets: dict[int, int] = {f: 0 for f in target_facets}
 
     # For 5 facets, use exactly 5 points (always gives simplex)
     if 5 in target_facets:
@@ -278,37 +310,11 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
             normals, heights, n_facets = make_random_hull(5, rng)
             if n_facets != 5:
                 continue
-            try:
-                wall_time, capacity, evaluated, rejected = time_hk2017(normals, heights)
-                random_results_by_facets[5].append(
-                    TimingResult(
-                        family="random_simplex",
-                        n_facets=5,
-                        n_points=5,
-                        rep=rep,
-                        wall_time_ms=wall_time,
-                        capacity=capacity,
-                        permutations_evaluated=evaluated,
-                        permutations_rejected=rejected,
-                        success=True,
-                    )
-                )
-            except Exception as e:
-                results.append(
-                    TimingResult(
-                        family="random_simplex",
-                        n_facets=5,
-                        n_points=5,
-                        rep=-1,
-                        wall_time_ms=0,
-                        capacity=0,
-                        permutations_evaluated=0,
-                        permutations_rejected=0,
-                        success=False,
-                        error=str(e),
-                    )
-                )
-        print(f"    Got {len(random_results_by_facets[5])}/{reps} successful runs")
+            results.extend(
+                _time_polytope("random_simplex", 5, 5, rep, normals, heights, algorithms)
+            )
+            polytope_count_by_facets[5] += 1
+        print(f"    Got {polytope_count_by_facets[5]}/{reps} polytopes")
 
     # For 8-10 facets, use 6-7 points
     other_targets = [f for f in target_facets if f != 5]
@@ -320,50 +326,24 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
             n_points = rng.choice([6, 7])
             normals, heights, n_facets = make_random_hull(n_points, rng)
 
-            if n_facets == 0 or n_facets not in random_results_by_facets:
+            if n_facets == 0 or n_facets not in polytope_count_by_facets:
                 continue
-            if len(random_results_by_facets[n_facets]) >= reps:
+            if polytope_count_by_facets[n_facets] >= reps:
                 continue
 
-            try:
-                wall_time, capacity, evaluated, rejected = time_hk2017(normals, heights)
-                random_results_by_facets[n_facets].append(
-                    TimingResult(
-                        family="random_hull",
-                        n_facets=n_facets,
-                        n_points=n_points,
-                        rep=len(random_results_by_facets[n_facets]),
-                        wall_time_ms=wall_time,
-                        capacity=capacity,
-                        permutations_evaluated=evaluated,
-                        permutations_rejected=rejected,
-                        success=True,
-                    )
-                )
-            except Exception as e:
-                results.append(
-                    TimingResult(
-                        family="random_hull",
-                        n_facets=n_facets,
-                        n_points=n_points,
-                        rep=-1,
-                        wall_time_ms=0,
-                        capacity=0,
-                        permutations_evaluated=0,
-                        permutations_rejected=0,
-                        success=False,
-                        error=str(e),
-                    )
-                )
+            rep = polytope_count_by_facets[n_facets]
+            results.extend(
+                _time_polytope("random_hull", n_facets, n_points, rep, normals, heights, algorithms)
+            )
+            polytope_count_by_facets[n_facets] += 1
 
-            if all(len(random_results_by_facets[f]) >= reps for f in other_targets):
+            if all(polytope_count_by_facets[f] >= reps for f in other_targets):
                 break
 
-    # Add random hull results
-    for f in sorted(random_results_by_facets.keys()):
+    # Print summary
+    for f in sorted(polytope_count_by_facets.keys()):
         if f != 5:  # Already printed
-            print(f"    {f} facets: {len(random_results_by_facets[f])}/{reps} successful runs")
-        results.extend(random_results_by_facets[f])
+            print(f"    {f} facets: {polytope_count_by_facets[f]}/{reps} polytopes")
 
     return results
 

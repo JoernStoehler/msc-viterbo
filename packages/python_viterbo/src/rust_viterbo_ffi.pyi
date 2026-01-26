@@ -41,9 +41,38 @@ def billiard_capacity_hrep(
 
 def hk2019_capacity_hrep(
     normals: Sequence[Vector4], heights: Sequence[float], *, unit_tol: float = ...
-) -> CapacityResult:
-    """Compute EHZ capacity using the HK2019 QP algorithm.
+) -> float:
+    """LEGACY: Compute EHZ capacity using the HK2017 algorithm.
 
-    Works for any polytope but limited to ≤10 facets due to O(F!) complexity.
+    This is an alias for hk2017_capacity_hrep for backwards compatibility.
+    Returns just the capacity value (not the full result object).
+    """
+    ...
+
+class Hk2017Result:
+    """Result of HK2017 capacity computation."""
+
+    capacity: float
+    q_max: float
+    optimal_permutation: list[int]
+    optimal_beta: list[float]
+    permutations_evaluated: int
+    permutations_rejected: int
+
+def hk2017_capacity_hrep(
+    normals: Sequence[Vector4],
+    heights: Sequence[float],
+    use_graph_pruning: bool = False,
+) -> Hk2017Result:
+    """Compute EHZ capacity using the HK2017 combinatorial formula.
+
+    Args:
+        normals: Unit outward normal vectors for each facet.
+        heights: Signed distances from origin to each facet (must be positive).
+        use_graph_pruning: If True, use graph-based cycle enumeration (faster).
+                          If False (default), use naive enumeration.
+
+    Returns:
+        Hk2017Result with capacity, optimal permutation, and statistics.
     """
     ...
