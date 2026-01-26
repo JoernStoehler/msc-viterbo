@@ -279,12 +279,16 @@ pub struct PolytopeData {
     pub heights: Vec<f64>,
     /// Reeb vectors: Rᵢ = (2/hᵢ) * I * nᵢ.
     pub reeb_vectors: Vec<Vector4<f64>>,
-    /// All 2-faces (basic data).
+    /// All 2-faces (basic data) - only TRUE 2-faces (sharing ≥3 vertices).
     pub two_faces: Vec<TwoFace>,
     /// Enriched 2-faces (non-Lagrangian only).
     pub two_faces_enriched: Vec<TwoFaceEnriched>,
     /// 2-face lookup: two_face_index[i][j] = index into two_faces_enriched (or None).
     pub two_face_index: Vec<Vec<Option<usize>>>,
+    /// Polytope vertices (computed via vertex enumeration).
+    pub vertices: Vec<Vector4<f64>>,
+    /// For each facet, indices of vertices on that facet.
+    pub facet_vertices: Vec<Vec<usize>>,
 }
 
 impl PolytopeData {
@@ -303,30 +307,40 @@ impl PolytopeData {
             .map(|(n, &h)| reeb_vector(n, h))
             .collect();
 
-        // Find all 2-faces
+        // Enumerate vertices using facet intersection
+        let vertices = enumerate_vertices(&normals, &heights)?;
+
+        // For each facet, find which vertices lie on it
+        let facet_vertices: Vec<Vec<usize>> = (0..num_facets)
+            .map(|i| {
+                vertices
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, v)| (normals[i].dot(v) - heights[i]).abs() < EPS)
+                    .map(|(idx, _)| idx)
+                    .collect()
+            })
+            .collect();
+
+        // Find all TRUE 2-faces (pairs of facets sharing ≥3 vertices)
         let mut two_faces = Vec::new();
         let mut two_face_index: Vec<Vec<Option<usize>>> =
             vec![vec![None; num_facets]; num_facets];
 
-        // We need to determine which pairs of facets form 2-faces.
-        // For a general polytope, we'd need vertex enumeration.
-        // For now, we check adjacency by looking at normal directions.
-        // Two facets form a 2-face if their normals are not parallel.
         for i in 0..num_facets {
             for j in (i + 1)..num_facets {
-                // Check if facets are adjacent (non-parallel normals, form a 2D intersection)
-                // For the tube algorithm, we need non-Lagrangian 2-faces.
-                let n_i = &normals[i];
-                let n_j = &normals[j];
+                // Count shared vertices
+                let shared: Vec<usize> = facet_vertices[i]
+                    .iter()
+                    .filter(|v| facet_vertices[j].contains(v))
+                    .copied()
+                    .collect();
 
-                // Check if normals are not parallel
-                let cross_norm = (n_i - n_j).norm();
-                if cross_norm < EPS {
-                    continue; // Parallel, no 2-face
+                // A 2-face requires ≥3 shared vertices (a triangle or more)
+                if shared.len() >= 3 {
+                    let two_face = TwoFace::new(i, j, &normals[i], &normals[j]);
+                    two_faces.push(two_face);
                 }
-
-                let two_face = TwoFace::new(i, j, n_i, n_j);
-                two_faces.push(two_face);
             }
         }
 
@@ -335,10 +349,8 @@ impl PolytopeData {
 
         for tf in two_faces.iter() {
             if !tf.is_lagrangian {
-                // For enrichment, we need 4D vertices of the 2-face.
-                // Without full vertex enumeration, we'll compute placeholder vertices.
-                // In a full implementation, this would come from vertex enumeration.
-                let vertices_4d = compute_2face_vertices(tf, &normals, &heights)?;
+                // Get actual 2-face vertices from vertex enumeration
+                let vertices_4d = get_2face_vertices(tf, &vertices, &facet_vertices);
 
                 match TwoFaceEnriched::from_two_face(tf, &normals[tf.i], &normals[tf.j], vertices_4d)
                 {
@@ -364,6 +376,8 @@ impl PolytopeData {
             two_faces,
             two_faces_enriched,
             two_face_index,
+            vertices,
+            facet_vertices,
         })
     }
 
@@ -403,68 +417,83 @@ impl PolytopeData {
     }
 }
 
-/// Compute vertices of a 2-face.
+/// Enumerate all vertices of a 4D polytope.
 ///
-/// For a 2-face F_{ij}, we need to find points that satisfy:
-/// ⟨n_i, x⟩ = h_i and ⟨n_j, x⟩ = h_j and ⟨n_k, x⟩ ≤ h_k for all k.
-///
-/// This is a simplified implementation that constructs 4 vertices
-/// by finding basis vectors for the 2-face tangent space.
-fn compute_2face_vertices(
-    two_face: &TwoFace,
+/// A vertex is a point where exactly 4 facet constraints are tight (equality).
+/// We enumerate by trying all 4-subsets of facets and solving the linear system.
+fn enumerate_vertices(
     normals: &[Vector4<f64>],
     heights: &[f64],
 ) -> TubeResult<Vec<Vector4<f64>>> {
-    let n_i = &normals[two_face.i];
-    let n_j = &normals[two_face.j];
-    let h_i = heights[two_face.i];
-    let h_j = heights[two_face.j];
+    let n = normals.len();
+    let mut vertices = Vec::new();
 
-    // Find a point on the 2-face (satisfying both equality constraints)
-    // We solve: n_i · x = h_i and n_j · x = h_j
-    // We need two more equations to fully determine x.
+    // Try all combinations of 4 facets
+    for i in 0..n {
+        for j in (i + 1)..n {
+            for k in (j + 1)..n {
+                for l in (k + 1)..n {
+                    // Build 4x4 system: M * x = b where M has rows n_i, n_j, n_k, n_l
+                    let m = Matrix4::from_rows(&[
+                        normals[i].transpose(),
+                        normals[j].transpose(),
+                        normals[k].transpose(),
+                        normals[l].transpose(),
+                    ]);
 
-    // Use basis vectors Jn and Kn to complete the system
-    let jn_i = apply_j(n_i);
-    let kn_i = apply_k(n_i);
+                    // Try to solve
+                    if let Some(m_inv) = m.try_inverse() {
+                        let b = Vector4::new(heights[i], heights[j], heights[k], heights[l]);
+                        let candidate = m_inv * b;
 
-    // Find a centroid point by solving a least-squares problem
-    // We want x such that n_i · x ≈ h_i and n_j · x ≈ h_j
-    // Use pseudo-inverse approach
+                        // Check if candidate satisfies ALL constraints (≤ h + eps)
+                        let is_valid = normals
+                            .iter()
+                            .zip(heights)
+                            .all(|(n, &h)| n.dot(&candidate) <= h + EPS);
 
-    let m = Matrix4::from_rows(&[
-        n_i.transpose(),
-        n_j.transpose(),
-        jn_i.transpose(),
-        kn_i.transpose(),
-    ]);
+                        if is_valid {
+                            // Check if we already have this vertex
+                            let is_duplicate = vertices
+                                .iter()
+                                .any(|v: &Vector4<f64>| (v - candidate).norm() < EPS);
 
-    let b = Vector4::new(h_i, h_j, 0.0, 0.0);
+                            if !is_duplicate {
+                                vertices.push(candidate);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    let m_inv = m.try_inverse().ok_or_else(|| TubeError::DegenerateTwoFace {
-        i: two_face.i,
-        j: two_face.j,
-        message: "Cannot invert matrix for 2-face centroid".to_string(),
-    })?;
-
-    let centroid = m_inv * b;
-
-    // Construct vertices by moving along the 2-face tangent space
-    // The tangent space is perpendicular to both n_i and n_j
-
-    // Find two orthogonal vectors in the tangent space
-    let basis = compute_exit_basis(n_i, n_j)?;
-
-    // Create a small square of vertices
-    let scale = 0.5; // Arbitrary scale for visualization
-    let vertices = vec![
-        centroid + scale * (basis[0] + basis[1]),
-        centroid + scale * (basis[0] - basis[1]),
-        centroid + scale * (-basis[0] - basis[1]),
-        centroid + scale * (-basis[0] + basis[1]),
-    ];
+    if vertices.is_empty() {
+        return Err(TubeError::InvalidPolytope(
+            "No vertices found - degenerate polytope?".to_string(),
+        ));
+    }
 
     Ok(vertices)
+}
+
+/// Get the actual vertices of a 2-face from the polytope's vertex list.
+fn get_2face_vertices(
+    two_face: &TwoFace,
+    all_vertices: &[Vector4<f64>],
+    facet_vertices: &[Vec<usize>],
+) -> Vec<Vector4<f64>> {
+    // Find vertices that lie on both facets
+    let shared_indices: Vec<usize> = facet_vertices[two_face.i]
+        .iter()
+        .filter(|v| facet_vertices[two_face.j].contains(v))
+        .copied()
+        .collect();
+
+    shared_indices
+        .iter()
+        .map(|&idx| all_vertices[idx])
+        .collect()
 }
 
 #[cfg(test)]
