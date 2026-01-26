@@ -194,4 +194,77 @@ mod integration_tests {
             Err(e) => eprintln!("find_closed_orbits error: {:?}", e),
         }
     }
+
+    /// Test the Mahler-type capacity bound: c(K) · c(K°) ≥ 4 for centrally symmetric K.
+    ///
+    /// The tesseract and 16-cell (cross-polytope) are polar duals.
+    /// We verify that c(tesseract) · c(16-cell) = 4, achieving the conjectured equality.
+    ///
+    /// References:
+    /// - c(tesseract) = 4.0: Haim-Kislev 2019, Example 4.6; Rudolf 2022, Example 3.5
+    /// - c(16-cell) = 1.0: Computed by tube algorithm (not independently verified)
+    #[test]
+    fn test_mahler_type_capacity_bound() {
+        use hk2017::{hk2017_capacity, Hk2017Config, PolytopeHRep as HkPolytopeHRep};
+        use nalgebra::Vector4;
+
+        // Construct tesseract [-1, 1]^4 using hk2017 types
+        let tesseract = HkPolytopeHRep::new(
+            vec![
+                Vector4::new( 1.0,  0.0,  0.0,  0.0),
+                Vector4::new(-1.0,  0.0,  0.0,  0.0),
+                Vector4::new( 0.0,  1.0,  0.0,  0.0),
+                Vector4::new( 0.0, -1.0,  0.0,  0.0),
+                Vector4::new( 0.0,  0.0,  1.0,  0.0),
+                Vector4::new( 0.0,  0.0, -1.0,  0.0),
+                Vector4::new( 0.0,  0.0,  0.0,  1.0),
+                Vector4::new( 0.0,  0.0,  0.0, -1.0),
+            ],
+            vec![1.0; 8],
+        );
+
+        // Compute c(tesseract) via HK2017 algorithm
+        let hk_config = Hk2017Config::default();
+        let tesseract_result = hk2017_capacity(&tesseract, &hk_config)
+            .expect("HK2017 should compute tesseract capacity");
+        let c_tesseract = tesseract_result.capacity;
+
+        // Compute c(16-cell) via tube algorithm
+        let cross_polytope = fixtures::unit_cross_polytope();
+        let cross_result = tube_capacity(&cross_polytope)
+            .expect("Tube algorithm should compute cross-polytope capacity");
+        let c_cross = cross_result.capacity;
+
+        // Verify individual capacities
+        assert!(
+            (c_tesseract - 4.0).abs() < 1e-6,
+            "c(tesseract) = {} (expected 4.0)",
+            c_tesseract
+        );
+        assert!(
+            (c_cross - 1.0).abs() < 1e-6,
+            "c(16-cell) = {} (expected 1.0)",
+            c_cross
+        );
+
+        // Verify Mahler-type bound: c(K) · c(K°) ≥ 4
+        let product = c_tesseract * c_cross;
+        assert!(
+            product >= 4.0 - 1e-6,
+            "Mahler-type bound violated: c(tesseract) · c(16-cell) = {} < 4",
+            product
+        );
+
+        // Verify equality (conjectured for cube/cross-polytope duality)
+        assert!(
+            (product - 4.0).abs() < 1e-6,
+            "Expected equality: c(tesseract) · c(16-cell) = {} (expected 4.0)",
+            product
+        );
+
+        eprintln!("\n=== Mahler-type capacity bound ===");
+        eprintln!("c(tesseract) = {:.6}", c_tesseract);
+        eprintln!("c(16-cell) = {:.6}", c_cross);
+        eprintln!("Product = {:.6} (conjectured bound: 4)", product);
+    }
 }
