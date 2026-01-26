@@ -18,6 +18,8 @@ description: Planning or executing thesis experiments. Covers the lifecycle from
 
 **Don't compress ideas.** When capturing a research idea, preserve the intellectual labor that went into articulating it. A one-line note in the table loses the nuance, connections, and decision points. Write the detailed section.
 
+**One experiment can have multiple variants.** If an experiment explores multiple families/parameters (e.g., "convex hull of random points" vs "intersection of random halfplanes"), that's one experiment with variants as parameters — not separate experiment entries. Don't spam the table with many near-duplicate rows.
+
 **Ideas have broader context.** An experiment idea doesn't exist only in experiments.md. It connects to:
 - Conversations where the idea emerged
 - Thesis chapters it might inform

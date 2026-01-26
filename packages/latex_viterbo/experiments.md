@@ -2,6 +2,8 @@
 
 This is a living document tracking research ideas and experiments for the thesis. It is not a rigid specification.
 
+**Context:** This project studies Viterbo's Conjecture for convex polytopes in R⁴ (4-dimensional real space, the symplectic setting). "4D" throughout means R⁴.
+
 **Structure:**
 - The **table** is a quick-scan index — brief entries for scanning
 - Each experiment has a **detailed section** below (e.g., `## random-polytope-sys-distribution`) that preserves full reasoning, sub-questions, connections, and context
@@ -10,6 +12,10 @@ This is a living document tracking research ideas and experiments for the thesis
 **Status values:** Ideation | Specified | In progress | Executed | Polished | Abandoned | Failed | Superseded
 
 See `.claude/skills/experiment-workflow/` for the full workflow.
+
+---
+
+**Provenance (2026-01-26):** The experiments below `billiard-hko-orbit` were added during a brainstorming session between Jörn and a Claude agent. Some ideas originated from Jörn's prior discussions with his thesis advisor and notes on paper; these were articulated and refined during the session. The detailed sections attempt to preserve the full reasoning as it was developed.
 
 | Label | Status | Research Question | Notes |
 |-------|--------|-------------------|-------|
