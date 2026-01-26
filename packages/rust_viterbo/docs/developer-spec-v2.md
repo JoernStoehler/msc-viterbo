@@ -2478,23 +2478,33 @@ fn test_monotonicity_axiom() {
 }
 ```
 
-**4.2.3 Symplectomorphism Invariance:** \(c(AK) = c(K)\) for \(A \in \mathrm{Sp}(4)\)
+**4.2.3 Symplectomorphism Invariance:** \(c(\varphi(K)) = c(K)\) for \(\varphi \in \mathrm{Sp}(4) \ltimes \mathbb{R}^4\)
 
-**Philosophy:** Use property-based testing. For any polytope \(K\) and any symplectomorphism \(\varphi \in \mathrm{Sp}(4)\):
-1. \(\varphi(K)\) is a valid polytope (assertion 1)
+The full symmetry group is the **affine symplectic group** \(\mathrm{Sp}(4) \ltimes \mathbb{R}^4\), where:
+- \(\mathrm{Sp}(4)\): Linear symplectomorphisms (10-dimensional Lie group)
+- \(\mathbb{R}^4\): Translations (capacity-preserving since \(c\) depends only on shape)
+
+**Philosophy:** Use property-based testing. For any polytope \(K\) and any \(\varphi = (A, b) \in \mathrm{Sp}(4) \ltimes \mathbb{R}^4\):
+1. \(\varphi(K) = AK + b\) is a valid polytope (assertion 1)
 2. \(c_{\text{EHZ}}(K) = c_{\text{EHZ}}(\varphi(K))\) (assertion 2)
 
 ```rust
 use proptest::prelude::*;
 
+/// Affine symplectomorphism: φ(x) = Ax + b where A ∈ Sp(4), b ∈ ℝ⁴
+struct AffineSymplectomorphism {
+    linear: Matrix4<f64>,   // A ∈ Sp(4)
+    translation: Vector4<f64>, // b ∈ ℝ⁴
+}
+
 proptest! {
     #[test]
     fn symplectic_invariance_random(
-        K in arb_polytope(),           // Random polytope generator
-        phi in arb_symplectomorphism() // Random Sp(4) element
+        K in arb_polytope(),
+        phi in arb_affine_symplectomorphism()
     ) {
         // Assertion 1: φ(K) is a valid polytope
-        let K_transformed = apply_symplectomorphism(&K, &phi);
+        let K_transformed = apply_affine_symplectomorphism(&K, &phi);
         prop_assert!(validate_polytope(&K_transformed).is_ok(),
             "φ(K) is not a valid polytope");
 
@@ -2507,26 +2517,38 @@ proptest! {
 }
 ```
 
-**Sp(4) generators for random sampling:**
+**Random Sp(4) sampling via Lie group structure:**
 
 ```rust
-/// Generate random Sp(4) element via Iwasawa decomposition or product of generators
-fn arb_symplectomorphism() -> impl Strategy<Value = Matrix4<f64>> {
-    prop_oneof![
-        arb_block_rotation(),      // R(θ) ⊕ R(φ)
-        arb_symplectic_shear(),    // (q,p) ↦ (q, p + Sq)
-        arb_symplectic_exchange(), // Coordinate swaps
-        arb_random_sp4(),          // Full random Sp(4) via Iwasawa
-    ]
+/// Sample uniformly from Sp(4) using exponential map from sp(4)
+/// The Lie algebra sp(4) = {X : XᵀJ + JX = 0} is 10-dimensional.
+fn arb_random_sp4() -> impl Strategy<Value = Matrix4<f64>> {
+    // sp(4) basis: 10 generators (3 rotations + 4 boosts + 3 squeezes)
+    // X ∈ sp(4) ⟹ exp(X) ∈ Sp(4)
+    arb_sp4_lie_algebra_element().prop_map(|x| matrix_exp(&x))
+}
+
+/// Alternatively: product of random generators with random parameters
+fn arb_sp4_product() -> impl Strategy<Value = Matrix4<f64>> {
+    (arb_angle(), arb_angle(), arb_symmetric_2x2(), arb_permutation())
+        .prop_map(|(θ, φ, S, perm)| {
+            block_rotation(θ, φ) * symplectic_shear(&S) * symplectic_permutation(perm)
+        })
 }
 ```
 
-**Special fixtures (known edge cases):**
-- Identity: \(\varphi = I\) (sanity check)
-- Pure rotations: \(R(\theta) \oplus I_2\) and \(I_2 \oplus R(\theta)\)
-- Shears: \((q, p) \mapsto (q, p + Sq)\) for symmetric \(S\)
-- Symplectic exchanges: swap \((q_1, p_1) \leftrightarrow (q_2, p_2)\)
-- Near-degenerate: Large shear parameters (tests numerical stability)
+**Special fixtures (structured edge cases):**
+
+| Fixture | Formula | Tests |
+|---------|---------|-------|
+| Identity | \(\varphi = \mathrm{Id}\) | Sanity check |
+| Translation | \(\varphi(x) = x + b\) | Pure translation invariance |
+| Block rotation | \(R(\theta) \oplus R(\phi)\) | (q₁,p₁) and (q₂,p₂) rotations |
+| Single-plane rotation | \(R(\theta) \oplus I_2\) | Rotation in one plane only |
+| Symplectic shear | \((q,p) \mapsto (q, p + Sq)\) | Upper triangular Sp(4) |
+| Coordinate swap | \((q_1,p_1) \leftrightarrow (q_2,p_2)\) | Permutation within Sp(4) |
+| Large shear | \(S\) with large entries | Numerical stability |
+| Near-identity | \(\exp(\epsilon X)\) for small \(\epsilon\) | Continuity near identity |
 
 ---
 
