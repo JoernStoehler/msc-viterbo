@@ -161,7 +161,6 @@ mod integration_tests {
     }
 
     #[test]
-    #[ignore = "Graph pruning is too aggressive for tesseract - see algorithm.rs tests"]
     fn test_enumeration_strategies_agree() {
         let polytope = make_tesseract();
 
