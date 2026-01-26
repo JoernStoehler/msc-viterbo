@@ -97,13 +97,29 @@ where:
 
 ### 1.2 Action via Reeb Vectors
 
-The primary formulation uses Reeb vectors directly. For a q-segment where p lies on edge k of K_p:
+The primary formulation uses Reeb vectors directly.
 
-**Reeb vector:** \(R_k = \frac{2}{h_{p,k}} J_{2D} n_{p,k}\)
+**4D Reeb vector formula:** On a facet of a 4D polytope with outward unit normal \(n \in \mathbb{R}^4\) and height \(h\), the Reeb vector is:
+\[
+R = \frac{2}{h} J n \quad \text{where } J = \begin{pmatrix} 0 & -I_2 \\ I_2 & 0 \end{pmatrix}
+\]
 
-**Displacement-time relation:**
-- If p is in the **interior** of edge k: \(\Delta q = t \cdot R_k\) where \(t\) is the segment time
-- If p is at a **vertex** (edges k₁, k₂ meet): \(\Delta q = \alpha R_{k_1} + \beta R_{k_2}\) where \(\alpha, \beta \geq 0\) and segment time \(t = \alpha + \beta\)
+For \(n = (n_q, n_p)\) with \(n_q, n_p \in \mathbb{R}^2\), this gives \(R = \frac{2}{h}(-n_p, n_q)\).
+
+**Projection to Lagrangian products:** For \(K = K_q \times K_p\), facets are either:
+- **p-facets** (full \(K_q\) × edge of \(K_p\)): normal \(n = (0, n_p)\) where \(n_p\) is the 2D outward normal of the p-edge
+  - Reeb vector: \(R = \frac{2}{h}(-n_p, 0)\), so motion is **only in q-space** with direction \(-n_p\)
+- **q-facets** (edge of \(K_q\) × full \(K_p\)): normal \(n = (n_q, 0)\) where \(n_q\) is the 2D outward normal of the q-edge
+  - Reeb vector: \(R = \frac{2}{h}(0, n_q)\), so motion is **only in p-space** with direction \(+n_q\)
+
+This explains the billiard structure: trajectories alternate between q-motion (when on a p-facet) and p-motion (when on a q-facet).
+
+**Displacement-time relation for q-segments** (p on edge k of \(K_p\), with 2D normal \(n_{p,k}\) and height \(h_{p,k}\)):
+
+Let \(V_k = -\frac{2}{h_{p,k}} n_{p,k}\) be the q-velocity direction (the q-component of the Reeb vector).
+
+- If p is in the **interior** of edge k: \(\Delta q = t \cdot V_k\) where \(t \geq 0\) is the segment time
+- If p is at a **vertex** (edges k₁, k₂ meet): \(\Delta q = \alpha V_{k_1} + \beta V_{k_2}\) where \(\alpha, \beta \geq 0\) and segment time \(t = \alpha + \beta\)
 
 **Action = total time:**
 \[
@@ -177,57 +193,64 @@ This is **exact** (no approximation) and runs in polynomial time for fixed bounc
 
 ### 1.6 Differential Inclusion Constraint
 
-On a facet of \(K_q \times K_p\), the Reeb vector determines the allowed velocities.
+On a facet of \(K_q \times K_p\), the Reeb vector determines the allowed velocities. See §1.2 for the derivation from the 4D symplectic structure.
 
-**Reeb vector formula:**
-\[
-R_k = \frac{2}{h_k} J_{2D} n_k
-\]
-where \(h_k\) is the facet height and \(n_k\) is the outward unit normal, \(J_{2D} = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}\).
+**Summary for q-segments** (p on edge k of \(K_p\), with 2D outward normal \(n_{p,k}\) and height \(h_{p,k}\)):
 
-**Constraint verification (for q-segments, p on ∂K_p):**
+The q-velocity direction is \(V_k = -\frac{2}{h_{p,k}} n_{p,k}\) (opposite to the p-edge normal, scaled).
 
 | p location | Constraint | Time extraction |
 |------------|------------|-----------------|
-| Edge k interior | \(\Delta q = t \cdot R_k\) | \(t = \|\Delta q\| / \|R_k\|\) |
-| Vertex (edges k₁, k₂) | \(\Delta q = \alpha R_{k_1} + \beta R_{k_2}\), \(\alpha,\beta \geq 0\) | \(t = \alpha + \beta\) |
+| Edge k interior | \(\Delta q = t \cdot V_k\) | \(t = \|\Delta q\| / \|V_k\|\) |
+| Vertex (edges k₁, k₂) | \(\Delta q = \alpha V_{k_1} + \beta V_{k_2}\), \(\alpha,\beta \geq 0\) | \(t = \alpha + \beta\) |
 
-**Symmetrically for p-segments** (q on ∂K_q): same formulas with q and p roles swapped.
+**Symmetrically for p-segments** (q on edge j of \(K_q\), with 2D outward normal \(n_{q,j}\) and height \(h_{q,j}\)):
+
+The p-velocity direction is \(W_j = +\frac{2}{h_{q,j}} n_{q,j}\) (same direction as the q-edge normal, scaled).
 
 ```rust
-/// Compute Reeb vector for motion in q-space when p is on edge k of K_p
-fn reeb_vector_q(k_p: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
-    let n = k_p.normals[edge_idx];
+/// Compute velocity direction for q-motion when p is on edge k of K_p.
+/// This is the q-component of the 4D Reeb vector: V_k = -(2/h_k) * n_k
+fn q_velocity(k_p: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
+    let n = k_p.normals[edge_idx];  // 2D outward normal of p-edge
     let h = k_p.heights[edge_idx];
-    Vector2::new(-n[1], n[0]) * (2.0 / h)  // J_{2D} * n * (2/h)
+    -n * (2.0 / h)
+}
+
+/// Compute velocity direction for p-motion when q is on edge j of K_q.
+/// This is the p-component of the 4D Reeb vector: W_j = +(2/h_j) * n_j
+fn p_velocity(k_q: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
+    let n = k_q.normals[edge_idx];  // 2D outward normal of q-edge
+    let h = k_q.heights[edge_idx];
+    n * (2.0 / h)
 }
 
 /// Check if displacement is valid for edge interior (returns segment time if valid)
-fn check_edge_constraint(delta: &Vector2<f64>, reeb: &Vector2<f64>, tol: f64) -> Option<f64> {
-    let reeb_norm = reeb.norm();
-    if reeb_norm < tol { return None; }
+fn check_edge_constraint(delta: &Vector2<f64>, velocity: &Vector2<f64>, tol: f64) -> Option<f64> {
+    let v_norm = velocity.norm();
+    if v_norm < tol { return None; }
 
-    // Check parallelism: delta × reeb ≈ 0
-    let cross = delta[0] * reeb[1] - delta[1] * reeb[0];
-    if cross.abs() > tol * reeb_norm { return None; }
+    // Check parallelism: delta × velocity ≈ 0
+    let cross = delta[0] * velocity[1] - delta[1] * velocity[0];
+    if cross.abs() > tol * v_norm { return None; }
 
-    // Check same direction: delta · reeb > 0
-    let dot = delta.dot(reeb);
+    // Check same direction: delta · velocity > 0
+    let dot = delta.dot(velocity);
     if dot < -tol { return None; }
 
-    Some(dot / (reeb_norm * reeb_norm))  // t = (Δq · R) / |R|²
+    Some(dot / (v_norm * v_norm))  // t = (Δ · V) / |V|²
 }
 
-/// Check if displacement is in cone of two Reeb vectors (returns α, β if valid)
+/// Check if displacement is in cone of two velocity vectors (returns α, β if valid)
 fn check_vertex_constraint(
-    delta: &Vector2<f64>, r1: &Vector2<f64>, r2: &Vector2<f64>, tol: f64
+    delta: &Vector2<f64>, v1: &Vector2<f64>, v2: &Vector2<f64>, tol: f64
 ) -> Option<(f64, f64)> {
-    // Solve: delta = α·r1 + β·r2
-    let det = r1[0] * r2[1] - r1[1] * r2[0];
-    if det.abs() < tol { return None; }  // Degenerate (parallel Reeb vectors)
+    // Solve: delta = α·v1 + β·v2
+    let det = v1[0] * v2[1] - v1[1] * v2[0];
+    if det.abs() < tol { return None; }  // Degenerate (parallel velocity vectors)
 
-    let alpha = (delta[0] * r2[1] - delta[1] * r2[0]) / det;
-    let beta = (r1[0] * delta[1] - r1[1] * delta[0]) / det;
+    let alpha = (delta[0] * v2[1] - delta[1] * v2[0]) / det;
+    let beta = (v1[0] * delta[1] - v1[1] * delta[0]) / det;
 
     if alpha >= -tol && beta >= -tol {
         Some((alpha.max(0.0), beta.max(0.0)))
