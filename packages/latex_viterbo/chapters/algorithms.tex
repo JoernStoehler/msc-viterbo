@@ -230,8 +230,8 @@ We again use how the child tube has trajectories that restrict to trajectories i
   \begin{description}
     \item[Set of start and endpoints] Let \(P_{start} \subset F_{i_0} \cap F_{i_1}\) be the closed convex polygon of all possible start points of the trajectories, and let \(P_{end} \subset F_{i_k} \cap F_{i_{k+1}}\) be the closed convex polygon of all possible endpoints of the trajectories.
     \item[Action] Let \(A: P_{end} \to \R_{\ge 0}\) be the action of the trajectories as a function on the endpoints.
-    \item[Rotation] Let \(\rho \in \R_{\ge 0}\) be the combinatorial rotation number of the trajectories in the sense of Chaidez--Hutchings \cite{CH2021}, measured in turns (i.e. \(1 = 2\pi\)).
-    \item[Flow map] Let \(\psi: P_{start} \cong P_{end}\) be the flow map that maps any start point to the corresponding endpoint of the trajectory.
+    \item[Rotation] Let \(\rho \in \R_{\ge 0}\) be the combinatorial rotation number of the trajectories in the sense of Chaidez--Hutchings \cite{CH2021}, measured in turns (i.e. \(1 = 2\pi\)). See Section~\ref{sec:rotation-number} for the precise definition.
+    \item[Flow map] Let \(\psi: P_{start} \cong P_{end}\) be the flow map that maps any start point to the corresponding endpoint of the trajectory. The linear part of this affine map is computed using transition matrices (Section~\ref{sec:transition-matrix}).
   \end{description}
   We used in the definition above that the flow map is a composition of affine maps, and thus itself affine. The composed functions come from the Reeb flow on each facet, which affinely maps points from one 2-face to the next, as long as the trajectory of course crosses both closed 2-faces.
   The action increments equal the time increments, which are also affine. The added action is thus affine in the start or end point.
@@ -243,9 +243,9 @@ We again use how the child tube has trajectories that restrict to trajectories i
     \phi: \mathrm{affine}(F_{i_k} \cap F_{i_{k+1}}) \to \mathrm{affine}(F_{i_{k+1}} \cap F_{i_{k+2}}) \\
     A_{inc}: \mathrm{affine}(F_{i_k} \cap F_{i_{k+1}}) \to \R_{\ge 0} \\
   \end{align*}
-  describing the flow along the facet \(F_{i_{k+1}}\), namely the map between 2-faces, and the associated duration/action increment. And the rotation increment at the new break point:
+  describing the flow along the facet \(F_{i_{k+1}}\), namely the map between 2-faces, and the associated duration/action increment. And the rotation increment at the new break point (see Section~\ref{sec:rotation-number} for the formula):
   \[
-    \rho(F_{i_k} \cap F_{i_{k+1}}).
+    \rho(F_{i_k} \cap F_{i_{k+1}}) = \frac{1}{2\pi} \arccos\bigl(\inner{n_{i_k}}{n_{i_{k+1}}}\bigr).
   \]
   Then:
   \begin{align*}
