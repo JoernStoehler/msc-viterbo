@@ -225,40 +225,67 @@ use nalgebra::{Vector4, DMatrix, DVector};
 /// Requirement: 0 ∈ int(K), so h_i > 0 for all i
 pub struct PolytopeHRep {
     pub normals: Vec<Vector4<f64>>,   // unit outward normals
-    pub heights: Vec<f64>,            // h_i > 0
+    pub heights: Vec<f64>,            // h_i > 0 (distance from origin to facet)
 }
+
+// Mathematical conditions (not encoded in type):
+// - normals[i].norm() == 1.0 (within tolerance)
+// - heights[i] > 0 for all i (origin is in interior)
+// - No redundant half-spaces (each facet contributes to the boundary)
+// - Polytope is bounded (normals positively span R^4)
+// - At least 2 facets (minimum for a closed orbit to exist)
 
 impl PolytopeHRep {
     pub fn num_facets(&self) -> usize {
         self.normals.len()
     }
 
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), Hk2017Error> {
         // Check lengths match
         if self.normals.len() != self.heights.len() {
-            return Err("normals and heights must have same length".to_string());
+            return Err(Hk2017Error::InvalidPolytope(
+                "normals and heights must have same length".to_string()));
+        }
+
+        // Need at least 2 facets for a valid closed orbit
+        if self.normals.len() < 2 {
+            return Err(Hk2017Error::InvalidPolytope(
+                "need at least 2 facets".to_string()));
         }
 
         // Check normals are unit vectors
         for (i, n) in self.normals.iter().enumerate() {
-            if (n.norm() - 1.0).abs() > 1e-10 {
-                return Err(format!("normal {} is not unit: norm = {}", i, n.norm()));
+            if (n.norm() - 1.0).abs() > EPS {
+                return Err(Hk2017Error::InvalidPolytope(
+                    format!("normal {} is not unit: norm = {}", i, n.norm())));
             }
         }
 
         // Check heights are positive (0 in interior)
         for (i, &h) in self.heights.iter().enumerate() {
-            if h <= 0.0 {
-                return Err(format!("height {} is not positive: h = {}", i, h));
+            if h <= EPS {
+                return Err(Hk2017Error::InvalidPolytope(
+                    format!("height {} is not positive: h = {} (origin not in interior)", i, h)));
             }
         }
 
         Ok(())
     }
 }
+
+/// Error types for HK2017 algorithm
+#[derive(Debug)]
+pub enum Hk2017Error {
+    InvalidPolytope(String),      // Input validation failed
+    SingularKkt,                  // KKT system is singular
+    NoPositiveQ,                  // All permutations give Q ≤ 0
+    NumericalInstability(String), // Computation failed numerically
+}
 ```
 
 ### 2.2 Facet Data
+
+**Note on heights:** For H-representation K = {x : ⟨n_i, x⟩ ≤ d_i} with **unit** normals, the height h_i = d_i directly. If normals are stored unnormalized, then h_i = d_i / ||n_i||.
 
 The algorithm precomputes data about facets:
 
@@ -295,6 +322,29 @@ impl FacetData {
         }
 
         FacetData { num_facets: f, normals, heights, reeb_vectors, omega_matrix }
+    }
+
+    /// Validate precomputed data (useful for debugging)
+    pub fn validate(&self) {
+        // Reeb vectors are perpendicular to normals (Jn ⊥ n)
+        for i in 0..self.num_facets {
+            assert!(self.reeb_vectors[i].dot(&self.normals[i]).abs() < EPS,
+                "Reeb vector {} not perpendicular to normal", i);
+        }
+
+        // Omega matrix is antisymmetric
+        for i in 0..self.num_facets {
+            for j in 0..self.num_facets {
+                assert!((self.omega_matrix[(i, j)] + self.omega_matrix[(j, i)]).abs() < EPS,
+                    "Omega matrix not antisymmetric at ({}, {})", i, j);
+            }
+        }
+
+        // Diagonal of omega is zero
+        for i in 0..self.num_facets {
+            assert!(self.omega_matrix[(i, i)].abs() < EPS,
+                "Omega diagonal not zero at {}", i);
+        }
     }
 }
 ```
@@ -409,6 +459,17 @@ pub fn enumerate_permutations_naive(num_facets: usize) -> Vec<Vec<usize>> {
 **Complexity:** \(\sum_{k=2}^{F} \binom{F}{k} k! = \sum_{k=2}^{F} \frac{F!}{(F-k)!}\) which is O(F!).
 
 ### 3.4 Constrained Optimization per Permutation
+
+> **⚠️ KNOWN LIMITATION: Boundary Maxima**
+>
+> The Hessian H of Q is symmetric but **indefinite** (has both positive and negative eigenvalues). This means:
+> - The interior critical point (from KKT) may be a **saddle point**, not the maximum
+> - The true maximum may be on the **boundary** of M(K) where some βᵢ = 0
+> - The implementation below checks **only the interior critical point**
+>
+> This limitation is shared with the MATLAB reference implementation. For most test cases (tesseract, rectangles), the interior critical point happens to be the global maximum. **This is not guaranteed in general.**
+>
+> A complete implementation would enumerate all faces of M(K) using an active-set method: when the interior solution has βᵢ < 0, fix βᵢ = 0 and recurse on the lower-dimensional face.
 
 For a fixed permutation σ = (σ₁, ..., σₖ), we solve:
 
@@ -731,11 +792,21 @@ const EPS_LAGRANGIAN: f64 = 1e-8;
 | QP solve per permutation | O(k³) | O(k³) |
 | Total | O(F! · F³) | O(|cycles| · F³) |
 
-**Practical limits:**
-- F ≤ 8: < 1 second
-- F ≤ 10: < 1 minute
-- F ≤ 12: < 1 hour
-- F > 12: Impractical without pruning
+**Estimated running times (single thread, naive enumeration):**
+
+| Facets | Ordered Subsets | Estimated Time | Example Polytope |
+|--------|-----------------|----------------|------------------|
+| 4      | 60              | < 1 ms         | 4-simplex |
+| 6      | 1,956           | ~10 ms         | 3-cube (6 facets) |
+| 8      | 109,600         | ~100 ms        | Tesseract |
+| 10     | 9,864,100       | ~10 s          | Pentagon × Pentagon |
+| 12     | 1.3 × 10⁹       | ~30 min        | - |
+| 14     | 2.3 × 10¹¹      | ~days          | - |
+
+**Notes:**
+- With graph pruning, times can be 10-100× faster depending on polytope structure
+- Parallelization is embarrassingly parallel (use `rayon::par_iter()`)
+- Memory usage is dominated by storing permutations; consider iterator-based enumeration
 
 ---
 
@@ -819,6 +890,72 @@ fn test_hk2017_vs_billiard() {
     let c_billiard = billiard_capacity(&k).capacity;
 
     assert!((c_hk - c_billiard).abs() < 1e-6);
+}
+```
+
+### 5.4 Result Verification
+
+Verify that the computed result satisfies all constraints:
+
+```rust
+/// Verify the capacity result by checking constraints and formula
+fn verify_result(result: &Hk2017Result, facet_data: &FacetData) -> Result<(), String> {
+    let sigma = &result.optimal_permutation;
+    let beta = &result.optimal_beta;
+
+    // 1. Check non-negativity: β_i ≥ 0
+    for (i, &b) in beta.iter().enumerate() {
+        if b < -POSITIVE_TOL {
+            return Err(format!("β[{}] = {} is negative", i, b));
+        }
+    }
+
+    // 2. Check height constraint: Σ β_i h_i = 1
+    let height_sum: f64 = beta.iter().zip(&facet_data.heights)
+        .map(|(&b, &h)| b * h).sum();
+    if (height_sum - 1.0).abs() > CONSTRAINT_TOL {
+        return Err(format!("Height sum = {} ≠ 1", height_sum));
+    }
+
+    // 3. Check closure constraint: Σ β_i n_i = 0
+    let mut closure = Vector4::zeros();
+    for (i, (&b, n)) in beta.iter().zip(&facet_data.normals).enumerate() {
+        closure += n * b;
+    }
+    if closure.norm() > CONSTRAINT_TOL {
+        return Err(format!("Closure norm = {} ≠ 0", closure.norm()));
+    }
+
+    // 4. Recompute Q value and check
+    let q_computed = compute_q_for_permutation(sigma, beta, &facet_data.omega_matrix);
+    if (q_computed - result.q_max).abs() > EPS {
+        return Err(format!("Q mismatch: computed {} vs stored {}", q_computed, result.q_max));
+    }
+
+    // 5. Check capacity formula: c = 1/(2Q)
+    if result.q_max <= 0.0 {
+        return Err(format!("Q = {} is not positive", result.q_max));
+    }
+    let capacity_computed = 1.0 / (2.0 * result.q_max);
+    if (capacity_computed - result.capacity).abs() > EPS {
+        return Err(format!("Capacity mismatch: {} vs {}", capacity_computed, result.capacity));
+    }
+
+    Ok(())
+}
+
+fn compute_q_for_permutation(
+    sigma: &[usize],
+    beta: &[f64],
+    omega_matrix: &DMatrix<f64>,
+) -> f64 {
+    let mut q = 0.0;
+    for (pos_i, &facet_i) in sigma.iter().enumerate() {
+        for (pos_j, &facet_j) in sigma.iter().enumerate().take(pos_i) {
+            q += beta[facet_i] * beta[facet_j] * omega_matrix[(facet_i, facet_j)];
+        }
+    }
+    q
 }
 ```
 
