@@ -1965,39 +1965,80 @@ To find closed orbits, solve for fixed points of the flow map:
 \psi(s) = s \quad \Leftrightarrow \quad (A - I) s = -b
 \]
 
+#### 2.11.1 Generic Case: Unique Fixed Point
+
+When \(\det(A - I) \neq 0\), there is a unique solution:
+\[
+s = (A - I)^{-1} (-b)
+\]
+
+Check if this fixed point lies in \(p_{\text{start}}\). If yes, compute action; if no, the tube has no closed orbit.
+
+#### 2.11.2 Non-Generic Case: Shear Transformations
+
+When \(\det(A - I) \approx 0\), the matrix \(A\) has eigenvalue 1. This occurs for **highly symmetric polytopes** like the cross-polytope, where all closed tubes have shear flow maps. This is mathematically valid, not an error.
+
+**Classification of det(A-I) ≈ 0 cases:**
+
+| Case | Condition | Fixed Points | Handling |
+|------|-----------|--------------|----------|
+| Shear (rank 1) | \(A - I\) has rank 1, \(-b \in \text{col}(A-I)\) | Line of fixed points | Intersect line with \(p_{\text{start}}\), take min action |
+| Shear (rank 1) | \(A - I\) has rank 1, \(-b \notin \text{col}(A-I)\) | None | Return empty |
+| Identity | \(A = I\), \(b = 0\) | All of \(p_{\text{start}}\) | Take min action vertex |
+| Identity | \(A = I\), \(b \neq 0\) | None | Return empty |
+
+**Mathematical justification:** The tube algorithm searches for closed Reeb orbits, which correspond to fixed points of \(\psi\). When fixed points form a 1D family (a line), all points on that line within \(p_{\text{start}}\) represent valid closed orbits with the same combinatorial type. Since action is affine on this line, we select the minimum-action point at a line-polygon intersection endpoint.
+
+**Why this is correct:** The CH2021 framework proves that every closed Reeb orbit corresponds to a fixed point of some tube's flow map. This bijection holds regardless of whether the fixed point is unique or part of a family. The shear case simply means infinitely many orbits share the same facet sequence, and we correctly identify the one with minimum action.
+
 ```rust
-fn find_closed_orbits(tube: &Tube) -> Vec<(f64, Vector2<f64>)> {
-    // Solve (A - I) s = -b
+fn find_closed_orbits(tube: &Tube) -> Option<(f64, Vector2<f64>)> {
     let a_minus_i = tube.flow_map.matrix - Matrix2::identity();
     let neg_b = -tube.flow_map.offset;
-
     let det = a_minus_i.determinant();
 
     if det.abs() < EPS {
-        // Near-singular case: the flow map (A - I) is nearly singular.
-        // In the generic case, there is 0 or 1 fixed point per tube (see review §0.6).
-        // Near-singularity indicates either:
-        //   (a) A degenerate polytope (multiple fixed points), or
-        //   (b) Numerical instability near a bifurcation.
-        // Do not silently assume genericity; raise a runtime error.
-        panic!(
-            "Near-singular flow map in tube closure: det(A - I) = {:.2e}. \
-             This may indicate a degenerate polytope or numerical instability. \
-             Facet sequence: {:?}",
-            det, tube.facet_sequence
-        );
+        // Non-generic case: shear transformation (eigenvalue 1)
+        // Fixed points form a line (or all of p_start if A = I, b = 0)
+        return find_fixed_point_on_line(tube, &a_minus_i, &neg_b);
     }
 
-    // Unique fixed point: s = (A - I)^{-1} (-b)
-    let s = a_minus_i.try_inverse().unwrap() * neg_b;
+    // Generic case: unique fixed point
+    let s = a_minus_i.try_inverse()? * neg_b;
 
-    // Check if fixed point is in p_start (standard: winding number or crossing number test)
     if !point_in_polygon(&s, &tube.p_start) {
-        return vec![];
+        return None;
     }
 
-    let action = tube.action_func.gradient.dot(&s) + tube.action_func.constant;
-    vec![(action, s)]
+    let action = tube.action_func.eval(&s);
+    if action < EPS {
+        return None;
+    }
+
+    Some((action, s))
+}
+
+fn find_fixed_point_on_line(
+    tube: &Tube,
+    a_minus_i: &Matrix2<f64>,
+    neg_b: &Vector2<f64>,
+) -> Option<(f64, Vector2<f64>)> {
+    // 1. Check if A ≈ I (both columns of A-I near zero)
+    //    If b ≈ 0: all points fixed, return min-action vertex of p_start
+    //    If b ≠ 0: no fixed points
+
+    // 2. For rank-1 case, check if -b ∈ col(A-I)
+    //    If not: no fixed points
+
+    // 3. Parameterize fixed point line: s(t) = s_particular + t * null_vec
+    //    where null_vec spans ker(A-I)
+
+    // 4. Intersect line with p_start polygon
+
+    // 5. Action is linear on line: action(t) = c₀ + c₁·t
+    //    Minimum is at one of the two intersection endpoints
+
+    // 6. Return (min_action, point) or None
 }
 ```
 
@@ -2874,22 +2915,69 @@ fn test_trajectory_no_intermediate_crossings(
 }
 ```
 
-**4.6.8 Near-singular detection:**
+**4.6.8 Shear transformation handling:**
+
+For highly symmetric polytopes (e.g., cross-polytope), ALL closed tubes may have shear flow maps where \(\det(A - I) = 0\). This is not an error—see §2.11.2 for mathematical justification.
+
 ```rust
 #[test]
-fn test_near_singular_raises_error() {
-    // Construct a tube with nearly-singular flow map (det(A-I) ≈ 0)
-    // This should panic rather than silently return wrong results
+fn test_shear_flow_map_handled() {
+    // Shear matrix: A = I + [0, 0; k, 0] has det(A-I) = 0
+    // Fixed points form line if -b ∈ col(A-I)
     let tube = Tube {
         flow_map: AffineMap2D {
-            matrix: Matrix2::identity() + Matrix2::new(1e-12, 0.0, 0.0, 1e-12),
-            offset: Vector2::new(0.1, 0.1),
+            matrix: Matrix2::new(1.0, 0.0, 4.0, 1.0),  // shear
+            offset: Vector2::new(0.0, 1.0),  // b with b[0] = 0
         },
-        // ... other fields
+        p_start: unit_square_polygon(),
+        action_func: AffineFunc { gradient: Vector2::new(1.0, 0.0), constant: 0.5 },
+        // ...
     };
 
-    let result = std::panic::catch_unwind(|| find_closed_orbits(&tube));
-    assert!(result.is_err(), "Should panic on near-singular flow map");
+    // Should NOT panic; should find fixed point on line
+    let result = find_closed_orbits(&tube);
+    assert!(result.is_some(), "Shear case should find fixed points on line");
+
+    // Verify the found point is actually a fixed point
+    if let Some((action, s)) = result {
+        let mapped = tube.flow_map.apply(&s);
+        assert!((s - mapped).norm() < EPS, "Not a fixed point");
+        assert!(action > 0.0, "Action should be positive");
+    }
+}
+
+#[test]
+fn test_shear_no_solution() {
+    // Shear with -b NOT in column space: no fixed points
+    let tube = Tube {
+        flow_map: AffineMap2D {
+            matrix: Matrix2::new(1.0, 0.0, 4.0, 1.0),  // col space = span{(0,1)}
+            offset: Vector2::new(1.0, 0.0),  // -b = (-1, 0) not in col space
+        },
+        p_start: unit_square_polygon(),
+        action_func: AffineFunc::zero(),
+        // ...
+    };
+
+    let result = find_closed_orbits(&tube);
+    assert!(result.is_none(), "Should find no fixed points when -b ∉ col(A-I)");
+}
+```
+
+**Cross-polytope validation:** The unit cross-polytope has all shear flow maps. Verify the algorithm correctly handles this:
+
+```rust
+#[test]
+fn test_cross_polytope_all_shear() {
+    let hrep = unit_cross_polytope();
+    let result = tube_capacity(&hrep);
+
+    // Should succeed despite all tubes having det(A-I) = 0
+    assert!(result.is_ok());
+
+    // Empirically determined capacity
+    let capacity = result.unwrap().capacity;
+    assert!((capacity - 1.0).abs() < 0.01, "Cross-polytope capacity ≈ 1.0");
 }
 ```
 
