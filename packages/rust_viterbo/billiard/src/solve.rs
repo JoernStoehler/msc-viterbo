@@ -4,9 +4,15 @@
 //! enumerating vertices of the feasible polytope (vertex optimality theorem).
 //!
 //! IMPORTANT: Not every polygonal path is a valid billiard trajectory!
-//! The displacement Δq must be compatible with the Reeb velocity constraint:
-//! Δq must be proportional to V_k = -(2/h_k) n_k for some edge k of K_p,
-//! or a positive combination of two V_k at a vertex.
+//! A valid 2-bounce trajectory has 4 affine segments:
+//!   1. q at q₀ (q-facet phase): p moves from p_back to p_fwd
+//!   2. p at p_fwd (p-facet phase): q moves from q₀ to q₁
+//!   3. q at q₁ (q-facet phase): p moves from p_fwd to p_back
+//!   4. p at p_back (p-facet phase): q moves from q₁ to q₀
+//!
+//! The differential inclusion requires:
+//! - On p-facets: q̇ ∈ cone of -(2/h_k) n_k for active p-edges
+//! - On q-facets: ṗ ∈ cone of (2/h_k) n_k for active q-edges
 
 use crate::action::{compute_2bounce_action, compute_3bounce_action};
 use crate::types::{BilliardTrajectory, EdgeCombination, Polygon2D, EPS, MIN_ACTION};
@@ -20,18 +26,33 @@ fn q_velocity_direction(k_p: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
     -n * (2.0 / h)
 }
 
-/// Check if a displacement can be achieved by the Reeb flow from K_p.
-/// Returns Some(time) if the displacement is parallel to some V_k (with positive coefficient),
-/// or in a cone of two V_k at a vertex. Returns None if not achievable.
-fn is_displacement_achievable(delta: &Vector2<f64>, k_p: &Polygon2D, tol: f64) -> bool {
+/// Compute the velocity direction for p-motion when q is on edge k of K_q.
+/// W_k = (2/h_k) * n_k
+fn p_velocity_direction(k_q: &Polygon2D, edge_idx: usize) -> Vector2<f64> {
+    let n = k_q.normals[edge_idx];
+    let h = k_q.heights[edge_idx];
+    n * (2.0 / h)
+}
+
+/// Find where p must be on ∂K_p to achieve q-motion direction delta.
+/// Returns Some((edge_idx, t)) if achievable:
+/// - t = 0.5 means interior of edge (p on edge edge_idx)
+/// - t = 0.0 means at vertex edge_idx (start of edge)
+/// - t = 1.0 means at vertex edge_idx + 1 (end of edge)
+/// Returns None if not achievable.
+fn find_p_position_for_q_motion(
+    delta: &Vector2<f64>,
+    k_p: &Polygon2D,
+    tol: f64,
+) -> Option<(usize, f64)> {
     let delta_norm = delta.norm();
     if delta_norm < tol {
-        return true; // Zero displacement is always achievable
+        return Some((0, 0.0)); // Zero displacement, any position works
     }
 
     let n_p = k_p.num_edges();
 
-    // Check if delta is parallel to any V_k (edge interior)
+    // Check if delta is parallel to any V_k (p on edge interior)
     for k in 0..n_p {
         let v_k = q_velocity_direction(k_p, k);
         let v_k_norm = v_k.norm();
@@ -45,12 +66,12 @@ fn is_displacement_achievable(delta: &Vector2<f64>, k_p: &Polygon2D, tol: f64) -
             // Check same direction (not opposite)
             let dot = delta.dot(&v_k);
             if dot > -tol {
-                return true;
+                return Some((k, 0.5)); // p on edge k interior
             }
         }
     }
 
-    // Check if delta is in a cone of two adjacent V_k (vertex)
+    // Check if delta is in a cone of two adjacent V_k (p at vertex)
     for k in 0..n_p {
         let k_next = (k + 1) % n_p;
         let v1 = q_velocity_direction(k_p, k);
@@ -66,11 +87,61 @@ fn is_displacement_achievable(delta: &Vector2<f64>, k_p: &Polygon2D, tol: f64) -
         let beta = (v1[0] * delta[1] - v1[1] * delta[0]) / det;
 
         if alpha >= -tol && beta >= -tol {
-            return true;
+            // p must be at vertex k+1 (end of edge k, start of edge k+1)
+            return Some((k, 1.0));
         }
     }
 
-    false
+    None
+}
+
+/// Check if p-motion delta_p is achievable when q is at a vertex of K_q.
+/// q at vertex v means q is on edges (v-1) and v (mod n).
+/// Allowed ṗ direction is in cone(W_{v-1}, W_v) where W_k = (2/h_k)*n_k.
+fn is_p_motion_achievable_at_vertex(
+    delta_p: &Vector2<f64>,
+    k_q: &Polygon2D,
+    vertex_idx: usize,
+    tol: f64,
+) -> bool {
+    let delta_norm = delta_p.norm();
+    if delta_norm < tol {
+        return true; // Zero displacement is always achievable
+    }
+
+    let n_q = k_q.num_edges();
+    let edge_before = (vertex_idx + n_q - 1) % n_q;
+    let edge_after = vertex_idx;
+
+    let w1 = p_velocity_direction(k_q, edge_before);
+    let w2 = p_velocity_direction(k_q, edge_after);
+
+    // Solve: delta_p = α*w1 + β*w2 with α,β ≥ 0
+    let det = w1[0] * w2[1] - w1[1] * w2[0];
+    if det.abs() < tol {
+        // Parallel vectors - check if delta_p is parallel to either
+        let cross1 = delta_p[0] * w1[1] - delta_p[1] * w1[0];
+        let cross2 = delta_p[0] * w2[1] - delta_p[1] * w2[0];
+        if cross1.abs() < tol * delta_norm * w1.norm() && delta_p.dot(&w1) > -tol {
+            return true;
+        }
+        if cross2.abs() < tol * delta_norm * w2.norm() && delta_p.dot(&w2) > -tol {
+            return true;
+        }
+        return false;
+    }
+
+    let alpha = (delta_p[0] * w2[1] - delta_p[1] * w2[0]) / det;
+    let beta = (w1[0] * delta_p[1] - w1[1] * delta_p[0]) / det;
+
+    alpha >= -tol && beta >= -tol
+}
+
+/// Check if a displacement can be achieved by the Reeb flow from K_p.
+/// Returns true if the displacement is parallel to some V_k (with positive coefficient),
+/// or in a cone of two V_k at a vertex.
+fn is_displacement_achievable(delta: &Vector2<f64>, k_p: &Polygon2D, tol: f64) -> bool {
+    find_p_position_for_q_motion(delta, k_p, tol).is_some()
 }
 
 /// Result of solving for a single edge combination.
@@ -81,34 +152,83 @@ pub struct SolveResult {
     pub p_params: Vec<f64>,
 }
 
-/// Check if two vertices of a polygon are adjacent (same, neighbors, or 1 apart).
-fn vertices_adjacent(n_vertices: usize, v1: usize, v2: usize) -> bool {
-    if v1 == v2 {
-        return true; // Same vertex
+/// Validate that a full 2-bounce orbit (4 segments) is achievable.
+///
+/// The 4 segments are:
+/// 1. q at q₀: p moves from p_back to p_fwd
+/// 2. p at p_fwd: q moves from q₀ to q₁
+/// 3. q at q₁: p moves from p_fwd to p_back
+/// 4. p at p_back: q moves from q₁ to q₀
+///
+/// Returns Some((p_fwd_pos, p_back_pos)) if valid, None otherwise.
+fn validate_2bounce_orbit(
+    q0: &Vector2<f64>,
+    q1: &Vector2<f64>,
+    k_q: &Polygon2D,
+    k_p: &Polygon2D,
+    q0_vertex: usize, // vertex index of q₀ in K_q
+    q1_vertex: usize, // vertex index of q₁ in K_q
+) -> Option<(Vector2<f64>, Vector2<f64>)> {
+    let delta = *q1 - *q0;
+    if delta.norm() < MIN_ACTION {
+        return None;
     }
-    let diff = (v1 as isize - v2 as isize).unsigned_abs();
-    diff == 1 || diff == n_vertices - 1
+
+    // Find where p must be during forward q-motion (q₀ → q₁)
+    let p_fwd_info = find_p_position_for_q_motion(&delta, k_p, EPS)?;
+
+    // Find where p must be during backward q-motion (q₁ → q₀)
+    let p_back_info = find_p_position_for_q_motion(&(-delta), k_p, EPS)?;
+
+    // Get the actual p positions
+    let p_fwd = get_p_position(k_p, p_fwd_info);
+    let p_back = get_p_position(k_p, p_back_info);
+
+    // At q₁: p must transition from p_fwd to p_back
+    // This delta_p must be achievable with the ṗ constraint at q₁
+    let delta_p_at_q1 = p_back - p_fwd;
+    if !is_p_motion_achievable_at_vertex(&delta_p_at_q1, k_q, q1_vertex, EPS) {
+        return None;
+    }
+
+    // At q₀: p must transition from p_back to p_fwd
+    // This delta_p must be achievable with the ṗ constraint at q₀
+    let delta_p_at_q0 = p_fwd - p_back;
+    if !is_p_motion_achievable_at_vertex(&delta_p_at_q0, k_q, q0_vertex, EPS) {
+        return None;
+    }
+
+    Some((p_fwd, p_back))
 }
 
-/// Get vertex index from edge index and t parameter.
-/// t=0 → start vertex (edge_idx), t=1 → end vertex (edge_idx + 1).
-fn vertex_from_edge_param(n_vertices: usize, edge_idx: usize, t: f64) -> usize {
-    if t < 0.5 {
-        edge_idx
+/// Get the p position from the (edge_idx, t) info returned by find_p_position_for_q_motion.
+fn get_p_position(k_p: &Polygon2D, info: (usize, f64)) -> Vector2<f64> {
+    let (edge_idx, t) = info;
+    if (t - 0.5).abs() < EPS {
+        // Edge interior - use midpoint for a representative position
+        k_p.point_on_edge(edge_idx, 0.5)
+    } else if t < 0.25 {
+        // Vertex at start of edge
+        k_p.vertices[edge_idx]
     } else {
-        (edge_idx + 1) % n_vertices
+        // Vertex at end of edge (t ≈ 1.0)
+        k_p.vertices[(edge_idx + 1) % k_p.num_vertices()]
     }
 }
 
 /// Solve for the minimum action 2-bounce trajectory with the given edge combination.
 ///
-/// For 2-bounce, the trajectory goes q0 → q1 → q0.
-/// Constraints:
-/// 1. Both displacements must be achievable by the Reeb flow
-/// 2. The trajectory must NOT be translatable into the interior (Bezdek-Bezdek)
-///    - For 2-bounce, this means the q-edges must not be adjacent
+/// For 2-bounce, the trajectory has 4 segments:
+/// 1. q at q₀: p moves
+/// 2. p fixed: q moves q₀ → q₁
+/// 3. q at q₁: p moves
+/// 4. p fixed: q moves q₁ → q₀
 ///
-/// By vertex optimality, we enumerate all 16 vertices of [0,1]⁴.
+/// Constraints:
+/// 1. Both q-displacements must be achievable by the Reeb flow
+/// 2. Both p-transitions at the bounces must be achievable by the Reeb flow
+///
+/// By vertex optimality, we enumerate all 4 vertices of [0,1]² for q-parameters.
 pub fn solve_2bounce(
     k_q: &Polygon2D,
     k_p: &Polygon2D,
@@ -118,48 +238,53 @@ pub fn solve_2bounce(
     assert_eq!(combo.p_edges.len(), 2);
 
     // Reject same-edge combinations: if both bounce points are on the same edge,
-    // the trajectory lies on that edge and is translatable (degenerate).
+    // the trajectory lies on that edge (degenerate).
     if combo.q_edges[0] == combo.q_edges[1] {
         return None;
     }
 
+    let n_q = k_q.num_vertices();
     let mut best: Option<SolveResult> = None;
 
-    // Enumerate all 16 vertices of [0,1]⁴
+    // Enumerate all 4 vertices of [0,1]² for q-parameters
+    // (p-parameters are determined by the q-motion constraints)
     for &t_q0 in &[0.0, 1.0] {
         for &t_q1 in &[0.0, 1.0] {
-            for &t_p0 in &[0.0, 1.0] {
-                for &t_p1 in &[0.0, 1.0] {
-                    let q0 = k_q.point_on_edge(combo.q_edges[0], t_q0);
-                    let q1 = k_q.point_on_edge(combo.q_edges[1], t_q1);
+            let q0 = k_q.point_on_edge(combo.q_edges[0], t_q0);
+            let q1 = k_q.point_on_edge(combo.q_edges[1], t_q1);
 
-                    let delta = q1 - q0;
+            // Get vertex indices for q₀ and q₁
+            let q0_vertex = if t_q0 < 0.5 {
+                combo.q_edges[0]
+            } else {
+                (combo.q_edges[0] + 1) % n_q
+            };
+            let q1_vertex = if t_q1 < 0.5 {
+                combo.q_edges[1]
+            } else {
+                (combo.q_edges[1] + 1) % n_q
+            };
 
-                    // Skip if both q-positions are the same (degenerate)
-                    if delta.norm() < MIN_ACTION {
-                        continue;
-                    }
+            // Validate the full 4-segment orbit
+            let orbit_valid =
+                validate_2bounce_orbit(&q0, &q1, k_q, k_p, q0_vertex, q1_vertex);
 
-                    // Check Reeb velocity constraint:
-                    // Both forward (q0→q1) and backward (q1→q0) must be achievable
-                    if !is_displacement_achievable(&delta, k_p, EPS) {
-                        continue;
-                    }
-                    if !is_displacement_achievable(&(-delta), k_p, EPS) {
-                        continue;
-                    }
+            if orbit_valid.is_none() {
+                continue;
+            }
 
-                    let action = compute_2bounce_action(&q0, &q1, k_p);
+            let (_p_fwd, _p_back) = orbit_valid.unwrap();
+            let action = compute_2bounce_action(&q0, &q1, k_p);
 
-                    if action > MIN_ACTION {
-                        if best.is_none() || action < best.as_ref().unwrap().action {
-                            best = Some(SolveResult {
-                                action,
-                                q_params: vec![t_q0, t_q1],
-                                p_params: vec![t_p0, t_p1],
-                            });
-                        }
-                    }
+            if action > MIN_ACTION {
+                if best.is_none() || action < best.as_ref().unwrap().action {
+                    // For p_params, we store t=0 if at vertex, t=0.5 if on edge
+                    // (This is an approximation; we could compute exact params if needed)
+                    best = Some(SolveResult {
+                        action,
+                        q_params: vec![t_q0, t_q1],
+                        p_params: vec![0.0, 0.0], // Placeholder, p positions are determined by q-motion
+                    });
                 }
             }
         }
@@ -248,7 +373,7 @@ pub fn solve_3bounce(
 ///
 /// This gives 2 linear equations in 3 variables, defining a 1D affine subspace.
 /// Vertices occur where this line intersects edges of the cube [0,1]³.
-fn enumerate_closure_vertices(polygon: &Polygon2D, edges: &[usize]) -> Option<Vec<[f64; 3]>> {
+fn enumerate_closure_vertices(_polygon: &Polygon2D, edges: &[usize]) -> Option<Vec<[f64; 3]>> {
     assert_eq!(edges.len(), 3);
 
     // Build the closure constraint matrix.
