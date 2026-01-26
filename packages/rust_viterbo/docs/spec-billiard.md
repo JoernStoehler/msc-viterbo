@@ -868,8 +868,8 @@ For typical polygons (5-20 edges), this is very fast (< 1ms).
 | Tesseract [-1,1]⁴ | 4.0 | HK2017 Ex 4.6 | Square × Square |
 | Rectangle 2×1 × Rectangle 2×1 | 1.0 | Scaling | |
 | Pentagon × RotatedPentagon(90°) | 3.441 | HK-O 2024 Prop 1 | Counterexample |
-| Triangle × Triangle (circumradius 1) | 1.5 | [NEEDS CITATION] | |
-| Simplex_q × Simplex_p | [NEEDS CITATION] | | |
+| Triangle × Triangle (circumradius 1) | (smoke test) | — | Verify no NaN/Error |
+| Simplex_q × Simplex_p (2D) | (smoke test) | — | Verify no NaN/Error |
 
 **Pentagon × RotatedPentagon details:**
 
@@ -917,6 +917,30 @@ fn test_tesseract_capacity() {
     // Witness should be a 2-bounce trajectory
     assert!(result.witness.num_bounces == 2,
         "Tesseract minimum should be 2-bounce");
+}
+
+#[test]
+fn test_smoke_triangle_product() {
+    // No ground truth value known, just verify algorithm runs without error
+    let triangle = Polygon2D::regular(3, 1.0);  // Equilateral, circumradius 1
+
+    let result = billiard_capacity(&triangle, &triangle);
+
+    assert!(result.capacity.is_finite(), "Capacity should be finite (not NaN/Inf)");
+    assert!(result.capacity > 0.0, "Capacity should be positive");
+    assert!(result.witness.is_valid(), "Witness should be valid");
+}
+
+#[test]
+fn test_smoke_simplex_product() {
+    // 2D simplex = triangle, just with different construction
+    let simplex_q = Polygon2D::simplex();  // Standard 2-simplex
+    let simplex_p = Polygon2D::simplex();
+
+    let result = billiard_capacity(&simplex_q, &simplex_p);
+
+    assert!(result.capacity.is_finite(), "Capacity should be finite (not NaN/Inf)");
+    assert!(result.capacity > 0.0, "Capacity should be positive");
 }
 ```
 
