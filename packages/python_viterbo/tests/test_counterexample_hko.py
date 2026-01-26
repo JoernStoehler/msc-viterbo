@@ -119,7 +119,11 @@ class TestCapacityVolume:
 
 
 class TestMinimumOrbit:
-    """Test minimum orbit construction."""
+    """Test minimum orbit construction.
+
+    The minimum orbit is a 2-bounce T-billiard trajectory (HK&O 2024).
+    In 4D, this corresponds to a 4-segment orbit alternating K and T facets.
+    """
 
     def test_orbit_is_closed(self) -> None:
         """First and last breakpoints should be equal."""
@@ -145,28 +149,51 @@ class TestMinimumOrbit:
         for i in range(len(bt) - 1):
             assert bt[i] < bt[i + 1]
 
-    def test_facet_sequence_length(self) -> None:
-        """Should have 10 segments (one per facet)."""
+    def test_is_4_segment_orbit(self) -> None:
+        """2-bounce T-billiard = 4 segments in 4D (K-T-K-T)."""
         facets = build_hko_facets()
         cap, _, _ = compute_capacity_volume_sys()
         orbit = build_minimum_orbit(facets, cap)
-        assert len(orbit["facet_sequence"]) == 10
+        assert len(orbit["facet_sequence"]) == 4
 
-    def test_all_facets_visited_once(self) -> None:
-        """Each facet should be visited exactly once."""
+    def test_alternates_k_and_t_facets(self) -> None:
+        """Orbit should alternate between K-facets and T-facets."""
         facets = build_hko_facets()
         cap, _, _ = compute_capacity_volume_sys()
         orbit = build_minimum_orbit(facets, cap)
-        seq = orbit["facet_sequence"]
-        assert len(seq) == len(set(seq))
-        assert set(seq) == set(range(10))
+        labels = orbit["facet_labels"]
+        # Pattern: K, T, K, T
+        assert labels[0].startswith("K")
+        assert labels[1].startswith("T")
+        assert labels[2].startswith("K")
+        assert labels[3].startswith("T")
+
+    def test_hits_diagonal_k_facets(self) -> None:
+        """Should hit K_0 and K_2 (diagonal pair)."""
+        facets = build_hko_facets()
+        cap, _, _ = compute_capacity_volume_sys()
+        orbit = build_minimum_orbit(facets, cap)
+        k_facets = [l for l in orbit["facet_labels"] if l.startswith("K")]
+        assert "K0" in k_facets
+        assert "K2" in k_facets
 
     def test_breakpoints_count(self) -> None:
-        """Should have n+1 breakpoints for n segments."""
+        """Should have n+1 breakpoints for n segments (including closure)."""
         facets = build_hko_facets()
         cap, _, _ = compute_capacity_volume_sys()
         orbit = build_minimum_orbit(facets, cap)
+        # 4 segments -> 5 breakpoints (last equals first)
         assert len(orbit["breakpoints"]) == len(orbit["facet_sequence"]) + 1
+
+    def test_breakpoints_in_valid_range(self) -> None:
+        """All breakpoint coordinates should be within the polytope bounds."""
+        facets = build_hko_facets()
+        cap, _, _ = compute_capacity_volume_sys()
+        orbit = build_minimum_orbit(facets, cap)
+        for bp in orbit["breakpoints"]:
+            # Circumradius is 1, so all coords should be in [-1, 1]
+            for coord in bp:
+                assert -1.1 < coord < 1.1  # Small tolerance
 
 
 class TestOutputFormat:

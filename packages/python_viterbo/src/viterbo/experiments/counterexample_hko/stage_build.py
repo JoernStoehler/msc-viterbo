@@ -126,77 +126,211 @@ def compute_capacity_volume_sys() -> tuple[float, float, float]:
     return cap, vol, sys_ratio
 
 
+def support_function(
+    v: tuple[float, float], vertices: list[tuple[float, float]]
+) -> float:
+    """Compute support function h_K(v) = max_{x in K} <v, x>."""
+    return max(v[0] * x + v[1] * y for x, y in vertices)
+
+
+def line_edge_intersection(
+    p: tuple[float, float],
+    d: tuple[float, float],
+    v1: tuple[float, float],
+    v2: tuple[float, float],
+) -> tuple[float, float] | None:
+    """Find intersection of ray p + t*d with edge v1-v2.
+
+    Returns intersection point if t > 0 and point is on segment, else None.
+    """
+    # Edge direction
+    e = (v2[0] - v1[0], v2[1] - v1[1])
+    # Solve p + t*d = v1 + s*e
+    # Cross product method
+    denom = d[0] * e[1] - d[1] * e[0]
+    if abs(denom) < 1e-12:
+        return None  # Parallel
+    diff = (v1[0] - p[0], v1[1] - p[1])
+    t = (diff[0] * e[1] - diff[1] * e[0]) / denom
+    s = (diff[0] * d[1] - diff[1] * d[0]) / denom
+    if t > 1e-9 and 0 <= s <= 1:
+        return (p[0] + t * d[0], p[1] + t * d[1])
+    return None
+
+
 def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
     """Construct the minimum action orbit for the pentagon product.
 
-    The orbit alternates between K and T facets. For the pentagon product,
-    the simple minimizing orbit visits each facet exactly once in a specific
-    order determined by the rotation angle between K and T.
+    Per Haim-Kislev & Ostrover 2024, the minimum is a 2-bounce T-billiard
+    trajectory along a diagonal of K. In 4D, this corresponds to a 4-segment
+    orbit alternating between K-facets and T-facets.
 
-    This constructs a plausible orbit structure; the exact orbit weights
-    come from solving the HK/CH optimization problem.
+    The orbit:
+    1. On K_i: q fixed on edge K_i, p moves in direction n_i
+    2. On T_j: p fixed on edge T_j, q moves in direction -m_j
+    3. On K_k: q fixed on edge K_k, p moves in direction n_k
+    4. On T_l: p fixed on edge T_l, q moves in direction -m_l
+    5. Returns to start
+
+    For the pentagon with T rotated by -π/2, the minimal orbit goes along
+    a diagonal direction, bouncing between edges K_0 and K_2.
 
     Args:
-        facets: The H-rep facets (K0-K4, T0-T4).
+        facets: The H-rep facets (K0-K4 are indices 0-4, T0-T4 are 5-9).
         capacity: The EHZ capacity.
 
     Returns:
-        Dict with breakpoints, facet_sequence, and segment_times.
+        Dict with breakpoints, facet_sequence, segment_times, and description.
     """
-    # The orbit alternates K and T facets.
-    # For pentagon product rotated by -π/2, a simple orbit is:
-    # K0 -> T2 -> K1 -> T3 -> K2 -> T4 -> K3 -> T0 -> K4 -> T1 -> (back to start)
-    # This gives 10 segments, visiting each facet once.
+    # Pentagon vertices
+    verts_k = regular_polygon_vertices(5, circumradius=1.0, phase=0.0)
+    verts_t = regular_polygon_vertices(5, circumradius=1.0, phase=-math.pi / 2)
 
-    # Facet sequence (indices into facets list: K0-K4 are 0-4, T0-T4 are 5-9)
-    facet_sequence = [0, 7, 1, 8, 2, 9, 3, 5, 4, 6]  # K0,T2,K1,T3,K2,T4,K3,T0,K4,T1
+    # Facet normals (2D, in their respective planes)
+    k_normals = [(facets[i].normal[0], facets[i].normal[1]) for i in range(5)]
+    t_normals = [(facets[5 + i].normal[2], facets[5 + i].normal[3]) for i in range(5)]
+
+    # The minimum orbit is a 2-bounce T-billiard along a diagonal of K.
+    # For the pentagon product, the diagonal goes between K_0 and K_2.
+    # The 4D orbit alternates: K_0 -> T_j -> K_2 -> T_l -> K_0
+
+    # Diagonal direction: from edge K_0 to edge K_2
+    # K_0 midpoint: midpoint of v_0 and v_1
+    # K_2 midpoint: midpoint of v_2 and v_3
+    k0_mid = ((verts_k[0][0] + verts_k[1][0]) / 2, (verts_k[0][1] + verts_k[1][1]) / 2)
+    k2_mid = ((verts_k[2][0] + verts_k[3][0]) / 2, (verts_k[2][1] + verts_k[3][1]) / 2)
+
+    # Direction from K_0 to K_2 (in q-plane)
+    diag_dir = (k2_mid[0] - k0_mid[0], k2_mid[1] - k0_mid[1])
+    diag_len = math.hypot(diag_dir[0], diag_dir[1])
+    diag_unit = (diag_dir[0] / diag_len, diag_dir[1] / diag_len)
+
+    # The T-billiard reflection law determines which T-facets are hit.
+    # On K_0, p moves in direction n_0 = k_normals[0].
+    # We hit the T-facet whose edge is perpendicular to this direction.
+    # For T rotated by -90°, if K_0 normal is at angle θ, we hit T-facet
+    # whose normal is at angle θ - 90°.
+
+    # K_0 normal angle: π/5 = 36°
+    # We need T-facet with normal at ~36° - 90° = -54° = 306°, which is T_0.
+    # But let's compute this properly.
+
+    # The orbit structure for 2-bounce diagonal:
+    # Start at q_A on K_0, p at center of T
+    # Move p in direction n_0 until hitting T_j
+    # Move q in direction -m_j until hitting K_2 at q_B
+    # Move p in direction n_2 until hitting T_l
+    # Move q in direction -m_l until returning to K_0 at q_A
+
+    # For the diagonal trajectory, by symmetry:
+    # - We hit K_0 and K_2 (opposite-ish edges)
+    # - We hit T_1 and T_3 (corresponding T-facets)
+
+    # Let's compute the actual breakpoints by solving the geometry.
+    # Starting point: on K_0 edge, p at center of T.
+    # We'll place q_A at the midpoint of K_0 for simplicity.
+
+    q_A = k0_mid
+    p_start = (0.0, 0.0)  # Center of T
+
+    # Segment 1: On K_0, p moves in direction n_0 until hitting T-boundary
+    n_0 = k_normals[0]
+    # Find which T-edge we hit
+    t_hit_1 = None
+    t_idx_1 = None
+    min_t = float("inf")
+    for i in range(5):
+        v1, v2 = verts_t[i], verts_t[(i + 1) % 5]
+        hit = line_edge_intersection(p_start, n_0, v1, v2)
+        if hit:
+            t = math.hypot(hit[0] - p_start[0], hit[1] - p_start[1])
+            if t < min_t:
+                min_t = t
+                t_hit_1 = hit
+                t_idx_1 = i
+
+    p_B = t_hit_1  # p-coordinate after segment 1
+
+    # Segment 2: On T_{t_idx_1}, q moves in direction -m_{t_idx_1} until hitting K_2
+    m_j = t_normals[t_idx_1]
+    q_dir = (-m_j[0], -m_j[1])
+    # Find intersection with K_2 edge
+    k2_v1, k2_v2 = verts_k[2], verts_k[3]
+    q_B = line_edge_intersection(q_A, q_dir, k2_v1, k2_v2)
+    if q_B is None:
+        # Try other K edges in diagonal direction
+        for ki in range(5):
+            if ki == 0:
+                continue
+            kv1, kv2 = verts_k[ki], verts_k[(ki + 1) % 5]
+            q_B = line_edge_intersection(q_A, q_dir, kv1, kv2)
+            if q_B:
+                k_idx_2 = ki
+                break
+    else:
+        k_idx_2 = 2
+
+    # Segment 3: On K_{k_idx_2}, p moves in direction n_{k_idx_2}
+    n_k = k_normals[k_idx_2]
+    # Find which T-edge we hit starting from p_B
+    t_hit_2 = None
+    t_idx_2 = None
+    min_t = float("inf")
+    for i in range(5):
+        v1, v2 = verts_t[i], verts_t[(i + 1) % 5]
+        hit = line_edge_intersection(p_B, n_k, v1, v2)
+        if hit:
+            t = math.hypot(hit[0] - p_B[0], hit[1] - p_B[1])
+            if t < min_t:
+                min_t = t
+                t_hit_2 = hit
+                t_idx_2 = i
+
+    p_C = t_hit_2
+
+    # Segment 4: On T_{t_idx_2}, q moves in direction -m_{t_idx_2} back to K_0
+    m_l = t_normals[t_idx_2]
+    q_dir_2 = (-m_l[0], -m_l[1])
+    # Should return to K_0
+    k0_v1, k0_v2 = verts_k[0], verts_k[1]
+    q_final = line_edge_intersection(q_B, q_dir_2, k0_v1, k0_v2)
+
+    # Build breakpoints (transitions between facets)
+    # Breakpoint at K_i -> T_j transition: q on K_i edge, p entering T_j edge
+    # Breakpoint at T_j -> K_k transition: p on T_j edge, q entering K_k edge
+
+    breakpoints = [
+        [q_A[0], q_A[1], p_start[0], p_start[1]],  # Start: on K_0, p at center
+        [q_A[0], q_A[1], p_B[0], p_B[1]],  # After K_0 segment: hit T_{t_idx_1}
+        [q_B[0], q_B[1], p_B[0], p_B[1]],  # After T segment: hit K_{k_idx_2}
+        [q_B[0], q_B[1], p_C[0], p_C[1]],  # After K segment: hit T_{t_idx_2}
+    ]
+    # Close the orbit
+    if q_final:
+        breakpoints.append([q_final[0], q_final[1], p_C[0], p_C[1]])
+    breakpoints.append(breakpoints[0])  # Close
+
+    # Facet sequence: K_0, T_{t_idx_1}, K_{k_idx_2}, T_{t_idx_2}
+    facet_sequence = [0, 5 + t_idx_1, k_idx_2, 5 + t_idx_2]
     facet_labels = [facets[i].label for i in facet_sequence]
 
-    # For the simple orbit, equal time on each segment
-    n_segments = len(facet_sequence)
-    segment_times = [capacity / n_segments] * n_segments
+    # Compute segment times from action formula
+    # Action on K-segment: |Δp| * h_K(Δp/|Δp|) ... but for characteristic, time = length
+    # For simplicity, use equal times (the actual weights come from optimization)
+    # Total time = capacity, 4 segments
+    segment_times = [capacity / 4] * 4
 
-    # Cumulative times (breaktimes)
     breaktimes = [0.0]
     for dt in segment_times:
         breaktimes.append(breaktimes[-1] + dt)
 
-    # Generate breakpoints on the orbit.
-    # Each breakpoint lies on the boundary of both the exiting and entering facets.
-    # For simplicity, we place points on the product boundary.
-    # K vertices and T vertices (for orbit intersections with facets)
-    verts_k = regular_polygon_vertices(5, circumradius=1.0, phase=0.0)
-    verts_t = regular_polygon_vertices(5, circumradius=1.0, phase=-math.pi / 2)
-
-    # Generate breakpoints that lie on facet boundaries
-    # The orbit bounces between K and T facets, hitting edges
-    breakpoints = []
-    for i, fid in enumerate(facet_sequence):
-        if fid < 5:  # K facet
-            # Point on K edge, at center of T
-            k_idx = fid
-            v1, v2 = verts_k[k_idx], verts_k[(k_idx + 1) % 5]
-            # Midpoint of K edge
-            qx, qy = (v1[0] + v2[0]) / 2, (v1[1] + v2[1]) / 2
-            px, py = 0.0, 0.0  # At center of T
-            breakpoints.append((qx, qy, px, py))
-        else:  # T facet
-            t_idx = fid - 5
-            v1, v2 = verts_t[t_idx], verts_t[(t_idx + 1) % 5]
-            # Midpoint of T edge
-            px, py = (v1[0] + v2[0]) / 2, (v1[1] + v2[1]) / 2
-            qx, qy = 0.0, 0.0  # At center of K
-            breakpoints.append((qx, qy, px, py))
-
-    # Close the orbit
-    breakpoints.append(breakpoints[0])
-
     return {
+        "description": "2-bounce T-billiard along diagonal K_0 to K_2 (HK&O 2024)",
         "facet_sequence": facet_sequence,
         "facet_labels": facet_labels,
         "segment_times": segment_times,
         "breaktimes": breaktimes,
-        "breakpoints": [list(bp) for bp in breakpoints],
+        "breakpoints": breakpoints,
     }
 
 

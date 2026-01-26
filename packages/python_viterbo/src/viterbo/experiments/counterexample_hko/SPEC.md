@@ -2,6 +2,16 @@
 
 **Status:** Specified
 
+## References
+
+- **Paper:** Haim-Kislev & Ostrover, "A Counterexample to Viterbo's Conjecture" (2024)
+  - arXiv: https://arxiv.org/abs/2405.16513
+  - Annals of Mathematics (to appear)
+- **HK2019 algorithm:** Haim-Kislev, "On the Symplectic Size of Convex Polytopes" (GAFA 2019)
+  - arXiv: https://arxiv.org/abs/1711.03722
+  - GitHub implementation (Matlab): https://github.com/pazithaimkislev/EHZ-capacity
+  - Useful for comparison when implementing HK2019 in Rust
+
 ## Research Question
 
 Produce a self-contained, illustrative showcase of the Haim-Kislev-Ostrover 2024 counterexample to Viterbo's conjecture.
