@@ -128,6 +128,15 @@ pub fn solve_for_permutation(
 
     // Extract beta (first k components)
     let beta_local: Vec<f64> = (0..k).map(|i| solution[i]).collect();
+    let beta_vec = DVector::from_column_slice(&beta_local);
+
+    // Verify that the solution actually satisfies the equality constraints.
+    // This catches cases where the KKT system is ill-conditioned or inconsistent.
+    let constraint_residual = &a * &beta_vec - &b;
+    let residual_norm = constraint_residual.norm();
+    if residual_norm > config.constraint_tol {
+        return SolveResult::Infeasible(RejectionReason::ConstraintViolation);
+    }
 
     // Check feasibility: all beta >= -positive_tol
     let all_positive = beta_local.iter().all(|&b| b >= -config.positive_tol);
