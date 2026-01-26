@@ -1,8 +1,5 @@
-# ARCHIVED - Source code deleted, see docs/developer-spec.md for algorithm specs
-# Original implementation at tag v0.1.0-archive
-
 [workspace]
-members = ["ffi"]
+members = ["tube", "ffi"]
 resolver = "2"
 
 [workspace.package]
