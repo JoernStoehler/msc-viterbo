@@ -273,4 +273,167 @@ mod tests {
         // c_EHZ = min(Area(B_q), Area(B_p)) = min(a*b, c*d) = min(2, 1) = 1
         assert_relative_eq!(result.capacity, 1.0, epsilon = 1e-6);
     }
+
+    /// Create a 4D simplex with origin in interior.
+    /// This is a general-position polytope where naive and graph_pruned
+    /// must agree after the constraint verification fix.
+    fn make_simplex() -> PolytopeHRep {
+        // 5 vertices of a regular simplex centered at origin
+        // We use a simple construction: 4 vertices at ±1 on axes, 1 at (1,1,1,1)/2
+        let vertices = [
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+            Vector4::new(-0.5, -0.5, -0.5, -0.5),
+        ];
+
+        // Centroid
+        let centroid: Vector4<f64> = vertices.iter().sum::<Vector4<f64>>() / 5.0;
+
+        // Shift so centroid is at origin
+        let shifted: Vec<Vector4<f64>> = vertices.iter().map(|v| v - centroid).collect();
+
+        // For each facet (omitting one vertex), compute normal
+        let mut normals = Vec::new();
+        let mut heights = Vec::new();
+
+        for omit in 0..5 {
+            // Get 4 vertices (all except omit)
+            let face_verts: Vec<&Vector4<f64>> = shifted
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| *i != omit)
+                .map(|(_, v)| v)
+                .collect();
+
+            // Compute normal via cross product in 4D
+            // n = (v1-v0) × (v2-v0) × (v3-v0) in 4D sense
+            let e1 = face_verts[1] - face_verts[0];
+            let e2 = face_verts[2] - face_verts[0];
+            let e3 = face_verts[3] - face_verts[0];
+
+            // 4D "cross product" - compute determinant-based normal
+            let n = Vector4::new(
+                e1[1] * (e2[2] * e3[3] - e2[3] * e3[2])
+                    - e1[2] * (e2[1] * e3[3] - e2[3] * e3[1])
+                    + e1[3] * (e2[1] * e3[2] - e2[2] * e3[1]),
+                -(e1[0] * (e2[2] * e3[3] - e2[3] * e3[2])
+                    - e1[2] * (e2[0] * e3[3] - e2[3] * e3[0])
+                    + e1[3] * (e2[0] * e3[2] - e2[2] * e3[0])),
+                e1[0] * (e2[1] * e3[3] - e2[3] * e3[1])
+                    - e1[1] * (e2[0] * e3[3] - e2[3] * e3[0])
+                    + e1[3] * (e2[0] * e3[1] - e2[1] * e3[0]),
+                -(e1[0] * (e2[1] * e3[2] - e2[2] * e3[1])
+                    - e1[1] * (e2[0] * e3[2] - e2[2] * e3[0])
+                    + e1[2] * (e2[0] * e3[1] - e2[1] * e3[0])),
+            );
+
+            let norm = n.norm();
+            if norm < 1e-10 {
+                continue;
+            }
+            let mut normal = n / norm;
+
+            // Ensure outward pointing (away from omitted vertex)
+            let omitted = &shifted[omit];
+            if normal.dot(omitted) > normal.dot(face_verts[0]) {
+                normal = -normal;
+            }
+
+            // Height = distance from origin to hyperplane
+            let height = normal.dot(face_verts[0]);
+            if height < 0.0 {
+                normal = -normal;
+            }
+            let height = height.abs();
+
+            normals.push(normal);
+            heights.push(height);
+        }
+
+        PolytopeHRep::new(normals, heights)
+    }
+
+    #[test]
+    fn test_simplex_naive_and_graph_pruned_agree() {
+        // This test ensures the constraint verification fix works.
+        // Before the fix, naive and graph_pruned gave different results
+        // because infeasible permutations (violating constraints) weren't
+        // properly rejected.
+        let polytope = make_simplex();
+
+        let result_naive = hk2017_capacity(&polytope, &Hk2017Config::naive()).unwrap();
+        let result_graph = hk2017_capacity(&polytope, &Hk2017Config::graph_pruned()).unwrap();
+
+        assert_relative_eq!(
+            result_naive.capacity,
+            result_graph.capacity,
+            epsilon = 1e-6
+        );
+        assert_relative_eq!(result_naive.q_max, result_graph.q_max, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_result_satisfies_constraints() {
+        // Verify that the returned solution actually satisfies the constraints:
+        // 1. β_i >= 0
+        // 2. Σ β_i h_i = 1
+        // 3. Σ β_i n_i = 0
+        let polytope = make_simplex();
+        let result = hk2017_capacity(&polytope, &Hk2017Config::naive()).unwrap();
+
+        let facet_data = crate::types::FacetData::from_polytope(&polytope).unwrap();
+
+        // Check β >= 0
+        for &b in &result.optimal_beta {
+            assert!(b >= -1e-9, "β should be non-negative, got {}", b);
+        }
+
+        // Check height constraint: Σ β_i h_i = 1
+        let height_sum: f64 = result
+            .optimal_beta
+            .iter()
+            .zip(facet_data.heights.iter())
+            .map(|(&b, &h)| b * h)
+            .sum();
+        assert_relative_eq!(height_sum, 1.0, epsilon = 1e-6);
+
+        // Check closure constraint: Σ β_i n_i = 0
+        let mut closure = Vector4::zeros();
+        for (i, &b) in result.optimal_beta.iter().enumerate() {
+            closure += &facet_data.normals[i] * b;
+        }
+        assert!(
+            closure.norm() < 1e-6,
+            "Closure should be ~0, got norm {}",
+            closure.norm()
+        );
+    }
+
+    #[test]
+    fn test_simplex_rejects_infeasible_permutations() {
+        // For a general-position simplex, most small permutations (k < 5)
+        // cannot satisfy the closure constraint and should be rejected.
+        let polytope = make_simplex();
+        let result = hk2017_capacity(&polytope, &Hk2017Config::naive()).unwrap();
+
+        // With 5 facets, naive enumerates 320 permutations
+        // Most should be rejected (constraint violations + negative beta + etc)
+        assert!(
+            result.permutations_rejected > result.permutations_evaluated / 2,
+            "Expected most permutations to be rejected for simplex. \
+             Evaluated: {}, Rejected: {}",
+            result.permutations_evaluated,
+            result.permutations_rejected
+        );
+
+        // The optimal permutation should use all or most facets
+        // (small permutations can't satisfy closure for general position)
+        assert!(
+            result.optimal_permutation.len() >= 4,
+            "Optimal should use at least 4 facets, got {}",
+            result.optimal_permutation.len()
+        );
+    }
 }
