@@ -1,31 +1,50 @@
 //! Trivialization of 2-face tangent spaces using the quaternion structure.
 //!
-//! Based on CH2021 Definition 2.15 and Lemma 2.16.
+//! The orthonormal basis for R^4 w.r.t. normal n is {n, Jn, Kn, In} where I = JK.
+//! - n: normal to facet
+//! - Jn: Reeb flow direction (R = 2/h · Jn)
+//! - Kn, In: transverse directions (the 2D plane we trivialize to)
+//!
+//! The trivialization captures the 2D plane transverse to both the normal and the flow.
 
-use nalgebra::{Matrix2, Vector2, Vector4};
+use nalgebra::{Matrix2, Matrix4, Vector2, Vector4};
 
-use crate::geom::{symplectic_form, J_MATRIX, K_MATRIX};
+use crate::geom::{J_MATRIX, K_MATRIX};
 use crate::tol::EPS;
 
-/// Trivialize a 4D vector tangent to the facet with normal `n`.
+/// I = JK (the third imaginary quaternion, completing the basis {1, I, J, K})
+pub const I_MATRIX: Matrix4<f64> = {
+    // I = J * K computed manually
+    // J = [[0,0,-1,0], [0,0,0,-1], [1,0,0,0], [0,1,0,0]]
+    // K = [[0,-1,0,0], [1,0,0,0], [0,0,0,1], [0,0,-1,0]]
+    // I[i,j] = sum_k J[i,k] * K[k,j]
+    Matrix4::new(
+        0.0, 0.0, 0.0, -1.0, // row 0
+        0.0, 0.0, 1.0, 0.0,  // row 1
+        0.0, -1.0, 0.0, 0.0, // row 2
+        1.0, 0.0, 0.0, 0.0,  // row 3
+    )
+};
+
+/// Trivialize a 4D vector to the 2D plane transverse to n and Jn.
 ///
-/// τ_n(V) = (⟨V, Jn⟩, ⟨V, Kn⟩)
+/// τ_n(V) = (⟨V, Kn⟩, ⟨V, In⟩) where I = JK
 ///
-/// Note: This function can be applied to any V ∈ ℝ⁴, but its geometric meaning
-/// requires V tangent to the facet (i.e., ⟨V, n⟩ = 0).
+/// This captures the 2D subspace perpendicular to both the facet normal n
+/// and the Reeb flow direction Jn.
 pub fn trivialize(n: &Vector4<f64>, v: &Vector4<f64>) -> Vector2<f64> {
-    let jn = J_MATRIX * n;
     let kn = K_MATRIX * n;
-    Vector2::new(v.dot(&jn), v.dot(&kn))
+    let i_n = I_MATRIX * n;
+    Vector2::new(v.dot(&kn), v.dot(&i_n))
 }
 
 /// Inverse trivialization: convert 2D coordinates back to 4D.
 ///
-/// τ_n⁻¹(a, b) = a · Jn + b · Kn
+/// τ_n⁻¹(a, b) = a · Kn + b · In
 pub fn untrivialize(n: &Vector4<f64>, coords: &Vector2<f64>) -> Vector4<f64> {
-    let jn = J_MATRIX * n;
     let kn = K_MATRIX * n;
-    jn * coords[0] + kn * coords[1]
+    let i_n = I_MATRIX * n;
+    kn * coords[0] + i_n * coords[1]
 }
 
 /// Compute the transition matrix ψ between two trivializations.
@@ -37,8 +56,8 @@ pub fn compute_transition_matrix(n_from: &Vector4<f64>, n_to: &Vector4<f64>) -> 
     let e1 = Vector2::new(1.0, 0.0);
     let e2 = Vector2::new(0.0, 1.0);
 
-    let v1 = untrivialize(n_from, &e1); // Jn_from
-    let v2 = untrivialize(n_from, &e2); // Kn_from
+    let v1 = untrivialize(n_from, &e1); // Kn_from
+    let v2 = untrivialize(n_from, &e2); // Mn_from
 
     let col1 = trivialize(n_to, &v1);
     let col2 = trivialize(n_to, &v2);
@@ -74,16 +93,18 @@ pub fn is_lagrangian_by_trace(psi: &Matrix2<f64>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::geom::symplectic_form;
     use approx::assert_relative_eq;
 
     #[test]
     fn test_trivialize_untrivialize_roundtrip() {
         let n = Vector4::new(1.0, 0.0, 0.0, 0.0);
 
-        // A vector in span{Jn, Kn} - not just perpendicular to n
-        // Jn = (0, 0, 1, 0), Kn = (0, 1, 0, 0)
-        // So v_tangent = 0.5 * Jn + 0.3 * Kn = (0, 0.3, 0.5, 0)
-        let v_tangent = Vector4::new(0.0, 0.3, 0.5, 0.0);
+        // For n = (1,0,0,0):
+        // Kn = K * n = (0, 1, 0, 0)
+        // In = I * n = JK * n = (0, 0, 0, 1)
+        // So a vector in span{Kn, In} is (0, a, 0, b)
+        let v_tangent = Vector4::new(0.0, 0.5, 0.0, 0.3);
 
         let coords = trivialize(&n, &v_tangent);
         let v_recovered = untrivialize(&n, &coords);
@@ -92,22 +113,25 @@ mod tests {
     }
 
     #[test]
-    fn test_jn_kn_orthonormal() {
-        // For unit normal n, Jn and Kn should be orthonormal and perpendicular to n
+    fn test_quaternion_basis_orthonormal() {
+        // For unit normal n, {n, Jn, Kn, In} should be orthonormal
         let n = Vector4::new(1.0, 0.0, 0.0, 0.0);
         let jn = J_MATRIX * n;
         let kn = K_MATRIX * n;
+        let i_n = I_MATRIX * n;
 
-        // Orthogonal
-        assert_relative_eq!(jn.dot(&kn), 0.0, epsilon = 1e-10);
-
-        // Unit length
+        // All unit length
         assert_relative_eq!(jn.norm(), 1.0, epsilon = 1e-10);
         assert_relative_eq!(kn.norm(), 1.0, epsilon = 1e-10);
+        assert_relative_eq!(i_n.norm(), 1.0, epsilon = 1e-10);
 
-        // Perpendicular to n
-        assert_relative_eq!(jn.dot(&n), 0.0, epsilon = 1e-10);
-        assert_relative_eq!(kn.dot(&n), 0.0, epsilon = 1e-10);
+        // All pairwise orthogonal
+        assert_relative_eq!(n.dot(&jn), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(n.dot(&kn), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(n.dot(&i_n), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(jn.dot(&kn), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(jn.dot(&i_n), 0.0, epsilon = 1e-10);
+        assert_relative_eq!(kn.dot(&i_n), 0.0, epsilon = 1e-10);
     }
 
     #[test]
@@ -132,15 +156,15 @@ mod tests {
             omega
         );
 
-        // Debug: print basis vectors
-        let jn1 = J_MATRIX * n1;
+        // Debug: print basis vectors (trivialization uses Kn, In)
         let kn1 = K_MATRIX * n1;
-        let jn2 = J_MATRIX * n2;
+        let i_n1 = I_MATRIX * n1;
         let kn2 = K_MATRIX * n2;
-        println!("Jn1 = {:?}", jn1);
+        let i_n2 = I_MATRIX * n2;
         println!("Kn1 = {:?}", kn1);
-        println!("Jn2 = {:?}", jn2);
+        println!("In1 = {:?}", i_n1);
         println!("Kn2 = {:?}", kn2);
+        println!("In2 = {:?}", i_n2);
 
         let psi = compute_transition_matrix(&n1, &n2);
         println!("Transition matrix: {:?}", psi);
