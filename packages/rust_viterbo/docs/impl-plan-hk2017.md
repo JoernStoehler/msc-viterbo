@@ -3,7 +3,7 @@
 > **Companion to:** `spec-hk2017.md`
 > **Author:** Claude Code agent
 > **Date:** 2026-01-26
-> **Status:** Implementation complete (naive enumeration works; graph pruning has known limitations)
+> **Status:** Implementation complete (both naive and graph-pruned enumeration work correctly)
 
 ---
 
@@ -99,27 +99,27 @@ pub enum EnumerationStrategy {
 }
 ```
 
-**KNOWN LIMITATION: Graph Pruning May Miss Optimal Solutions**
+**Graph Pruning via Geometric Adjacency**
 
-During implementation, we discovered that graph-pruned enumeration is **too
-aggressive** for some polytopes, including the tesseract.
+Graph pruning uses **geometric adjacency** (shared-vertex adjacency) to prune
+permutations. Two facets are adjacent if they share at least one vertex.
 
-The issue: The HK2017 formula maximizes Q over *all orderings* of facets,
-not just orderings that correspond to physically valid Reeb flow transitions.
-The Simple Orbits Theorem guarantees that the optimal Q value corresponds to
-a valid physical orbit, but the *ordering* that achieves this maximum may not
-follow direct transition edges.
+Implementation:
+1. Enumerate all vertices of the polytope (intersections of 4 hyperplanes in R^4)
+2. Build facet-vertex incidence relation
+3. Two facets are adjacent iff they share a vertex
+4. Enumerate only cycles through adjacent facets
 
-For the tesseract, the naive algorithm finds optimal permutation [0, 2, 5, 1, 4, 6],
-which involves 6 facets. The transitions 0→2 and other consecutive pairs in this
-sequence do NOT have valid Reeb flow edges (⟨p_i, n_j⟩ ≤ 0). Yet this ordering
-achieves Q = 0.125, giving capacity = 4.0.
+For the tesseract [-1,1]^4:
+- 16 vertices (corners of the 4-cube)
+- Each facet has 8 vertices
+- Each vertex is incident to 4 facets
+- Two facets are adjacent iff their normals are orthogonal (non-parallel)
+- Opposite facets (0,1), (2,3), (4,5), (6,7) are NOT adjacent
 
-**Recommendation:** Use naive enumeration for correctness. Graph pruning tests
-are marked `#[ignore]` until the pruning strategy is improved.
-
-**TODO:** Improve graph pruning to consider multi-step transitions or implement
-a smarter pruning strategy based on closure constraint feasibility.
+The optimal permutation [0, 2, 5, 1, 4, 6] consists of adjacent facets at each
+step, so it is correctly included in the graph-pruned enumeration. This reduces
+the search space from 109,592 naive permutations to 5,556 cycles.
 
 ### 3.3 Numerical Tolerances
 

@@ -176,22 +176,10 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "Graph pruning is too aggressive for tesseract - optimal solution uses non-physical transitions"]
     fn test_tesseract_capacity_graph_pruned() {
-        // NOTE: This test is ignored because the graph pruning optimization
-        // is too aggressive for the tesseract. The optimal permutation found by
-        // naive enumeration is [0, 2, 5, 1, 4, 6], which doesn't follow the
-        // physical transition graph (not all consecutive facets have valid
-        // Reeb flow transitions between them).
-        //
-        // The graph pruning correctly identifies physical transitions but
-        // the HK2017 formula allows orderings that don't correspond to
-        // physical orbits. The Simple Orbits Theorem guarantees the optimal
-        // Q value corresponds to a physical orbit, but we don't need to
-        // restrict our search to physical orderings only.
-        //
-        // TODO: Improve graph pruning to allow non-direct transitions or
-        // implement a smarter pruning strategy.
+        // Graph pruning uses geometric adjacency (shared vertices) to prune
+        // permutations. For the tesseract, this correctly identifies that
+        // opposite facets cannot be adjacent in a valid orbit.
         let polytope = make_tesseract();
         let config = Hk2017Config::graph_pruned();
 
@@ -202,9 +190,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "Graph pruning doesn't work correctly for tesseract"]
     fn test_naive_and_graph_pruned_agree() {
-        // See test_tesseract_capacity_graph_pruned for explanation
         let polytope = make_tesseract();
 
         let result_naive = hk2017_capacity(&polytope, &Hk2017Config::naive()).unwrap();
