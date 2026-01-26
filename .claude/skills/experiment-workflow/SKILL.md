@@ -9,16 +9,16 @@ description: Planning or executing thesis experiments. Covers the lifecycle from
 
 **experiments.md is a living document**, not a rigid specification. It captures ideas at various stages of development. The format can evolve as needs change.
 
-**The table is an index, not the documentation.** Each experiment should have a detailed `## section` below the table that preserves:
-- Full reasoning and sub-questions
-- Connections to other experiments
-- Strategic implications ("if X then Y")
+**The table is an index; the detailed sections are the documentation.** The table lets you scan experiment labels and statuses at a glance. Each experiment should have a `## <label>` section below the table that contains the actual content:
+- The research question and any sub-questions it breaks into
+- How this experiment connects to other experiments (dependencies, shared data, sequential logic)
+- What the outcome implies for next steps (e.g., "if sys > 1 is rare, we need targeted search methods")
 - Open questions and blockers
-- Context from conversations, papers, advisor discussions
+- Where the idea came from (conversation, paper, advisor discussion)
 
 **Don't compress ideas.** When capturing a research idea, preserve the intellectual labor that went into articulating it. A one-line note in the table loses the nuance, connections, and decision points. Write the detailed section.
 
-**One experiment can have multiple variants.** If an experiment explores multiple families/parameters (e.g., "convex hull of random points" vs "intersection of random halfplanes"), that's one experiment with variants as parameters — not separate experiment entries. Don't spam the table with many near-duplicate rows.
+**One experiment can have multiple variants.** If an experiment explores multiple families or parameter settings (e.g., comparing "convex hull of random points" vs "intersection of random halfplanes"), keep it as one experiment entry. The variants become parameters within that experiment's code and analysis. Don't create separate table rows for each variant.
 
 **Ideas have broader context.** An experiment idea doesn't exist only in experiments.md. It connects to:
 - Conversations where the idea emerged
@@ -88,15 +88,15 @@ What outcome means "it worked"?
 
 ### Ideation
 
-1. Add row to tracking table (`experiments.md`) with label, status, brief research question, notes
-2. Add detailed `## <label>` section below the table with full reasoning:
-   - Research question and sub-questions
-   - Proposed approach/methods
-   - What patterns or answers we're looking for
-   - Connections to other experiments
+1. Add a row to the tracking table (`experiments.md`) with: label, status, one-line research question, brief notes.
+2. Add a `## <label>` section below the table. This section should include:
+   - The research question, stated clearly, plus any sub-questions
+   - Proposed approach or methods
+   - What patterns or answers you're looking for
+   - How this experiment connects to others (dependencies, what it enables)
    - Blockers and dependencies
-   - Context (where the idea came from, related prior work)
-3. Mark `[proposed]` if agent-created. No code folder yet.
+   - Where the idea came from (conversation, paper, advisor)
+3. If agent-created, mark the section with `[proposed]`. No code folder yet at this stage.
 
 ### Specification
 
