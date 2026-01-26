@@ -5,32 +5,55 @@ description: Work on Python experiments in packages/python_viterbo. Use for layo
 
 # Python Conventions (python_viterbo)
 
-## Purpose and layout
+## CRITICAL: Read this skill before working on Python code
 
-- Experiments live in `src/viterbo/experiments/<experiment>/`.
-- Stage entrypoints: `stage_<stage>.py`.
-- Shared helpers: `src/viterbo/common/` (avoid premature abstraction).
-- Configs: `configs/experiments/<consumer>/<variant>.json`.
-- Data artifacts: `data/experiments/<producer>/<variant>/` (Git LFS).
+Agents MUST read this entire skill file before proposing or implementing Python code. Do not skip sections. Do not make up conventions that are not documented here.
+
+## Terminology
+
+- **label**: A short identifier for an experiment (e.g., `counterexample-hko`, `dimension-5-probing`). Used consistently across folder names, tracking table rows, and thesis section labels.
+- **stage**: A discrete step in an experiment pipeline (e.g., `build`, `analyze`, `plot`).
+
+## Directory layout
+
+All paths relative to `packages/python_viterbo/`:
+
+| Artifact | Path | Notes |
+|----------|------|-------|
+| Experiment code | `src/viterbo/experiments/<label>/` | One folder per experiment |
+| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<stage>.py` | CLI-invocable modules |
+| Experiment spec | `src/viterbo/experiments/<label>/SPEC.md` | Research question, success criteria |
+| Shared helpers | `src/viterbo/common/` | Avoid premature abstraction |
+| Configs | `config/<label>/<variant>.json` | Parameters for reproducible runs |
+| Data artifacts | `data/<label>/` | Outputs from experiments (Git LFS for large files) |
+| Assets for thesis | `../latex_viterbo/assets/<label>/` | Plots, figures, tables |
 
 ## Commands
 
-- Lint: `scripts/lint.sh` (`ruff format`, `ruff check --fix`, `pyright`).
-- Smoke tests: `scripts/smoke-test.sh` (`pytest tests/smoke`).
-- Targeted tests: `uv run pytest <args>`.
+| Task | Command |
+|------|---------|
+| Lint | `scripts/lint.sh` (runs ruff format, ruff check --fix, pyright) |
+| All tests | `uv run pytest tests/` |
+| Targeted tests | `uv run pytest <path>` |
 
 ## Stage invocation
 
-- `uv run python -m viterbo.experiments.<experiment>.stage_<stage> --config configs/experiments/<experiment>/<variant>.json`
+```bash
+uv run python -m viterbo.experiments.<label>.stage_<stage> [--config config/<label>/<variant>.json]
+```
 
-## Conventions
+## Code conventions
 
-- Follow best practices for ML/data‑science code.
-- Docstrings include inputs/outputs, side effects, shapes/dtypes, and contract.
-- Prefer pure functions where practical.
-- Comments explain the why behind non‑obvious decisions.
+- Follow ML/data-science best practices.
+- Docstrings: inputs/outputs, side effects, shapes/dtypes, contracts.
+- Prefer pure functions.
+- Comments explain WHY, not WHAT.
+- Cite sources for non-obvious claims (paper refs, file paths, line numbers).
 
 ## Plots and assets
 
-- LaTeX only includes assets; Python generates layout/style.
-- Store outputs under `packages/latex_viterbo/assets/<experiment>/...`.
+- Python generates layout/style; LaTeX only includes the result.
+- Output to `packages/latex_viterbo/assets/<label>/`.
+- Use descriptive filenames (e.g., `orbit-projection.png`, not `fig1.png`).
+
+[proposed]
