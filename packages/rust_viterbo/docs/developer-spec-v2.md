@@ -3124,84 +3124,131 @@ If this test passes, the cross-polytope provides a non-Lagrangian-product test c
 
 ### 4.10 Test Fixture Definitions
 
-**Tesseract:**
+#### Naming Conventions
+
+**2D Polygons:**
+- `regular_ngon(n, r)` — Regular n-gon with circumradius r, first vertex at angle 0 (pointing right)
+- `rotated(polygon, θ)` — Rotate polygon CCW by θ radians
+
+**4D Polytopes:**
+- `lagrangian_product(Kq, Kp)` — Product K_q × K_p where K_q ⊂ ℝ²_q and K_p ⊂ ℝ²_p
+- `unit_tesseract()` — The cube [-1,1]⁴ (special case: square × square)
+- `unit_cross_polytope()` — conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
+
+**Parameterization choices:**
+- **Circumradius** (not inradius or edge length) — vertices lie on a circle, most natural for regular polygons
+- **Unit circumradius** as default — scale explicitly when needed
+
 ```rust
-fn tesseract() -> PolytopeHRep {
-    PolytopeHRep {
-        normals: vec![
-            Vector4::new(1.0, 0.0, 0.0, 0.0), Vector4::new(-1.0, 0.0, 0.0, 0.0),
-            Vector4::new(0.0, 1.0, 0.0, 0.0), Vector4::new(0.0, -1.0, 0.0, 0.0),
-            Vector4::new(0.0, 0.0, 1.0, 0.0), Vector4::new(0.0, 0.0, -1.0, 0.0),
-            Vector4::new(0.0, 0.0, 0.0, 1.0), Vector4::new(0.0, 0.0, 0.0, -1.0),
-        ],
-        heights: vec![1.0; 8],
+/// Regular n-gon with circumradius r, vertices at angles 2πk/n for k=0,...,n-1
+fn regular_ngon(n: usize, circumradius: f64) -> Polygon2D {
+    use std::f64::consts::TAU;  // TAU = 2π
+    assert!(n >= 3, "Polygon needs at least 3 vertices");
+
+    let vertices: Vec<Vector2<f64>> = (0..n)
+        .map(|k| {
+            let angle = TAU * k as f64 / n as f64;
+            Vector2::new(circumradius * angle.cos(), circumradius * angle.sin())
+        })
+        .collect();
+
+    polygon_from_vertices_ccw(vertices)
+}
+
+/// Rotate polygon CCW by angle (radians)
+fn rotated(polygon: &Polygon2D, angle: f64) -> Polygon2D {
+    let c = angle.cos();
+    let s = angle.sin();
+    let rot = Matrix2::new(c, -s, s, c);
+
+    Polygon2D {
+        vertices: polygon.vertices.iter().map(|v| rot * v).collect(),
+        normals: polygon.normals.iter().map(|n| rot * n).collect(),
+        heights: polygon.heights.clone(),
     }
 }
-```
 
-**Cross-polytope (for tube algorithm testing):**
-```rust
-fn cross_polytope() -> PolytopeHRep {
-    // Cross-polytope = conv{±e₁, ±e₂, ±e₃, ±e₄}
-    // Has 16 facets with normals (±1,±1,±1,±1)/2
+/// Lagrangian product K_q × K_p ⊂ ℝ⁴
+fn lagrangian_product(Kq: &Polygon2D, Kp: &Polygon2D) -> PolytopeHRep {
     let mut normals = Vec::new();
     let mut heights = Vec::new();
 
-    for s1 in [-1.0, 1.0] {
-        for s2 in [-1.0, 1.0] {
-            for s3 in [-1.0, 1.0] {
-                for s4 in [-1.0, 1.0] {
-                    let n = Vector4::new(s1, s2, s3, s4) / 2.0;  // normalize
-                    normals.push(n);
-                    heights.push(1.0);  // 0 at center, vertices at distance 1
-                }
-            }
-        }
+    // q-facets: normal (n_q, 0, 0)
+    for (n2, &h) in Kq.normals.iter().zip(&Kq.heights) {
+        normals.push(Vector4::new(n2[0], n2[1], 0.0, 0.0));
+        heights.push(h);
+    }
+    // p-facets: normal (0, 0, n_p)
+    for (n2, &h) in Kp.normals.iter().zip(&Kp.heights) {
+        normals.push(Vector4::new(0.0, 0.0, n2[0], n2[1]));
+        heights.push(h);
     }
 
     PolytopeHRep { normals, heights }
 }
 ```
 
-**Triangle × Triangle (equilateral, circumradius 1):**
+#### Specific Fixtures
+
+**Unit tesseract** (c = 4.0):
 ```rust
-fn triangle_product() -> LagrangianProductPolytope {
-    use std::f64::consts::PI;
-    let angles = [0.0, 2.0 * PI / 3.0, 4.0 * PI / 3.0];
-    let vertices: Vec<Vector2<f64>> = angles.iter()
-        .map(|&a| Vector2::new(a.cos(), a.sin()))
-        .collect();
-
-    // Compute normals (outward, perpendicular to edges)
-    // ...
-
-    LagrangianProductPolytope {
-        K1: /* triangle */,
-        K2: /* same triangle */,
+fn unit_tesseract() -> PolytopeHRep {
+    // [-1,1]⁴ = square(1) ×_L square(1) where square has circumradius √2
+    // But for axis-aligned tesseract, define directly:
+    PolytopeHRep {
+        normals: vec![
+            Vector4::new( 1.0,  0.0,  0.0,  0.0),
+            Vector4::new(-1.0,  0.0,  0.0,  0.0),
+            Vector4::new( 0.0,  1.0,  0.0,  0.0),
+            Vector4::new( 0.0, -1.0,  0.0,  0.0),
+            Vector4::new( 0.0,  0.0,  1.0,  0.0),
+            Vector4::new( 0.0,  0.0, -1.0,  0.0),
+            Vector4::new( 0.0,  0.0,  0.0,  1.0),
+            Vector4::new( 0.0,  0.0,  0.0, -1.0),
+        ],
+        heights: vec![1.0; 8],
     }
 }
 ```
 
-**Pentagon × RotatedPentagon (HK-O counterexample):**
+**Unit cross-polytope** (for tube algorithm, c = unknown):
 ```rust
-fn hko_counterexample() -> LagrangianProductPolytope {
-    use std::f64::consts::PI;
-    let angles: Vec<f64> = (0..5).map(|i| 2.0 * PI * i as f64 / 5.0).collect();
-
-    let pentagon_vertices: Vec<Vector2<f64>> = angles.iter()
-        .map(|&a| Vector2::new(a.cos(), a.sin()))
-        .collect();
-
-    let rotated_vertices: Vec<Vector2<f64>> = angles.iter()
-        .map(|&a| Vector2::new((a + PI/2.0).cos(), (a + PI/2.0).sin()))
-        .collect();
-
-    // Expected capacity: 2 * cos(π/10) * (1 + cos(π/5)) ≈ 3.4409548
-    LagrangianProductPolytope {
-        K1: polygon_from_vertices(pentagon_vertices),
-        K2: polygon_from_vertices(rotated_vertices),
+fn unit_cross_polytope() -> PolytopeHRep {
+    // conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
+    // 16 facets with normals (±1,±1,±1,±1)/2
+    let mut normals = Vec::new();
+    for s1 in [-1.0, 1.0] {
+        for s2 in [-1.0, 1.0] {
+            for s3 in [-1.0, 1.0] {
+                for s4 in [-1.0, 1.0] {
+                    normals.push(Vector4::new(s1, s2, s3, s4) / 2.0);
+                }
+            }
+        }
     }
+    PolytopeHRep { normals, heights: vec![1.0; 16] }
 }
+```
+
+**Equilateral triangle product** (c = 1.5 for circumradius 1):
+```rust
+fn equilateral_triangle_product() -> PolytopeHRep {
+    let triangle = regular_ngon(3, 1.0);  // circumradius 1
+    lagrangian_product(&triangle, &triangle)
+}
+// Expected: c_EHZ = 1.5, systolic ratio < 1
+```
+
+**HK-O 2024 counterexample** (c ≈ 3.441):
+```rust
+fn hko2024_counterexample() -> PolytopeHRep {
+    use std::f64::consts::FRAC_PI_2;
+    let pentagon = regular_ngon(5, 1.0);
+    let pentagon_rotated = rotated(&pentagon, FRAC_PI_2);  // 90° = π/2
+    lagrangian_product(&pentagon, &pentagon_rotated)
+}
+// Expected: c_EHZ = 2·cos(π/10)·(1 + cos(π/5)) ≈ 3.4409548
+// Systolic ratio ≈ 1.047 > 1 (counterexample to Viterbo)
 ```
 
 ---
