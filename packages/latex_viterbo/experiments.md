@@ -31,7 +31,7 @@ See `.claude/skills/experiment-workflow/` for the full workflow.
 | nn-regression-mutual-info | Ideation (blocked) | Can a NN find non-linear mutual information between polytope features and sys? | Extension of dimension reduction. NN as regression model to detect complex relationships that linear methods miss. |
 | ml-capacity-prediction | Ideation (blocked) | Can ML learn a scalable (blackbox) capacity algorithm? How learnable is c_EHZ? | Explore dataset, architecture, training objective (noise, RL, subtasks like autoencoding for symplectomorphism invariance), input encoding (precomputed nonlinear features, redundant representations). Use capacity axioms (scaling, monotonicity, invariance, continuity) to relate rows / regularize. |
 | sys-ratio-optimization | Ideation (blocked) | Can we optimize to find maximum systolic ratio? What do gradient flow lines look like? | Methods: rejection sampling, gradient descent (if subgradient computable in h-rep/v-rep), RL. Study sys-gradient flow: local/global optima, saddle points. Lie group Sp(4) ⋊ R⁴ acts with sys invariant → generators ⊥ sys-gradient. Quotient by Lie group: simpler flow? |
-| benchmark-hk2017 | Ideation | How does HK2017 runtime scale? Can we predict runtime from polytope parameters? | Two variants: Naive (O(F!)) vs GraphPruned (adjacency-based cycle enumeration). Goal: scaling laws, prediction formulas (polytope → time, time budget → feasible polytopes). NOT blocked — HK2017 is implemented. |
+| benchmark-hk2017 | Executed | How does HK2017 runtime scale? Can we predict runtime from polytope parameters? | Naive enumeration only (GraphPruned disabled). Result: ~1µs/permutation, R²=0.9997. Budget: 8f→0.1s, 9f→1.3s, 10f→~10s. See FINDINGS.md in experiment module. |
 
 ## billiard-hko-orbit
 
@@ -331,61 +331,41 @@ If we quotient polytope space by Sp(4) ⋉ R⁴, we get a lower-dimensional spac
 
 ## benchmark-hk2017
 
+**Status:** Executed (2026-01-26)
+
 **Research question:** How does HK2017 runtime scale with polytope parameters? Can we build predictive models for runtime?
 
-**Motivation:** HK2017 is the universal baseline algorithm (works on all 4D polytopes). Understanding its runtime characteristics is essential for:
-1. Planning computational budgets for other experiments
-2. Knowing which polytopes are feasible to process
-3. Deciding when to use Naive vs GraphPruned enumeration
+**Key results:**
 
-**Algorithm variants:**
+| Metric | Value |
+|--------|-------|
+| Scaling model | `time_ms = 5.51e-04 × perms^1.059` |
+| Model fit | R² = 0.9997 |
+| Time per permutation | ~1.04 µs |
+| Permutation count formula | `Σ_{k=2}^F (F! / (F-k)!)` — exact match to observations |
 
-| Variant | Enumeration | Complexity | Best for |
-|---------|-------------|------------|----------|
-| **Naive** | All subset permutations of facets | O(F!) where F = facet count | Small polytopes (F < 10), ground truth validation |
-| **GraphPruned** | Cycles in facet adjacency graph | Depends on graph sparsity | Sparse adjacency (e.g., tesseract: 1.1k cycles vs 109k naive) |
+**Budget guidance:**
 
-**Key runtime factors (from code analysis):**
-- **Facet count (F):** Dominates for Naive. Example: F=8 → 109,601 permutations
-- **Adjacency graph sparsity:** For GraphPruned, fewer edges → fewer cycles → faster
-- **Vertex count:** GraphPruned preprocessing is O(F⁴) for vertex enumeration (C(F,4) linear systems)
-- **Permutation/cycle length distribution:** Each permutation costs O(k³) for KKT solving
+| Facets | Permutations | Expected Time |
+|--------|--------------|---------------|
+| 5 | 320 | ~0.3 ms |
+| 8 | 109,592 | ~110 ms |
+| 9 | 986,400 | ~1.3 s |
+| 10 | 9,864,090 | ~10-13 s |
 
-**Data to collect:**
-- Wall time (= CPU time for single-threaded)
-- `permutations_evaluated` and `permutations_rejected` from `Hk2017Result`
-- Facet count, vertex count
-- Adjacency graph edge count (for GraphPruned analysis)
-- Cycle length distribution
+**Practical rule:** Given time budget T (seconds), max facets F where theoretical perms ≤ T × 10⁶.
 
-**Analyses:**
+**Discoveries:**
+1. **Facet count gaps in 4D:** Random convex hulls cannot produce 6, 7, or 10 facets. Only 5 (simplex from 5 points) or 8+ (from 6+ points).
+2. **GraphPruned not tested:** FFI only exposes Naive enumeration; GraphPruned is disabled due to known issues.
+3. **FFI limit:** 10 facets maximum is enforced by the FFI.
 
-1. **Scaling curves:** Plot time vs facet count for both variants. Fit theoretical models (factorial, exponential, polynomial).
+**Files:**
+- Experiment module: `packages/python_viterbo/src/viterbo/experiments/benchmark_hk2017/`
+- Data: `packages/python_viterbo/data/benchmark-hk2017/`
+- Detailed findings: `FINDINGS.md` in experiment module
 
-2. **Variant comparison:** For which polytopes is GraphPruned faster? Quantify the speedup ratio.
-
-3. **Prediction model:** Train regression model: (F, V, edges, ...) → expected runtime. Validate on held-out polytopes.
-
-4. **Budget inversion:** Given a time budget (e.g., 30 seconds), what's the maximum facet count that's reliably processable? Create lookup table or formula.
-
-5. **Bottleneck analysis:** What fraction of time is enumeration vs solving? Where should optimization effort go?
-
-**Polytope families to test:**
-- Regular polytopes (tesseract, simplex, cross-polytope, ...)
-- Random polytopes (convex hull of random points)
-- Lagrangian products of polygons
-- Structured families with known adjacency patterns
-
-**Config variants:**
-- `config/benchmark-hk2017/naive.json` — Naive enumeration only
-- `config/benchmark-hk2017/graph-pruned.json` — GraphPruned enumeration only
-- `config/benchmark-hk2017/comparison.json` — Both variants on same polytopes
-
-**Success criteria:**
-- Clear scaling laws identified
-- Prediction model with <20% error on held-out test set
-- Practical guidance: "For F≤X, expect <30s runtime with variant Y"
-
-**Not blocked:** HK2017 is fully implemented in `packages/rust_viterbo/hk2017/`
-
-[proposed]
+**Future work:**
+- Benchmark GraphPruned variant once FFI issues resolved
+- Test larger facet counts by removing FFI limit
+- Profile bottlenecks for optimization

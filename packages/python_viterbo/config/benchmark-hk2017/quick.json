@@ -1,0 +1,8 @@
+{
+  "seed": 42,
+  "repetitions": 5,
+  "max_random_attempts": 200,
+  "facet_counts": [5, 8, 9],
+  "output_dir": "data/benchmark-hk2017",
+  "_comment": "Quick config. In 4D: 5pts->5f, 6pts->8-9f, 7pts->8-14f but never 10f. FFI limit is 10f."
+}
