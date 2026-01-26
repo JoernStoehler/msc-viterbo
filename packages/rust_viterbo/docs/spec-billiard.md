@@ -566,39 +566,50 @@ pub fn extract_lagrangian_factors(hrep: &PolytopeHRep) -> Option<LagrangianProdu
 
 ### 3.3 Edge Combination Enumeration
 
-For a k-bounce trajectory, we enumerate all ways to choose k edges from K_q and k edges from K_p:
+For a k-bounce trajectory, we enumerate all ordered k-tuples of edges from K_q and K_p independently:
 
 ```rust
-use itertools::Itertools;
-
 /// Generate all edge combinations for k bounces
+/// Returns n_q^k × n_p^k combinations
 fn edge_combinations(n_q: usize, n_p: usize, k: usize) -> Vec<EdgeCombination> {
-    let q_choices: Vec<Vec<usize>> = (0..n_q).combinations_with_replacement(k).collect();
-    let p_choices: Vec<Vec<usize>> = (0..n_p).combinations_with_replacement(k).collect();
-
-    // Also need permutations of each choice
     let mut combinations = Vec::new();
 
-    for q_subset in &q_choices {
-        for q_perm in q_subset.iter().cloned().permutations(k) {
-            for p_subset in &p_choices {
-                for p_perm in p_subset.iter().cloned().permutations(k) {
-                    combinations.push(EdgeCombination {
-                        q_edges: q_perm.clone(),
-                        p_edges: p_perm,
-                    });
-                }
-            }
+    // Enumerate all ordered k-tuples for q-edges and p-edges independently
+    for q_edges in ordered_tuples(n_q, k) {
+        for p_edges in ordered_tuples(n_p, k) {
+            combinations.push(EdgeCombination { q_edges, p_edges });
         }
     }
 
     combinations
 }
+
+/// Generate all ordered k-tuples from {0, ..., n-1}
+/// Allows repetition (same edge can appear multiple times)
+fn ordered_tuples(n: usize, k: usize) -> impl Iterator<Item = Vec<usize>> {
+    // For k=2: (0..n).flat_map(|i| (0..n).map(move |j| vec![i, j]))
+    // For k=3: nested iteration over i, j, k
+    //
+    // Using itertools::iproduct! for clarity:
+    match k {
+        2 => iproduct!(0..n, 0..n)
+            .map(|(a, b)| vec![a, b])
+            .collect::<Vec<_>>()
+            .into_iter(),
+        3 => iproduct!(0..n, 0..n, 0..n)
+            .map(|(a, b, c)| vec![a, b, c])
+            .collect::<Vec<_>>()
+            .into_iter(),
+        _ => panic!("Only k=2,3 supported"),
+    }
+}
 ```
 
-**Note:** This generates many redundant combinations. For efficiency:
-- Use symmetry: cyclic rotations of a trajectory are equivalent
-- Prune obviously infeasible combinations (e.g., same edge repeated without valid vertex transition)
+**Complexity:**
+- k=2: n_q² × n_p² edge combinations
+- k=3: n_q³ × n_p³ edge combinations
+
+For a pentagon (n=5): 5³ × 5³ = 15,625 combinations for 3-bounce. Fast enough.
 
 ### 3.4 Trajectory Parameterization
 
