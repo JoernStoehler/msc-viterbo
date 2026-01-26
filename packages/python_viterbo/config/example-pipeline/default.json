@@ -1,0 +1,5 @@
+{
+  "seed": 42,
+  "sizes": [10, 100, 1000, 10000],
+  "output_dir": "data/example-pipeline"
+}
