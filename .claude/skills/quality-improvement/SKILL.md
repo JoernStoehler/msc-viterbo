@@ -144,12 +144,15 @@ Order changes by:
 - **Acceptable**: up to ~400 lines if cohesive
 - **Split candidate**: >500 lines
 
-### Type Duplication
+### Type Sharing via geom Crate
 
-Currently `PolytopeHRep` and `Polygon2D` are defined in multiple crates. Before unifying:
-- Verify the definitions are truly equivalent
-- Ensure the unified type serves all use cases
-- Consider whether tight coupling is appropriate
+**Status (2026-01):** `PolytopeHRep` is now defined in `geom` crate and re-exported by all algorithms.
+
+`Polygon2D` remains algorithm-specific because tube and billiard use different representations:
+- tube: V-rep only (vertices)
+- billiard: V+H-rep (vertices + normals + heights)
+
+Each algorithm adds its own validation function (e.g., `validate_for_hk2017`) for algorithm-specific requirements.
 
 ### Numerical Tolerances
 
@@ -159,10 +162,10 @@ Tolerances should be:
 - **Consistent** - same concept, same value (or documented reason for difference)
 - **Centralized** - defined in one place, imported elsewhere
 
-Current tolerance inventory:
-- `EPS`: 1e-10 (billiard, tube) vs 1e-12 (hk2017) - needs investigation
-- `LAGRANGIAN_TOL`: 1e-8 (hk2017) vs 1e-9 (tube) - needs investigation
-- `CONSTRAINT_TOL`: 1e-8 (billiard) vs 1e-10 (hk2017) - needs investigation
+**Status (2026-01):** Base tolerances are in `geom::tolerances`. Algorithm-specific tolerances remain local:
+- hk2017 uses stricter `EPS=1e-12` due to KKT solver precision needs (documented in code)
+- tube has extensive tolerance documentation in `constants.rs`
+- Tolerance differences are now documented; further standardization would need empirical testing
 
 ### Test Organization
 
