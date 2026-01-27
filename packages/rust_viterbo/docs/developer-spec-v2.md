@@ -3312,76 +3312,30 @@ fn hko2024_counterexample() -> PolytopeHRep {
 
 ---
 
-## 5. Implementation Guide
+## 5. Implementation Status
 
-This section provides guidance for agents implementing the tube algorithm.
+**All three algorithms are implemented and tested:**
 
-### 5.1 Scope
+| Crate | Status | Tests | Notes |
+|-------|--------|-------|-------|
+| `billiard/` | ✅ Working | All pass | Pentagon counterexample correct (3.441) |
+| `hk2017/` | ✅ Working | All pass | Interior-point assumption documented |
+| `tube/` | ✅ Working | All pass | Cross-polytope, 24-cell tested |
+| `geom/` | ✅ Working | All pass | Shared polytope representation |
+| `ffi/` | Partial | HK2017 exposed | Billiard/tube FFI not yet wired |
 
-**Current implementation target:** Tube algorithm only (Section 3.4). Billiard and HK2017 algorithms are out of scope for now.
+### 5.1 Crate Structure
 
-### 5.2 Crate Structure
+```
+packages/rust_viterbo/
+├── geom/       # Shared: PolytopeHRep, tolerances
+├── billiard/   # Lagrangian product algorithm
+├── hk2017/     # Permutation enumeration algorithm
+├── tube/       # Branch-and-bound on non-Lagrangian polytopes
+└── ffi/        # PyO3 bindings (hk2017 working, others stub)
+```
 
-Start simple:
-- `packages/rust_viterbo/tube/` — Main implementation crate
-- `packages/rust_viterbo/ffi/` — Python bindings (existing, to be updated)
+### 5.2 Next Steps
 
-Refactor into separate `geom` and `algorithm` crates later if needed.
-
-### 5.3 Dependencies
-
-- Use `nalgebra` for linear algebra (`Vector4<f64>`, `Matrix2<f64>`, etc.)
-- Avoid magic type aliases; `Vector4<f64>` is clear and readable
-
-### 5.4 Development Approach
-
-**TDD with falsification mindset:**
-1. Write tests that would CATCH bugs, not just confirm correctness
-2. Actively seek weak points in code, tests, AND spec
-3. If something seems wrong in the spec, escalate — don't silently work around it
-
-**Move carefully:**
-- This is complex work; don't try to implement everything at once
-- Verify each component before building on it
-- Use debug assertions liberally during development
-
-**Correctness over performance:**
-- Get it working correctly first
-- Only optimize after profiling identifies actual bottlenecks
-
-### 5.5 Escalation Boundaries
-
-**Stop and escalate if:**
-- Rust environment setup takes >10 minutes
-- Unit test suite takes >3 minutes total
-- You encounter unexpected behavior that doesn't resolve with minor adjustments
-- You find what appears to be a spec error
-
-### 5.6 Subagent Usage
-
-Use `Task()` subagents for:
-- Detailed coding work (stay focused on architecture)
-- Debugging sessions
-- Exploratory investigation
-
-Run one subagent at a time to avoid conflicts.
-
-### 5.7 Checkpoints
-
-Suggested implementation order:
-1. **Polytope data structures** — H-rep, validation, basic symplectic primitives
-2. **2-face enumeration** — Find all 2-faces, classify Lagrangian vs non-Lagrangian
-3. **Trivialization** — Implement and test τ, τ⁻¹, verify symplectic preservation
-4. **Root tubes** — Initialize tubes at each 2-face
-5. **Tube extension** — Flow map, action function, rotation accumulation
-6. **Closure detection** — Identify next-step closeable and closed tubes
-7. **Fixed point finding** — Solve ψ(s) = s for closed tubes
-8. **4D reconstruction** — Convert 2D fixed points to 4D orbits, validate
-9. **Branch-and-bound** — Full algorithm with pruning
-10. **FFI bindings** — Expose to Python
-
-### 5.8 Verification Markers
-
-The following sections have been flagged for verification if bugs occur:
-- **Flow map computation (§2.10):** Uses `exit_normal` from enriched 2-faces. If orbits don't close or fixed points are wrong, check this first.
-- **Closed tube minimum length:** Claimed to be 5 (3 distinct facets). Verify the antisymmetry argument.
+1. **Wire up FFI** for billiard and tube to enable Python experiments
+2. **Run experiments** to generate thesis content
