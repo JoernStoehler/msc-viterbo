@@ -320,15 +320,15 @@ mod tests {
         assert_eq!(heights.len(), 8);
 
         // First 4 normals should have form (n_q, 0)
-        for i in 0..4 {
-            assert_relative_eq!(normals[i][2], 0.0, epsilon = EPS);
-            assert_relative_eq!(normals[i][3], 0.0, epsilon = EPS);
+        for normal in normals.iter().take(4) {
+            assert_relative_eq!(normal[2], 0.0, epsilon = EPS);
+            assert_relative_eq!(normal[3], 0.0, epsilon = EPS);
         }
 
         // Last 4 normals should have form (0, n_p)
-        for i in 4..8 {
-            assert_relative_eq!(normals[i][0], 0.0, epsilon = EPS);
-            assert_relative_eq!(normals[i][1], 0.0, epsilon = EPS);
+        for normal in normals.iter().skip(4).take(4) {
+            assert_relative_eq!(normal[0], 0.0, epsilon = EPS);
+            assert_relative_eq!(normal[1], 0.0, epsilon = EPS);
         }
     }
 }

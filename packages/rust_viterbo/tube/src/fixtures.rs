@@ -729,7 +729,11 @@ mod tests {
             if let Some(hrep) = random_hrep(8, min_omega, seed) {
                 // Heights should be in [0.3, 3.0] and varied
                 for &h in &hrep.heights {
-                    assert!(h >= 0.3 && h <= 3.0, "Height {} out of range [0.3, 3.0]", h);
+                    assert!(
+                        (0.3..=3.0).contains(&h),
+                        "Height {} out of range [0.3, 3.0]",
+                        h
+                    );
                 }
 
                 // Check that heights are not all the same

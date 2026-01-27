@@ -169,8 +169,8 @@ fn verify_adjacency_graph(
     }
 
     // Check no self-loops
-    for i in 0..f {
-        if adjacency[i].contains(&i) {
+    for (i, neighbors) in adjacency.iter().enumerate().take(f) {
+        if neighbors.contains(&i) {
             eprintln!("Self-loop found: {} -> {}", i, i);
             return false;
         }
@@ -361,13 +361,13 @@ mod tests {
         assert!(graph[0].contains(&6), "Facets 0,6 should be adjacent");
 
         // Each facet should have exactly 6 neighbors (all except itself and its opposite)
-        for i in 0..8 {
+        for (i, neighbors) in graph.iter().enumerate().take(8) {
             assert_eq!(
-                graph[i].len(),
+                neighbors.len(),
                 6,
                 "Facet {} should have 6 neighbors, got {}",
                 i,
-                graph[i].len()
+                neighbors.len()
             );
         }
     }
@@ -380,7 +380,7 @@ mod tests {
         let facet_data = FacetData::from_polytope(&polytope).unwrap();
         let graph = build_adjacency_graph(&facet_data);
 
-        let optimal = vec![0, 2, 5, 1, 4, 6];
+        let optimal = [0, 2, 5, 1, 4, 6];
 
         for i in 0..optimal.len() {
             let from = optimal[i];

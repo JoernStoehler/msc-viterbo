@@ -13,6 +13,9 @@
 //! - `tube_capacity_hrep`: Archived at tag `v0.1.0-archive`
 //! - `billiard_capacity_hrep`: Archived at tag `v0.1.0-archive`
 
+// Clippy false positive with PyO3's PyResult type annotations
+#![allow(clippy::useless_conversion)]
+
 use nalgebra::Vector4;
 use pyo3::exceptions::{PyNotImplementedError, PyValueError};
 use pyo3::prelude::*;

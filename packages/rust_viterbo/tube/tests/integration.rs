@@ -206,7 +206,7 @@ fn prop_capacity_positive_and_finite() {
 
     // PROPOSITION: ∀ K ∈ test_polytopes: c(K) > 0 ∧ c(K) < ∞
     for (name, hrep) in polytopes {
-        let result = tube_capacity(&hrep).expect(&format!("{} should compute", name));
+        let result = tube_capacity(&hrep).unwrap_or_else(|_| panic!("{} should compute", name));
 
         assert!(
             result.capacity > 0.0,
@@ -240,7 +240,7 @@ fn prop_scaling_law() {
 
     for (name, hrep) in polytopes {
         let c_k = tube_capacity(&hrep)
-            .expect(&format!("{} base should compute", name))
+            .unwrap_or_else(|_| panic!("{} base should compute", name))
             .capacity;
 
         // PROPOSITION: ∀ λ > 0: c(λK) = λ²c(K)
@@ -251,7 +251,7 @@ fn prop_scaling_law() {
             );
 
             let c_lambda_k = tube_capacity(&scaled)
-                .expect(&format!("{} scaled by {} should compute", name, lambda))
+                .unwrap_or_else(|_| panic!("{} scaled by {} should compute", name, lambda))
                 .capacity;
 
             let expected = lambda * lambda * c_k;
