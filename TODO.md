@@ -54,7 +54,7 @@ Tasks identified during code quality assessment (2026-01-27).
 - [ ] Clean up dead smoke-test.sh (references non-existent tests/smoke/)
 
 **Bottleneck (do serially):**
-- [ ] Consolidate shared math into geom crate: symplectic_form, apply_j/J matrix, reeb_vector are duplicated in hk2017 + tube with identical implementations; move to geom, update imports
+- [ ] Build out geom as a proper library crate for symplectic + euclidean geometry in 2D and 4D. Goal: clean reference implementations that algorithms build upon. Algorithms can still use custom types when needed — duplication is fine when purposeful. Having clean geom code makes deviations obvious and intentional. Include: symplectic form, J matrix, reeb vector, Sp(2) rotations, 2D polygon primitives. See exploration agent a7a3362 for detailed inventory of what's currently duplicated where.
 
 **Done:**
 - [x] Achieve clean tool output (pyright 0 errors/warnings, ruff clean, clippy 0 warnings) (2026-01-27)
