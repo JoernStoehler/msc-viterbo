@@ -49,10 +49,10 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 - [ ] Session-start hook printing output unexpectedly: hook was configured to be silent, but `SessionStart:startup hook success: [repo-map]` appeared in agent context. Why?
   - **Finding:** `scripts/repo-map.sh` has no silent mode - it always prints `[repo-map]` prefixed output. If silence was configured before, it was removed or lost. Either add a `--silent` flag or update hook to suppress output.
-- [x] Skills not auto-injected: Per the Agent Skills standard (agentskills.io), skill descriptions should always load at session start, and full content should auto-inject on relevance. Neither was happening.
-  - **Root cause:** `settings.json` had explicit `permissions.allow` list without `"Skill"`. When allow list is explicit, unlisted tools are denied by default.
-  - **Fix:** Added `"Skill"` to `permissions.allow` in settings.json. Also fixed `rust-testing/SKILL.md` missing frontmatter.
-  - **Verification:** New sessions should show skill descriptions in context. Test with "What skills are available?" or `/rust-conventions`.
+- [x] Skills not auto-injected + WebFetch/WebSearch broken: Per the Agent Skills standard, skill descriptions should load at session start. Neither was happening. Web tools also broken.
+  - **Root cause:** `settings.json` had explicit `permissions.allow` list. When allow list exists, ALL unlisted tools are denied by default. This blocked: Skill, WebFetch, WebSearch, Edit, and any unlisted Bash commands.
+  - **Fix:** Removed `allow` list entirely, keeping only `deny` list. Deny-only approach: all tools work by default except explicitly blocked ones (.env, secrets). Also fixed `rust-testing/SKILL.md` missing frontmatter.
+  - **Lesson:** Don't use `permissions.allow` unless you want heavy lockdown. Use `permissions.deny` only for security guardrails.
 
 ## Code Quality <!-- unapproved -->
 
