@@ -64,7 +64,11 @@ fn line_intersection(
 
 /// Clip polygon by half-plane defined by directed edge (p1 -> p2).
 /// Keep points on the left side of the directed edge.
-fn clip_polygon_by_halfplane(polygon: &[Vector2<f64>], p1: &Vector2<f64>, p2: &Vector2<f64>) -> Vec<Vector2<f64>> {
+fn clip_polygon_by_halfplane(
+    polygon: &[Vector2<f64>],
+    p1: &Vector2<f64>,
+    p2: &Vector2<f64>,
+) -> Vec<Vector2<f64>> {
     let mut output = Vec::new();
 
     for i in 0..polygon.len() {
@@ -275,11 +279,7 @@ mod tests {
 
         // Intersection should equal the small square
         let area = intersection.area();
-        assert!(
-            (area - 1.0).abs() < 0.01,
-            "Expected area 1.0, got {}",
-            area
-        );
+        assert!((area - 1.0).abs() < 0.01, "Expected area 1.0, got {}", area);
     }
 
     #[test]

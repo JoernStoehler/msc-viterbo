@@ -264,8 +264,7 @@ pub fn solve_2bounce(
             };
 
             // Validate the full 4-segment orbit
-            let orbit_valid =
-                validate_2bounce_orbit(&q0, &q1, k_q, k_p, q0_vertex, q1_vertex);
+            let orbit_valid = validate_2bounce_orbit(&q0, &q1, k_q, k_p, q0_vertex, q1_vertex);
 
             if orbit_valid.is_none() {
                 continue;
@@ -274,9 +273,7 @@ pub fn solve_2bounce(
             let (p_fwd, p_back) = orbit_valid.unwrap();
             let action = compute_2bounce_action(&q0, &q1, k_p);
 
-            if action > MIN_ACTION
-                && (best.is_none() || action < best.as_ref().unwrap().action)
-            {
+            if action > MIN_ACTION && (best.is_none() || action < best.as_ref().unwrap().action) {
                 // p_positions[i] = where p is during q_i → q_{i+1 mod k}
                 // p_fwd: during q₀→q₁, p_back: during q₁→q₀
                 best = Some(SolveResult {
@@ -427,9 +424,7 @@ pub fn solve_3bounce(
         let (p0, p1, p2) = orbit_valid.unwrap();
         let action = compute_3bounce_action(&q0, &q1, &q2, k_p);
 
-        if action > MIN_ACTION
-            && (best.is_none() || action < best.as_ref().unwrap().action)
-        {
+        if action > MIN_ACTION && (best.is_none() || action < best.as_ref().unwrap().action) {
             // p_positions[i] = where p is during q_i → q_{i+1 mod k}
             best = Some(SolveResult {
                 action,

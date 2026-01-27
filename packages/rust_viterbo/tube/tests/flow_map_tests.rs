@@ -43,7 +43,10 @@ fn test_perturbed_cross_polytope() {
     let hrep = perturbed_cross_polytope();
 
     // Validate the perturbed polytope
-    assert!(hrep.validate().is_ok(), "Perturbed polytope should be valid");
+    assert!(
+        hrep.validate().is_ok(),
+        "Perturbed polytope should be valid"
+    );
 
     let result = tube_capacity(&hrep);
 
@@ -103,15 +106,10 @@ fn test_deterministic_results() {
     let result1 = tube_capacity(&hrep).expect("First run should succeed");
     let result2 = tube_capacity(&hrep).expect("Second run should succeed");
 
-    assert_relative_eq!(
-        result1.capacity,
-        result2.capacity,
-        epsilon = 1e-10,
-    );
+    assert_relative_eq!(result1.capacity, result2.capacity, epsilon = 1e-10,);
 
     assert_eq!(
-        result1.optimal_orbit.segment_facets,
-        result2.optimal_orbit.segment_facets,
+        result1.optimal_orbit.segment_facets, result2.optimal_orbit.segment_facets,
         "Facet sequences should match"
     );
 }
@@ -133,11 +131,7 @@ fn test_multiple_scales() {
 
     for (i, (&s, &c)) in scales.iter().zip(capacities.iter()).enumerate() {
         let expected = s * s * c_base;
-        assert_relative_eq!(
-            c,
-            expected,
-            epsilon = 0.05,
-        );
+        assert_relative_eq!(c, expected, epsilon = 0.05,);
         println!("Scale {}: c = {}, expected = {}", s, c, expected);
     }
 }
@@ -183,11 +177,7 @@ fn test_segment_times_consistent() {
 
         let recorded_time = orbit.segment_times[i];
 
-        assert_relative_eq!(
-            time_from_disp,
-            recorded_time,
-            epsilon = 1e-8,
-        );
+        assert_relative_eq!(time_from_disp, recorded_time, epsilon = 1e-8,);
     }
 }
 

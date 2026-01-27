@@ -1,3 +1,8 @@
+---
+name: quality-improvement
+description: Refactor and improve code quality in rust_viterbo. Use for maintainability improvements, code organization, tolerance standardization, and reducing cognitive load without breaking features.
+---
+
 # Quality Improvement Refactoring
 
 Guidelines for refactoring and improving code quality in the rust_viterbo package (and related Python/thesis components). This skill captures principles for sustainable, maintainable quality work.

@@ -216,7 +216,9 @@ fn extend_tube(tube: &Tube, next_facet: usize, data: &PolytopeData) -> Option<Tu
     let new_flow_map = flow_step.compose(&tube.flow_map);
 
     // Compose action function
-    let new_action_func = tube.action_func.add(&time_step.compose_with_map(&tube.flow_map));
+    let new_action_func = tube
+        .action_func
+        .add(&time_step.compose_with_map(&tube.flow_map));
 
     // Apply flow to end polygon and intersect with exit 2-face
     let flowed_end = apply_affine_to_polygon(&flow_step, &tube.p_end);
@@ -394,21 +396,27 @@ fn find_fixed_point_on_line(
     let (col, other_b) = if col0.norm() > col1.norm() {
         // Column space spanned by col0
         // Check if neg_b[1] / col0[1] ≈ neg_b[0] / col0[0] (i.e., neg_b parallel to col0)
-        (col0, if col0[0].abs() > EPS {
-            neg_b[1] - (neg_b[0] / col0[0]) * col0[1]
-        } else if col0[1].abs() > EPS {
-            neg_b[0] - (neg_b[1] / col0[1]) * col0[0]
-        } else {
-            return None; // Degenerate
-        })
+        (
+            col0,
+            if col0[0].abs() > EPS {
+                neg_b[1] - (neg_b[0] / col0[0]) * col0[1]
+            } else if col0[1].abs() > EPS {
+                neg_b[0] - (neg_b[1] / col0[1]) * col0[0]
+            } else {
+                return None; // Degenerate
+            },
+        )
     } else {
-        (col1, if col1[0].abs() > EPS {
-            neg_b[1] - (neg_b[0] / col1[0]) * col1[1]
-        } else if col1[1].abs() > EPS {
-            neg_b[0] - (neg_b[1] / col1[1]) * col1[0]
-        } else {
-            return None;
-        })
+        (
+            col1,
+            if col1[0].abs() > EPS {
+                neg_b[1] - (neg_b[0] / col1[0]) * col1[1]
+            } else if col1[1].abs() > EPS {
+                neg_b[0] - (neg_b[1] / col1[1]) * col1[0]
+            } else {
+                return None;
+            },
+        )
     };
 
     // Tolerance check: is -b in the column space?
@@ -763,7 +771,10 @@ mod tests {
         let root = create_root_tube(tfe);
         let curr_facet = *root.facet_sequence.last().unwrap();
         let next_facets = data.adjacent_facets_forward(curr_facet);
-        println!("Current facet: {}, next facets: {:?}", curr_facet, next_facets);
+        println!(
+            "Current facet: {}, next facets: {:?}",
+            curr_facet, next_facets
+        );
 
         if let Some(&next_facet) = next_facets.first() {
             let seq = &root.facet_sequence;
@@ -775,16 +786,28 @@ mod tests {
             println!("\nEntry 2-face ({}, {}):", entry_2face.i, entry_2face.j);
             println!("  entry_normal: {:?}", entry_2face.entry_normal);
             println!("  exit_normal: {:?}", entry_2face.exit_normal);
-            println!("  transition_matrix det: {}", entry_2face.transition_matrix.determinant());
+            println!(
+                "  transition_matrix det: {}",
+                entry_2face.transition_matrix.determinant()
+            );
 
             println!("\nExit 2-face ({}, {}):", exit_2face.i, exit_2face.j);
             println!("  entry_normal: {:?}", exit_2face.entry_normal);
             println!("  exit_normal: {:?}", exit_2face.exit_normal);
-            println!("  transition_matrix det: {}", exit_2face.transition_matrix.determinant());
+            println!(
+                "  transition_matrix det: {}",
+                exit_2face.transition_matrix.determinant()
+            );
 
             // Verify basis vectors
-            println!("\nEntry 2-face basis_exit[0]: {:?}", entry_2face.basis_exit[0]);
-            println!("Entry 2-face basis_exit[1]: {:?}", entry_2face.basis_exit[1]);
+            println!(
+                "\nEntry 2-face basis_exit[0]: {:?}",
+                entry_2face.basis_exit[0]
+            );
+            println!(
+                "Entry 2-face basis_exit[1]: {:?}",
+                entry_2face.basis_exit[1]
+            );
 
             // Check orthogonality to normals
             println!(
@@ -803,7 +826,10 @@ mod tests {
             println!("  matrix: {:?}", flow_step.matrix);
             println!("  offset: {:?}", flow_step.offset);
             println!("  det(A): {}", flow_step.matrix.determinant());
-            println!("  det(A-I): {}", (flow_step.matrix - Matrix2::identity()).determinant());
+            println!(
+                "  det(A-I): {}",
+                (flow_step.matrix - Matrix2::identity()).determinant()
+            );
 
             // Test on a specific point
             let test_point = Vector2::new(0.5, 0.5);
@@ -872,7 +898,11 @@ mod tests {
                 let col0 = Vector2::new(a_minus_i[(0, 0)], a_minus_i[(1, 0)]);
                 let col1 = Vector2::new(a_minus_i[(0, 1)], a_minus_i[(1, 1)]);
 
-                let col = if col0.norm() > col1.norm() { col0 } else { col1 };
+                let col = if col0.norm() > col1.norm() {
+                    col0
+                } else {
+                    col1
+                };
 
                 if col.norm() < EPS {
                     // A = I, so we need b = 0 for fixed points (all points fixed)
@@ -924,7 +954,11 @@ mod tests {
                 let closure_error =
                     (orbit.breakpoints.last().unwrap() - orbit.breakpoints.first().unwrap()).norm();
                 println!("  Closure error: {}", closure_error);
-                assert!(closure_error < EPS, "Orbit not closed: error = {}", closure_error);
+                assert!(
+                    closure_error < EPS,
+                    "Orbit not closed: error = {}",
+                    closure_error
+                );
 
                 // Verify period equals action
                 let time_sum: f64 = orbit.segment_times.iter().sum();

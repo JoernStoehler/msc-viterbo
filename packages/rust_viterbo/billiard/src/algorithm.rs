@@ -158,18 +158,17 @@ mod hk2017_comparison_tests {
     /// Helper to run both algorithms and compare results.
     fn compare_algorithms(k_q: &Polygon2D, k_p: &Polygon2D, tolerance: f64) {
         // Run billiard algorithm
-        let billiard_result = billiard_capacity_from_polygons(k_q, k_p)
-            .expect("billiard should succeed");
+        let billiard_result =
+            billiard_capacity_from_polygons(k_q, k_p).expect("billiard should succeed");
 
         // Convert to H-rep for HK2017
-        let product = LagrangianProduct::new(k_q.clone(), k_p.clone())
-            .expect("valid product");
+        let product = LagrangianProduct::new(k_q.clone(), k_p.clone()).expect("valid product");
         let (normals, heights) = product.to_hrep();
         let polytope = PolytopeHRep::new(normals, heights);
 
         // Run HK2017 algorithm
-        let hk_result = hk2017_capacity(&polytope, &Hk2017Config::naive())
-            .expect("hk2017 should succeed");
+        let hk_result =
+            hk2017_capacity(&polytope, &Hk2017Config::naive()).expect("hk2017 should succeed");
 
         // Compare capacities
         assert_relative_eq!(

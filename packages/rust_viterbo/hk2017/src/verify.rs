@@ -69,7 +69,10 @@ impl Hk2017Result {
             if beta < -POSITIVE_TOL {
                 return Err(VerificationError {
                     message: format!("beta[{}] = {} is negative", i, beta),
-                    details: VerificationDetails::NegativeBeta { index: i, value: beta },
+                    details: VerificationDetails::NegativeBeta {
+                        index: i,
+                        value: beta,
+                    },
                 });
             }
         }
@@ -116,15 +119,15 @@ impl Hk2017Result {
 
     /// Check that the stored Q value matches recomputation.
     fn verify_q_value(&self, facet_data: &FacetData) -> Result<(), VerificationError> {
-        let q_computed = compute_q_global(
-            &self.optimal_beta,
-            &self.optimal_permutation,
-            facet_data,
-        );
+        let q_computed =
+            compute_q_global(&self.optimal_beta, &self.optimal_permutation, facet_data);
 
         if (q_computed - self.q_max).abs() > EPS {
             return Err(VerificationError {
-                message: format!("Q mismatch: computed {} vs stored {}", q_computed, self.q_max),
+                message: format!(
+                    "Q mismatch: computed {} vs stored {}",
+                    q_computed, self.q_max
+                ),
                 details: VerificationDetails::QMismatch {
                     expected: self.q_max,
                     actual: q_computed,

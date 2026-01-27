@@ -1,7 +1,7 @@
 //! Integration tests for the tube algorithm.
 
-use tube::{tube_capacity, fixtures};
 use approx::assert_relative_eq;
+use tube::{fixtures, tube_capacity};
 
 /// Test that c(cross-polytope) = 1.0.
 #[test]
@@ -42,7 +42,10 @@ fn test_tesseract_rejected() {
 
     assert!(result.is_err(), "Tesseract should be rejected");
     let err_msg = format!("{}", result.unwrap_err());
-    assert!(err_msg.contains("Lagrangian"), "Error should mention Lagrangian");
+    assert!(
+        err_msg.contains("Lagrangian"),
+        "Error should mention Lagrangian"
+    );
 }
 
 /// Test Mahler-type bound: c(K) · c(K°) ≤ 4.
@@ -58,7 +61,10 @@ fn test_mahler_bound() {
     let c_tesseract = 4.0;
 
     let product = c_tesseract * c_cross;
-    println!("Mahler product: {} × {} = {}", c_tesseract, c_cross, product);
+    println!(
+        "Mahler product: {} × {} = {}",
+        c_tesseract, c_cross, product
+    );
 
     assert_relative_eq!(product, 4.0, epsilon = 0.1);
 }
@@ -134,7 +140,10 @@ fn test_asymmetric_cross_polytope_multiple_seeds() {
 
         match result {
             Ok(r) => {
-                println!("Asymmetric cross-polytope (seed {}): c = {:.6}", seed, r.capacity);
+                println!(
+                    "Asymmetric cross-polytope (seed {}): c = {:.6}",
+                    seed, r.capacity
+                );
                 capacities.push(r.capacity);
                 assert!(r.capacity > 0.0, "Capacity should be positive");
             }
@@ -177,8 +186,14 @@ fn prop_capacity_positive_and_finite() {
     let mut polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
         ("cross-polytope", fixtures::unit_cross_polytope()),
         ("24-cell", fixtures::unit_24_cell()),
-        ("scaled cross-polytope (0.5)", fixtures::scaled_cross_polytope(0.5)),
-        ("scaled cross-polytope (3.0)", fixtures::scaled_cross_polytope(3.0)),
+        (
+            "scaled cross-polytope (0.5)",
+            fixtures::scaled_cross_polytope(0.5),
+        ),
+        (
+            "scaled cross-polytope (3.0)",
+            fixtures::scaled_cross_polytope(3.0),
+        ),
     ];
 
     // Add asymmetric cross-polytopes
@@ -245,11 +260,18 @@ fn prop_scaling_law() {
             assert!(
                 relative_error < 0.01,
                 "{}, λ={}: c(λK)={:.6}, λ²c(K)={:.6}, error={:.2}%",
-                name, lambda, c_lambda_k, expected, relative_error * 100.0
+                name,
+                lambda,
+                c_lambda_k,
+                expected,
+                relative_error * 100.0
             );
         }
 
-        println!("{}: scaling law c(λK) = λ²c(K) verified for λ ∈ {:?} ✓", name, lambdas);
+        println!(
+            "{}: scaling law c(λK) = λ²c(K) verified for λ ∈ {:?} ✓",
+            name, lambdas
+        );
     }
 }
 
@@ -258,8 +280,14 @@ fn prop_scaling_law() {
 fn test_capacity_always_positive() {
     let polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
         ("unit_cross_polytope", fixtures::unit_cross_polytope()),
-        ("scaled_cross_polytope(0.5)", fixtures::scaled_cross_polytope(0.5)),
-        ("scaled_cross_polytope(3.0)", fixtures::scaled_cross_polytope(3.0)),
+        (
+            "scaled_cross_polytope(0.5)",
+            fixtures::scaled_cross_polytope(0.5),
+        ),
+        (
+            "scaled_cross_polytope(3.0)",
+            fixtures::scaled_cross_polytope(3.0),
+        ),
         ("unit_24_cell", fixtures::unit_24_cell()),
     ];
 

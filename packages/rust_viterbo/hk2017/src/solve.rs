@@ -152,7 +152,10 @@ pub fn solve_for_permutation(
         return SolveResult::Infeasible(RejectionReason::NonPositiveQ);
     }
 
-    SolveResult::Feasible { q_value, beta_local }
+    SolveResult::Feasible {
+        q_value,
+        beta_local,
+    }
 }
 
 /// Compute Q value from local beta and Hessian.
@@ -185,11 +188,7 @@ pub fn beta_local_to_global(
 /// Compute Q value using global beta indexing and permutation order.
 ///
 /// This is used for verification to ensure consistency.
-pub fn compute_q_global(
-    beta_global: &[f64],
-    sigma: &Permutation,
-    facet_data: &FacetData,
-) -> f64 {
+pub fn compute_q_global(beta_global: &[f64], sigma: &Permutation, facet_data: &FacetData) -> f64 {
     let mut q = 0.0;
     for (pos_i, &facet_i) in sigma.iter().enumerate() {
         for (_pos_j, &facet_j) in sigma.iter().enumerate().take(pos_i) {
@@ -236,7 +235,10 @@ mod tests {
         let result = solve_for_permutation(&sigma, &facet_data, &config);
 
         match result {
-            SolveResult::Feasible { q_value, beta_local } => {
+            SolveResult::Feasible {
+                q_value,
+                beta_local,
+            } => {
                 println!("Q = {}", q_value);
                 println!("beta = {:?}", beta_local);
                 assert!(q_value > 0.0);
