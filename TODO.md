@@ -21,7 +21,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
 - [-] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation — blocked on CC web (no CONNECT tunneling for JS pages); retry in local devcontainer
 - [ ] Cross-algorithm validation: billiard vs hk2017 on Lagrangian products, continuity-based billiard↔tube comparison; thesis section + code fixtures
-- [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
+- [x] FFI cleanup: removed archived stubs, legacy aliases, fixed type stubs (#37) (2026-01-27)
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
 ## Thesis Writing
