@@ -1,7 +1,7 @@
 //! Core data types for the tube algorithm.
 //!
 //! This module defines:
-//! - PolytopeHRep: H-representation of a 4D polytope
+//! - PolytopeHRep: H-representation of a 4D polytope (re-exported from geom)
 //! - Polygon2D: 2D convex polygon (trivialized 2-face)
 //! - AffineMap2D: Affine transformation in 2D
 //! - AffineFunc: Affine function ℝ² → ℝ
@@ -15,69 +15,28 @@ use nalgebra::{Matrix2, Vector2, Vector4};
 
 use crate::constants::EPS;
 
-/// H-representation of a convex polytope K = {x : ⟨n_i, x⟩ ≤ h_i for all i}.
+// Re-export the shared polytope type from geom crate.
+pub use geom::PolytopeHRep;
+
+/// Validate polytope for tube algorithm.
 ///
-/// # Requirements
-/// - `normals[i]` must be a unit vector
-/// - `heights[i]` must be positive (origin is in the interior)
-/// - `normals.len() == heights.len()`
-#[derive(Debug, Clone)]
-pub struct PolytopeHRep {
-    /// Unit outward normals to each facet.
-    pub normals: Vec<Vector4<f64>>,
-    /// Signed distance from origin to each facet (must be > 0).
-    pub heights: Vec<f64>,
-}
+/// This adds tube-specific checks on top of the base validation:
+/// - At least 5 facets (minimum for a 4D polytope)
+pub fn validate_for_tube(polytope: &PolytopeHRep) -> Result<(), TubeError> {
+    // Base validation from geom
+    polytope
+        .validate()
+        .map_err(|e| TubeError::InvalidPolytope(e.to_string()))?;
 
-impl PolytopeHRep {
-    /// Create a new polytope from normals and heights.
-    pub fn new(normals: Vec<Vector4<f64>>, heights: Vec<f64>) -> Self {
-        Self { normals, heights }
+    // Tube-specific: need at least 5 facets for a 4D polytope
+    if polytope.num_facets() < 5 {
+        return Err(TubeError::InvalidPolytope(format!(
+            "need at least 5 facets for a 4D polytope, got {}",
+            polytope.num_facets()
+        )));
     }
 
-    /// Number of facets.
-    pub fn num_facets(&self) -> usize {
-        self.normals.len()
-    }
-
-    /// Validate the polytope representation.
-    pub fn validate(&self) -> Result<(), TubeError> {
-        if self.normals.len() != self.heights.len() {
-            return Err(TubeError::InvalidPolytope(format!(
-                "normals length ({}) != heights length ({})",
-                self.normals.len(),
-                self.heights.len()
-            )));
-        }
-
-        if self.normals.len() < 5 {
-            return Err(TubeError::InvalidPolytope(format!(
-                "need at least 5 facets for a 4D polytope, got {}",
-                self.normals.len()
-            )));
-        }
-
-        for (i, n) in self.normals.iter().enumerate() {
-            let norm = n.norm();
-            if (norm - 1.0).abs() > EPS {
-                return Err(TubeError::InvalidPolytope(format!(
-                    "normal[{}] is not unit: norm = {:.15}",
-                    i, norm
-                )));
-            }
-        }
-
-        for (i, &h) in self.heights.iter().enumerate() {
-            if h <= 0.0 {
-                return Err(TubeError::InvalidPolytope(format!(
-                    "height[{}] = {:.15} is not positive (origin not in interior)",
-                    i, h
-                )));
-            }
-        }
-
-        Ok(())
-    }
+    Ok(())
 }
 
 /// 2D convex polygon represented by CCW-ordered vertices.
@@ -364,7 +323,9 @@ pub enum TubeError {
     InvalidPolytope(String),
 
     /// The polytope has Lagrangian 2-faces (tube algorithm inapplicable).
-    #[error("Polytope has Lagrangian 2-faces (tube algorithm requires all 2-faces non-Lagrangian)")]
+    #[error(
+        "Polytope has Lagrangian 2-faces (tube algorithm requires all 2-faces non-Lagrangian)"
+    )]
     HasLagrangianTwoFaces,
 
     /// Numerical computation failed.

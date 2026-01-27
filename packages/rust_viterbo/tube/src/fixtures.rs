@@ -259,9 +259,7 @@ pub fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<Polytop
     }
 
     // Generate random heights in [0.3, 3.0]
-    let heights: Vec<f64> = (0..n_facets)
-        .map(|_| 0.3 + next_rand_01() * 2.7)
-        .collect();
+    let heights: Vec<f64> = (0..n_facets).map(|_| 0.3 + next_rand_01() * 2.7).collect();
 
     let hrep = PolytopeHRep::new(normals, heights);
 
@@ -347,9 +345,7 @@ pub fn random_hrep_diagnostic(
     }
 
     // Generate heights in [0.3, 3.0]
-    let heights: Vec<f64> = (0..n_facets)
-        .map(|_| 0.3 + next_rand_01() * 2.7)
-        .collect();
+    let heights: Vec<f64> = (0..n_facets).map(|_| 0.3 + next_rand_01() * 2.7).collect();
 
     let hrep = PolytopeHRep::new(normals, heights);
 
@@ -617,7 +613,10 @@ mod tests {
                 break;
             }
         }
-        assert!(!all_same, "Different seeds should produce different polytopes");
+        assert!(
+            !all_same,
+            "Different seeds should produce different polytopes"
+        );
     }
 
     #[test]
@@ -660,7 +659,10 @@ mod tests {
             }
         }
         // We should find at least a few
-        assert!(found_count >= 1, "Should find at least one valid H-rep in 2000 tries");
+        assert!(
+            found_count >= 1,
+            "Should find at least one valid H-rep in 2000 tries"
+        );
     }
 
     #[test]
@@ -768,9 +770,7 @@ mod tests {
                     Err(RejectionReason::NearLagrangian) => {
                         *counts.get_mut("lagrangian").unwrap() += 1
                     }
-                    Err(RejectionReason::Unbounded) => {
-                        *counts.get_mut("unbounded").unwrap() += 1
-                    }
+                    Err(RejectionReason::Unbounded) => *counts.get_mut("unbounded").unwrap() += 1,
                     Err(RejectionReason::PreprocessFailed) => {
                         *counts.get_mut("preprocess_failed").unwrap() += 1
                     }

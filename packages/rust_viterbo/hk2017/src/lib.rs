@@ -118,8 +118,9 @@ pub mod verify;
 pub use algorithm::hk2017_capacity;
 pub use symplectic::{apply_j, j_matrix, reeb_vector, symplectic_form};
 pub use types::{
-    EnumerationStrategy, FacetData, Hk2017Config, Hk2017Error, Hk2017Result, PolytopeHRep,
-    RejectionHistogram, RejectionReason, CONSTRAINT_TOL, EPS, LAGRANGIAN_TOL, POSITIVE_TOL,
+    validate_for_hk2017, EnumerationStrategy, FacetData, Hk2017Config, Hk2017Error, Hk2017Result,
+    PolytopeHRep, RejectionHistogram, RejectionReason, CONSTRAINT_TOL, EPS, LAGRANGIAN_TOL,
+    POSITIVE_TOL,
 };
 pub use verify::{verify_results_equivalent, VerificationDetails, VerificationError};
 

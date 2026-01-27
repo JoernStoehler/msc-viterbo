@@ -152,26 +152,24 @@ impl Hk2017ResultPy {
 /// Convert Hk2017Error to PyErr.
 fn convert_error(e: Hk2017Error) -> PyErr {
     match e {
-        Hk2017Error::InvalidPolytope(msg) => PyValueError::new_err(format!("Invalid polytope: {}", msg)),
-        Hk2017Error::NoFeasibleInteriorPoint { checked, rejected, .. } => {
-            PyValueError::new_err(format!(
-                "No feasible interior critical point found ({} checked, {} rejected). \
+        Hk2017Error::InvalidPolytope(msg) => {
+            PyValueError::new_err(format!("Invalid polytope: {}", msg))
+        }
+        Hk2017Error::NoFeasibleInteriorPoint {
+            checked, rejected, ..
+        } => PyValueError::new_err(format!(
+            "No feasible interior critical point found ({} checked, {} rejected). \
                  The maximum may be on the boundary, which this implementation cannot find.",
-                checked, rejected
-            ))
-        }
-        Hk2017Error::NoPositiveQ { checked } => {
-            PyValueError::new_err(format!(
-                "All {} permutations have non-positive Q value",
-                checked
-            ))
-        }
-        Hk2017Error::SingularKkt { permutation } => {
-            PyValueError::new_err(format!(
-                "KKT system is singular for permutation {:?}",
-                permutation
-            ))
-        }
+            checked, rejected
+        )),
+        Hk2017Error::NoPositiveQ { checked } => PyValueError::new_err(format!(
+            "All {} permutations have non-positive Q value",
+            checked
+        )),
+        Hk2017Error::SingularKkt { permutation } => PyValueError::new_err(format!(
+            "KKT system is singular for permutation {:?}",
+            permutation
+        )),
         Hk2017Error::NumericalInstability(msg) => {
             PyValueError::new_err(format!("Numerical instability: {}", msg))
         }

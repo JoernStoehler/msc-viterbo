@@ -72,7 +72,9 @@ pub fn build_adjacency_graph(facet_data: &FacetData) -> AdjacencyGraph {
     }
 
     // Debug assertion: verify adjacency is symmetric and non-reflexive
-    debug_assert!(verify_adjacency_graph(&adjacency, &vertices, &incidence, facet_data));
+    debug_assert!(verify_adjacency_graph(
+        &adjacency, &vertices, &incidence, facet_data
+    ));
 
     adjacency
 }
@@ -127,7 +129,9 @@ fn enumerate_vertices(facet_data: &FacetData) -> (Vec<Vector4<f64>>, Vec<Vec<usi
 
             if is_vertex {
                 // Check for duplicate vertices (can happen with degenerate polytopes)
-                let is_duplicate = vertices.iter().any(|v: &Vector4<f64>| (v - x).norm() < TOLERANCE);
+                let is_duplicate = vertices
+                    .iter()
+                    .any(|v: &Vector4<f64>| (v - x).norm() < TOLERANCE);
 
                 if !is_duplicate {
                     incident_facets.sort();
@@ -155,7 +159,10 @@ fn verify_adjacency_graph(
     for i in 0..f {
         for &j in &adjacency[i] {
             if !adjacency[j].contains(&i) {
-                eprintln!("Adjacency not symmetric: {} -> {} but not {} -> {}", i, j, j, i);
+                eprintln!(
+                    "Adjacency not symmetric: {} -> {} but not {} -> {}",
+                    i, j, j, i
+                );
                 return false;
             }
         }
@@ -310,9 +317,11 @@ mod tests {
         // Each vertex is incident to exactly 4 facets (one per coordinate direction)
         for (i, facets) in incidence.iter().enumerate() {
             assert_eq!(
-                facets.len(), 4,
+                facets.len(),
+                4,
                 "Vertex {} should be incident to 4 facets, got {:?}",
-                i, facets
+                i,
+                facets
             );
         }
     }
@@ -329,10 +338,22 @@ mod tests {
         // For the tesseract, facets i and j are adjacent iff their normals are orthogonal.
         // Opposite facets (0,1), (2,3), (4,5), (6,7) have parallel normals -> NOT adjacent.
         // All other pairs have orthogonal normals -> adjacent.
-        assert!(!graph[0].contains(&1), "Opposite facets 0,1 should not be adjacent");
-        assert!(!graph[2].contains(&3), "Opposite facets 2,3 should not be adjacent");
-        assert!(!graph[4].contains(&5), "Opposite facets 4,5 should not be adjacent");
-        assert!(!graph[6].contains(&7), "Opposite facets 6,7 should not be adjacent");
+        assert!(
+            !graph[0].contains(&1),
+            "Opposite facets 0,1 should not be adjacent"
+        );
+        assert!(
+            !graph[2].contains(&3),
+            "Opposite facets 2,3 should not be adjacent"
+        );
+        assert!(
+            !graph[4].contains(&5),
+            "Opposite facets 4,5 should not be adjacent"
+        );
+        assert!(
+            !graph[6].contains(&7),
+            "Opposite facets 6,7 should not be adjacent"
+        );
 
         // Non-opposite pairs should be adjacent
         assert!(graph[0].contains(&2), "Facets 0,2 should be adjacent");
@@ -342,9 +363,11 @@ mod tests {
         // Each facet should have exactly 6 neighbors (all except itself and its opposite)
         for i in 0..8 {
             assert_eq!(
-                graph[i].len(), 6,
+                graph[i].len(),
+                6,
                 "Facet {} should have 6 neighbors, got {}",
-                i, graph[i].len()
+                i,
+                graph[i].len()
             );
         }
     }
@@ -365,7 +388,8 @@ mod tests {
             assert!(
                 graph[from].contains(&to),
                 "Optimal permutation edge {} -> {} should exist in adjacency graph",
-                from, to
+                from,
+                to
             );
         }
     }

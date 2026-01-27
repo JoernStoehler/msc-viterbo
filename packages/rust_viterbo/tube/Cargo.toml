@@ -7,6 +7,7 @@ authors.workspace = true
 description = "Tube algorithm for computing EHZ capacity of convex polytopes"
 
 [dependencies]
+geom = { path = "../geom" }
 nalgebra = "0.33"
 thiserror = "2.0"
 

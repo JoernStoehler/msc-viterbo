@@ -5,7 +5,7 @@
 use nalgebra::DMatrix;
 
 use crate::symplectic::{reeb_vector, symplectic_form};
-use crate::types::{FacetData, Hk2017Error, PolytopeHRep, EPS};
+use crate::types::{validate_for_hk2017, FacetData, Hk2017Error, PolytopeHRep, EPS};
 
 impl FacetData {
     /// Precompute facet data from a polytope.
@@ -16,9 +16,9 @@ impl FacetData {
     ///
     /// # Errors
     ///
-    /// Returns an error if the polytope is invalid (see `PolytopeHRep::validate`).
+    /// Returns an error if the polytope is invalid (see `validate_for_hk2017`).
     pub fn from_polytope(polytope: &PolytopeHRep) -> Result<Self, Hk2017Error> {
-        polytope.validate()?;
+        validate_for_hk2017(polytope)?;
 
         let f = polytope.num_facets();
         let normals = polytope.normals.clone();

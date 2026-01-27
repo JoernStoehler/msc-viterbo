@@ -203,11 +203,7 @@ fn test_action_integral_manual() {
         total_action += t;
     }
 
-    assert_relative_eq!(
-        total_action,
-        orbit.period,
-        epsilon = 1e-10
-    );
+    assert_relative_eq!(total_action, orbit.period, epsilon = 1e-10);
 }
 
 /// Test that capacity is positive.
@@ -217,10 +213,7 @@ fn test_capacity_positive() {
     let result = tube_capacity(&hrep).expect("Should find orbit");
 
     assert!(result.capacity > 0.0, "Capacity must be positive");
-    assert!(
-        result.capacity < f64::INFINITY,
-        "Capacity must be finite"
-    );
+    assert!(result.capacity < f64::INFINITY, "Capacity must be finite");
 }
 
 /// Test with scaled polytope: c(λK) = λ² c(K).

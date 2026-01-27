@@ -1,7 +1,7 @@
 //! 2D polygon construction and operations.
 
-use crate::types::{BilliardError, EPS};
 pub use crate::types::Polygon2D;
+use crate::types::{BilliardError, EPS};
 use nalgebra::Vector2;
 use std::f64::consts::PI;
 

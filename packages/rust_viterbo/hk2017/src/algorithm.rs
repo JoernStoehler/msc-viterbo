@@ -76,7 +76,10 @@ pub fn hk2017_capacity(
         permutations_evaluated += 1;
 
         match solve_for_permutation(sigma, &facet_data, config) {
-            SolveResult::Feasible { q_value, beta_local } => {
+            SolveResult::Feasible {
+                q_value,
+                beta_local,
+            } => {
                 let should_update = match &best {
                     None => true,
                     Some(current) => q_value > current.q_value,
@@ -112,11 +115,8 @@ pub fn hk2017_capacity(
     let capacity = 1.0 / (2.0 * best.q_value);
 
     // Convert local beta to global
-    let optimal_beta = beta_local_to_global(
-        &best.beta_local,
-        &best.permutation,
-        facet_data.num_facets,
-    );
+    let optimal_beta =
+        beta_local_to_global(&best.beta_local, &best.permutation, facet_data.num_facets);
 
     let result = Hk2017Result {
         capacity,
@@ -260,10 +260,14 @@ mod tests {
             Vector4::new(0.0, 0.0, 0.0, -1.0), // -p2
         ];
         let heights = vec![
-            a / 2.0, a / 2.0, // q1 direction
-            b / 2.0, b / 2.0, // q2 direction
-            c / 2.0, c / 2.0, // p1 direction
-            d / 2.0, d / 2.0, // p2 direction
+            a / 2.0,
+            a / 2.0, // q1 direction
+            b / 2.0,
+            b / 2.0, // q2 direction
+            c / 2.0,
+            c / 2.0, // p1 direction
+            d / 2.0,
+            d / 2.0, // p2 direction
         ];
         let polytope = PolytopeHRep::new(normals, heights);
 
@@ -315,14 +319,12 @@ mod tests {
 
             // 4D "cross product" - compute determinant-based normal
             let n = Vector4::new(
-                e1[1] * (e2[2] * e3[3] - e2[3] * e3[2])
-                    - e1[2] * (e2[1] * e3[3] - e2[3] * e3[1])
+                e1[1] * (e2[2] * e3[3] - e2[3] * e3[2]) - e1[2] * (e2[1] * e3[3] - e2[3] * e3[1])
                     + e1[3] * (e2[1] * e3[2] - e2[2] * e3[1]),
                 -(e1[0] * (e2[2] * e3[3] - e2[3] * e3[2])
                     - e1[2] * (e2[0] * e3[3] - e2[3] * e3[0])
                     + e1[3] * (e2[0] * e3[2] - e2[2] * e3[0])),
-                e1[0] * (e2[1] * e3[3] - e2[3] * e3[1])
-                    - e1[1] * (e2[0] * e3[3] - e2[3] * e3[0])
+                e1[0] * (e2[1] * e3[3] - e2[3] * e3[1]) - e1[1] * (e2[0] * e3[3] - e2[3] * e3[0])
                     + e1[3] * (e2[0] * e3[1] - e2[1] * e3[0]),
                 -(e1[0] * (e2[1] * e3[2] - e2[2] * e3[1])
                     - e1[1] * (e2[0] * e3[2] - e2[2] * e3[0])
@@ -366,11 +368,7 @@ mod tests {
         let result_naive = hk2017_capacity(&polytope, &Hk2017Config::naive()).unwrap();
         let result_graph = hk2017_capacity(&polytope, &Hk2017Config::graph_pruned()).unwrap();
 
-        assert_relative_eq!(
-            result_naive.capacity,
-            result_graph.capacity,
-            epsilon = 1e-6
-        );
+        assert_relative_eq!(result_naive.capacity, result_graph.capacity, epsilon = 1e-6);
         assert_relative_eq!(result_naive.q_max, result_graph.q_max, epsilon = 1e-6);
     }
 

@@ -43,9 +43,7 @@ pub fn enumerate_all_subset_permutations(num_facets: usize) -> Vec<Permutation> 
 ///
 /// Useful for very large facet counts where storing all permutations
 /// would use too much memory.
-pub fn subset_permutations_iter(
-    num_facets: usize,
-) -> impl Iterator<Item = Permutation> {
+pub fn subset_permutations_iter(num_facets: usize) -> impl Iterator<Item = Permutation> {
     (2..=num_facets).flat_map(move |k| {
         (0..num_facets)
             .combinations(k)

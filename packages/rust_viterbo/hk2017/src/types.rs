@@ -4,7 +4,13 @@
 
 use nalgebra::{DMatrix, Vector4};
 
+// Re-export the shared polytope type from geom crate.
+pub use geom::PolytopeHRep;
+
 /// Numerical tolerance for floating-point equality checks.
+///
+/// HK2017 uses a stricter tolerance (1e-12) than the default geom::EPS (1e-10)
+/// because the KKT solver requires higher precision for constraint satisfaction.
 pub const EPS: f64 = 1e-12;
 
 /// Tolerance for constraint satisfaction (height sum, closure).
@@ -16,77 +22,25 @@ pub const POSITIVE_TOL: f64 = 1e-10;
 /// Tolerance for Lagrangian face detection (omega near 0).
 pub const LAGRANGIAN_TOL: f64 = 1e-8;
 
-/// H-representation of a convex polytope K = {x : <n_i, x> <= h_i for all i}.
+/// Validate polytope for HK2017 algorithm.
 ///
-/// # Requirements
-///
-/// - `normals[i]` must be a unit vector (norm = 1 within EPS)
-/// - `heights[i]` must be positive (origin is in the interior)
-/// - `normals.len() == heights.len()`
-/// - At least 2 facets for a valid closed orbit
-#[derive(Debug, Clone)]
-pub struct PolytopeHRep {
-    /// Unit outward normals to each facet.
-    pub normals: Vec<Vector4<f64>>,
-    /// Signed distance from origin to each facet (must be > 0).
-    pub heights: Vec<f64>,
-}
+/// This adds HK2017-specific checks on top of the base validation:
+/// - At least 2 facets (for valid closed orbit)
+pub fn validate_for_hk2017(polytope: &PolytopeHRep) -> Result<(), Hk2017Error> {
+    // Base validation from geom
+    polytope
+        .validate()
+        .map_err(|e| Hk2017Error::InvalidPolytope(e.to_string()))?;
 
-impl PolytopeHRep {
-    /// Create a new polytope from normals and heights.
-    pub fn new(normals: Vec<Vector4<f64>>, heights: Vec<f64>) -> Self {
-        Self { normals, heights }
+    // HK2017-specific: need at least 2 facets for a valid closed orbit
+    if polytope.num_facets() < 2 {
+        return Err(Hk2017Error::InvalidPolytope(format!(
+            "need at least 2 facets, got {}",
+            polytope.num_facets()
+        )));
     }
 
-    /// Number of facets.
-    pub fn num_facets(&self) -> usize {
-        self.normals.len()
-    }
-
-    /// Validate the polytope representation.
-    ///
-    /// Returns `Ok(())` if valid, or an error describing the problem.
-    pub fn validate(&self) -> Result<(), Hk2017Error> {
-        // Check lengths match
-        if self.normals.len() != self.heights.len() {
-            return Err(Hk2017Error::InvalidPolytope(format!(
-                "normals length ({}) != heights length ({})",
-                self.normals.len(),
-                self.heights.len()
-            )));
-        }
-
-        // Need at least 2 facets for a valid closed orbit
-        if self.normals.len() < 2 {
-            return Err(Hk2017Error::InvalidPolytope(format!(
-                "need at least 2 facets, got {}",
-                self.normals.len()
-            )));
-        }
-
-        // Check normals are unit vectors
-        for (i, n) in self.normals.iter().enumerate() {
-            let norm = n.norm();
-            if (norm - 1.0).abs() > EPS {
-                return Err(Hk2017Error::InvalidPolytope(format!(
-                    "normal[{}] is not unit: norm = {:.15} (expected 1.0)",
-                    i, norm
-                )));
-            }
-        }
-
-        // Check heights are positive (origin in interior)
-        for (i, &h) in self.heights.iter().enumerate() {
-            if h <= 0.0 {
-                return Err(Hk2017Error::InvalidPolytope(format!(
-                    "height[{}] = {:.15} is not positive (origin not in interior)",
-                    i, h
-                )));
-            }
-        }
-
-        Ok(())
-    }
+    Ok(())
 }
 
 /// Configuration for the HK2017 algorithm.
@@ -300,7 +254,7 @@ mod tests {
         ];
         let heights = vec![1.0, 1.0];
         let polytope = PolytopeHRep::new(normals, heights);
-        assert!(polytope.validate().is_ok());
+        assert!(validate_for_hk2017(&polytope).is_ok());
     }
 
     #[test]
@@ -311,7 +265,7 @@ mod tests {
         ];
         let heights = vec![1.0, 1.0];
         let polytope = PolytopeHRep::new(normals, heights);
-        let err = polytope.validate().unwrap_err();
+        let err = validate_for_hk2017(&polytope).unwrap_err();
         assert!(matches!(err, Hk2017Error::InvalidPolytope(_)));
     }
 
@@ -323,7 +277,7 @@ mod tests {
         ];
         let heights = vec![1.0, -1.0]; // Negative height
         let polytope = PolytopeHRep::new(normals, heights);
-        let err = polytope.validate().unwrap_err();
+        let err = validate_for_hk2017(&polytope).unwrap_err();
         assert!(matches!(err, Hk2017Error::InvalidPolytope(_)));
     }
 
@@ -335,7 +289,7 @@ mod tests {
         ];
         let heights = vec![1.0]; // Wrong length
         let polytope = PolytopeHRep::new(normals, heights);
-        let err = polytope.validate().unwrap_err();
+        let err = validate_for_hk2017(&polytope).unwrap_err();
         assert!(matches!(err, Hk2017Error::InvalidPolytope(_)));
     }
 
@@ -344,7 +298,7 @@ mod tests {
         let normals = vec![Vector4::new(1.0, 0.0, 0.0, 0.0)];
         let heights = vec![1.0];
         let polytope = PolytopeHRep::new(normals, heights);
-        let err = polytope.validate().unwrap_err();
+        let err = validate_for_hk2017(&polytope).unwrap_err();
         assert!(matches!(err, Hk2017Error::InvalidPolytope(_)));
     }
 

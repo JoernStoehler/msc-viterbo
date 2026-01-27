@@ -1,0 +1,11 @@
+[package]
+name = "geom"
+version = "0.1.0"
+description = "Shared geometry types for symplectic capacity algorithms"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+nalgebra = "0.33"
+thiserror = "2"

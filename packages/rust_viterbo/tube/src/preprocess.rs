@@ -14,7 +14,9 @@ use crate::trivialization::{
     compute_entry_basis, compute_exit_basis, compute_transition_matrix_basis,
     rotation_number_from_trace, trivialize,
 };
-use crate::types::{FlowDirection, Polygon2D, PolytopeHRep, TubeError, TwoFace, TwoFaceEnriched};
+use crate::types::{
+    validate_for_tube, FlowDirection, Polygon2D, PolytopeHRep, TubeError, TwoFace, TwoFaceEnriched,
+};
 
 /// Preprocessed polytope data for the tube algorithm.
 #[derive(Debug, Clone)]
@@ -58,7 +60,9 @@ impl PolytopeData {
 
     /// Check if the polytope has any Lagrangian 2-faces.
     pub fn has_lagrangian_two_faces(&self) -> bool {
-        self.two_faces.iter().any(|f| f.is_lagrangian(EPS_LAGRANGIAN))
+        self.two_faces
+            .iter()
+            .any(|f| f.is_lagrangian(EPS_LAGRANGIAN))
     }
 
     /// Get the basic TwoFace for facets i and j (order-independent).
@@ -72,7 +76,11 @@ impl PolytopeData {
     pub fn get_two_face_enriched(&self, entry: usize, exit: usize) -> Option<&TwoFaceEnriched> {
         self.two_faces_enriched.iter().find(|f| {
             let (a, b) = if f.i < f.j { (f.i, f.j) } else { (f.j, f.i) };
-            let (e, x) = if entry < exit { (entry, exit) } else { (exit, entry) };
+            let (e, x) = if entry < exit {
+                (entry, exit)
+            } else {
+                (exit, entry)
+            };
             a == e && b == x
         })
     }
@@ -101,7 +109,7 @@ impl PolytopeData {
 ///
 /// Computes vertices, 2-faces, and trivialization data.
 pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
-    hrep.validate()?;
+    validate_for_tube(hrep)?;
 
     let num_facets = hrep.num_facets();
     let normals = hrep.normals.clone();
@@ -176,9 +184,11 @@ fn enumerate_vertices_4d(hrep: &PolytopeHRep) -> Result<Vec<Vector4<f64>>, TubeE
                         let candidate = m_inv * h;
 
                         // Check if candidate satisfies all constraints
-                        let is_valid = hrep.normals.iter().zip(&hrep.heights).all(|(n, &h)| {
-                            n.dot(&candidate) <= h + EPS
-                        });
+                        let is_valid = hrep
+                            .normals
+                            .iter()
+                            .zip(&hrep.heights)
+                            .all(|(n, &h)| n.dot(&candidate) <= h + EPS);
 
                         if is_valid {
                             // Check it's not a duplicate
@@ -330,7 +340,11 @@ mod tests {
         for v in &data.vertices {
             // Exactly one coordinate should be ±1, rest should be 0
             let non_zero_count = (0..4).filter(|&i| v[i].abs() > 0.5).count();
-            assert_eq!(non_zero_count, 1, "Vertex {:?} should have one non-zero coordinate", v);
+            assert_eq!(
+                non_zero_count, 1,
+                "Vertex {:?} should have one non-zero coordinate",
+                v
+            );
         }
     }
 
