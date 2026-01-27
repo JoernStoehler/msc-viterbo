@@ -11,3 +11,9 @@ Policy
    package from `main` to avoid long-lived clutter.
 4. To reproduce the original talk sources/assets, check out the frozen git tag.
 
+## Archived Talks
+
+- **2026-01-27-clarke-duality.pdf** — Clarke's Dual Action Principle seminar talk
+  - Source tag: `talk-clarke-duality-2026-01-27` (commit `ab43adb`)
+  - Migration: Key content migrated to `chapters/math/08-clarke-dual-action.tex`
+
