@@ -7,7 +7,7 @@
   - `packages/python_viterbo`: Python experiments for data science, ML, and visualization.
   - `.devcontainer/`, `scripts/devcontainer-post-create.sh`, `msc-viterbo.code-workspace`: Local devcontainer configuration for project owner. Agents work in auto-provisioned environments; error messages explain what's available where.
 - Developers: project owner, Claude Code agents
-- Project management: `TODO.md` (tasks), `experiments.md` (research), GitHub PRs, git worktrees. [proposed]
+- Project management: `TODO.md` (tasks + experiments), GitHub PRs, git worktrees. [proposed]
 - Research tracking: Research Ledger appendix in thesis (packages/latex_viterbo/chapters/appendix-research-ledger.tex)
 - Agent handoffs: This is a long-running project with many sequential/parallel agents. Always leave the repo ready for the next agent (see session-handoff skill).
 
