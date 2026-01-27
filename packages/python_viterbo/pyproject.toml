@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pyright", "ruff", "maturin"]
+dev = ["pytest", "pyright", "ruff", "maturin", "scipy-stubs", "pandas-stubs"]
 
 [build-system]
 requires = ["hatchling"]

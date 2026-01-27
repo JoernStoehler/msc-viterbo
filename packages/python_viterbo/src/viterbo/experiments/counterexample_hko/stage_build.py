@@ -236,8 +236,8 @@ def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
     # Segment 1: On K_0, p moves in direction n_0 until hitting T-boundary
     n_0 = k_normals[0]
     # Find which T-edge we hit
-    t_hit_1 = None
-    t_idx_1 = None
+    t_hit_1: tuple[float, float] | None = None
+    t_idx_1: int | None = None
     min_t = float("inf")
     for i in range(5):
         v1, v2 = verts_t[i], verts_t[(i + 1) % 5]
@@ -249,6 +249,9 @@ def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
                 t_hit_1 = hit
                 t_idx_1 = i
 
+    # Algorithm assumes trajectory from center of T in direction n_0 must hit T boundary
+    assert t_hit_1 is not None, "Trajectory must intersect T boundary"
+    assert t_idx_1 is not None, "Must find T edge index"
     p_B = t_hit_1  # p-coordinate after segment 1
 
     # Segment 2: On T_{t_idx_1}, q moves in direction -m_{t_idx_1} until hitting K_2
@@ -256,7 +259,8 @@ def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
     q_dir = (-m_j[0], -m_j[1])
     # Find intersection with K_2 edge
     k2_v1, k2_v2 = verts_k[2], verts_k[3]
-    q_B = line_edge_intersection(q_A, q_dir, k2_v1, k2_v2)
+    q_B: tuple[float, float] | None = line_edge_intersection(q_A, q_dir, k2_v1, k2_v2)
+    k_idx_2: int | None = None
     if q_B is None:
         # Try other K edges in diagonal direction
         for ki in range(5):
@@ -270,11 +274,15 @@ def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
     else:
         k_idx_2 = 2
 
+    # Algorithm assumes q trajectory must hit some K edge
+    assert q_B is not None, "q trajectory must intersect K boundary"
+    assert k_idx_2 is not None, "Must find K edge index"
+
     # Segment 3: On K_{k_idx_2}, p moves in direction n_{k_idx_2}
     n_k = k_normals[k_idx_2]
     # Find which T-edge we hit starting from p_B
-    t_hit_2 = None
-    t_idx_2 = None
+    t_hit_2: tuple[float, float] | None = None
+    t_idx_2: int | None = None
     min_t = float("inf")
     for i in range(5):
         v1, v2 = verts_t[i], verts_t[(i + 1) % 5]
@@ -286,6 +294,9 @@ def build_minimum_orbit(facets: list[Facet], capacity: float) -> dict:
                 t_hit_2 = hit
                 t_idx_2 = i
 
+    # Algorithm assumes p trajectory must hit T boundary
+    assert t_hit_2 is not None, "p trajectory must intersect T boundary"
+    assert t_idx_2 is not None, "Must find T edge index"
     p_C = t_hit_2
 
     # Segment 4: On T_{t_idx_2}, q moves in direction -m_{t_idx_2} back to K_0

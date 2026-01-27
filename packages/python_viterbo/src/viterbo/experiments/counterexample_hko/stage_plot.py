@@ -65,7 +65,7 @@ def plot_orbit_projections(data: dict, out_path: Path) -> None:
     fig, (ax_q, ax_p) = plt.subplots(1, 2, figsize=(12, 5.5))
 
     # Colors for segments
-    cmap = plt.cm.tab10
+    cmap = plt.get_cmap("tab10")
     n_segments = len(facet_labels)
 
     # Draw pentagons
@@ -208,7 +208,7 @@ def plot_orbit_projections(data: dict, out_path: Path) -> None:
         style="italic",
     )
 
-    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
+    plt.tight_layout(rect=(0.0, 0.05, 1.0, 0.95))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
@@ -221,21 +221,23 @@ def main(data_path: str | None = None, assets_dir: str | None = None) -> None:
     """Load data and create orbit projection plot."""
     pkg_root = Path(__file__).parents[4]
 
+    resolved_data_path: Path
     if data_path is None:
-        data_path = pkg_root / "data" / "counterexample-hko" / "hko2024.json"
+        resolved_data_path = pkg_root / "data" / "counterexample-hko" / "hko2024.json"
     else:
-        data_path = Path(data_path)
+        resolved_data_path = Path(data_path)
 
+    resolved_assets_dir: Path
     if assets_dir is None:
-        assets_dir = pkg_root.parent / "latex_viterbo" / "assets" / "counterexample-hko"
+        resolved_assets_dir = pkg_root.parent / "latex_viterbo" / "assets" / "counterexample-hko"
     else:
-        assets_dir = Path(assets_dir)
+        resolved_assets_dir = Path(assets_dir)
 
-    if not data_path.exists():
-        raise FileNotFoundError(f"{data_path} not found. Run stage_build first.")
+    if not resolved_data_path.exists():
+        raise FileNotFoundError(f"{resolved_data_path} not found. Run stage_build first.")
 
-    data = load_data(data_path)
-    out_path = assets_dir / "orbit-projections.png"
+    data = load_data(resolved_data_path)
+    out_path = resolved_assets_dir / "orbit-projections.png"
     plot_orbit_projections(data, out_path)
 
 

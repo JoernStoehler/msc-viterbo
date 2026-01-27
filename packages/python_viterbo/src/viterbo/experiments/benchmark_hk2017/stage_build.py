@@ -54,7 +54,7 @@ def load_config(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def make_simplex_hrep() -> tuple[list[list[float]], list[float]]:
+def make_simplex_hrep() -> tuple[list[tuple[float, float, float, float]], list[float]]:
     """Create 4D simplex containing origin, in H-representation.
 
     Returns unit outward normals and positive heights.
@@ -74,17 +74,14 @@ def make_simplex_hrep() -> tuple[list[list[float]], list[float]]:
 
     # Simple 5-facet simplex: one facet for each coordinate direction plus one "closing" facet
     s = 1.0 / math.sqrt(4)  # = 0.5
-    normals = [
-        [1.0, 0.0, 0.0, 0.0],  # +x
-        [0.0, 1.0, 0.0, 0.0],  # +y
-        [0.0, 0.0, 1.0, 0.0],  # +z
-        [0.0, 0.0, 0.0, 1.0],  # +w
-        [-s, -s, -s, -s],  # -diagonal (needs normalization)
-    ]
-
-    # Normalize the diagonal
     diag_norm = math.sqrt(4 * s * s)  # = 1
-    normals[4] = [-s / diag_norm, -s / diag_norm, -s / diag_norm, -s / diag_norm]
+    normals: list[tuple[float, float, float, float]] = [
+        (1.0, 0.0, 0.0, 0.0),  # +x
+        (0.0, 1.0, 0.0, 0.0),  # +y
+        (0.0, 0.0, 1.0, 0.0),  # +z
+        (0.0, 0.0, 0.0, 1.0),  # +w
+        (-s / diag_norm, -s / diag_norm, -s / diag_norm, -s / diag_norm),  # -diagonal
+    ]
 
     # Heights: distance from origin to each facet
     # For the axis-aligned facets, use height 1
@@ -94,21 +91,21 @@ def make_simplex_hrep() -> tuple[list[list[float]], list[float]]:
     return normals, heights
 
 
-def make_tesseract_hrep() -> tuple[list[list[float]], list[float]]:
+def make_tesseract_hrep() -> tuple[list[tuple[float, float, float, float]], list[float]]:
     """Create tesseract [-1, 1]^4 in H-representation.
 
     Returns unit outward normals and positive heights.
     The tesseract has 8 facets.
     """
-    normals = [
-        [1.0, 0.0, 0.0, 0.0],
-        [-1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, -1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, -1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-        [0.0, 0.0, 0.0, -1.0],
+    normals: list[tuple[float, float, float, float]] = [
+        (1.0, 0.0, 0.0, 0.0),
+        (-1.0, 0.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0, 0.0),
+        (0.0, -1.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0, 0.0),
+        (0.0, 0.0, -1.0, 0.0),
+        (0.0, 0.0, 0.0, 1.0),
+        (0.0, 0.0, 0.0, -1.0),
     ]
     heights = [1.0] * 8
     return normals, heights
@@ -116,7 +113,7 @@ def make_tesseract_hrep() -> tuple[list[list[float]], list[float]]:
 
 def vertices_to_hrep(
     vertices: np.ndarray,
-) -> tuple[list[list[float]], list[float]]:
+) -> tuple[list[tuple[float, float, float, float]], list[float]]:
     """Convert V-representation to H-representation.
 
     Args:
@@ -128,8 +125,8 @@ def vertices_to_hrep(
     """
     hull = ConvexHull(vertices)
 
-    normals = []
-    heights = []
+    normals: list[tuple[float, float, float, float]] = []
+    heights: list[float] = []
 
     for eq in hull.equations:
         # eq is [a, b, c, d, e] where a*x + b*y + c*z + d*w + e = 0
@@ -154,7 +151,7 @@ def vertices_to_hrep(
             normal = -normal
             height = -height
 
-        normals.append(normal.tolist())
+        normals.append((float(normal[0]), float(normal[1]), float(normal[2]), float(normal[3])))
         heights.append(float(height))
 
     return normals, heights
@@ -162,7 +159,7 @@ def vertices_to_hrep(
 
 def make_random_hull(
     n_points: int, rng: random.Random
-) -> tuple[list[list[float]], list[float], int]:
+) -> tuple[list[tuple[float, float, float, float]], list[float], int]:
     """Generate random convex hull in R^4.
 
     Args:
@@ -190,7 +187,7 @@ def make_random_hull(
 
 
 def time_hk2017(
-    normals: list[list[float]],
+    normals: list[tuple[float, float, float, float]],
     heights: list[float],
     use_graph_pruning: bool = False,
 ) -> tuple[float, float, int, int]:
@@ -228,7 +225,7 @@ def _time_polytope(
     n_facets: int,
     n_points: int,
     rep: int,
-    normals: list[list[float]],
+    normals: list[tuple[float, float, float, float]],
     heights: list[float],
     algorithms: list[str],
 ) -> list[TimingResult]:
