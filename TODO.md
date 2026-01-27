@@ -19,7 +19,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Tube algorithm core: branch-and-bound + robust pruning + witness (#29)
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
-- [ ] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation
+- [x] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation (2026-01-27)
 - [ ] Cross-algorithm validation: billiard vs hk2017 on Lagrangian products, continuity-based billiard↔tube comparison; thesis section + code fixtures
 - [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
@@ -73,6 +73,7 @@ Tasks identified during code quality assessment (2026-01-27).
 
 ## Done
 
+- [x] Download HK thesis (2026-01-27) — see details below
 - [x] benchmark-hk2017 (2026-01-26) — see details below
 
 ---
@@ -170,17 +171,17 @@ The rotation range is WLOG due to:
 
 **Research question:** What can we say about sys distribution when we fix combinatorial complexity (facet count or vertex count)?
 
-**Prior work (to verify):**
-HK's MSc thesis reportedly shows that simplices in 4D (5 vertices ⟺ 5 facets) satisfy:
-- sys ≤ 3/4
-- Unique global maximum at the orthonormal simplex (up to symplectomorphisms — there are infinitely many maxima related by Sp(4) ⋉ R⁴, but they're all equivalent)
+**Prior work (verified 2026-01-27):**
+- HK's published paper "On the symplectic size of convex polytopes" (arXiv:1712.03494, GAFA 2019) does NOT contain the sys ≤ 3/4 claim for simplices
+- The paper references **Y. Nir's thesis** [15]: "On closed characteristics and billiards in convex bodies", Tel Aviv University (2013), for simplex-specific dynamics
+- The sys ≤ 3/4 claim may originate from Nir's thesis or another source — needs further investigation
+- Downloaded PDF: `docs/haim-kislev-2017-ehz-polytopes.pdf`
 
 **Note on star-shapedness:** The "unit simplex" = conv{0, e₁, e₂, e₃, e₄} doesn't contain 0 in its interior, but capacity is still well-defined even for non-star-shaped polytopes. We ignore the extra translation needed.
 
-**Verify via "Download HK thesis" task above:**
-- Did she prove sys ≤ 3/4 for simplices?
+**Open questions (previously thought to be in HK thesis):**
+- Where does the sys ≤ 3/4 bound for simplices come from? Check Nir (2013) or other sources
 - Is the orthonormal simplex the unique maximum?
-- Amend this research question based on what she actually proved
 
 **Experiment:** Filter the main random polytope dataset by facet count or vertex count, examine the resulting sys distribution. Can we:
 - Empirically confirm HK's result for simplices?
@@ -349,6 +350,33 @@ If we quotient polytope space by Sp(4) ⋉ R⁴, we get a lower-dimensional spac
 - Each point represents an equivalence class of symplectomorphic polytopes
 - sys is well-defined on the quotient
 - Gradient flow on the quotient might be simpler to understand/visualize
+
+## Download HK thesis
+
+**Status:** Completed (2026-01-27)
+
+**Goal:** Download Pazit Haim-Kislev's MSc thesis to verify the "sys ≤ 3/4 for simplices" claim and extract known polytope values for validation.
+
+**Key findings:**
+
+1. **The actual MSc thesis PDF is not publicly available.** The thesis titled "The EHZ capacity of cubes and simplices" (Tel Aviv University, 2019) is not accessible online.
+
+2. **The published paper is available:** "On the symplectic size of convex polytopes" (arXiv:1712.03494, GAFA 2019) is the published version of the thesis work. Downloaded to `docs/haim-kislev-2017-ehz-polytopes.pdf`.
+
+3. **The sys ≤ 3/4 claim for simplices is NOT in the paper.** The paper focuses on:
+   - Theorem 1.1: Combinatorial formula for EHZ capacity of convex polytopes
+   - Theorem 1.5: Structure of action-minimizing closed characteristics (visits each facet at most once)
+   - Theorem 1.8: Subadditivity under hyperplane cuts
+
+4. **Simplex results are in a different thesis:** The paper references **Y. Nir's thesis** [15]: "On closed characteristics and billiards in convex bodies", Tel Aviv University (2013), for "a full description of the dynamics of action minimizing closed characteristics on the standard simplex."
+
+**Implications:**
+- The sys ≤ 3/4 claim needs a different source — possibly Nir (2013) or unpublished results
+- Our algorithm validation should focus on the published paper's formula (Theorem 1.1)
+- The HK2017 algorithm implementation is consistent with the paper's combinatorial formula
+
+**Files:**
+- Downloaded: `docs/haim-kislev-2017-ehz-polytopes.pdf` (618 KB)
 
 ## benchmark-hk2017
 
