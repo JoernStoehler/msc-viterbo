@@ -111,3 +111,47 @@ The scheme `CITATIONKEY-description/` with original filenames inside enables:
 - Formulas appear exactly as the author wrote them
 - Labels are searchable; following `\ref{}` is straightforward
 - Smaller file size, faster to process
+
+## Downloading PDFs from non-arXiv sources
+
+### Direct PDF URLs
+
+If you have a direct URL to a PDF file (e.g., `https://example.com/thesis.pdf` or a Google Drive link), download with curl:
+
+```bash
+mkdir -p docs/references
+curl -L "<url>" -o docs/references/<descriptive-name>.pdf
+```
+
+For Google Drive links like `https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing`:
+```bash
+curl -L "https://drive.google.com/uc?export=download&id=<FILE_ID>" -o docs/references/<name>.pdf
+```
+
+### JavaScript-rendered pages (institutional repositories)
+
+Some library systems (TAU Primo, ExLibris Alma, etc.) require JavaScript to render the page and reveal PDF links. **WebFetch cannot execute JavaScript** - it only retrieves raw HTML.
+
+**Current limitation:** Playwright/headless browsers require downloading Chromium binaries, which may be blocked by network restrictions in sandboxed environments. As of 2026-01, this does not work reliably in Claude Code.
+
+**Workaround:** Ask the user to:
+1. Open the library URL in their browser
+2. Find the PDF download link
+3. Provide the direct PDF URL to you
+
+If the user provides a direct PDF URL, download with curl as shown above.
+
+### Common institutional repositories
+
+| Source | URL Pattern | Notes |
+|--------|-------------|-------|
+| TAU Library | `tau.primo.exlibrisgroup.com` | Requires JS; ask user for direct link |
+| Google Drive | `drive.google.com/file/d/ID/view` | Use curl with export URL |
+| arXiv | `arxiv.org/pdf/ID.pdf` | Direct download works |
+| Semantic Scholar | Links to publisher PDFs | Follow redirect chain |
+
+### When all else fails
+
+1. Document the URL and why programmatic access failed
+2. Ask the user to download manually and provide the file
+3. Note any authentication requirements (university login, etc.)
