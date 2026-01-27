@@ -1,5 +1,8 @@
 # Test Documentation
 
+> **⚠️ ARCHIVED** — This document describes tests from the v0.1.0 implementation which was deleted.
+> Current tests are in each crate's source files. Run `cargo test --workspace` to see current tests.
+
 **Purpose:** Consolidated reference for all testing in the rust_viterbo crate.
 
 For mathematical claims and their verification status, see `mathematical-claims.md`.

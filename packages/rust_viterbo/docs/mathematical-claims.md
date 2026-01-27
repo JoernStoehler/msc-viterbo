@@ -129,9 +129,9 @@ c = (sqrt(5) + 1)/2 * (1 + (sqrt(5) + 1)/4) = phi * (1 + phi/2)
 rho = c^2 / (2*Vol) = (sqrt(5) + 3) / 5 = 1.0472...
 ```
 
-**Verification:** [KNOWN BUG] Billiard algorithm returns 2.127, which is expected/phi. Investigation ongoing (see next-actions.md).
+**Verification:** ✅ Tested. Billiard algorithm returns ≈3.441, matching ground truth.
 
-**Code location:** Test is `#[ignore]` in `tests/capacity_known_values.rs`.
+**Code location:** `billiard/src/algorithm.rs::test_pentagon_counterexample`.
 
 ---
 
@@ -547,7 +547,7 @@ For HK-O pentagon counterexample: rho = 1.047 > 1.
 
 **Citation:** Haim-Kislev & Ostrover 2024.
 
-**Verification:** Test is `#[ignore]` due to pentagon capacity bug.
+**Verification:** ✅ Tested. Pentagon capacity bug fixed; sys ratio can now be computed.
 
 ---
 

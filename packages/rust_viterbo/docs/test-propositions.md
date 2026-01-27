@@ -1,8 +1,11 @@
 # Mathematical Propositions for Unit Testing
 
+> **⚠️ PARTIALLY STALE** — Many test case statuses (✗ BROKEN, etc.) refer to the deleted v0.1.0 implementation.
+> The mathematical propositions remain valid; the test-to-code mappings need updating for current crates.
+
 > **Note:** This is a detailed reference document. For quick navigation:
 > - Mathematical claims with citations: see `mathematical-claims.md`
-> - Test infrastructure and running tests: see `test-documentation.md`
+> - Test infrastructure and running tests: see `test-interpretation.md` (archived)
 > - Test case catalog: see `test-cases.md`
 
 This document lists mathematical propositions that unit tests should verify.

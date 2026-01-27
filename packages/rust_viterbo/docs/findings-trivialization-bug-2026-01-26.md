@@ -1,6 +1,8 @@
 # Findings: Trivialization Bug Discovery Session (2026-01-26)
 
-This document captures findings from an implementation attempt of the tube algorithm that revealed a fundamental error in developer-spec-v2.md.
+> **Status: RESOLVED.** The bug described here was fixed. See `trivialization-derivation.md` for the correct formula and `tube/src/trivialization.rs` for the implementation.
+
+This document captures findings from an implementation attempt of the tube algorithm that revealed a fundamental error in an earlier draft of developer-spec-v2.md.
 
 ## Executive Summary
 

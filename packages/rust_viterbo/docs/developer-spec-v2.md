@@ -2366,11 +2366,9 @@ The quadratic form Q(σ, β) is **indefinite** (the symplectic form has mixed si
 - Edges (1D faces)
 - Higher-dimensional face interiors
 
-A complete implementation requires a global QCQP solver or exhaustive face enumeration. The current approach (checking only vertices) is **incomplete** and may miss the true maximum.
+A complete implementation requires a global QCQP solver or exhaustive face enumeration. The current approach (KKT solver for interior critical points) assumes the maximum is in the interior of the feasible region. If the true maximum is on the boundary, this method will miss it. For most "typical" polytopes (tesseract, Lagrangian products), the interior assumption holds.
 
-**Pentagon × RotatedPentagon bug:**
-
-The billiard algorithm returns capacity ≈ 2.127 for the HK-O counterexample pentagon product, but the correct value is ≈ 3.441 (HK-O 2024 Prop 1). This is a known bug documented in `mathematical-claims.md`. Investigation is ongoing.
+**Pentagon × RotatedPentagon:** ✅ Fixed. The billiard algorithm now correctly returns ≈ 3.441 (matching HK-O 2024 Prop 1). The bug was in orbit validation - see `findings-orbit-validation-2026-01-26.md`.
 
 **Missing tube algorithm test case:**
 
@@ -3305,8 +3303,7 @@ fn hko2024_counterexample() -> PolytopeHRep {
 
 **Known Limitations:**
 - No algorithm handles mixed Lagrangian/non-Lagrangian polytopes well
-- HK2017 QP solver is incomplete (indefinite quadratic requires global optimizer)
-- Pentagon × RotatedPentagon returns wrong value (known bug, under investigation)
+- HK2017 uses interior-point assumption (if true max is on boundary, result is incorrect)
 
 **Related Files:**
 - `review-spec-v2.md`: Detailed review with recommendations
