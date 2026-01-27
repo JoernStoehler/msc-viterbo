@@ -35,6 +35,7 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all --check
 
+      # FFI crate excluded: requires maturin + Python to build (PyO3 bindings)
       - name: Clippy
         run: cargo clippy --workspace --exclude rust_viterbo_ffi -- -D warnings
 
