@@ -391,38 +391,111 @@ def save_visualization_json(
 
 
 # =============================================================================
+# Polytope Generators
+# =============================================================================
+
+
+def tesseract_hrep() -> tuple[list[list[float]], list[float]]:
+    """H-rep for tesseract [-1,1]^4."""
+    normals = [
+        [1.0, 0.0, 0.0, 0.0],
+        [-1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, -1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.0, 0.0, -1.0],
+    ]
+    heights = [1.0] * 8
+    return normals, heights
+
+
+def cross_polytope_hrep() -> tuple[list[list[float]], list[float]]:
+    """H-rep for cross-polytope (orthoplex) conv(±e_i).
+
+    The cross-polytope is the dual of the tesseract. It has 16 facets
+    with normals (±1, ±1, ±1, ±1)/2.
+    """
+    normals = []
+    for s1 in [-1, 1]:
+        for s2 in [-1, 1]:
+            for s3 in [-1, 1]:
+                for s4 in [-1, 1]:
+                    normals.append([s1 / 2, s2 / 2, s3 / 2, s4 / 2])
+    heights = [1.0] * 16
+    return normals, heights
+
+
+def regular_simplex_hrep() -> tuple[list[list[float]], list[float]]:
+    """H-rep for a regular 4-simplex centered at origin.
+
+    This is a specific regular simplex with 5 facets, chosen so that
+    the origin is in its interior.
+    """
+    import math
+
+    sqrt5 = math.sqrt(5)
+    normals = [
+        [1.0, 1.0, 1.0, -1.0 / sqrt5],
+        [1.0, -1.0, -1.0, -1.0 / sqrt5],
+        [-1.0, 1.0, -1.0, -1.0 / sqrt5],
+        [-1.0, -1.0, 1.0, -1.0 / sqrt5],
+        [0.0, 0.0, 0.0, 4.0 / sqrt5],
+    ]
+    # Normalize to unit vectors
+    for i, n in enumerate(normals):
+        norm = math.sqrt(sum(x * x for x in n))
+        normals[i] = [x / norm for x in n]
+    heights = [0.5] * 5
+    return normals, heights
+
+
+# =============================================================================
 # Main
 # =============================================================================
 
 
 def main() -> None:
-    """Generate visualization of HKO counterexample."""
-    print("Loading HKO 2024 counterexample polytope...")
-    normals, heights, breakpoints = load_hko_polytope()
-
-    print("Creating visualization...")
-    fig = visualize_orbit_4d(
-        normals,
-        heights,
-        breakpoints,
-        title="HKO 2024 Counterexample: Pentagon × Pentagon (4D → 3D)",
-    )
-
-    # Output paths
-    # Path: polytope_visualization_4d/ -> experiments/ -> viterbo/ -> src/ -> python_viterbo/
+    """Generate visualizations for multiple polytopes."""
     output_dir = (
         Path(__file__).parent.parent.parent.parent.parent / "data" / "polytope-visualization-4d"
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    html_path = output_dir / "hko-polytope.html"
-    json_path = output_dir / "hko-polytope.json"
+    polytopes = [
+        ("hko", "HKO 2024: Pentagon × Pentagon", None),  # Special case with orbit
+        ("tesseract", "Tesseract [-1,1]^4", tesseract_hrep),
+        ("cross-polytope", "Cross-polytope (orthoplex)", cross_polytope_hrep),
+        ("regular-simplex", "Regular 4-simplex", regular_simplex_hrep),
+    ]
 
-    save_visualization(fig, html_path)
-    save_visualization_json(fig, json_path)
+    for name, title, generator in polytopes:
+        print(f"Creating {name}...")
 
-    print(f"Saved interactive HTML: {html_path}")
-    print(f"Saved JSON spec: {json_path}")
+        if name == "hko":
+            # HKO has orbit data
+            normals, heights, breakpoints = load_hko_polytope()
+            fig = visualize_orbit_4d(
+                normals, heights, breakpoints,
+                title=f"{title} (4D → 3D)",
+            )
+        else:
+            # Other polytopes: just geometry, no orbit
+            normals, heights = generator()
+            fig = visualize_polytope_4d(
+                normals, heights,
+                title=f"{title} (4D → 3D)",
+            )
+
+        html_path = output_dir / f"{name}.html"
+        json_path = output_dir / f"{name}.json"
+
+        save_visualization(fig, html_path)
+        save_visualization_json(fig, json_path)
+        print(f"  Saved: {html_path}")
+
+    print(f"\nAll visualizations saved to: {output_dir}")
 
 
 if __name__ == "__main__":
