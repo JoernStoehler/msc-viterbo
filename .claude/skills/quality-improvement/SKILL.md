@@ -247,19 +247,12 @@ Before finalizing changes, ask:
 - Launching exploration agents before reading methodology leads to superficial analysis
 - The skill's Assessment Methodology section exists precisely to prevent wasted effort
 
-**Mistake: Trusting linter/tool output as authoritative**
-- Clippy warnings, pyright errors, etc. are suggestions, not verdicts
-- Many warnings are stylistic preferences, not real issues
-- Some "errors" are limitations of the tool (e.g., missing type stubs for scipy)
-- Always analyze: "Is this a real problem, or tool noise?"
-- Ask: "Would fixing this improve the code, or just silence the tool?"
-
-**Mistake: Creating "ignore" patterns as solutions**
-- Don't configure tools to perpetually suppress classes of warnings/errors
-- Don't create rules like "always use `# type: ignore` for scipy" — that's one more thing agents must remember
-- If a tool reports something, prefer actually fixing the code over silencing the tool
-- Occasional targeted ignore comments are fine when genuinely unavoidable and explained
-- The problem is creating patterns/rules that add cognitive load for future agents
+**Mistake: Letting tool output drive the assessment**
+- Don't treat clippy/pyright output as a to-do list that must be addressed
+- Understand the code FIRST, then use tools as one input among many
+- Tool output should not be the primary driver of quality assessment
+- A quality assessment based on "clippy reports 27 warnings" has failed before it started
+- Read and understand implementations, THEN consider what tools report
 
 **Mistake: Jumping to DRY without reading code**
 - Grepping for duplicate struct names finds shallow duplication
