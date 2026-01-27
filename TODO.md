@@ -182,6 +182,10 @@ HK's MSc thesis reportedly shows that simplices in 4D (5 vertices ⟺ 5 facets) 
 - Is the orthonormal simplex the unique maximum?
 - Amend this research question based on what she actually proved
 
+**HK thesis location:**
+- TAU library: https://tau.primo.exlibrisgroup.com/permalink/972TAU_INST/quev9q/alma9932955590304146
+- Requires JS rendering; use Playwright in local devcontainer or open in browser
+
 **Experiment:** Filter the main random polytope dataset by facet count or vertex count, examine the resulting sys distribution. Can we:
 - Empirically confirm HK's result for simplices?
 - Make analogous conjectures for other fixed counts (6-facet polytopes, 7-facet, ...)?
