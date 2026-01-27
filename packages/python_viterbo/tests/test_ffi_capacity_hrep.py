@@ -25,7 +25,7 @@ def require_ffi_installed() -> None:
 
 
 # ============================================================================
-# HK2017 Algorithm Tests (the main, working algorithm)
+# Test Fixtures
 # ============================================================================
 
 
@@ -45,6 +45,24 @@ def tesseract_hrep() -> tuple[list[list[float]], list[float]]:
     return normals, heights
 
 
+def simplex_hrep() -> tuple[list[list[float]], list[float]]:
+    """Return a 4D simplex as H-rep (5 facets)."""
+    normals = [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [-0.5, -0.5, -0.5, -0.5],
+    ]
+    heights = [1.0] * 5
+    return normals, heights
+
+
+# ============================================================================
+# HK2017 Algorithm Tests
+# ============================================================================
+
+
 def test_hk2017_tesseract_capacity() -> None:
     """HK2017 should compute capacity=4 for tesseract [-1,1]^4."""
     normals, heights = tesseract_hrep()
@@ -57,17 +75,12 @@ def test_hk2017_tesseract_capacity() -> None:
 
 def test_hk2017_simplex_runs() -> None:
     """HK2017 should run on a 5-facet simplex."""
-    normals = [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-        [-0.5, -0.5, -0.5, -0.5],
-    ]
-    heights = [1.0] * 5
-
+    normals, heights = simplex_hrep()
     result = ffi.hk2017_capacity_hrep(normals, heights)
+
     assert result.capacity > 0
+    assert len(result.optimal_permutation) > 0
+    assert len(result.optimal_beta) > 0
 
 
 def test_hk2017_graph_pruning() -> None:
@@ -82,52 +95,50 @@ def test_hk2017_graph_pruning() -> None:
     assert result_pruned.permutations_evaluated <= result_naive.permutations_evaluated
 
 
-# ============================================================================
-# Legacy API Tests
-# ============================================================================
-
-
-def test_hk2019_legacy_api() -> None:
-    """hk2019_capacity_hrep is a legacy alias that returns just float."""
+def test_hk2017_result_repr() -> None:
+    """Hk2017Result should have a readable repr."""
     normals, heights = tesseract_hrep()
-    result = ffi.hk2019_capacity_hrep(normals, heights)
+    result = ffi.hk2017_capacity_hrep(normals, heights)
 
-    # Legacy API returns float, not object
-    assert isinstance(result, float)
-    assert abs(result - 4.0) < 1e-6
-
-
-# ============================================================================
-# Archived Function Tests
-# ============================================================================
-
-
-def test_billiard_archived() -> None:
-    """billiard_capacity_hrep is archived and raises NotImplementedError."""
-    normals, heights = tesseract_hrep()
-    with pytest.raises(NotImplementedError):
-        ffi.billiard_capacity_hrep(normals, heights)
-
-
-def test_tube_archived() -> None:
-    """tube_capacity_hrep is archived and raises NotImplementedError."""
-    normals, heights = tesseract_hrep()
-    with pytest.raises(NotImplementedError):
-        ffi.tube_capacity_hrep(normals, heights)
+    repr_str = repr(result)
+    assert "Hk2017Result" in repr_str
+    assert "capacity=" in repr_str
 
 
 # ============================================================================
-# Utility Function Tests
+# symplectic_form_4d Tests
 # ============================================================================
 
 
-def test_symplectic_form() -> None:
+def test_symplectic_form_basic() -> None:
     """symplectic_form_4d computes omega(a, b) correctly."""
     # omega((1,0,0,0), (0,0,1,0)) = 1*1 - 0 = 1
     result = ffi.symplectic_form_4d([1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0])
     assert abs(result - 1.0) < 1e-9
 
-    # omega is antisymmetric
+
+def test_symplectic_form_antisymmetric() -> None:
+    """symplectic_form_4d is antisymmetric: omega(a, b) = -omega(b, a)."""
     a = [1.0, 2.0, 3.0, 4.0]
     b = [5.0, 6.0, 7.0, 8.0]
     assert abs(ffi.symplectic_form_4d(a, b) + ffi.symplectic_form_4d(b, a)) < 1e-9
+
+
+def test_symplectic_form_zero_self() -> None:
+    """symplectic_form_4d(a, a) = 0 for any vector a."""
+    a = [1.0, 2.0, 3.0, 4.0]
+    assert abs(ffi.symplectic_form_4d(a, a)) < 1e-9
+
+
+# ============================================================================
+# Error Handling Tests
+# ============================================================================
+
+
+def test_hk2017_invalid_mismatched_lengths() -> None:
+    """HK2017 should reject mismatched normals/heights lengths."""
+    normals = [[1.0, 0.0, 0.0, 0.0], [-1.0, 0.0, 0.0, 0.0]]
+    heights = [1.0]  # Only one height for two normals
+
+    with pytest.raises(ValueError, match="Invalid polytope"):
+        ffi.hk2017_capacity_hrep(normals, heights)

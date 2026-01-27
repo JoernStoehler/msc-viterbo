@@ -5,86 +5,59 @@
 //!
 //! ## Implemented Algorithms
 //!
-//! - **HK2017**: Haim-Kislev's combinatorial formula (fully implemented)
+//! - **HK2017**: Haim-Kislev's combinatorial formula from "On the Symplectic
+//!   Size of Convex Polytopes" (arXiv:1712.03494, published GAFA 2019).
 //!
-//! ## Legacy/Archived Algorithms
+//! ## Usage from Python
 //!
-//! The following were previously implemented but are now archived stubs:
-//! - `tube_capacity_hrep`: Archived at tag `v0.1.0-archive`
-//! - `billiard_capacity_hrep`: Archived at tag `v0.1.0-archive`
+//! ```python
+//! import rust_viterbo_ffi as ffi
+//!
+//! # Tesseract [-1, 1]^4
+//! normals = [
+//!     [1, 0, 0, 0], [-1, 0, 0, 0],
+//!     [0, 1, 0, 0], [0, -1, 0, 0],
+//!     [0, 0, 1, 0], [0, 0, -1, 0],
+//!     [0, 0, 0, 1], [0, 0, 0, -1],
+//! ]
+//! heights = [1.0] * 8
+//!
+//! result = ffi.hk2017_capacity_hrep(normals, heights)
+//! print(f"Capacity: {result.capacity}")  # 4.0
+//! ```
 
 // Clippy false positive with PyO3's PyResult type annotations
 #![allow(clippy::useless_conversion)]
 
 use nalgebra::Vector4;
-use pyo3::exceptions::{PyNotImplementedError, PyValueError};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use hk2017::{hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep};
 
-const ARCHIVED_MSG: &str =
-    "Archived. See docs/developer-spec.md to re-implement, or checkout tag v0.1.0-archive";
-
-/// Return the symplectic form omega(x, y) in R^4.
-///
-/// The symplectic form is defined as:
-/// omega(x, y) = x[0]*y[2] + x[1]*y[3] - x[2]*y[0] - x[3]*y[1]
-///
-/// where x = (q1, q2, p1, p2) and y = (q1', q2', p1', p2').
-///
-/// # Arguments
-/// * `a` - First vector [q1, q2, p1, p2]
-/// * `b` - Second vector [q1', q2', p1', p2']
-///
-/// # Returns
-/// The symplectic form value omega(a, b)
-#[pyfunction]
-fn symplectic_form_4d(a: [f64; 4], b: [f64; 4]) -> f64 {
-    hk2017::symplectic_form(
-        &Vector4::new(a[0], a[1], a[2], a[3]),
-        &Vector4::new(b[0], b[1], b[2], b[3]),
-    )
-}
-
 /// Compute EHZ capacity using the HK2017 algorithm.
 ///
-/// This implements the combinatorial formula from Haim-Kislev's paper
+/// Implements the combinatorial formula from Haim-Kislev's paper
 /// "On the Symplectic Size of Convex Polytopes" (arXiv:1712.03494).
 ///
 /// # Arguments
-/// * `normals` - List of unit outward normal vectors for each facet
-/// * `heights` - List of signed distances from origin to each facet (must be positive)
+/// * `normals` - Unit outward normal vectors for each facet
+/// * `heights` - Signed distances from origin to each facet (must be positive)
+/// * `use_graph_pruning` - If true, use graph-based cycle enumeration (faster)
 ///
 /// # Returns
-/// A dictionary with:
+/// An `Hk2017Result` with:
 /// - `capacity`: The computed EHZ capacity
 /// - `q_max`: The maximum Q value achieved
 /// - `optimal_permutation`: Indices of facets in the optimal ordering
+/// - `optimal_beta`: The beta values at the optimum
 /// - `permutations_evaluated`: Number of permutations checked
-/// - `permutations_rejected`: Number of permutations rejected
+/// - `permutations_rejected`: Number of permutations rejected by pruning
 ///
 /// # Raises
 /// * `ValueError` if the polytope is invalid (non-unit normals, non-positive heights, etc.)
 ///
-/// # Example
-/// ```python
-/// import rust_viterbo_ffi as ffi
-///
-/// # Tesseract [-1, 1]^4
-/// normals = [
-///     [1, 0, 0, 0], [-1, 0, 0, 0],
-///     [0, 1, 0, 0], [0, -1, 0, 0],
-///     [0, 0, 1, 0], [0, 0, -1, 0],
-///     [0, 0, 0, 1], [0, 0, 0, -1],
-/// ]
-/// heights = [1.0] * 8
-///
-/// result = ffi.hk2017_capacity_hrep(normals, heights)
-/// print(f"Capacity: {result['capacity']}")  # Should be 4.0
-/// ```
-///
 /// # Warning
-///
 /// This implementation assumes the global maximum of Q occurs at an interior
 /// point. If the true maximum is on the boundary, the result may be incorrect.
 /// See the hk2017 crate documentation for details.
@@ -94,8 +67,7 @@ fn hk2017_capacity_hrep(
     normals: Vec<[f64; 4]>,
     heights: Vec<f64>,
     use_graph_pruning: bool,
-) -> PyResult<Hk2017ResultPy> {
-    // Convert to nalgebra vectors
+) -> PyResult<Hk2017Result> {
     let normals_vec: Vec<Vector4<f64>> = normals
         .into_iter()
         .map(|n| Vector4::new(n[0], n[1], n[2], n[3]))
@@ -103,8 +75,6 @@ fn hk2017_capacity_hrep(
 
     let polytope = PolytopeHRep::new(normals_vec, heights);
 
-    // Both variants pass all tests and share the QP solver code.
-    // Naive is default for simplicity; GraphPruned is ~20x faster for tesseract.
     let config = if use_graph_pruning {
         Hk2017Config::graph_pruned()
     } else {
@@ -112,7 +82,7 @@ fn hk2017_capacity_hrep(
     };
 
     match hk2017_capacity(&polytope, &config) {
-        Ok(result) => Ok(Hk2017ResultPy {
+        Ok(result) => Ok(Hk2017Result {
             capacity: result.capacity,
             q_max: result.q_max,
             optimal_permutation: result.optimal_permutation,
@@ -127,29 +97,61 @@ fn hk2017_capacity_hrep(
 /// Result of HK2017 capacity computation.
 #[pyclass]
 #[derive(Clone)]
-struct Hk2017ResultPy {
+struct Hk2017Result {
+    /// The computed EHZ capacity.
     #[pyo3(get)]
     capacity: f64,
+
+    /// The maximum Q value achieved (capacity = 4/q_max).
     #[pyo3(get)]
     q_max: f64,
+
+    /// Indices of facets in the optimal cyclic ordering.
     #[pyo3(get)]
     optimal_permutation: Vec<usize>,
+
+    /// The beta values (time spent on each facet) at the optimum.
     #[pyo3(get)]
     optimal_beta: Vec<f64>,
+
+    /// Number of permutations evaluated.
     #[pyo3(get)]
     permutations_evaluated: usize,
+
+    /// Number of permutations rejected by pruning criteria.
     #[pyo3(get)]
     permutations_rejected: usize,
 }
 
 #[pymethods]
-impl Hk2017ResultPy {
+impl Hk2017Result {
     fn __repr__(&self) -> String {
         format!(
-            "Hk2017Result(capacity={}, q_max={}, permutation={:?})",
+            "Hk2017Result(capacity={:.6}, q_max={:.6}, permutation={:?})",
             self.capacity, self.q_max, self.optimal_permutation
         )
     }
+}
+
+/// Compute the symplectic form ω(a, b) in R⁴.
+///
+/// The standard symplectic form is:
+///   ω(x, y) = x₁y₃ + x₂y₄ - x₃y₁ - x₄y₂
+///
+/// where x = (q₁, q₂, p₁, p₂) and y = (q₁', q₂', p₁', p₂').
+///
+/// # Arguments
+/// * `a` - First vector [q₁, q₂, p₁, p₂]
+/// * `b` - Second vector [q₁', q₂', p₁', p₂']
+///
+/// # Returns
+/// The symplectic form value ω(a, b).
+#[pyfunction]
+fn symplectic_form_4d(a: [f64; 4], b: [f64; 4]) -> f64 {
+    hk2017::symplectic_form(
+        &Vector4::new(a[0], a[1], a[2], a[3]),
+        &Vector4::new(b[0], b[1], b[2], b[3]),
+    )
 }
 
 /// Convert Hk2017Error to PyErr.
@@ -162,7 +164,7 @@ fn convert_error(e: Hk2017Error) -> PyErr {
             checked, rejected, ..
         } => PyValueError::new_err(format!(
             "No feasible interior critical point found ({} checked, {} rejected). \
-                 The maximum may be on the boundary, which this implementation cannot find.",
+             The maximum may be on the boundary, which this implementation cannot find.",
             checked, rejected
         )),
         Hk2017Error::NoPositiveQ { checked } => PyValueError::new_err(format!(
@@ -182,63 +184,11 @@ fn convert_error(e: Hk2017Error) -> PyErr {
     }
 }
 
-// ============================================================================
-// Legacy/Archived Functions
-// ============================================================================
-
-/// Entry point for the tube capacity algorithm (H-rep only).
-/// ARCHIVED - Returns NotImplementedError.
-#[pyfunction]
-#[pyo3(signature = (_normals, _heights, _unit_tol=1e-9))]
-fn tube_capacity_hrep(
-    _normals: Vec<[f64; 4]>,
-    _heights: Vec<f64>,
-    _unit_tol: f64,
-) -> PyResult<f64> {
-    Err(PyNotImplementedError::new_err(ARCHIVED_MSG))
-}
-
-/// Compute EHZ capacity using the Minkowski billiard algorithm.
-/// ARCHIVED - Returns NotImplementedError.
-#[pyfunction]
-#[pyo3(signature = (_normals, _heights, _unit_tol=1e-9))]
-fn billiard_capacity_hrep(
-    _normals: Vec<[f64; 4]>,
-    _heights: Vec<f64>,
-    _unit_tol: f64,
-) -> PyResult<f64> {
-    Err(PyNotImplementedError::new_err(ARCHIVED_MSG))
-}
-
-/// LEGACY: Compute EHZ capacity using the HK2019 quadratic programming algorithm.
-///
-/// This is an alias for `hk2017_capacity_hrep` for backwards compatibility.
-/// The algorithm is from HK2017 (arXiv date), published in GAFA 2019.
-#[pyfunction]
-#[pyo3(signature = (normals, heights, _unit_tol=1e-9))]
-fn hk2019_capacity_hrep(
-    normals: Vec<[f64; 4]>,
-    heights: Vec<f64>,
-    _unit_tol: f64,
-) -> PyResult<f64> {
-    // Delegate to hk2017 and return just the capacity for backwards compatibility
-    let result = hk2017_capacity_hrep(normals, heights, false)?;
-    Ok(result.capacity)
-}
-
+/// Python module for EHZ capacity algorithms.
 #[pymodule]
 fn rust_viterbo_ffi(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Core functions
-    m.add_function(wrap_pyfunction!(symplectic_form_4d, m)?)?;
     m.add_function(wrap_pyfunction!(hk2017_capacity_hrep, m)?)?;
-
-    // Legacy/archived functions
-    m.add_function(wrap_pyfunction!(tube_capacity_hrep, m)?)?;
-    m.add_function(wrap_pyfunction!(billiard_capacity_hrep, m)?)?;
-    m.add_function(wrap_pyfunction!(hk2019_capacity_hrep, m)?)?;
-
-    // Result class
-    m.add_class::<Hk2017ResultPy>()?;
-
+    m.add_function(wrap_pyfunction!(symplectic_form_4d, m)?)?;
+    m.add_class::<Hk2017Result>()?;
     Ok(())
 }
