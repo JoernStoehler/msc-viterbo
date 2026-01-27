@@ -19,6 +19,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Tube algorithm core: branch-and-bound + robust pruning + witness (#29)
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
+- [ ] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation
 - [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
@@ -175,7 +176,7 @@ HK's MSc thesis reportedly shows that simplices in 4D (5 vertices ⟺ 5 facets) 
 
 **Note on star-shapedness:** The "unit simplex" = conv{0, e₁, e₂, e₃, e₄} doesn't contain 0 in its interior, but capacity is still well-defined even for non-star-shaped polytopes. We ignore the extra translation needed.
 
-**TODO:** Download HK's MSc thesis and verify:
+**Verify via "Download HK thesis" task above:**
 - Did she prove sys ≤ 3/4 for simplices?
 - Is the orthonormal simplex the unique maximum?
 - Amend this research question based on what she actually proved
