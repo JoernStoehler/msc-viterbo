@@ -1,6 +1,6 @@
 #!/bin/bash
 # SessionStart hook wrapper - runs appropriate scripts based on source
-# Combines web-env-setup.sh and hello.sh into one hook to avoid duplicate UI messages
+# Combines web-env-setup.sh and repo-map.sh into one hook to avoid duplicate UI messages
 
 set -e
 
@@ -16,7 +16,7 @@ if [ "$source" = "startup" ]; then
     echo "$hook_input" | "$SCRIPT_DIR/web-env-setup.sh" || true
 fi
 
-# hello.sh: on startup/compact/clear (skip resume - agent still has context)
+# repo-map.sh: on startup/compact/clear (skip resume - agent still has context)
 if [ "$source" != "resume" ]; then
-    echo "$hook_input" | "$PROJECT_DIR/scripts/hello.sh" || true
+    "$PROJECT_DIR/scripts/repo-map.sh" || true
 fi
