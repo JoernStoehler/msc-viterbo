@@ -36,5 +36,8 @@ What to render:
 
 ## Expected Outputs
 
-- `data/polytope-visualization-4d/hko-polytope.html` - Interactive visualization
-- `data/polytope-visualization-4d/hko-polytope.json` - Plotly spec for embedding
+- `data/polytope-visualization-4d/hko.html` - HKO counterexample with Reeb orbit
+- `data/polytope-visualization-4d/tesseract.html` - Tesseract [-1,1]^4
+- `data/polytope-visualization-4d/cross-polytope.html` - Cross-polytope (orthoplex)
+- `data/polytope-visualization-4d/regular-simplex.html` - Regular 4-simplex
+- Corresponding `.json` files for each (Plotly specs for embedding)
