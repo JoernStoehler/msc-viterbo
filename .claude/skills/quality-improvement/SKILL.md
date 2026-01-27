@@ -254,6 +254,13 @@ Before finalizing changes, ask:
 - A quality assessment based on "clippy reports 27 warnings" has failed before it started
 - Read and understand implementations, THEN consider what tools report
 
+**Goal: Clean tool output**
+- Agents struggle to comfortably tolerate warnings — it creates cognitive friction
+- Don't tell agents "this warning is fine, don't react to it" — that's an uncomfortable state
+- Instead, fix code or config so warnings don't appear in the first place
+- For each warning: fix the code, fix the tool config, or determine why the tool is wrong and address it
+- The goal is zero warnings, not "warnings we've learned to live with"
+
 **Mistake: Jumping to DRY without reading code**
 - Grepping for duplicate struct names finds shallow duplication
 - Misses duplicated *functions* (e.g., `symplectic_form()` in both hk2017 and tube)
