@@ -53,7 +53,7 @@ Tasks identified during code quality assessment (2026-01-27).
 
 **Parallelizable:**
 - [ ] Move math content to thesis: audit code comments and specs for proofs/definitions that should live in thesis, then migrate them (thesis becomes authoritative source, code/specs reference it)
-- [ ] Add CI workflows for Rust and Python (low effort, safety net)
+- [x] Add CI workflows for Rust and Python (low effort, safety net) (2026-01-27)
 - [ ] Clean up dead smoke-test.sh (references non-existent tests/smoke/)
 
 **Bottleneck (do serially):**
