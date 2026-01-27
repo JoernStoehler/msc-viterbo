@@ -49,10 +49,10 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 - [ ] Session-start hook printing output unexpectedly: hook was configured to be silent, but `SessionStart:startup hook success: [repo-map]` appeared in agent context. Why?
   - **Finding:** `scripts/repo-map.sh` has no silent mode - it always prints `[repo-map]` prefixed output. If silence was configured before, it was removed or lost. Either add a `--silent` flag or update hook to suppress output.
-- [ ] Skills not auto-injected: Per the Agent Skills standard (agentskills.io), skill descriptions should always load at session start, and full content should auto-inject on relevance. Neither is happening.
-  - **Finding 1:** `rust-testing/SKILL.md` is missing frontmatter entirely (starts with `# Rust Testing` instead of `---`). Fixed in this session.
-  - **Finding 2:** All other 16 SKILL.md files have valid frontmatter with `name` and `description` fields.
-  - **Unclear:** Why aren't skill descriptions appearing in agent context? Could be: (a) Claude Code web doesn't support skills, (b) version mismatch, (c) skills need explicit enablement in settings.json, (d) some other configuration issue. Need to test in local devcontainer or consult Claude Code docs.
+- [x] Skills not auto-injected: Per the Agent Skills standard (agentskills.io), skill descriptions should always load at session start, and full content should auto-inject on relevance. Neither was happening.
+  - **Root cause:** `settings.json` had explicit `permissions.allow` list without `"Skill"`. When allow list is explicit, unlisted tools are denied by default.
+  - **Fix:** Added `"Skill"` to `permissions.allow` in settings.json. Also fixed `rust-testing/SKILL.md` missing frontmatter.
+  - **Verification:** New sessions should show skill descriptions in context. Test with "What skills are available?" or `/rust-conventions`.
 
 ## Code Quality <!-- unapproved -->
 
