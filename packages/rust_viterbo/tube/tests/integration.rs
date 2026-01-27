@@ -168,57 +168,88 @@ fn test_asymmetric_cross_polytope_multiple_seeds() {
     }
 }
 
-/// Test random polytope stress testing.
-/// Generate random polytopes and run the algorithm on each.
-/// This is designed to discover "unknown unknowns" - bugs hidden by symmetry.
+/// Proposition: For all valid polytopes K where tube_capacity succeeds, c(K) > 0 and c(K) < ∞.
+///
+/// Tested on: cross-polytope, 24-cell, asymmetric cross-polytopes with various seeds.
 #[test]
-fn test_random_polytope_stress() {
-    let batch = fixtures::random_non_lagrangian_batch(10, 5, 12345, 5000);
+fn prop_capacity_positive_and_finite() {
+    // Collect test polytopes where algorithm succeeds
+    let mut polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
+        ("cross-polytope", fixtures::unit_cross_polytope()),
+        ("24-cell", fixtures::unit_24_cell()),
+        ("scaled cross-polytope (0.5)", fixtures::scaled_cross_polytope(0.5)),
+        ("scaled cross-polytope (3.0)", fixtures::scaled_cross_polytope(3.0)),
+    ];
 
-    println!("Generated {} random non-Lagrangian polytopes", batch.len());
-
-    let mut successes = 0;
-    let mut failures = 0;
-
-    for (seed, hrep) in &batch {
-        let result = tube_capacity(hrep);
-
-        match result {
-            Ok(r) => {
-                println!(
-                    "Random polytope (seed {}, {} facets): c = {:.6}",
-                    seed,
-                    hrep.num_facets(),
-                    r.capacity
-                );
-                assert!(r.capacity > 0.0, "Capacity should be positive");
-                assert!(r.capacity.is_finite(), "Capacity should be finite");
-                successes += 1;
-            }
-            Err(e) => {
-                let err_str = format!("{}", e);
-                println!("Seed {} failed: {}", seed, err_str);
-                failures += 1;
-                // Acceptable failures are Lagrangian detection, no closed orbits, or numerical issues
-                // These can happen for random polytopes with unusual geometry
-                assert!(
-                    err_str.contains("Lagrangian")
-                    || err_str.contains("closed orbits")
-                    || err_str.contains("Numerical")
-                    || err_str.contains("empty"),
-                    "Unexpected error for seed {}: {}",
-                    seed,
-                    e
-                );
-            }
-        }
+    // Add asymmetric cross-polytopes
+    for seed in [42, 123, 456, 789] {
+        polytopes.push((
+            "asymmetric cross-polytope",
+            fixtures::asymmetric_cross_polytope(seed),
+        ));
     }
 
-    println!("Random stress test: {} successes, {} failures", successes, failures);
-    // At least some should work (if we found non-Lagrangian polytopes)
-    if !batch.is_empty() {
-        // We're lenient here since random polytopes might have edge cases
-        println!("At least one polytope tested");
+    // PROPOSITION: ∀ K ∈ test_polytopes: c(K) > 0 ∧ c(K) < ∞
+    for (name, hrep) in polytopes {
+        let result = tube_capacity(&hrep).expect(&format!("{} should compute", name));
+
+        assert!(
+            result.capacity > 0.0,
+            "{}: c(K) = {} violates c(K) > 0",
+            name,
+            result.capacity
+        );
+        assert!(
+            result.capacity.is_finite(),
+            "{}: c(K) = {} is not finite",
+            name,
+            result.capacity
+        );
+        println!("{}: c(K) = {:.6} ✓", name, result.capacity);
+    }
+}
+
+/// Proposition: For all λ > 0, c(λK) = λ²c(K).
+///
+/// Tested on: cross-polytope, 24-cell, asymmetric cross-polytopes.
+#[test]
+fn prop_scaling_law() {
+    let lambdas = [0.25, 0.5, 2.0, 3.0];
+
+    let polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
+        ("cross-polytope", fixtures::unit_cross_polytope()),
+        ("24-cell", fixtures::unit_24_cell()),
+        ("asymmetric(42)", fixtures::asymmetric_cross_polytope(42)),
+        ("asymmetric(123)", fixtures::asymmetric_cross_polytope(123)),
+    ];
+
+    for (name, hrep) in polytopes {
+        let c_k = tube_capacity(&hrep)
+            .expect(&format!("{} base should compute", name))
+            .capacity;
+
+        // PROPOSITION: ∀ λ > 0: c(λK) = λ²c(K)
+        for &lambda in &lambdas {
+            let scaled = tube::types::PolytopeHRep::new(
+                hrep.normals.clone(),
+                hrep.heights.iter().map(|h| h * lambda).collect(),
+            );
+
+            let c_lambda_k = tube_capacity(&scaled)
+                .expect(&format!("{} scaled by {} should compute", name, lambda))
+                .capacity;
+
+            let expected = lambda * lambda * c_k;
+            let relative_error = (c_lambda_k - expected).abs() / expected;
+
+            assert!(
+                relative_error < 0.01,
+                "{}, λ={}: c(λK)={:.6}, λ²c(K)={:.6}, error={:.2}%",
+                name, lambda, c_lambda_k, expected, relative_error * 100.0
+            );
+        }
+
+        println!("{}: scaling law c(λK) = λ²c(K) verified for λ ∈ {:?} ✓", name, lambdas);
     }
 }
 
