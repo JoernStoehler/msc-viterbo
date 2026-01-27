@@ -38,7 +38,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [-] fixed-facet-vertex-count — blocked: main dataset
 - [-] algorithm-performance-comparison — blocked: all algorithms implemented
 - [-] algorithm-optimization-ablation — blocked: performance comparison first
-- [ ] 4d-polytope-visualization — not blocked (tooling task)
+- [x] 4d-polytope-visualization — executed 2026-01-27
 - [-] dataset-dimension-reduction — blocked: main dataset
 - [-] nn-regression-mutual-info — blocked: main dataset
 - [-] ml-capacity-prediction — blocked: large labeled dataset
@@ -73,6 +73,7 @@ Tasks identified during code quality assessment (2026-01-27).
 
 - [x] benchmark-hk2017 (2026-01-26) — see details below
 - [x] talk-migration: Clarke duality text content migrated to chapter 08 (2026-01-27)
+- [x] 4d-polytope-visualization (2026-01-27) — see details below
 
 ---
 

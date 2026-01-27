@@ -1,6 +1,6 @@
 # polytope-visualization-4d Experiment
 
-**Status:** In Progress
+**Status:** Complete
 
 ## Research Question
 
