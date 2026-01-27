@@ -263,6 +263,16 @@ Before finalizing changes, ask:
 - The goal is zero warnings, not "warnings we've learned to live with"
 - Note: "ignore" is ambiguous — it can mean code annotations (`# type: ignore`), config suppression, or mental toleration. All three create friction for agents.
 
+**Decision: No coverage tools**
+- This project deliberately does not use coverage metrics (e.g., `cargo-tarpaulin`, `pytest-cov`)
+- Coverage metrics measure "which code paths execute" but the value of tests lies in testing *assumptions made in the code*
+- For high coverage (which this project already has), coverage percentage stops correlating with test quality
+- The important question is: "do test inputs accidentally have properties we implicitly assume but that don't hold in production?" — coverage can't answer this
+- Example: a function might have 100% line coverage but all test inputs happen to be positive, missing an assumption that fails with negative values
+- Coverage metrics add cognitive overhead (another number to track, another tool to run) without proportional value
+- Tests in this project focus on mathematical correctness and verifying algorithmic claims — this is better served by careful test design than coverage chasing
+- If coverage were low, adding coverage tools might help find gaps; with high coverage, they encourage optimizing the wrong metric
+
 **Mistake: Jumping to DRY without reading code**
 - Grepping for duplicate struct names finds shallow duplication
 - Misses duplicated *functions* (e.g., `symplectic_form()` in both hk2017 and tube)
