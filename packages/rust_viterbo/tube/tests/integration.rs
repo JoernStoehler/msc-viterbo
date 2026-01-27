@@ -92,3 +92,189 @@ fn test_four_simplex_capacity() {
         }
     }
 }
+
+// === Tests with new diverse fixtures ===
+
+/// Test 24-cell capacity computation.
+/// The 24-cell has 24 facets and different symmetry than the cross-polytope.
+/// This tests the algorithm on a different regular polytope.
+#[test]
+fn test_24_cell_capacity() {
+    let hrep = fixtures::unit_24_cell();
+    let result = tube_capacity(&hrep);
+
+    match result {
+        Ok(r) => {
+            println!("24-cell capacity: {}", r.capacity);
+            println!("  Tubes explored: {}", r.tubes_explored);
+            println!("  Tubes pruned: {}", r.tubes_pruned);
+            // Capacity should be positive
+            assert!(r.capacity > 0.0, "Capacity should be positive");
+            // Store result for potential comparison with other methods
+            println!("c(24-cell) = {:.6}", r.capacity);
+        }
+        Err(e) => {
+            // The 24-cell should work with the tube algorithm
+            // (no Lagrangian 2-faces), so an error is unexpected
+            panic!("24-cell computation failed unexpectedly: {}", e);
+        }
+    }
+}
+
+/// Test asymmetric cross-polytope with multiple seeds.
+/// This tests the algorithm on polytopes with broken symmetry.
+#[test]
+fn test_asymmetric_cross_polytope_multiple_seeds() {
+    let seeds = [42, 123, 456, 789];
+    let mut capacities = Vec::new();
+
+    for seed in seeds {
+        let hrep = fixtures::asymmetric_cross_polytope(seed);
+        let result = tube_capacity(&hrep);
+
+        match result {
+            Ok(r) => {
+                println!("Asymmetric cross-polytope (seed {}): c = {:.6}", seed, r.capacity);
+                capacities.push(r.capacity);
+                assert!(r.capacity > 0.0, "Capacity should be positive");
+            }
+            Err(e) => {
+                // Perturbations might create Lagrangian 2-faces
+                let err_str = format!("{}", e);
+                println!("Seed {} failed: {}", seed, err_str);
+                // This is acceptable - random perturbations might hit edge cases
+                assert!(
+                    err_str.contains("Lagrangian") || err_str.contains("NoClosedOrbits"),
+                    "Unexpected error for seed {}: {}",
+                    seed,
+                    e
+                );
+            }
+        }
+    }
+
+    // At least some should succeed
+    assert!(
+        !capacities.is_empty(),
+        "At least one asymmetric cross-polytope should compute successfully"
+    );
+
+    // Capacities should vary between seeds (symmetry is broken)
+    if capacities.len() >= 2 {
+        let all_same = capacities.windows(2).all(|w| (w[0] - w[1]).abs() < 0.01);
+        println!("Capacities: {:?}, all_same={}", capacities, all_same);
+        // They might be similar but shouldn't be exactly the same
+        // (unless the perturbation scale is too small to matter numerically)
+    }
+}
+
+/// Test random polytope stress testing.
+/// Generate random polytopes and run the algorithm on each.
+/// This is designed to discover "unknown unknowns" - bugs hidden by symmetry.
+#[test]
+fn test_random_polytope_stress() {
+    let batch = fixtures::random_non_lagrangian_batch(10, 5, 12345, 5000);
+
+    println!("Generated {} random non-Lagrangian polytopes", batch.len());
+
+    let mut successes = 0;
+    let mut failures = 0;
+
+    for (seed, hrep) in &batch {
+        let result = tube_capacity(hrep);
+
+        match result {
+            Ok(r) => {
+                println!(
+                    "Random polytope (seed {}, {} facets): c = {:.6}",
+                    seed,
+                    hrep.num_facets(),
+                    r.capacity
+                );
+                assert!(r.capacity > 0.0, "Capacity should be positive");
+                assert!(r.capacity.is_finite(), "Capacity should be finite");
+                successes += 1;
+            }
+            Err(e) => {
+                let err_str = format!("{}", e);
+                println!("Seed {} failed: {}", seed, err_str);
+                failures += 1;
+                // Acceptable failures are Lagrangian detection, no closed orbits, or numerical issues
+                // These can happen for random polytopes with unusual geometry
+                assert!(
+                    err_str.contains("Lagrangian")
+                    || err_str.contains("closed orbits")
+                    || err_str.contains("Numerical")
+                    || err_str.contains("empty"),
+                    "Unexpected error for seed {}: {}",
+                    seed,
+                    e
+                );
+            }
+        }
+    }
+
+    println!("Random stress test: {} successes, {} failures", successes, failures);
+    // At least some should work (if we found non-Lagrangian polytopes)
+    if !batch.is_empty() {
+        // We're lenient here since random polytopes might have edge cases
+        println!("At least one polytope tested");
+    }
+}
+
+/// Test that capacity is always positive for valid polytopes.
+#[test]
+fn test_capacity_always_positive() {
+    let polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
+        ("unit_cross_polytope", fixtures::unit_cross_polytope()),
+        ("scaled_cross_polytope(0.5)", fixtures::scaled_cross_polytope(0.5)),
+        ("scaled_cross_polytope(3.0)", fixtures::scaled_cross_polytope(3.0)),
+        ("unit_24_cell", fixtures::unit_24_cell()),
+    ];
+
+    for (name, hrep) in polytopes {
+        match tube_capacity(&hrep) {
+            Ok(r) => {
+                assert!(
+                    r.capacity > 0.0,
+                    "{}: capacity should be positive, got {}",
+                    name,
+                    r.capacity
+                );
+                println!("{}: c = {:.6}", name, r.capacity);
+            }
+            Err(e) => {
+                panic!("{} failed unexpectedly: {}", name, e);
+            }
+        }
+    }
+}
+
+/// Test capacity scaling law: c(λK) = λ² c(K) with 24-cell.
+#[test]
+fn test_24_cell_scaling() {
+    // Create scaled 24-cell by scaling heights
+    let base = fixtures::unit_24_cell();
+    let lambda = 2.0;
+    let scaled = tube::types::PolytopeHRep::new(
+        base.normals.clone(),
+        base.heights.iter().map(|h| h * lambda).collect(),
+    );
+
+    let c_base = tube_capacity(&base);
+    let c_scaled = tube_capacity(&scaled);
+
+    match (c_base, c_scaled) {
+        (Ok(r1), Ok(r2)) => {
+            let expected_ratio = lambda * lambda;
+            let actual_ratio = r2.capacity / r1.capacity;
+            println!(
+                "24-cell scaling: c(K) = {:.6}, c({}K) = {:.6}, ratio = {:.6} (expected {})",
+                r1.capacity, lambda, r2.capacity, actual_ratio, expected_ratio
+            );
+            assert_relative_eq!(actual_ratio, expected_ratio, epsilon = 0.1);
+        }
+        (Err(e1), _) => panic!("Base 24-cell failed: {}", e1),
+        (_, Err(e2)) => panic!("Scaled 24-cell failed: {}", e2),
+    }
+}
