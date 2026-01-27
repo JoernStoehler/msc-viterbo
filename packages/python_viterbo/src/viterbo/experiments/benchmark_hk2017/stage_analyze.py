@@ -187,7 +187,8 @@ def fit_scaling_model(facet_stats: list[FacetStats]) -> ScalingModel:
         )
 
     # Linear regression on log-log scale
-    slope, intercept, r_value, _, _ = stats.linregress(log_perms, log_times)
+    linreg = stats.linregress(log_perms, log_times)
+    slope, intercept, r_value = linreg.slope, linreg.intercept, linreg.rvalue
 
     # Convert to power law: time_ms = exp(intercept) * perms^slope
     power_coef = math.exp(intercept)

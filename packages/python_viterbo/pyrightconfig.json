@@ -3,6 +3,7 @@
   "venv": ".venv",
   "reportMissingImports": true,
   "reportMissingTypeStubs": "warning",
+  "reportMissingModuleSource": "none",
   "typeCheckingMode": "basic",
   "reportUnnecessaryTypeIgnoreComment": "warning",
   "reportUnknownMemberType": "none",
