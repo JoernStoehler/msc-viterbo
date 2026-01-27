@@ -91,7 +91,9 @@ def make_simplex_hrep() -> tuple[list[tuple[float, float, float, float]], list[f
     return normals, heights
 
 
-def make_tesseract_hrep() -> tuple[list[tuple[float, float, float, float]], list[float]]:
+def make_tesseract_hrep() -> tuple[
+    list[tuple[float, float, float, float]], list[float]
+]:
     """Create tesseract [-1, 1]^4 in H-representation.
 
     Returns unit outward normals and positive heights.
@@ -151,7 +153,9 @@ def vertices_to_hrep(
             normal = -normal
             height = -height
 
-        normals.append((float(normal[0]), float(normal[1]), float(normal[2]), float(normal[3])))
+        normals.append(
+            (float(normal[0]), float(normal[1]), float(normal[2]), float(normal[3]))
+        )
         heights.append(float(height))
 
     return normals, heights
@@ -308,7 +312,9 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
             if n_facets != 5:
                 continue
             results.extend(
-                _time_polytope("random_simplex", 5, 5, rep, normals, heights, algorithms)
+                _time_polytope(
+                    "random_simplex", 5, 5, rep, normals, heights, algorithms
+                )
             )
             polytope_count_by_facets[5] += 1
         print(f"    Got {polytope_count_by_facets[5]}/{reps} polytopes")
@@ -330,7 +336,9 @@ def run_benchmark(cfg: dict[str, Any]) -> list[TimingResult]:
 
             rep = polytope_count_by_facets[n_facets]
             results.extend(
-                _time_polytope("random_hull", n_facets, n_points, rep, normals, heights, algorithms)
+                _time_polytope(
+                    "random_hull", n_facets, n_points, rep, normals, heights, algorithms
+                )
             )
             polytope_count_by_facets[n_facets] += 1
 

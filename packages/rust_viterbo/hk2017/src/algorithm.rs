@@ -400,7 +400,7 @@ mod tests {
         // Check closure constraint: Σ β_i n_i = 0
         let mut closure = Vector4::zeros();
         for (i, &b) in result.optimal_beta.iter().enumerate() {
-            closure += &facet_data.normals[i] * b;
+            closure += facet_data.normals[i] * b;
         }
         assert!(
             closure.norm() < 1e-6,

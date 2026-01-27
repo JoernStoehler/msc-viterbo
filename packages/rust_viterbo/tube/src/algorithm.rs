@@ -514,7 +514,7 @@ fn intersect_line_with_polygon_min_action(
         let s = (direction[0] * rhs[1] - direction[1] * rhs[0]) / det;
 
         // s must be in [0, 1] for intersection to be on the edge
-        if s >= -EPS && s <= 1.0 + EPS {
+        if (-EPS..=1.0 + EPS).contains(&s) {
             t_values.push(t);
         }
     }
@@ -653,7 +653,7 @@ fn reconstruct_orbit(
         let t = (h_next - current_4d.dot(n_next)) / r_dot_n;
 
         // Flow
-        current_4d = current_4d + reeb * t;
+        current_4d += reeb * t;
         breakpoints.push(current_4d);
     }
 

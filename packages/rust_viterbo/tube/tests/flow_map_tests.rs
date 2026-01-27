@@ -6,11 +6,8 @@
 //! 3. Flow map composition is associative
 
 use approx::assert_relative_eq;
-use nalgebra::{Matrix2, Vector2, Vector4};
+use nalgebra::Vector4;
 use tube::{fixtures, tube_capacity, PolytopeHRep, TubeError};
-
-/// Tolerance for symplectic check
-const EPS_SYMPLECTIC: f64 = 1e-8;
 
 /// Tolerance for fixed point check
 const EPS_FIXED: f64 = 1e-6;
@@ -122,14 +119,14 @@ fn test_multiple_scales() {
 
     for &s in &scales {
         let hrep = fixtures::scaled_cross_polytope(s);
-        let result = tube_capacity(&hrep).expect(&format!("Scale {} should work", s));
+        let result = tube_capacity(&hrep).unwrap_or_else(|_| panic!("Scale {} should work", s));
         capacities.push(result.capacity);
     }
 
     // c(λK) = λ² c(K)
     let c_base = capacities[1]; // scale = 1.0
 
-    for (i, (&s, &c)) in scales.iter().zip(capacities.iter()).enumerate() {
+    for (&s, &c) in scales.iter().zip(capacities.iter()) {
         let expected = s * s * c_base;
         assert_relative_eq!(c, expected, epsilon = 0.05,);
         println!("Scale {}: c = {}, expected = {}", s, c, expected);

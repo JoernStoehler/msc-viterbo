@@ -189,8 +189,8 @@ fn test_action_integral_manual() {
     let mut total_action = 0.0;
 
     for i in 0..orbit.segment_facets.len() {
-        let start = &orbit.breakpoints[i];
-        let end = &orbit.breakpoints[i + 1];
+        let _start = &orbit.breakpoints[i];
+        let _end = &orbit.breakpoints[i + 1];
         let t = orbit.segment_times[i];
 
         // For a linear segment p(s) = start + s*(end-start), s ∈ [0,1]

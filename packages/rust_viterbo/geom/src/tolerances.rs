@@ -36,25 +36,22 @@ pub const EPS: f64 = 1e-10;
 /// **Usage**: `(n.norm() - 1.0).abs() < EPS_UNIT`
 pub const EPS_UNIT: f64 = 1e-9;
 
+// Compile-time checks for tolerance invariants
+const _: () = {
+    assert!(EPS < EPS_UNIT); // EPS should be stricter than EPS_UNIT
+    assert!(EPS < 1e-6); // Not so large as to be meaningless
+    assert!(EPS_UNIT < 1e-6);
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_tolerance_hierarchy() {
-        // Ensure tolerances are ordered as documented
-        assert!(EPS < EPS_UNIT, "EPS should be stricter than EPS_UNIT");
-    }
-
-    #[test]
-    fn test_tolerances_reasonable() {
+    fn test_tolerances_well_above_machine_epsilon() {
         // Tolerances should be well above machine epsilon
         let machine_eps = f64::EPSILON;
         assert!(EPS > 1000.0 * machine_eps);
         assert!(EPS_UNIT > 1000.0 * machine_eps);
-
-        // But not so large as to be meaningless
-        assert!(EPS < 1e-6);
-        assert!(EPS_UNIT < 1e-6);
     }
 }

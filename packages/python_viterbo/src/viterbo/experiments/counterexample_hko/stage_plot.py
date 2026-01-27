@@ -229,12 +229,16 @@ def main(data_path: str | None = None, assets_dir: str | None = None) -> None:
 
     resolved_assets_dir: Path
     if assets_dir is None:
-        resolved_assets_dir = pkg_root.parent / "latex_viterbo" / "assets" / "counterexample-hko"
+        resolved_assets_dir = (
+            pkg_root.parent / "latex_viterbo" / "assets" / "counterexample-hko"
+        )
     else:
         resolved_assets_dir = Path(assets_dir)
 
     if not resolved_data_path.exists():
-        raise FileNotFoundError(f"{resolved_data_path} not found. Run stage_build first.")
+        raise FileNotFoundError(
+            f"{resolved_data_path} not found. Run stage_build first."
+        )
 
     data = load_data(resolved_data_path)
     out_path = resolved_assets_dir / "orbit-projections.png"

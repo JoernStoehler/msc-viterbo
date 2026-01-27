@@ -128,9 +128,7 @@ def compute_facet_stats(timings: list[dict[str, Any]]) -> list[FacetStats]:
         theoretical = theoretical_permutation_count(n_facets)
 
         # Time per permutation (convert ms to us)
-        time_per_perm = [
-            (t * 1000) / p if p > 0 else 0 for t, p in zip(times, perms)
-        ]
+        time_per_perm = [(t * 1000) / p if p > 0 else 0 for t, p in zip(times, perms)]
 
         results.append(
             FacetStats(
@@ -182,8 +180,12 @@ def fit_scaling_model(facet_stats: list[FacetStats]) -> ScalingModel:
             log_log_r_squared=0.0,
             power_coefficient=1.0,
             power_exponent=1.0,
-            time_per_perm_us_mean=float(np.mean(time_per_perms)) if time_per_perms else 0,
-            time_per_perm_us_std=float(np.std(time_per_perms)) if len(time_per_perms) > 1 else 0,
+            time_per_perm_us_mean=float(np.mean(time_per_perms))
+            if time_per_perms
+            else 0,
+            time_per_perm_us_std=float(np.std(time_per_perms))
+            if len(time_per_perms) > 1
+            else 0,
         )
 
     # Linear regression on log-log scale
@@ -201,7 +203,9 @@ def fit_scaling_model(facet_stats: list[FacetStats]) -> ScalingModel:
         power_coefficient=power_coef,
         power_exponent=power_exp,
         time_per_perm_us_mean=float(np.mean(time_per_perms)),
-        time_per_perm_us_std=float(np.std(time_per_perms)) if len(time_per_perms) > 1 else 0,
+        time_per_perm_us_std=float(np.std(time_per_perms))
+        if len(time_per_perms) > 1
+        else 0,
     )
 
 
@@ -260,7 +264,9 @@ def run_analysis(data_dir: Path) -> AnalysisResult:
 
     # Fit scaling model
     scaling_model = fit_scaling_model(facet_stats)
-    print(f"Fitted scaling model: time_ms = {scaling_model.power_coefficient:.4e} * perms^{scaling_model.power_exponent:.3f}")
+    print(
+        f"Fitted scaling model: time_ms = {scaling_model.power_coefficient:.4e} * perms^{scaling_model.power_exponent:.3f}"
+    )
     print(f"R² = {scaling_model.log_log_r_squared:.4f}")
 
     # Compute budget tables
@@ -316,7 +322,9 @@ def main(config_path: str = "config/benchmark-hk2017/default.json") -> None:
     print("=" * 60)
 
     print("\nStatistics by facet count:")
-    print(f"{'Facets':>7} {'Perms (theory)':>15} {'Perms (obs)':>12} {'Time (ms)':>12} {'us/perm':>10}")
+    print(
+        f"{'Facets':>7} {'Perms (theory)':>15} {'Perms (obs)':>12} {'Time (ms)':>12} {'us/perm':>10}"
+    )
     print("-" * 60)
     for s in result.facet_stats:
         print(
@@ -326,13 +334,17 @@ def main(config_path: str = "config/benchmark-hk2017/default.json") -> None:
 
     print(f"\nScaling model: {result.summary['scaling_formula']}")
     print(f"R² = {result.scaling_model.log_log_r_squared:.4f}")
-    print(f"Mean time per permutation: {result.scaling_model.time_per_perm_us_mean:.2f} µs")
+    print(
+        f"Mean time per permutation: {result.scaling_model.time_per_perm_us_mean:.2f} µs"
+    )
 
     print("\nBudget table (what can you compute in X seconds):")
     print(f"{'Budget':>10} {'Max Facets':>12} {'Max Perms':>15} {'Note'}")
     print("-" * 60)
     for b in result.budget_tables:
-        print(f"{b.budget_seconds:>10.0f}s {b.max_facets_estimated:>12} {b.max_perms_estimated:>15,} {b.note}")
+        print(
+            f"{b.budget_seconds:>10.0f}s {b.max_facets_estimated:>12} {b.max_perms_estimated:>15,} {b.note}"
+        )
 
 
 if __name__ == "__main__":

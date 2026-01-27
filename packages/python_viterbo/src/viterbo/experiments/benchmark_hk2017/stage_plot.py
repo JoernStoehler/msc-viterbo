@@ -53,9 +53,7 @@ def theoretical_permutation_count(n_facets: int) -> int:
 
 
 def plot_runtime_vs_facets(
-    timings: list[dict[str, Any]],
-    analysis: dict[str, Any],
-    output_path: Path,
+    timings: list[dict[str, Any]], analysis: dict[str, Any], output_path: Path
 ) -> None:
     """Plot runtime vs facet count with model fit."""
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -90,7 +88,8 @@ def plot_runtime_vs_facets(
         pred_facets = np.arange(min(mean_facets), max(mean_facets) + 1)
         pred_perms = [theoretical_permutation_count(int(f)) for f in pred_facets]
         pred_times = [
-            p * model["time_per_perm_us_mean"] / 1000 for p in pred_perms  # ms
+            p * model["time_per_perm_us_mean"] / 1000
+            for p in pred_perms  # ms
         ]
         ax.plot(
             pred_facets,
@@ -114,10 +113,7 @@ def plot_runtime_vs_facets(
     print(f"Saved: {output_path}")
 
 
-def plot_perms_observed_vs_theory(
-    analysis: dict[str, Any],
-    output_path: Path,
-) -> None:
+def plot_perms_observed_vs_theory(analysis: dict[str, Any], output_path: Path) -> None:
     """Plot observed vs theoretical permutation count."""
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -148,15 +144,15 @@ def plot_perms_observed_vs_theory(
 
 
 def plot_time_per_perm(
-    timings: list[dict[str, Any]],
-    analysis: dict[str, Any],
-    output_path: Path,
+    timings: list[dict[str, Any]], analysis: dict[str, Any], output_path: Path
 ) -> None:
     """Plot time per permutation distribution."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
     # Compute time per perm for each run
-    successful = [t for t in timings if t["success"] and t["permutations_evaluated"] > 0]
+    successful = [
+        t for t in timings if t["success"] and t["permutations_evaluated"] > 0
+    ]
     time_per_perm = [
         (t["wall_time_ms"] * 1000) / t["permutations_evaluated"]  # microseconds
         for t in successful
@@ -195,10 +191,7 @@ def plot_time_per_perm(
     print(f"Saved: {output_path}")
 
 
-def plot_budget_table(
-    analysis: dict[str, Any],
-    output_path: Path,
-) -> None:
+def plot_budget_table(analysis: dict[str, Any], output_path: Path) -> None:
     """Plot budget table as a visual guide."""
     fig, ax = plt.subplots(figsize=(10, 6))
 
