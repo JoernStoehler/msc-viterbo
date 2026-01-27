@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# Note: no set -e; this script should never block session start
-trap 'exit 0' ERR  # Ensure non-blocking even on errors
+# Prints a compact repo map: pwd, git status, and file tree
+# Run this when you need to understand the project structure
+
+set -e
 
 if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
   cat <<'EOF'
-Usage: scripts/hello.sh
+Usage: scripts/repo-map.sh
 
-Flags:
-  -h, --help  Show this help text
+Prints pwd, git status (porcelain v2), and a compact repo tree.
+Use this to get an overview of the project structure.
 
-Prints pwd, git status (porcelain v2), and a compact repo tree. See inline CONFIG comments
-for skip/hide/collapse rules.
-
-When run as a SessionStart hook, reads JSON from stdin and skips output on "resume"
-(only runs on startup/compact/clear to avoid noise on reconnection).
+The tree auto-collapses large directories and hides build artifacts.
+See inline CONFIG in this script to adjust skip/hide/collapse rules.
 EOF
   exit 0
 fi
@@ -23,31 +22,17 @@ if [[ $# -gt 0 ]]; then
   exit 1
 fi
 
-# When run as SessionStart hook, check source to avoid noise on resume
-if [ -t 0 ]; then
-  # Interactive (no stdin) - run normally
-  :
-else
-  # Hook mode - read JSON input
-  hook_input=$(cat)
-  source=$(echo "$hook_input" | jq -r '.source // "startup"' 2>/dev/null || echo "startup")
-  # Skip on resume (agent still has context), run on startup/compact/clear
-  [ "$source" = "resume" ] && exit 0
-fi
-
-echo "[hello] pwd"
+echo "[repo-map] pwd"
 pwd
 
-echo "[hello] git status --porcelain=v2 -b"
-# Porcelain v2 makes staged vs. unstaged unambiguous (e.g., "1 M." vs "1 .M").
-git status --porcelain=v2 -b || true
+echo "[repo-map] git status --porcelain=v2 -b"
+git status --porcelain=v2 -b
 
-# show the file tree (compact, simple)
-echo "[hello] compact tree"
+echo "[repo-map] file tree"
 printf '%s\n' "$PWD"
 python3 - <<'PY'
 """
-hello.sh tree printer
+repo-map.sh tree printer
 
 Tiers (editable):
   - must_show: always expanded
@@ -55,12 +40,10 @@ Tiers (editable):
   - hide_names: omitted entirely
 
 Auto-collapse if too many descendants (collapse_threshold) or depth_limit is
-exceeded. Hard-truncate if the rendered tree would exceed budget_lines. Keep
-this single file for portability; adjust the CONFIG block when the repo
-structure changes.
+exceeded. Hard-truncate if the rendered tree would exceed budget_lines. Adjust
+the CONFIG block when the repo structure changes.
 """
 from pathlib import Path
-import os
 from types import SimpleNamespace
 
 # ---------- configuration (edit when the repo structure changes) ----------
