@@ -1,3 +1,8 @@
+---
+name: rust-testing
+description: Writing tests for Rust crates in rust_viterbo. Covers property-based testing, numerical tolerances, test organization, and fixtures.
+---
+
 # Rust Testing Conventions
 
 Guidelines for testing Rust code in this project, with emphasis on property-based testing and mathematical correctness.
