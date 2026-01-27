@@ -5,12 +5,14 @@ Tests the Rust-Python bindings for EHZ capacity computation.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 try:
     import rust_viterbo_ffi as ffi
 except ImportError:
-    ffi = None
+    ffi: Any = None
 
 
 @pytest.fixture(autouse=True)
