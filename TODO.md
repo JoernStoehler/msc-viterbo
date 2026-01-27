@@ -44,6 +44,22 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [-] sys-ratio-optimization — blocked: capacity algorithm
 - [x] benchmark-hk2017 — executed 2026-01-26
 
+## Code Quality <!-- unapproved -->
+
+Tasks identified during code quality assessment (2026-01-27).
+
+**Parallelizable:**
+- [ ] Move math content to thesis: audit code comments and specs for proofs/definitions that should live in thesis, then migrate them (thesis becomes authoritative source, code/specs reference it)
+- [ ] Add CI workflows for Rust and Python (low effort, safety net)
+- [ ] Clean up dead smoke-test.sh (references non-existent tests/smoke/)
+
+**Bottleneck (do serially):**
+- [ ] Consolidate shared math into geom crate: symplectic_form, apply_j/J matrix, reeb_vector are duplicated in hk2017 + tube with identical implementations; move to geom, update imports
+
+**Done:**
+- [x] Achieve clean tool output (pyright 0 errors/warnings, ruff clean, clippy 0 warnings) (2026-01-27)
+- [x] Document "no coverage tools" decision in quality-improvement skill (2026-01-27)
+
 ## Deferred Decisions (#24)
 
 - Perturbation scheme details
