@@ -48,7 +48,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Mysteries to Investigate
 
 - [ ] Session-start hook printing output unexpectedly: hook was configured to be silent, but `SessionStart:startup hook success: [repo-map]` appeared in agent context. Why?
-- [ ] Skills not auto-injected: `.claude/skills/*/SKILL.md` files exist but aren't injected into agent context. Is this working as designed (skills are just docs to read when needed) or is there a broken mechanism? Clarify intended behavior and document it.
+- [ ] Skills not auto-injected: Per the Agent Skills standard (agentskills.io), skill descriptions should always load at session start, and full content should auto-inject on relevance. Neither is happening. Investigate: Are SKILL.md frontmatter sections malformed? Is Claude Code version too old? Is there a config issue?
 
 ## Code Quality <!-- unapproved -->
 
