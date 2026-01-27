@@ -241,6 +241,26 @@ Before finalizing changes, ask:
 
 ## Common Mistakes (Lessons Learned)
 
+**Mistake: Not reading this skill before starting quality work**
+- Skills exist to guide HOW to do tasks — read them FIRST
+- "Assess code quality" matches this skill's description — should trigger reading it immediately
+- Launching exploration agents before reading methodology leads to superficial analysis
+- The skill's Assessment Methodology section exists precisely to prevent wasted effort
+
+**Mistake: Trusting linter/tool output as authoritative**
+- Clippy warnings, pyright errors, etc. are suggestions, not verdicts
+- Many warnings are stylistic preferences, not real issues
+- Some "errors" are limitations of the tool (e.g., missing type stubs for scipy)
+- Always analyze: "Is this a real problem, or tool noise?"
+- Ask: "Would fixing this improve the code, or just silence the tool?"
+
+**Mistake: Creating "ignore" patterns as solutions**
+- Don't configure tools to perpetually suppress classes of warnings/errors
+- Don't create rules like "always use `# type: ignore` for scipy" — that's one more thing agents must remember
+- If a tool reports something, prefer actually fixing the code over silencing the tool
+- Occasional targeted ignore comments are fine when genuinely unavoidable and explained
+- The problem is creating patterns/rules that add cognitive load for future agents
+
 **Mistake: Jumping to DRY without reading code**
 - Grepping for duplicate struct names finds shallow duplication
 - Misses duplicated *functions* (e.g., `symplectic_form()` in both hk2017 and tube)
