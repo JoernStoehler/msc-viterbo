@@ -39,8 +39,15 @@ jobs:
       - name: Clippy
         run: cargo clippy --workspace --exclude rust_viterbo_ffi -- -D warnings
 
-      - name: Test
-        run: cargo test --workspace --exclude rust_viterbo_ffi
+      # Run most tests in debug mode to keep debug_assert! checks
+      # Skip expensive property tests (they run 20+ capacity computations each)
+      - name: Test (debug)
+        run: cargo test --workspace --exclude rust_viterbo_ffi -- --skip prop_scaling_law --skip prop_capacity_positive
+
+      # The skipped prop tests run intensive capacity computations (60+ seconds in debug)
+      # Run them in release mode where they complete in ~2 seconds total
+      - name: Test expensive props (release)
+        run: cargo test --release --package tube --test integration -- prop_
 
   python:
     name: Python
