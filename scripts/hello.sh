@@ -64,6 +64,8 @@ import os
 from types import SimpleNamespace
 
 # ---------- configuration (edit when the repo structure changes) ----------
+# 80:20 principle: show enough to know what exists and where to look,
+# agents can drill down with Read/Glob/Grep when needed.
 CONFIG = SimpleNamespace(
     must_show={
         Path("packages"),
@@ -71,12 +73,7 @@ CONFIG = SimpleNamespace(
         Path("packages/rust_viterbo"),
         Path("packages/python_viterbo"),
         Path("scripts"),
-        Path(".devcontainer"),
-        Path(".github"),
         Path(".claude"),
-        Path("README.md"),
-        Path("LICENSE"),
-        Path("msc-viterbo.code-workspace"),
     },
     skip_names={
         ".git",
@@ -96,9 +93,9 @@ CONFIG = SimpleNamespace(
         ".ruff_cache",
         ".ipynb_checkpoints",
     },
-    collapse_threshold=120,
-    budget_lines=250,
-    depth_limit=5,  # applied only outside must_show
+    collapse_threshold=10,
+    budget_lines=90,
+    depth_limit=3,  # agents can drill down when needed
 )
 
 
@@ -219,7 +216,7 @@ def render_with_budget():
     lines = render(CONFIG.collapse_threshold)
     if len(lines) > CONFIG.budget_lines:
         truncated = lines[: CONFIG.budget_lines - 1]
-        truncated.append("… (auto-collapsed to stay under 250 lines)")
+        truncated.append(f"… (truncated at {CONFIG.budget_lines} lines)")
         return truncated
     return lines
 
