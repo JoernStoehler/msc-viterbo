@@ -39,15 +39,18 @@ jobs:
       - name: Clippy
         run: cargo clippy --workspace --exclude rust_viterbo_ffi -- -D warnings
 
-      # Run most tests in debug mode to keep debug_assert! checks
-      # Skip expensive property tests (they run 20+ capacity computations each)
+      # Run tests in debug mode to preserve debug_assert! checks
+      # tube/tests/integration.rs excluded - it only checks output correctness, not internal invariants
       - name: Test (debug)
-        run: cargo test --workspace --exclude rust_viterbo_ffi -- --skip prop_scaling_law --skip prop_capacity_positive
+        run: |
+          cargo test --workspace --exclude rust_viterbo_ffi --exclude tube
+          cargo test --package tube --lib
+          cargo test --package tube --test flow_map_tests --test orbit_invariants
 
-      # The skipped prop tests run intensive capacity computations (60+ seconds in debug)
-      # Run them in release mode where they complete in ~2 seconds total
-      - name: Test expensive props (release)
-        run: cargo test --release --package tube --test integration -- prop_
+      # tube/tests/integration.rs verifies mathematical output only (see file header)
+      # Runs 11 tests doing ~50 capacity computations total: 92s debug vs 2s release
+      - name: Test tube integration (release)
+        run: cargo test --release --package tube --test integration
 
   python:
     name: Python

@@ -1,4 +1,15 @@
 //! Integration tests for the tube algorithm.
+//!
+//! These tests verify mathematical properties of the tube capacity computation.
+//! They do NOT rely on `debug_assert!()` checks - they verify output correctness.
+//!
+//! # Performance note
+//! Tests prefixed with `prop_` or `test_asymmetric_` run many capacity computations
+//! and are slow in debug mode (~90 seconds) but fast in release (~2 seconds).
+//! These can be run with `--release` without losing test validity.
+//!
+//! Tests that exercise internal invariants (where debug assertions matter) are in
+//! the unit tests (`src/lib.rs`) and other test files (`flow_map_tests.rs`, etc.).
 
 use approx::assert_relative_eq;
 use tube::{fixtures, tube_capacity};
