@@ -1,40 +1,41 @@
 ---
 name: project-management
-description: Add, update, or reorganize tasks in TODO.md or experiments.md. Most agents don't need this — they just complete assigned work.
+description: Add, update, or reorganize tasks in TODO.md. Most agents don't need this — they just complete assigned work.
 ---
 
 # Project Management
 
 [proposed]
 
-## Files
+## File
 
-| File | Purpose |
-|------|---------|
-| `TODO.md` (repo root) | Non-research tasks: implementation, writing, tooling, deferred bugs |
-| `packages/latex_viterbo/experiments.md` | Research experiments with rich context |
+All task tracking lives in `TODO.md` at repo root:
+- **Checklist sections** at top for quick scanning (Algorithm Toolbox, Thesis Writing, Research Experiments, etc.)
+- **Details section** at bottom for items needing context
 
-## When to use which
+## Status markers
 
-- **Research experiments** (need hypothesis, approach, analysis plan) → experiments.md
-- **Everything else** (implementation, bugs, writing, chores) → TODO.md
+- `[ ]` — pending
+- `[x]` — done
+- `[-]` — blocked or deferred (with note)
 
-## TODO.md structure
+## Adding items
 
+**Simple items:** One line in the appropriate checklist section.
 ```markdown
-## Section Name (milestone or category)
-- [ ] Task description
-  - Optional: blocker, link to spec, brief context
-- [ ] Simple task with no extra info
+- [ ] Fix FFI facet limit
 ```
 
-- Simple items: one line, checkbox, description
-- Items with context: sub-bullets for blockers, links, notes
-- Items needing rich detail: link to experiments.md or a spec file instead
+**Items with brief context:** Add sub-bullets.
+```markdown
+- [-] FFI ergonomics (#37) — deferred, not blocking core work
+```
 
-## Most agents don't modify these files
+**Items needing rich detail:** Add a `## label` section in the Details area at the bottom.
 
-Typical flow: agent receives task → completes it → marks done in TODO.md → hands off.
+## Most agents don't modify TODO.md
+
+Typical flow: agent receives task → completes it → marks done → hands off.
 
 Only add new tasks when:
 - Work is discovered that can't be done now (blocked, out of scope)

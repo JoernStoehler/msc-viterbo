@@ -7,9 +7,9 @@ description: Planning or executing thesis experiments. Covers the lifecycle from
 
 ## Philosophy
 
-**experiments.md is a living document**, not a rigid specification. It captures ideas at various stages of development. The format can evolve as needs change.
+**TODO.md tracks experiments** alongside other tasks. The "Research Experiments" section in the checklist area provides a quick scan; the "Details" section at the bottom preserves full context. [proposed]
 
-**The table is an index; the detailed sections are the documentation.** The table lets you scan experiment labels and statuses at a glance. Each experiment should have a `## <label>` section below the table that contains the actual content:
+**The checklist is an index; the detailed sections are the documentation.** Each experiment should have a `## <label>` section in the Details area that contains the actual content:
 - The research question and any sub-questions it breaks into
 - How this experiment connects to other experiments (dependencies, shared data, sequential logic)
 - What the outcome implies for next steps (e.g., "if sys > 1 is rare, we need targeted search methods")
@@ -51,7 +51,7 @@ Study `src/viterbo/experiments/example_pipeline/` for a complete teaching exampl
 
 | Artifact | Location |
 |----------|----------|
-| Tracking table | `packages/latex_viterbo/experiments.md` |
+| Tracking | `TODO.md` (checklist + Details section) [proposed] |
 | Experiment code | `packages/python_viterbo/src/viterbo/experiments/<label>/` |
 | SPEC.md | `packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md` |
 | Configs | `packages/python_viterbo/config/<label>/` |
@@ -86,10 +86,10 @@ What outcome means "it worked"?
 
 ## Stage Details
 
-### Ideation
+### Ideation [proposed]
 
-1. Add a row to the tracking table (`experiments.md`) with: label, status, one-line research question, brief notes.
-2. Add a `## <label>` section below the table. This section should include:
+1. Add a checklist item to the "Research Experiments" section in `TODO.md` with: label, blocked status, brief note.
+2. Add a `## <label>` section in the Details area at the bottom of TODO.md. This section should include:
    - The research question, stated clearly, plus any sub-questions
    - Proposed approach or methods
    - What patterns or answers you're looking for
@@ -115,9 +115,9 @@ Clean up code, generate publication-quality figures, write thesis section.
 Use `[proposed]` for agent-proposed content. Only Jörn removes these markers.
 Ambiguous responses ("sounds fine") do not count as approval.
 
-## Handoff
+## Handoff [proposed]
 
 When finishing work:
-1. Update tracking table
+1. Update TODO.md (checklist status + Details section if needed)
 2. Ensure SPEC.md reflects current state
 3. Commit with message referencing label
