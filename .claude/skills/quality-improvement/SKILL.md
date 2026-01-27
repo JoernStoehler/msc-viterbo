@@ -257,9 +257,11 @@ Before finalizing changes, ask:
 **Goal: Clean tool output**
 - Agents struggle to comfortably tolerate warnings — it creates cognitive friction
 - Don't tell agents "this warning is fine, don't react to it" — that's an uncomfortable state
+- Don't create rules like "use `# type: ignore` for scipy" — that's one more rule agents must remember, adding cognitive load
 - Instead, fix code or config so warnings don't appear in the first place
 - For each warning: fix the code, fix the tool config, or determine why the tool is wrong and address it
 - The goal is zero warnings, not "warnings we've learned to live with"
+- Note: "ignore" is ambiguous — it can mean code annotations (`# type: ignore`), config suppression, or mental toleration. All three create friction for agents.
 
 **Mistake: Jumping to DRY without reading code**
 - Grepping for duplicate struct names finds shallow duplication
