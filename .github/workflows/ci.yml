@@ -68,3 +68,42 @@ jobs:
 
       - name: Run tests
         run: uv run pytest -v
+
+  ffi:
+    name: FFI (Rust + Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            packages/rust_viterbo/target/
+          key: ${{ runner.os }}-cargo-ffi-${{ hashFiles('packages/rust_viterbo/**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-ffi-
+
+      - name: Install Python dependencies
+        working-directory: packages/python_viterbo
+        run: uv sync --extra dev
+
+      - name: Build FFI with maturin
+        working-directory: packages/python_viterbo
+        run: uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
+
+      - name: Run FFI tests
+        working-directory: packages/python_viterbo
+        run: uv run pytest tests/test_ffi_capacity_hrep.py -v
