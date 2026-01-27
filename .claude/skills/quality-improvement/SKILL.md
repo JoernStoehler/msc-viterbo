@@ -239,6 +239,48 @@ Before finalizing changes, ask:
 5. **Test removals** - don't delete tests that document behavior, even if "redundant"
 6. **Implicit breakage** - don't remove something that's used indirectly
 
+## Common Mistakes (Lessons Learned)
+
+**Mistake: Jumping to DRY without reading code**
+- Grepping for duplicate struct names finds shallow duplication
+- Misses duplicated *functions* (e.g., `symplectic_form()` in both hk2017 and tube)
+- Misses that files with different names can have identical content
+
+**Mistake: Skipping Phase 1 (Understand Before Changing)**
+- Writing a methodology document doesn't mean you followed it
+- Actually read the algorithm implementations before proposing changes
+- Compare function signatures across crates, not just type definitions
+
+**Mistake: Not planning how to achieve the goal**
+- Broad goals are fine, but need a concrete plan before starting work
+- Plan should specify: what to read, in what order, what to look for
+- Example plan for "assess code quality":
+  1. List all source files
+  2. For each file: read it, note documentation gaps, unclear code, test coverage
+  3. Compare similar files across crates for duplication
+  4. Compile findings before proposing changes
+
+**Mistake: Treating consolidation as the primary goal**
+- Quality improvement is not primarily about reducing duplication
+- Documentation quality, test coverage, code clarity matter more
+- Consolidation is a means, not an end
+
+**Mistake: Reporting "assessment complete" without reading code**
+- File size counts and grep results are not an assessment
+- Must actually read implementations to assess quality
+- Must understand what the code does before judging how well it does it
+
+**Mistake: No definition of done**
+- Before starting, define what "complete" means concretely
+- Example for "consolidate shared code":
+  - [ ] All mathematical primitives listed for each crate
+  - [ ] Each identified as shared vs algorithm-specific
+  - [ ] Shared primitives moved to geom with tests
+  - [ ] All crates updated to import from geom
+  - [ ] All tests pass
+- Without this, you'll do partial work and declare victory
+- "I moved one struct" is not done if there are also duplicated functions
+
 ## Communication
 
 When proposing quality improvements:
