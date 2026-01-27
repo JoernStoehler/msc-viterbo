@@ -12,8 +12,8 @@ Flags:
 Prints pwd, git status (porcelain v2), and a compact repo tree. See inline CONFIG comments
 for skip/hide/collapse rules.
 
-When run as a SessionStart hook, reads JSON from stdin and only runs on "startup"
-(skips resume/compact/clear to avoid noise on reconnection).
+When run as a SessionStart hook, reads JSON from stdin and skips output on "resume"
+(only runs on startup/compact/clear to avoid noise on reconnection).
 EOF
   exit 0
 fi
@@ -23,7 +23,7 @@ if [[ $# -gt 0 ]]; then
   exit 1
 fi
 
-# When run as SessionStart hook, check source to avoid noise on resume/compact/clear
+# When run as SessionStart hook, check source to avoid noise on resume
 if [ -t 0 ]; then
   # Interactive (no stdin) - run normally
   :
@@ -31,8 +31,8 @@ else
   # Hook mode - read JSON input
   hook_input=$(cat)
   source=$(echo "$hook_input" | jq -r '.source // "startup"' 2>/dev/null || echo "startup")
-  # Only run on startup (skip resume/compact/clear)
-  [ "$source" != "startup" ] && exit 0
+  # Skip on resume (agent still has context), run on startup/compact/clear
+  [ "$source" = "resume" ] && exit 0
 fi
 
 echo "[hello] pwd"
