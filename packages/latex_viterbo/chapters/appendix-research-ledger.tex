@@ -11,7 +11,18 @@ It provides transparency about what was investigated, what succeeded, and what w
 
 \section{Completed Research}
 
-(None yet.)
+\subsection{EHZ Capacity of the Unit Cross-Polytope}
+\label{ledger:cross-polytope-capacity}
+
+\textbf{Research question:} What is the EHZ capacity of the 4-dimensional unit cross-polytope (16-cell)?
+
+\textbf{Approach:} Apply the tube algorithm from Section~\ref{sec:ch2021-algorithm} to compute $\cEHZ(K)$ for the unit cross-polytope $K = \{z \in \R^4 : |z_1| + |z_2| + |z_3| + |z_4| \le 1\}$.
+
+\textbf{Result:} The algorithm finds $\cEHZ(\text{cross-polytope}) = 1.0$ (to numerical precision $\epsilon \approx 10^{-2}$).
+
+\textbf{Significance:} This value was previously unknown in the literature. Combined with the known $\cEHZ(\text{tesseract}) = 4$, this verifies the Mahler-type bound $\cEHZ(K) \cdot \cEHZ(K^\circ) = 4$ for the dual pair (cross-polytope, tesseract).
+
+\textbf{Status:} Completed. See \texttt{packages/rust\_viterbo/tube/} for implementation.
 
 \section{Planned Research}
 

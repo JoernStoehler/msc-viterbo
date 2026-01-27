@@ -62,3 +62,33 @@ fn test_mahler_bound() {
 
     assert_relative_eq!(product, 4.0, epsilon = 0.1);
 }
+
+/// Test 4-simplex (pentatope) capacity computation.
+/// The 4-simplex has only 5 facets, testing minimal polytope case.
+#[test]
+fn test_four_simplex_capacity() {
+    let hrep = fixtures::four_simplex();
+    let result = tube_capacity(&hrep);
+
+    match result {
+        Ok(r) => {
+            println!("4-simplex capacity: {}", r.capacity);
+            println!("  Tubes explored: {}", r.tubes_explored);
+            println!("  Tubes pruned: {}", r.tubes_pruned);
+            // Capacity should be positive
+            assert!(r.capacity > 0.0, "Capacity should be positive");
+        }
+        Err(e) => {
+            // The algorithm may legitimately fail to find orbits
+            // if this simplex has Lagrangian 2-faces (unlikely but possible)
+            println!("4-simplex computation failed: {}", e);
+            // For now, we accept either success or NoClosedOrbits
+            let err_str = format!("{}", e);
+            assert!(
+                err_str.contains("Lagrangian") || err_str.contains("NoClosedOrbits"),
+                "Unexpected error: {}",
+                e
+            );
+        }
+    }
+}
