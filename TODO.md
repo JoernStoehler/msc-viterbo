@@ -20,6 +20,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
 - [ ] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation
+- [ ] Cross-algorithm validation: billiard vs hk2017 on Lagrangian products, continuity-based billiard↔tube comparison; thesis section + code fixtures
 - [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
@@ -377,7 +378,7 @@ If we quotient polytope space by Sp(4) ⋉ R⁴, we get a lower-dimensional spac
 
 **Discoveries:**
 1. **Facet count gaps in 4D:** Random convex hulls cannot produce 6, 7, or 10 facets. Only 5 (simplex from 5 points) or 8+ (from 6+ points).
-2. **GraphPruned not tested:** FFI only exposes Naive enumeration; GraphPruned is disabled due to known issues.
+2. **GraphPruned works:** 2-7x faster than Naive, identical results. Recommended for production use.
 3. **FFI limit:** 10 facets maximum is enforced by the FFI.
 
 **Files:**
@@ -386,7 +387,6 @@ If we quotient polytope space by Sp(4) ⋉ R⁴, we get a lower-dimensional spac
 - Detailed findings: `FINDINGS.md` in experiment module
 
 **Future work:**
-- Benchmark GraphPruned variant once FFI issues resolved
 - Test larger facet counts by removing FFI limit
 - Profile bottlenecks for optimization
 
