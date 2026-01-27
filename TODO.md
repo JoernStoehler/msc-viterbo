@@ -19,7 +19,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Tube algorithm core: branch-and-bound + robust pruning + witness (#29)
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
-- [ ] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation
+- [-] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation — blocked on CC web (no CONNECT tunneling for JS pages); retry in local devcontainer
 - [ ] Cross-algorithm validation: billiard vs hk2017 on Lagrangian products, continuity-based billiard↔tube comparison; thesis section + code fixtures
 - [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
