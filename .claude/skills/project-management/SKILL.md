@@ -19,6 +19,14 @@ All task tracking lives in `TODO.md` at repo root:
 - `[x]` — done
 - `[-]` — blocked or deferred (with note)
 
+## Writing quality
+
+Every entry must be:
+- **Actionable** — clear what "done" means
+- **Unambiguous** — no jargon without definition
+- **Relevant** — only information needed to act on the task
+- **Scannable** — one concept per line; details go in sub-bullets or Details section
+
 ## Adding items
 
 **Simple items:** One line in the appropriate checklist section.
