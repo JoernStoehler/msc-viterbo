@@ -26,10 +26,19 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Thesis Writing
 
-- [ ] Talk: Clarke duality — migrate good parts to thesis, archive PDF, delete package (#17)
+- [x] Talk: Clarke duality — archive PDF, migrate text content (2026-01-27)
+  - PDF archived: `assets/manual/talks/2026-01-27-clarke-duality.pdf`
+  - Git tag: `talk-clarke-duality-2026-01-27` (source commit `ab43adb`)
+  - Migrated to `chapters/math/08-clarke-dual-action.tex`: primal/dual comparison, Clarke proof, simple minimizer theorem+proof
+- [-] Talk: Clarke duality — delete package (#17) — blocked on drawings below
 - [ ] Jörn draws polytope images for talk/thesis (#41, manual)
-- [ ] Migrate talk improvements to thesis (#43)
-  - Fenchel duality explainer → `chapters/math/08-clarke-dual-action.tex`
+  - Talk placeholders that need drawings before full migration/teardown:
+    - `closed-characteristics-on-surface` — smooth hypersurface with two parameterizations of same curve
+    - `hk2024-billiard-trajectory-on-P5xP5` — billiard trajectory on pentagon × rotated pentagon
+    - `fig-polytope-normals-reeb.png` — 3D polytope with facet normals and Reeb vectors
+    - `fig-polytope-reeb-vectors.png` — generalized closed characteristic on polytope
+    - `proof-operations-time-axis` — split+rearrange operations visualization (for simple minimizer proof)
+  - Existing assets in talk: `assets/manual/linearcombination.pdf`, `assets/manual/reorder.pdf`
 
 ## Research Experiments
 
@@ -74,6 +83,7 @@ Tasks identified during code quality assessment (2026-01-27).
 ## Done
 
 - [x] benchmark-hk2017 (2026-01-26) — see details below
+- [x] talk-migration: Clarke duality PDF archived, text content migrated (2026-01-27)
 
 ---
 
