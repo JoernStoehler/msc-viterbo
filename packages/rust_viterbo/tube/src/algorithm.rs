@@ -8,7 +8,7 @@
 use nalgebra::{Matrix2, Vector2, Vector4};
 use std::collections::BinaryHeap;
 
-use crate::constants::{EPS, EPS_ROTATION, MAX_ROTATION, MIN_POLYGON_AREA};
+use crate::constants::{EPS, EPS_CLOSURE, EPS_ROTATION, MAX_ROTATION, MIN_POLYGON_AREA};
 use crate::geometry::{apply_affine_to_polygon, intersect_polygons, point_in_polygon};
 use crate::preprocess::{preprocess, PolytopeData};
 use crate::quaternion::{apply_quat_j, apply_quat_k};
@@ -93,15 +93,20 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> Result<TubeResult, TubeError> {
 }
 
 /// Wrapper for priority queue ordering (min-heap by action lower bound).
+///
+/// Rust's `BinaryHeap` is a max-heap by default, so we store the negated
+/// action lower bound to get min-heap behavior. This ensures we explore
+/// tubes with smaller action bounds first (branch-and-bound pruning).
 #[derive(Debug)]
 struct TubePriority {
     tube: Tube,
-    priority: f64, // Negative of action_lower_bound for min-heap behavior
+    /// Negative of action_lower_bound (BinaryHeap is max-heap, we want min-heap)
+    priority: f64,
 }
 
 impl TubePriority {
     fn new(tube: Tube) -> Self {
-        let priority = -tube.action_lower_bound(); // Negate for min-heap
+        let priority = -tube.action_lower_bound();
         Self { tube, priority }
     }
 }
@@ -138,8 +143,16 @@ enum Extension {
 }
 
 /// Create the root tube for a 2-face.
+///
+/// A "root tube" represents the starting point of a branch-and-bound search path.
+/// It corresponds to trajectories that:
+/// - Start on a 2-face (intersection of two facets)
+/// - Flow along one facet direction until reaching the same 2-face again
+///
+/// The root tube has trivial data: identity flow map (no flow yet), zero action,
+/// and zero rotation. As the search extends the tube through additional facets,
+/// these values accumulate.
 fn create_root_tube(tfe: &TwoFaceEnriched) -> Tube {
-    // Facet sequence: [entry_facet, exit_facet]
     let (entry_facet, exit_facet) = match tfe.flow_direction {
         Some(FlowDirection::ItoJ) => (tfe.i, tfe.j),
         Some(FlowDirection::JtoI) => (tfe.j, tfe.i),
@@ -563,9 +576,9 @@ fn validate_and_return(
     action_func: &AffineFunc,
     flow_map: &AffineMap2D,
 ) -> Option<(f64, Vector2<f64>)> {
-    // Verify it's actually a fixed point
+    // Verify it's actually a fixed point (use lenient tolerance for accumulated error)
     let mapped = flow_map.apply(point);
-    if (point - mapped).norm() > 1e-6 {
+    if (point - mapped).norm() > EPS_CLOSURE {
         return None; // Not a fixed point
     }
 
@@ -636,9 +649,9 @@ fn reconstruct_orbit(
         breakpoints.push(current_4d);
     }
 
-    // Verify closure
+    // Verify closure (use lenient tolerance for accumulated error along trajectory)
     let closure_error = (breakpoints.last().unwrap() - start_4d).norm();
-    if closure_error > 1e-6 {
+    if closure_error > EPS_CLOSURE {
         return Err(TubeError::NumericalInstability(format!(
             "Orbit failed to close: error = {:.2e}",
             closure_error

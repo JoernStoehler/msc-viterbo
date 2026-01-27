@@ -29,3 +29,9 @@ pub const MAX_ROTATION: f64 = 2.0;
 
 /// Minimum area threshold for non-empty polygons.
 pub const MIN_POLYGON_AREA: f64 = 1e-14;
+
+/// Tolerance for fixed point verification and orbit closure checks.
+/// This is more lenient than EPS because numerical errors accumulate
+/// along the orbit trajectory. The value 1e-6 allows for ~10^4 accumulated
+/// operations at machine precision.
+pub const EPS_CLOSURE: f64 = 1e-6;
