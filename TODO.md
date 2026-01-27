@@ -45,6 +45,11 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [-] sys-ratio-optimization — blocked: capacity algorithm
 - [x] benchmark-hk2017 — executed 2026-01-26
 
+## Mysteries to Investigate
+
+- [ ] Session-start hook printing output unexpectedly: hook was configured to be silent, but `SessionStart:startup hook success: [repo-map]` appeared in agent context. Why?
+- [ ] Skills not auto-injected: `.claude/skills/*/SKILL.md` files exist but aren't injected into agent context. Is this working as designed (skills are just docs to read when needed) or is there a broken mechanism? Clarify intended behavior and document it.
+
 ## Code Quality <!-- unapproved -->
 
 Tasks identified during code quality assessment (2026-01-27).
