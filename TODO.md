@@ -27,15 +27,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Thesis Writing
 
 - [x] Talk: Clarke duality — migrate text content to thesis (2026-01-27)
-  - Migrated to `chapters/math/08-clarke-dual-action.tex`: primal/dual comparison, Clarke proof, simple minimizer theorem+proof
-- [ ] Jörn adds images to talk slides, then freeze talk (#41, manual)
-  - Talk placeholders needing drawings:
-    - `closed-characteristics-on-surface` — smooth hypersurface with two parameterizations of same curve
-    - `hk2024-billiard-trajectory-on-P5xP5` — billiard trajectory on pentagon × rotated pentagon
-    - `fig-polytope-normals-reeb.png` — 3D polytope with facet normals and Reeb vectors
-    - `fig-polytope-reeb-vectors.png` — generalized closed characteristic on polytope
-    - `proof-operations-time-axis` — split+rearrange operations visualization
-  - Existing assets in talk: `assets/manual/linearcombination.pdf`, `assets/manual/reorder.pdf`
+- [ ] Add images to Clarke duality talk (#41, manual) — see `\DraftImage` placeholders in `packages/latex_talk_clarke_duality/main.tex`
 
 ## Research Experiments
 
