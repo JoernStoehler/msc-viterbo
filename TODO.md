@@ -20,6 +20,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
 - [-] FFI ergonomics: vector types + Python stubs (#37) — deferred, not blocking core work
+- [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
 ## Thesis Writing
 
