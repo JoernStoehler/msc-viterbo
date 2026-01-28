@@ -2,14 +2,13 @@
   // GitHub Codespaces devcontainer for msc-viterbo.
   //
   // Simplified version of local devcontainer:
-  // - NO TexLive (use local devcontainer for PDF builds)
+  // - Has TexLive for PDF builds
   // - Same toolchain: Rust, Python, uv, Node.js
   //
   // Known limitations:
   // - Codespaces auto-stops after idle period
   // - OAuth (gh, claude) may not persist across rebuilds
   // - Rust/Python caches don't persist across rebuilds
-  // - No TexLive (PDF/LaTeX builds require local environment)
   //
   // Usage:
   // - Create codespace from GitHub UI, select this config

@@ -1,42 +1,44 @@
 ---
 name: develop-latex
-description: Work on the LaTeX thesis or LaTeXML HTML output. Use for build/lint/serve commands, LaTeX style rules, HTML pipeline notes, or assets conventions.
+description: Editing the thesis or building PDF/HTML output. Use when writing thesis chapters, fixing LaTeX issues, or generating thesis documents.
 ---
 
-# LaTeX Conventions (thesis + HTML)
+# LaTeX/Thesis Development
 
-## Build and serve (packages/latex_viterbo)
+## Commands
 
-**Note:** LaTeX builds require TexLive, which is only available in the local devcontainer (not in web environment).
+```bash
+cd packages/latex_viterbo
 
-- Lint: `scripts/lint.sh` (chktex + draft compile + latexml sanity)
-- Build: `scripts/build.sh [--production] [--pdf-only] [--html-only]`
-- Serve: `scripts/serve.sh [--production] [--watch] [--pdf-only] [--html-only]`
-- Draft speedup: use `includeonly.tex` (copy from `includeonly.tex.example`).
+scripts/lint.sh           # chktex + draft compile + latexml sanity
+scripts/build.sh          # Full build (PDF + HTML)
+scripts/build.sh --pdf-only
+scripts/build.sh --html-only
+scripts/serve.sh          # Watch mode
+```
 
-## LaTeX style
+**Draft speedup:** Use `includeonly.tex` (copy from `includeonly.tex.example`)
 
-- Use `\(...\)` inline, `\[...\]` display (avoid `$`).
-- Proofs in `proof` environment; label theorems/lemmas consistently.
-- arXiv-friendly packages only.
+## LaTeX Style
 
-## Thesis writing style
+- **Inline math**: `\(...\)` not `$...$`
+- **Display math**: `\[...\]` not `$$...$$`
+- **Proofs**: Use `proof` environment
+- **Label consistently**: Theorems, lemmas, equations
+- **arXiv-friendly packages only**
 
-- Audience: symplectic geometers; self-contained exposition.
-- Separate mainline text from asides.
-- Introduce notation once; note deviations from literature.
-- Be explicit but skimmable; spoilers up front; headings guide the reader.
-- Mark WIP text clearly (e.g., `\edit{}` or `%`).
+## Thesis Writing Style
+
+**Audience**: Symplectic geometers, self-contained exposition
+
+**Principles**:
+- **Separate mainline from asides**: Keep main argument clear
+- **Introduce notation once**: Note deviations from literature
+- **Explicit but skimmable**: Spoilers up front, headings guide reader
+- **Mark WIP**: Use `\edit{}` or `%`
 
 ## Assets
 
-- LaTeX includes assets; Python generates them.
-- Store under `packages/latex_viterbo/assets/<experiment>/...`.
-- LaTeXML extras under `packages/latex_viterbo/assets/{html/,latexml/}`.
-- Hand-crafted assets under `packages/latex_viterbo/assets/manual/`.
-
-## References
-
-- LaTeXML HTML pipeline notes: `references/ar5iv-pipeline-notes.md`
-- LaTeXML troubleshooting: `references/latexml-troubleshooting.md`
-- Clarke talk teardown checklist: `packages/latex_talk_clarke_duality/docs/teardown.md`
+- Python generates figures → `assets/<experiment>/`
+- LaTeXML extras → `assets/{html/,latexml/}`
+- Hand-crafted → `assets/manual/`

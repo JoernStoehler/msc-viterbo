@@ -2,14 +2,13 @@
 
 Jörn Stöhler's MSc Thesis at University of Augsburg.
 
-**Topic:** Viterbo's Conjecture states that the systolic ratio c(K)²/Vol(K) ≤ 1 for convex bodies, where c(K) is the EHZ capacity. HK-O 2024 disproved this with a 10-facet counterexample (pentagon × rotated pentagon, sys ≈ 1.047). This thesis computationally probes the boundary cases to find new conjectures.
+**Topic:** Viterbo's Conjecture (systolic ratio ≤ 1) was disproved by HK-O 2024 with a 10-facet counterexample (sys ≈ 1.047). This thesis computationally probes the boundary cases to discover new conjectures.
 
-## Timeline & Goals
+## Context
 
-- **Deadline:** End of March 2026 (project frozen, thesis printed, grade received)
-- **Advisor:** Kai (pure mathematician). Last meeting: 2026-01-26.
-- **Focus:** Code correctness first, then experiments to discover conjectures a mathematician may later prove (proving conjectures is out of scope).
-- No intermediate milestones or defense talk currently planned.
+- **Deadline:** End of March 2026
+- **Priority:** Code correctness first, then experiments
+- **Thesis as source of truth:** Code implements what thesis specifies
 
 ## Project Layout
 
@@ -53,6 +52,12 @@ uv sync --extra dev                 # Install deps (first time)
 uv run pytest                       # Run tests
 uv run ruff check src tests         # Lint
 
+# LaTeX
+cd packages/latex_viterbo
+scripts/build.sh                    # Build PDF + HTML
+scripts/lint.sh                     # Lint
+scripts/serve.sh                    # Watch mode
+
 # Exploration
 scripts/repo-map.py                 # Detailed file tree
 ```
@@ -61,39 +66,48 @@ scripts/repo-map.py                 # Detailed file tree
 
 Long-running project with sequential/parallel agents. Leave the repo clean for the next agent.
 
-**When assigned a task:**
-1. **Read `TODO.md`** to understand your task in context
+### When Assigned a Task
+
+1. **IMPORTANT: Read TODO.md first** to understand context
 2. If task isn't in TODO.md, add it before starting
-3. Work on the branch specified in your assignment (create if needed)
-4. **For parallel work**: Set up a git worktree (see `develop-codespace` skill)
+3. Work on specified branch (create if needed)
+4. For parallel work: set up git worktree (see `develop-codespace` skill)
 
-**After completing work:**
-1. **Mark task `[x]` in TODO.md** — don't forget this step
-2. Ensure branch is PR-able (tests pass, no broken code)
-3. Update docs/comments if you changed behavior
-4. Remove stale TODOs or comments you created
+### After Completing Work
+
+1. **CRITICAL: Mark task [x] in TODO.md** — agents often forget this
+2. Ensure tests pass, no broken code
+3. Update docs/comments if behavior changed
+4. Remove stale TODOs/comments
 5. Commit and push
-6. **If using worktree**: Clean up after PR merge (see `develop-codespace` skill)
+6. If using worktree: clean up after PR merge
 
-**Parallel agent workflows:**
-- Multiple agents can work simultaneously using git worktrees
-- Each agent works in `/workspaces/worktrees/<task-name>` on its own branch
-- Use `cd /workspaces/worktrees/<task-name> && command` for all operations
-- See `develop-codespace` skill for setup and patterns
+### Parallel Workflows with Git Worktrees
 
-**Task management:**
-- **Don't speculatively add tasks.** Jörn manages the backlog.
-- Only add new tasks when work is discovered that can't be done now (blocked, out of scope) or Jörn requests it
-- Use `plan-tasks` skill when you need to add or reorganize tasks
+- Multiple agents work simultaneously on different branches
+- Each agent works in `/workspaces/worktrees/<task-name>`
+- **CRITICAL:** Always use `cd /workspaces/worktrees/<task> && command`
+- See `develop-codespace` skill for detailed setup
 
-**Cleanup principles:**
+### Task Management
+
+**IMPORTANT: Don't speculatively add tasks.** Jörn manages the backlog.
+
+Only add tasks when:
+- Work is discovered that can't be done now (blocked, out of scope)
+- Jörn explicitly requests it
+- Use `plan-tasks` skill for adding/reorganizing
+
+### Cleanup & Standards
+
 - Remove misleading content (outdated docs, stale comments, done TODOs)
-- Preserve context where needed (explain "why" in code comments, thesis)
-- Prefer standard patterns over custom solutions — agents know standard patterns well
+- Preserve context where needed (explain "why" in code/thesis)
+- Prefer standard patterns — agents know them well
 
-**Approval markers:**
-- `[proposed]` — agent proposal awaiting Jörn's review
-- Only Jörn removes these markers; ambiguous responses ("sounds fine") don't count
+### Approval Markers
+
+- `[proposed]` = agent proposal awaiting Jörn's review
+- Only Jörn removes these; ambiguous responses don't count
 
 ## Skills <!-- workaround: CC web doesn't auto-load skill descriptions -->
 
@@ -110,41 +124,40 @@ Skills in `.claude/skills/` document workflows. Read the relevant skill before s
 | `plan-tasks` | Adding or reorganizing tasks in TODO.md |
 | `review-math-docs-code-correspondence` | Verifying code↔thesis mathematical correctness |
 | `review-thesis-writing-style` | Reviewing thesis writing quality and style |
-| `download-arxiv-papers` | Need to read an arXiv paper's actual content |
-| `official-claude-code-guides` | Questions about Claude Code itself |
+| `download-arxiv-papers` | Reading arXiv papers for thesis research |
 | `skill-creator` | Creating or editing skills |
 
 Scripts support `--help`.
 
 ## Environment
 
-**Currently using**: GitHub Codespaces (VSCode IDE extension in browser)
+**Currently using:** GitHub Codespaces (primary), `.devcontainer/codespace/`
 
-Three environments supported (see `.devcontainer/README.md` for details):
+Three environments supported:
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| Rust, Cargo | Yes | Yes | Yes |
-| Python, uv | Yes | Yes | Yes |
-| gh CLI | Yes | Yes | Auto-installed |
+| Rust/Python | Yes | Yes | Yes |
 | TeX Live | Yes | Yes | No |
 | Git worktrees | Scripts | Manual | No |
 | Skills | Work | Work | Broken |
-| Parallel agents | Scripts | Worktrees + IDE | No |
 
-**Local**: `.devcontainer/local/` - Full-featured, bind mounts (backup environment)
-**Codespace**: `.devcontainer/codespace/` - Primary environment, has TexLive
-**CC Web**: `.devcontainer/ccweb/` (docs only) - Emergency backup only
+**Local:** Backup, full-featured with bind mounts
+**Codespace:** Primary, has TexLive for thesis builds
+**CC Web:** Emergency backup only, limited features
 
-## Mathematical Sources
+See `.devcontainer/README.md` and `develop-codespace` skill for details.
 
-- **Haim-Kislev MSc thesis** (simplex capacity, sys ≤ 3/4 claim): Online access available. Agents should find and download if needed for citations.
-- **HK-O 2024 counterexample:** 10 facets is the smallest known. Nobody has found counterexamples with fewer facets.
-- **HK2017 reference implementation:** github.com/pazithaimkislev/EHZ-capacity (no QCQP solver there either).
+## Mathematical Context
 
-## Communication with Jörn
+- **HK-O 2024:** 10-facet counterexample (smallest known)
+- **HK2017:** github.com/pazithaimkislev/EHZ-capacity (reference implementation)
+- **Haim-Kislev MSc thesis:** Use `download-arxiv-papers` skill if needed
 
-- Jörn reads the **final message** of each turn. Put decisions, questions, summaries there.
-- Use numbered lists for easy reference. Be direct and concrete.
-- Pushback welcome when instructions are unclear or suboptimal.
+## Communication
+
+- Jörn reads the **final message** of each turn
+- Use numbered lists for easy reference
+- Be direct and concrete
+- Pushback welcome when unclear
 

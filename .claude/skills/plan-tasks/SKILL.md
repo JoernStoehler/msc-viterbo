@@ -1,59 +1,53 @@
 ---
 name: plan-tasks
-description: How to properly add and flesh out tasks in TODO.md. Most agents just mark tasks done; use this skill when creating or reorganizing tasks.
+description: Adding or reorganizing tasks in TODO.md. Use when Jörn requests task additions, when discovered work needs tracking, or when restructuring the task list. NOT for normal task completion (marking [x]).
 ---
 
 # Task Planning
 
 **When to use this skill:**
-- You need to add new tasks to TODO.md (because work is discovered that can't be done now)
-- You need to restructure or reorganize TODO.md for clarity
+- You need to add new tasks to TODO.md (work discovered that can't be done now)
+- You need to restructure/reorganize TODO.md for clarity
 - Jörn explicitly asks you to add tasks
 
-**When NOT to use this skill:**
+**When NOT to use:**
 - Just marking tasks `[x]` as done (that's in CLAUDE.md Agent Protocol, always-on)
-- Normal thesis work (build, test, commit)
+- Normal work (build, test, commit)
 
----
+## TODO.md Structure
 
-## TODO
-
-This skill needs to be fleshed out with actual content about how to structure tasks.
-
-Key topics to cover:
-- TODO.md file structure (checklist sections vs details sections)
-- Status markers (`[ ]`, `[x]`, `[-]`)
-- When to add simple one-liners vs detailed sections
-- How to write good task descriptions
-- When to add tasks vs when to just do the work
-
-**Current guidance (from project-management skill):**
-
-### File Structure
-
-`TODO.md` at repo root:
 - **Checklist sections** at top for quick scanning
 - **Details section** at bottom for items needing context
+- **Status markers**: `[ ]` pending, `[x]` done, `[-]` blocked/deferred
 
-### Status Markers
+## When to Add Tasks
 
-- `[ ]` — pending
-- `[x]` — done
-- `[-]` — blocked or deferred (with note)
+Only when:
+- Work is discovered that can't be done now (blocked, out of scope)
+- Jörn explicitly requests it
 
-### Adding Items
+**Don't speculatively add tasks** - Jörn manages the backlog.
 
-**Simple items:** One line in the appropriate checklist section.
+## Simple vs Detailed Items
+
+**Simple items:** One line in checklist
 ```markdown
 - [ ] Fix FFI facet limit
 ```
 
-**Items with context:** Add sub-bullets or a `## label` section in Details.
+**Items with context:** Add sub-bullets or `## label` section in Details
+```markdown
+## fix-ffi-facet-limit
 
-### When to Add Tasks
+Current FFI limits to 10 facets due to timeout concerns. Need to:
+1. Profile HK2017 on 11-12 facet polytopes
+2. Adjust timeout if performance acceptable
+3. Update FFI validation
+```
 
-Only add new tasks when:
-- Work is discovered that can't be done now (blocked, out of scope)
-- Jörn requests it
+## How to Write Good Task Descriptions
 
-**Don't speculatively add tasks.** Jörn manages the backlog.
+- **Action-oriented**: "Fix X", "Implement Y", "Verify Z"
+- **Include acceptance criteria** if not obvious
+- **Reference related issues/experiments/code** locations
+- **Note blockers explicitly** with `[-]` marker

@@ -2,9 +2,9 @@
 # Run Rust tests with per-test timing output.
 #
 # Usage:
-#   ./scripts/test-rust.sh           # Run debug + release tests
-#   ./scripts/test-rust.sh --debug   # Run only debug-mode tests
-#   ./scripts/test-rust.sh --release # Run only release-mode tests
+#   ./scripts/test.sh           # Run debug + release tests
+#   ./scripts/test.sh --debug   # Run only debug-mode tests
+#   ./scripts/test.sh --release # Run only release-mode tests
 #
 # Test mode separation:
 #   Tests are self-documenting via #[cfg_attr(debug_assertions, ignore)]:
@@ -18,7 +18,7 @@
 set -euo pipefail
 
 SCRIPT_PATH="$(realpath "$0")"
-cd "$(dirname "$0")/../packages/rust_viterbo"
+cd "$(dirname "$0")/.."
 
 RUN_DEBUG=true
 RUN_RELEASE=true

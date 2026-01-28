@@ -1,65 +1,78 @@
 ---
 name: develop-python
-description: Creating or modifying Python code in packages/python_viterbo. Covers directory layout, stage entrypoints, config files, data outputs, tests, lint commands.
+description: Writing or testing Python code in packages/python_viterbo. Use when creating experiments, writing analysis stages, or working with the Python codebase.
 ---
 
-# Python Conventions
+# Python Development
 
-## Example: example-pipeline
+## Package Structure
 
-Study `src/viterbo/experiments/example_pipeline/` before creating experiments:
-
-```
-src/viterbo/experiments/example_pipeline/
-├── SPEC.md           # Research question, method, success criteria
-├── stage_build.py    # Stage 1: generate data
-├── stage_analyze.py  # Stage 2: compute results
-└── stage_plot.py     # Stage 3: create figures
-
-config/example-pipeline/
-└── default.json      # Parameters for reproducible runs
-
-data/example-pipeline/
-├── synthetic_data.json
-└── results.json
-
-tests/test_example_pipeline.py
-```
-
-Run stages:
-```bash
-uv run python -m viterbo.experiments.example_pipeline.stage_build
-uv run python -m viterbo.experiments.example_pipeline.stage_analyze
-uv run python -m viterbo.experiments.example_pipeline.stage_plot
-```
-
-## Directory Layout
-
-All paths relative to `packages/python_viterbo/`:
-
-| Artifact | Path |
-|----------|------|
-| Experiment code | `src/viterbo/experiments/<label>/` |
-| Stage entrypoints | `src/viterbo/experiments/<label>/stage_<name>.py` |
-| Spec | `src/viterbo/experiments/<label>/SPEC.md` |
-| Configs | `config/<label>/<variant>.json` |
-| Data artifacts | `data/<label>/` |
-| Tests | `tests/test_<label>.py` |
-| Thesis assets | `../latex_viterbo/assets/<label>/` |
+- Package: `viterbo`
+- Experiments: `src/viterbo/experiments/<label>/`
+- Each experiment: SPEC.md + stage_*.py files
 
 ## Commands
 
 ```bash
 cd packages/python_viterbo
-uv sync --extra dev          # Install dependencies
-uv run ruff format .         # Format
-uv run ruff check --fix .    # Lint
-uv run pyright               # Type check
-uv run pytest tests/         # Test
+
+# Setup (first time)
+uv sync --extra dev
+
+# Testing
+uv run pytest                    # All tests
+uv run pytest tests/test_foo.py  # Specific file
+
+# Linting
+uv run ruff format .             # Format
+uv run ruff check --fix .        # Lint
+uv run pyright                   # Type check
 ```
+
+## Experiment Structure
+
+**Always study example_pipeline first:**
+
+`src/viterbo/experiments/example_pipeline/` is a complete teaching example demonstrating all conventions. Study it before creating new experiments.
+
+**Standard layout:**
+```
+src/viterbo/experiments/<label>/
+├── SPEC.md              # Research question, method, success criteria
+├── stage_build.py       # Generate data
+├── stage_analyze.py     # Compute results
+└── stage_plot.py        # Create figures
+
+config/<label>/
+├── default.json         # Parameters
+└── variant.json         # Alternative configs
+
+data/<label>/            # Output artifacts
+tests/test_<label>.py    # Tests
+```
+
+**Running stages:**
+```bash
+uv run python -m viterbo.experiments.<label>.stage_build
+uv run python -m viterbo.experiments.<label>.stage_analyze
+uv run python -m viterbo.experiments.<label>.stage_plot
+```
+
+**Reproduction must be obvious:**
+
+Pattern should be self-evident from repo structure:
+
+Good:
+```bash
+for cfg in config/polytope-families/*.json; do
+  uv run python -m viterbo.experiments.polytope_families.stage_build "$cfg"
+done
+```
+
+Bad: "Run with configs A, B, and C" (which configs? where?)
 
 ## Code Style
 
-- Docstrings: inputs, outputs, shapes/dtypes
-- Pure functions preferred
-- Comments explain WHY, not WHAT
+- **Docstrings**: Document inputs, outputs, shapes/dtypes
+- **Pure functions**: Preferred when possible
+- **Comments**: Explain WHY, not WHAT
