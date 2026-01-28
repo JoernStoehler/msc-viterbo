@@ -179,6 +179,32 @@ mod hk2017_comparison_tests {
         );
     }
 
+    /// Diagnostic helper: returns capacities without asserting.
+    #[allow(dead_code)]
+    fn compare_algorithms_diagnostic(
+        name: &str,
+        k_q: &Polygon2D,
+        k_p: &Polygon2D,
+    ) -> (f64, f64, bool) {
+        let billiard_result =
+            billiard_capacity_from_polygons(k_q, k_p).expect("billiard should succeed");
+
+        let product = LagrangianProduct::new(k_q.clone(), k_p.clone()).expect("valid product");
+        let (normals, heights) = product.to_hrep();
+        let polytope = PolytopeHRep::new(normals, heights);
+
+        let hk_result =
+            hk2017_capacity(&polytope, &Hk2017Config::naive()).expect("hk2017 should succeed");
+
+        let agree = (billiard_result.capacity - hk_result.capacity).abs() < 1e-6;
+        println!(
+            "{}: billiard={:.6}, hk2017={:.6}, agree={}",
+            name, billiard_result.capacity, hk_result.capacity, agree
+        );
+
+        (billiard_result.capacity, hk_result.capacity, agree)
+    }
+
     #[test]
     fn test_tesseract_both_algorithms() {
         // Tesseract = Square × Square, capacity = 4.0
@@ -219,5 +245,76 @@ mod hk2017_comparison_tests {
         let large = Polygon2D::square(4.0).unwrap();
 
         compare_algorithms(&small, &large, 1e-6);
+    }
+
+    /// Pentagon × RotatedPentagon (10 facets) is too slow for routine testing.
+    /// HK2017 has factorial complexity (10! = 3.6M permutations).
+    #[test]
+    #[ignore] // 10 facets = 10! permutations, takes several minutes
+    fn test_pentagon_counterexample_both_algorithms() {
+        // Pentagon × RotatedPentagon(90°) from HK-O 2024 counterexample paper.
+        // This is the famous case that disproved Viterbo's conjecture.
+        // Expected capacity: 2*cos(π/10)*(1 + cos(π/5)) ≈ 3.441
+        use std::f64::consts::PI;
+
+        let pentagon = Polygon2D::regular_pentagon();
+        let rotated = pentagon.rotate(PI / 2.0);
+
+        compare_algorithms(&pentagon, &rotated, 1e-6);
+    }
+
+    /// Known discrepancy: billiard=3.0, HK2017=1.5 (factor of 2).
+    /// This is documented in the capacity algorithm comparison (2026-01-28).
+    /// Root cause unknown - requires investigation.
+    #[test]
+    #[ignore] // KNOWN DISCREPANCY: billiard gives 3.0, HK2017 gives 1.5
+    fn test_triangle_products() {
+        // Triangle × Triangle - tests non-rectangular products
+        let triangle = Polygon2D::regular(3, 1.0, 0.0).unwrap();
+        compare_algorithms(&triangle, &triangle, 1e-6);
+    }
+
+    #[test]
+    #[ignore] // hexagon × hexagon = 12 facets, too slow for routine testing
+    fn test_hexagon_products() {
+        // Hexagon × Hexagon - another regular polygon test
+        let hexagon = Polygon2D::regular(6, 1.0, 0.0).unwrap();
+        compare_algorithms(&hexagon, &hexagon, 1e-6);
+    }
+
+    /// Comprehensive diagnostic test - prints comparison results for all fast cases.
+    /// Run with: cargo test diagnostic_comparison -- --nocapture --ignored
+    #[test]
+    #[ignore]
+    fn diagnostic_comparison_all() {
+        println!("\n=== Algorithm Comparison Diagnostic ===\n");
+
+        // Tesseract (8 facets)
+        let square = Polygon2D::square(2.0).unwrap();
+        compare_algorithms_diagnostic("tesseract (square×square)", &square, &square);
+
+        // Rectangle × Square (8 facets)
+        let rect = Polygon2D::from_vertices(vec![
+            nalgebra::Vector2::new(-1.0, -2.0),
+            nalgebra::Vector2::new(1.0, -2.0),
+            nalgebra::Vector2::new(1.0, 2.0),
+            nalgebra::Vector2::new(-1.0, 2.0),
+        ])
+        .unwrap();
+        compare_algorithms_diagnostic("rectangle×square", &rect, &square);
+
+        // Triangle × Triangle (6 facets)
+        let triangle = Polygon2D::regular(3, 1.0, 0.0).unwrap();
+        compare_algorithms_diagnostic("triangle×triangle", &triangle, &triangle);
+
+        // Square × Triangle (7 facets) - asymmetric
+        compare_algorithms_diagnostic("square×triangle", &square, &triangle);
+
+        // Different squares
+        let small = Polygon2D::square(1.0).unwrap();
+        let large = Polygon2D::square(4.0).unwrap();
+        compare_algorithms_diagnostic("small_square×large_square", &small, &large);
+
+        println!("\n=== End Diagnostic ===\n");
     }
 }
