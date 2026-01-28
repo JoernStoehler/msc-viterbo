@@ -79,6 +79,20 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     5. **Then and only then**: Change code with mathematical justification
     6. **Test systematically**: orbit validation first, then comparison tests
     7. **NO pattern matching or correction factors**
+  - **CRITICAL LESSON LEARNED - TESTING METHODOLOGY**:
+    * **What went wrong**: Agent spent hours trying different action formulas (support functions → ∫λ) without understanding WHY
+    * **What should have been done**: ADD TEST CASES SYSTEMATICALLY to understand the problem BEFORE attempting fixes
+    * **Correct approach**: When something fails, FIRST add tests to characterize the failure pattern (rotation sweep, asymmetric cases, edge cases), THEN understand the math, THEN fix
+    * **This investigation succeeded at testing**: Created comprehensive test suite revealing the error pattern (works for rectangles, fails for triangles with varying ratios)
+    * **But failed at fixing**: Attempted fixes without mathematical understanding, just pattern matching
+    * **Takeaway**: Testing reveals WHAT is wrong, math understanding reveals WHY, only then can you fix it correctly
+  - **Additional test cases to add** (expand the test suite before attempting fixes):
+    * Almost-triangle (4-gon with vertex near edge) × triangle - does it fail like triangle×triangle or pass like square×triangle?
+    * Pentagon × triangle - where does N-gon×triangle transition from working to failing?
+    * Hexagon × hexagon - does it work (like square×square) or fail (like triangle×triangle)?
+    * Non-convex velocity cones: triangles have wide-angle vertices, rectangles have 90° - is this relevant?
+    * Degenerate cases: very flat triangle (almost a line segment) × triangle
+    * Test HK2017 β coefficients: for triangle×triangle, does HK use all 6 facets with β=1/3? Compare to square×square β pattern
 
 **Algorithm completion:**
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
