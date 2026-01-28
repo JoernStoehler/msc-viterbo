@@ -15,19 +15,25 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Algorithm Toolbox
 
-- [ ] Polytope faces: 2-face extraction + adjacency + transition maps (#28)
-- [ ] Tube algorithm core: branch-and-bound + robust pruning + witness (#29)
-- [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
-- [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
-- [-] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation — blocked on CC web (no CONNECT tunneling for JS pages); retry in local devcontainer
+**CRITICAL (blocks experiments):**
+- [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31) — use QHull for volume computation
+- [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
+
+**Algorithm completion:**
+- [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
+- [x] Tube algorithm core: branch-and-bound + robust pruning + witness (#29) (2026-01-28, 69 tests passing)
 - [~] Cross-algorithm validation (algorithm-comparison experiment): billiard vs hk2017 on Lagrangian products — IN PROGRESS
   - [x] FFI: exposed billiard and tube algorithms
   - [x] stage_build.py: runs billiard + HK2017 on Lagrangian products
   - [x] Documented known triangle×triangle discrepancy (billiard=3.0, hk2017=1.5)
-  - [ ] Add non-Lagrangian polytopes (fixtures exist in tube/src/fixtures.rs)
   - [ ] Expose fixtures via FFI (cross-polytope, 24-cell, asymmetric, random_hrep)
   - [ ] Run HK2017 vs Tube comparison on non-Lagrangian polytopes
-  - [ ] stage_analyze + stage_plot
+  - [ ] stage_analyze.py: compute agreement metrics, error tables
+  - [ ] stage_plot.py: visualize capacity comparisons, timing analysis
+
+**Lower priority:**
+- [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
+- [-] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation — blocked on CC web (no CONNECT tunneling for JS pages); retry in local devcontainer
 - [x] FFI cleanup: removed archived stubs, legacy aliases, fixed type stubs (#37) (2026-01-27)
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
@@ -38,15 +44,22 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Research Experiments
 
-- [-] billiard-hko-orbit — blocked: no trusted billiard algorithm
-- [-] random-polytope-sys-distribution — blocked: no trusted capacity algorithm
-- [-] lagrangian-product-polygons — blocked: billiard algorithm
-- [-] lagrangian-product-random-polygons — blocked: billiard algorithm
-- [-] fixed-facet-vertex-count — blocked: main dataset
-- [-] algorithm-performance-comparison — blocked: all algorithms implemented
+**Blocked on volume computation (#31):**
+- [-] billiard-hko-orbit — needs systolic ratio (volume + capacity)
+- [-] random-polytope-sys-distribution — needs systolic ratio
+- [-] lagrangian-product-polygons — needs systolic ratio
+- [-] lagrangian-product-random-polygons — needs systolic ratio
+- [-] fixed-facet-vertex-count — needs main dataset with systolic ratios
+- [-] dataset-dimension-reduction — needs main dataset with systolic ratios
+- [-] sys-ratio-optimization — needs systolic ratio
+
+**Blocked on other dependencies:**
+- [-] algorithm-performance-comparison — needs all algorithms validated (triangle×triangle bug)
 - [-] algorithm-optimization-ablation — blocked: performance comparison first
+
+**Completed:**
 - [x] 4d-polytope-visualization — executed 2026-01-27
-- [-] dataset-dimension-reduction — blocked: main dataset
+- [x] benchmark-hk2017 — executed 2026-01-26
 - [-] nn-regression-mutual-info — blocked: main dataset
 - [-] ml-capacity-prediction — blocked: large labeled dataset
 - [-] sys-ratio-optimization — blocked: capacity algorithm
