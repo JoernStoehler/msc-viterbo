@@ -16,11 +16,12 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Algorithm Toolbox
 
 **CRITICAL (blocks experiments):**
-- [ ] Salvage orbit validation tests from Agent 3's abandoned worktree (URGENT - before cleanup):
-  - Copy /workspaces/worktrees/fix-triangle-billiard-discrepancy/packages/rust_viterbo/billiard/tests/orbit_invariants.rs to main
-  - Copy /workspaces/worktrees/fix-triangle-billiard-discrepancy/packages/rust_viterbo/billiard/tests/comprehensive_comparison.rs to main
-  - Exclude the bogus action formula changes
-  - Open PR with ONLY the tests (no "fixes")
+- [ ] Implement comprehensive billiard validation test suite (see packages/rust_viterbo/billiard/TEST_SPEC.md):
+  - Task 1: Orbit validation tests on all 625 Lagrangian products (25×25 polygon pairs)
+  - Task 2: Algorithm comparison tests (billiard vs HK2017) on all 625 products
+  - Properties to verify: P1-P5 (boundary containment, closure, positive capacity, Reeb direction, scaling law)
+  - Goal: systematic characterization of where algorithms agree/disagree
+  - NO fixes - just observe and document
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
   - **Status (2026-01-28)**: Investigation attempted but FAILED. Branch fix/triangle-billiard-discrepancy REJECTED.
   - **What was tried**: Changed action formula from support functions to ∫ λ = (1/2)∫⟨Jγ, γ̇⟩dt
