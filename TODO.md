@@ -16,10 +16,6 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Algorithm Toolbox
 
 **CRITICAL (blocks experiments):**
-- [ ] Update polytope_database stubs with real volume/capacity (PR#89):
-  - stage_volume.py: replace fake volumes with ffi.volume_hrep()
-  - stage_capacity.py: replace fake capacities with real tube algorithm calls
-  - Depends on merging PR#89 first
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
   - Add orbit validation tests to billiard (port from tube/tests/orbit_invariants.rs)
   - Verify returned orbits are valid Reeb orbits (breakpoints on facets, segments along Reeb vector)
@@ -29,7 +25,12 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
 - [x] Tube algorithm core: branch-and-bound + robust pruning + witness (#29) (2026-01-28, 69 tests passing)
 - [x] Volume(K) in R⁴ + systolic ratio + baseline tests (#31) (2026-01-28, QHull integration via PR#90)
-- [x] Refactor polytope_database into modular stages (2026-01-28, PR#89, stubs need volume/capacity integration)
+- [x] Refactor polytope_database into modular stages (2026-01-28, PR#89):
+  - stage_polytopes.py: generate polytope geometries (tesseract, simplex, cross-polytope, 24-cell, random)
+  - stage_volume.py: uses ffi.volume_hrep() for real volume calculations
+  - stage_capacity.py: uses ffi.tube_capacity_hrep() and ffi.hk2017_capacity_hrep() for real capacities
+  - All tests passing (37 tests); SPEC.md updated; stage_build.py deprecated
+  - CI consolidated to 2 jobs: Rust + FFI (Rust+Python)
 - [~] Cross-algorithm validation (algorithm-comparison experiment): billiard vs hk2017 on Lagrangian products — IN PROGRESS
   - [x] FFI: exposed billiard and tube algorithms
   - [x] stage_build.py: runs billiard + HK2017 on Lagrangian products
