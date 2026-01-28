@@ -88,7 +88,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 ENV UV_INSTALL_DIR=/usr/local
 ENV UV_VERSION=0.5.14
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
-    && uv --version
+    && /usr/local/bin/uv --version
 
 # Switch to dev user for language toolchains.
 # Toolchains live in the dev user's HOME so that cargo/elan behave normally.
