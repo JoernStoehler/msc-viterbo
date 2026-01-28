@@ -49,35 +49,8 @@ jobs:
       - name: Test (release)
         run: cargo test --release --workspace --exclude rust_viterbo_ffi
 
-  python:
-    name: Python
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/python_viterbo
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Lint with ruff
-        run: uv run ruff check src tests
-
-      - name: Type check with pyright
-        run: uv run pyright src tests
-
-      - name: Run tests
-        run: uv run pytest -v
-
   ffi:
-    name: FFI (Rust + Python)
+    name: Rust + Python (FFI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -107,10 +80,18 @@ jobs:
         working-directory: packages/python_viterbo
         run: uv sync --extra dev
 
+      - name: Lint with ruff
+        working-directory: packages/python_viterbo
+        run: uv run ruff check src tests
+
+      - name: Type check with pyright
+        working-directory: packages/python_viterbo
+        run: uv run pyright src tests
+
       - name: Build FFI with maturin
         working-directory: packages/python_viterbo
         run: uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
 
-      - name: Run FFI tests
+      - name: Run tests
         working-directory: packages/python_viterbo
-        run: uv run pytest tests/test_ffi_capacity_hrep.py -v
+        run: uv run pytest -v
