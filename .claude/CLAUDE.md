@@ -39,7 +39,9 @@ TODO.md                 Task tracking and experiment queue
 
 ```bash
 # Rust
-cargo test --workspace              # Run all Rust tests
+scripts/test-rust.sh                # Run all tests (debug + release modes)
+scripts/test-rust.sh --debug        # Debug tests only (with debug_assert!)
+scripts/test-rust.sh --release      # Release tests only (expensive ones)
 cargo clippy --workspace            # Lint
 cargo fmt --all                     # Format
 

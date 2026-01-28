@@ -217,8 +217,16 @@ tube/
 ## Running Tests
 
 ```bash
-# All tests
-cargo test -p tube
+# All tests (debug + release modes)
+./scripts/test-rust.sh
+
+# Debug tests only (with debug_assert! checks)
+./scripts/test-rust.sh --debug
+cargo test --workspace --exclude rust_viterbo_ffi
+
+# Release tests only (expensive output-verification tests)
+./scripts/test-rust.sh --release
+cargo test --release --workspace --exclude rust_viterbo_ffi
 
 # Specific test
 cargo test -p tube --lib fixtures::tests::test_24_cell_valid
@@ -228,4 +236,56 @@ cargo test -p tube -- --nocapture
 
 # Property tests with more cases
 PROPTEST_CASES=1000 cargo test -p tube
+```
+
+## Debug vs Release Mode Tests
+
+Tests can self-document their mode requirements using `cfg_attr`:
+
+```rust
+// Runs ONLY in release mode (skipped in debug)
+// Use for expensive tests that only verify output correctness
+#[cfg_attr(debug_assertions, ignore)]
+#[test]
+fn expensive_output_verification_test() { ... }
+
+// Runs ONLY in debug mode (skipped in release)
+// Use for tests that specifically need debug_assert! checks
+#[cfg_attr(not(debug_assertions), ignore)]
+#[test]
+fn test_needs_debug_assertions() { ... }
+```
+
+### When to use each mode
+
+**Debug mode** (default `cargo test`):
+- Tests that exercise code paths with `debug_assert!()` checks
+- Tests that verify internal invariants
+- Most unit tests
+
+**Release mode** (`cargo test --release`):
+- Expensive tests that only verify output correctness
+- Property tests running many iterations
+- Tests where computation speed matters (e.g., tube integration tests: 92s debug → 1.3s release)
+
+### Current test organization
+
+| Package | File | Mode | Rationale |
+|---------|------|------|-----------|
+| tube | tests/integration.rs | release | 11 capacity tests, ~50 computations |
+| hk2017 | integration_tests module | release | 4 expensive pipeline tests |
+| hk2017 | algorithm.rs expensive tests | release | 5 tesseract capacity tests |
+| all | unit tests, flow_map, orbit_invariants | debug | Exercise internal invariants |
+
+## Per-Test Timing
+
+```bash
+# Using nightly (lightweight)
+cargo +nightly test -p tube -- -Z unstable-options --report-time
+
+# Using cargo-nextest (better output, shows SLOW tests)
+cargo nextest run -p tube
+
+# Sequential execution for clean timing
+RUST_TEST_THREADS=1 cargo nextest run -p tube
 ```
