@@ -6,8 +6,7 @@
 # - uv: copied from ghcr.io/astral-sh/uv (recommended by Astral)
 # - Rust: rustup.rs (official)
 # - Node: nodesource (well-tested)
-#
-# NO TexLive - use local devcontainer for PDF builds
+# - TexLive: installed from Ubuntu repos for PDF builds
 # -----------------------------------------------------------------------------
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
@@ -21,6 +20,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     python3 \
     python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# TexLive and LaTeXML (large layer, cached separately)
+# Install minimal TexLive scheme + required packages for thesis builds
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-science \
+    latexmk \
+    chktex \
+    latexml \
     && rm -rf /var/lib/apt/lists/*
 
 # CLI tools (gh is in Ubuntu repos)

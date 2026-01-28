@@ -12,12 +12,13 @@ This project supports three development environments:
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| TexLive (PDF builds) | Yes | No | No |
+| TexLive (PDF builds) | Yes | Yes | No |
+| LaTeXML (HTML) | Yes | Yes | No |
 | Cache persistence | Bind mounts | No | No |
 | Git worktrees | Manual scripts | Manual | No |
-| Skills | Work | Should work | Broken |
-| Startup time | Fast | Moderate | Fast |
-| Friction | Medium | Low | Low |
+| Parallel agents | Scripts | Worktrees + IDE | No |
+| Skills | Work | Work | Broken |
+| Status | Backup | **Primary** | Emergency backup |
 
 ## Local (`local/`)
 
@@ -34,9 +35,9 @@ Prerequisites:
 - `/srv/devworktrees/msc-viterbo/worktrees/` for git worktrees
 - `npm i -g @devcontainers/cli`
 
-## Codespace (`codespace/`)
+## Codespace (`codespace/`) - Primary Environment
 
-GitHub Codespaces for remote development. Simplified Dockerfile (no TexLive).
+GitHub Codespaces for remote development. **This is the primary development environment.**
 
 ```bash
 # Create codespace:
@@ -49,9 +50,10 @@ Pre-installed:
 - Python 3 with uv
 - Node.js 22
 - GitHub CLI
+- TexLive (latex-base, latex-extra, science packages)
+- LaTeXML for HTML conversion
 
 Known limitations:
-- **No TexLive** - use local devcontainer for PDF builds
 - Auto-stops after idle period
 - OAuth may not persist across rebuilds
 - Caches don't persist

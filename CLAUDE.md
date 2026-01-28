@@ -31,7 +31,7 @@ packages/
     tests/              pytest tests
 scripts/                Repo-wide dev scripts
 .devcontainer/          Environment configs (local/, codespace/, ccweb/)
-.claude/skills/         Workflow docs (rust-conventions, python-conventions, experiment-workflow, ...)
+.claude/skills/         Workflow docs (develop-*, plan-*, review-*, etc.)
 docs/                   GitHub Pages site
 TODO.md                 Task tracking and experiment queue
 ```
@@ -64,6 +64,7 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 1. **Read `TODO.md`** to understand your task in context
 2. If task isn't in TODO.md, add it before starting
 3. Work on the branch specified in your assignment (create if needed)
+4. **For parallel work**: Set up a git worktree (see `develop-codespace` skill)
 
 **After completing work:**
 1. **Mark task `[x]` in TODO.md** — don't forget this step
@@ -71,6 +72,18 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 3. Update docs/comments if you changed behavior
 4. Remove stale TODOs or comments you created
 5. Commit and push
+6. **If using worktree**: Clean up after PR merge (see `develop-codespace` skill)
+
+**Parallel agent workflows:**
+- Multiple agents can work simultaneously using git worktrees
+- Each agent works in `/workspaces/worktrees/<task-name>` on its own branch
+- Use `cd /workspaces/worktrees/<task-name> && command` for all operations
+- See `develop-codespace` skill for setup and patterns
+
+**Task management:**
+- **Don't speculatively add tasks.** Jörn manages the backlog.
+- Only add new tasks when work is discovered that can't be done now (blocked, out of scope) or Jörn requests it
+- Use `plan-tasks` skill when you need to add or reorganize tasks
 
 **Cleanup principles:**
 - Remove misleading content (outdated docs, stale comments, done TODOs)
@@ -87,23 +100,24 @@ Skills in `.claude/skills/` document workflows. Read the relevant skill before s
 
 | Skill | When to read |
 |-------|--------------|
-| `rust-conventions` | Writing Rust code in `packages/rust_viterbo` |
-| `rust-testing` | Writing Rust tests (proptest, fixtures, tolerances) |
-| `python-conventions` | Writing Python code in `packages/python_viterbo` |
-| `latex-conventions` | Editing thesis in `packages/latex_viterbo` |
-| `experiment-workflow` | Planning or executing research experiments |
-| `ffi-pyo3-maturin` | Building/modifying Rust↔Python bindings |
-| `paper-reading` | Need to read an arXiv paper's actual content |
-| `quality-improvement` | Refactoring or code quality work |
-| `skill-authoring` | Creating or editing skills |
-| `worktree-management` | Using git worktrees |
-| `environment` | Troubleshooting or modifying dev environments |
-| `devcontainer-maintenance` | Changing devcontainer specifically |
-| `claude-code-guide` | Questions about Claude Code itself |
+| `develop-rust` | Writing Rust code in `packages/rust_viterbo` |
+| `develop-python` | Writing Python code in `packages/python_viterbo` |
+| `develop-latex` | Editing thesis in `packages/latex_viterbo` |
+| `develop-python-rust-interop` | Building/modifying Rust↔Python bindings |
+| `develop-codespace` | Changing devcontainer, git worktrees, environment issues |
+| `plan-experiments` | Planning or executing research experiments |
+| `plan-tasks` | Adding or reorganizing tasks in TODO.md |
+| `review-math-docs-code-correspondence` | Verifying code↔thesis mathematical correctness |
+| `review-thesis-writing-style` | Reviewing thesis writing quality and style |
+| `download-arxiv-papers` | Need to read an arXiv paper's actual content |
+| `official-claude-code-guides` | Questions about Claude Code itself |
+| `create-skill` | Creating or editing skills |
 
 Scripts support `--help`.
 
 ## Environment
+
+**Currently using**: GitHub Codespaces (VSCode IDE extension in browser)
 
 Three environments supported (see `.devcontainer/README.md` for details):
 
@@ -112,13 +126,14 @@ Three environments supported (see `.devcontainer/README.md` for details):
 | Rust, Cargo | Yes | Yes | Yes |
 | Python, uv | Yes | Yes | Yes |
 | gh CLI | Yes | Yes | Auto-installed |
-| TeX Live | Yes | No | No |
+| TeX Live | Yes | Yes | No |
 | Git worktrees | Scripts | Manual | No |
-| Skills | Work | Should work | Broken |
+| Skills | Work | Work | Broken |
+| Parallel agents | Scripts | Worktrees + IDE | No |
 
-**Local**: `.devcontainer/local/` - Full-featured, bind mounts
-**Codespace**: `.devcontainer/codespace/` - Simplified Dockerfile, no TeX Live
-**CC Web**: `.devcontainer/ccweb/` (docs only) - Lowest friction, limited features
+**Local**: `.devcontainer/local/` - Full-featured, bind mounts (backup environment)
+**Codespace**: `.devcontainer/codespace/` - Primary environment, has TexLive
+**CC Web**: `.devcontainer/ccweb/` (docs only) - Emergency backup only
 
 ## Mathematical Sources
 

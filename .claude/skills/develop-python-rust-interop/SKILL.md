@@ -1,5 +1,5 @@
 ---
-name: ffi-pyo3-maturin
+name: develop-python-rust-interop
 description: Build or modify the Rust-Python FFI using PyO3+maturin. Use for binding builds, smoke tests, and boundary validation workflow.
 ---
 

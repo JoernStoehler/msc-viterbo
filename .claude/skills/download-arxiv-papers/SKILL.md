@@ -1,5 +1,5 @@
 ---
-name: paper-reading
+name: download-arxiv-papers
 description: Add arXiv papers to the repo for agent access. Use when you need to read a paper's formulas/proofs, or when web search gives you an arXiv ID you want to examine closely.
 ---
 
@@ -26,9 +26,9 @@ ls -la docs/papers/
 
 **Use the download script:**
 ```bash
-scripts/download-arxiv.sh <arxiv-id> <folder-name>
+.claude/skills/download-arxiv-papers/download-arxiv.sh <arxiv-id> <folder-name>
 # Example:
-scripts/download-arxiv.sh 2203.02043 Rudolf2022-worm-problem
+.claude/skills/download-arxiv-papers/download-arxiv.sh 2203.02043 Rudolf2022-worm-problem
 ```
 
 **Folder naming convention:**

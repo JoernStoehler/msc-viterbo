@@ -1,5 +1,5 @@
 ---
-name: experiment-workflow
+name: plan-experiments
 description: Planning or executing thesis experiments. Covers the lifecycle from ideation through polishing, tracking table, SPEC.md format, stage structure.
 ---
 
@@ -104,7 +104,7 @@ Create experiment folder with SPEC.md. Update tracking table to "Specified".
 
 ### Execution
 
-Implement stages, run, produce data. See `python-conventions` skill for code structure.
+Implement stages, run, produce data. See `develop-python` skill for code structure.
 
 ### Polishing
 

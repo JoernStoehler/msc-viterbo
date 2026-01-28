@@ -1,5 +1,5 @@
 ---
-name: claude-code-guide
+name: official-claude-code-guides
 description: Use this agent when the user asks questions ("Can Claude...", "Does Claude...", "How do I...") about Claude Code (the CLI tool) - features, hooks, slash commands, MCP servers, settings, IDE integrations, keyboard shortcuts, or the Claude API (formerly Anthropic API) - API usage, tool use, Anthropic SDK usage.
 ---
 

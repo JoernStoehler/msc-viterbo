@@ -1,5 +1,5 @@
 ---
-name: python-conventions
+name: develop-python
 description: Creating or modifying Python code in packages/python_viterbo. Covers directory layout, stage entrypoints, config files, data outputs, tests, lint commands.
 ---
 

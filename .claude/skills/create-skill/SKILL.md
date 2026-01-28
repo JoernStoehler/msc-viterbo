@@ -1,5 +1,5 @@
 ---
-name: skill-authoring
+name: create-skill
 description: Create or update repo skills under .claude/skills. Use when adding new skills, editing SKILL.md, or deciding what should be a skill vs a spec/doc.
 ---
 

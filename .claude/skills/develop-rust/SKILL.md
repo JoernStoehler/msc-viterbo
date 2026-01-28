@@ -1,9 +1,66 @@
 ---
-name: rust-testing
-description: Writing tests for Rust crates in rust_viterbo. Covers property-based testing, numerical tolerances, test organization, and fixtures.
+name: develop-rust
+description: Writing and testing Rust code in packages/rust_viterbo. Covers crate layout, testing conventions, property-based testing, and coding standards.
 ---
 
-# Rust Testing Conventions
+# Rust Development (rust_viterbo)
+
+## Crates
+
+- `geom` — shared geometry library (symplectic + euclidean, 2D + 4D)
+- `hk2017` — HK2017 permutation enumeration algorithm
+- `tube` — tube algorithm (branch-and-bound)
+- `billiard` — billiard algorithm (Lagrangian products)
+- `ffi` — PyO3/Maturin bindings for Python
+
+## The geom Crate and Customization
+
+`geom` provides **clean reference implementations** of fundamental geometry. Algorithm crates should:
+
+- **Use geom** when the standard implementation fits
+- **Copy and customize** when algorithm-specific needs diverge (e.g., different tolerances, extra fields)
+
+Duplication is acceptable when purposeful. The value of `geom` is providing clean code to orient against — making deviations obvious and intentional. Don't force algorithms to use `geom` when a customized version serves them better.
+
+## Commands
+
+```bash
+# Format
+cargo fmt --all
+
+# Lint
+cargo clippy --workspace --all-targets
+
+# Test (all modes)
+scripts/test-rust.sh
+
+# Test (debug mode only - with debug_assert!)
+scripts/test-rust.sh --debug
+cargo test --workspace
+
+# Test (release mode only - expensive tests)
+scripts/test-rust.sh --release
+cargo test --release --workspace
+
+# Benchmark
+cargo bench
+```
+
+## Conventions
+
+- Favor pure functions with immutable types.
+- Follow best practices for mathematically correct Rust code.
+- Use `nalgebra` for linear algebra operations.
+- Cover happy paths, edge cases, error paths.
+- Document why changes are made (e.g., performance impact).
+
+## Caching
+
+- Shared target dir: `/workspaces/worktrees/shared/target` (set by worktree script in local environment).
+
+---
+
+# Testing Conventions
 
 Guidelines for testing Rust code in this project, with emphasis on property-based testing and mathematical correctness.
 
@@ -214,30 +271,6 @@ tube/
     └── flow_map_tests.rs    # Robustness tests
 ```
 
-## Running Tests
-
-```bash
-# All tests (debug + release modes)
-./scripts/test-rust.sh
-
-# Debug tests only (with debug_assert! checks)
-./scripts/test-rust.sh --debug
-cargo test --workspace --exclude rust_viterbo_ffi
-
-# Release tests only (expensive output-verification tests)
-./scripts/test-rust.sh --release
-cargo test --release --workspace --exclude rust_viterbo_ffi
-
-# Specific test
-cargo test -p tube --lib fixtures::tests::test_24_cell_valid
-
-# With output
-cargo test -p tube -- --nocapture
-
-# Property tests with more cases
-PROPTEST_CASES=1000 cargo test -p tube
-```
-
 ## Debug vs Release Mode Tests
 
 Tests can self-document their mode requirements using `cfg_attr`:
@@ -289,3 +322,17 @@ cargo nextest run -p tube
 # Sequential execution for clean timing
 RUST_TEST_THREADS=1 cargo nextest run -p tube
 ```
+
+---
+
+# Code Quality Notes
+
+TODO: Document quality improvement principles specific to Rust development.
+
+Key topics to cover:
+- When to refactor vs leave code as-is
+- Mathematical correctness despite type system limitations (no dependent types)
+- Documentation standards for geometric algorithms
+- When to consolidate vs duplicate code across algorithm crates
+
+See the former `quality-improvement` skill for potential content to integrate.

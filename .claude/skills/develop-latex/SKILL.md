@@ -1,5 +1,5 @@
 ---
-name: latex-conventions
+name: develop-latex
 description: Work on the LaTeX thesis or LaTeXML HTML output. Use for build/lint/serve commands, LaTeX style rules, HTML pipeline notes, or assets conventions.
 ---
 
