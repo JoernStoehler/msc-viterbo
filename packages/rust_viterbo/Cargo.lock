@@ -443,9 +443,11 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 name = "rust_viterbo_ffi"
 version = "0.3.0"
 dependencies = [
+ "billiard",
  "hk2017",
  "nalgebra",
  "pyo3",
+ "tube",
 ]
 
 [[package]]
