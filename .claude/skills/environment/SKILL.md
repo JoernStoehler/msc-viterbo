@@ -18,138 +18,156 @@ description: Understanding and maintaining the development environments for this
 
 ## Environment Architecture
 
-This project supports two environments:
+This project supports **three environments**:
+
+| Environment | Config Location | Use Case |
+|-------------|-----------------|----------|
+| Local | `.devcontainer/local/` | Jörn's Ubuntu desktop |
+| Codespace | `.devcontainer/codespace/` | GitHub Codespaces + catnip |
+| CC Web | `.devcontainer/ccweb/` (docs only) | Claude Code Web |
 
 ### 1. Local Devcontainer (Jörn's machine)
-- **Defined by**: `.devcontainer/Dockerfile`, `.devcontainer/devcontainer.json`, `scripts/devcontainer-post-create.sh`
-- **What it does**: Pre-installs all dependencies (TexLive, Rust, Python, Node.js, etc.) in a Docker image
+
+- **Defined by**: `.devcontainer/local/devcontainer.json`, `.devcontainer/local/Dockerfile`
+- **Post-create**: `.devcontainer/scripts/post-create.sh`
+- **Host scripts**: `.devcontainer/local/host-*.sh`
+- **What it does**: Full-featured dev environment with all dependencies
 - **Special features**:
   - Bind mounts for cache persistence (`/srv/devhome/*` → `/home/vscode/*`)
-  - Worktrees support (`/workspaces/worktrees` for git worktree isolation)
+  - Manual git worktrees via `/workspaces/worktrees/`
   - Shared Rust build cache via `CARGO_TARGET_DIR=/workspaces/worktrees/shared/target`
+  - Full TexLive installation for PDF builds
+  - VS Code tunnel for remote access
 
-### 2. Claude Code Web Environment
-- **Defined by**: Ubuntu 24.04 base with pre-installed language runtimes (see Claude Code docs)
-- **What it does**: Provides a clean environment accessible from anywhere via web browser
+### 2. GitHub Codespaces
+
+- **Defined by**: `.devcontainer/codespace/devcontainer.json`, `.devcontainer/codespace/Dockerfile`
+- **Post-create**: `.devcontainer/scripts/post-create.sh`
+- **Catnip setup**: `setup.sh` (in repo root, currently disabled)
+- **What it does**: Cloud dev environment with catnip for worktree management
+- **Special features**:
+  - Catnip feature for git worktree management and mobile access
+  - No TexLive (saves 2GB, PDF builds require local)
+  - Port 6369 forwarded for catnip
+- **Known limitations**:
+  - Auto-stops after idle period
+  - OAuth may not persist across rebuilds
+  - Caches don't persist across rebuilds
+
+### 3. Claude Code Web Environment
+
+- **Defined by**: Ubuntu 24.04 base (no devcontainer)
+- **Docs**: `.devcontainer/ccweb/README.md`
+- **What it does**: Lightweight environment accessible via claude.ai/code
 - **What's pre-installed**: Rust, Python (with uv), Node.js, Git, build-essential
-- **What's NOT pre-installed**: TexLive, latexml
-- **Key difference**: No devcontainer files run, no bind mounts, no worktrees directory
+- **What's NOT pre-installed**: TexLive, latexml, Playwright browsers
 
-**Critical limitation (known bug as of Jan 2026):**
-- apt-get does NOT work in web environment (DNS blocked by proxy architecture)
-- See: [GitHub issue #14538](https://github.com/anthropics/claude-code/issues/14538)
-- **Consequence**: TexLive cannot be installed, LaTeX builds are local-only
-- **What works**: cargo, uv/pip, npm (HTTP proxy compatible)
-- **What doesn't work**: apt-get, dpkg, any system packages
+**Critical limitations (as of Jan 2026):**
+- apt-get does NOT work (DNS blocked by proxy architecture)
+- Skills are broken (names/descriptions not autoloaded)
+- Playwright cannot install browsers
+- No git worktrees support
 
 ---
 
-## Dependency Installation
+## Environment Detection
 
-### Progressive Disclosure Strategy
+```bash
+# Devcontainer environment (local or codespace)
+if [[ "${DEVCONTAINER_ENV:-}" == "local" ]]; then
+  echo "Running in local devcontainer"
+elif [[ "${DEVCONTAINER_ENV:-}" == "codespace" ]]; then
+  echo "Running in GitHub Codespace"
+elif [[ -n "${CODESPACES:-}" ]]; then
+  echo "Running in Codespace (env var not set)"
+elif [[ -n "${CLAUDE_CODE_REMOTE:-}" ]]; then
+  echo "Running in Claude Code Web"
+else
+  echo "Unknown environment"
+fi
+```
 
-**Level 1: Error messages explain the situation**
-- Build/lint scripts check for dependencies and print clear errors
-- Example: `pdflatex not found (TexLive is local devcontainer only)`
+---
 
-**Level 2: This skill (understanding)**
-- Explains environment architecture
-- Documents conventions for modifications
+## What's Available Where
 
-**Level 3: Detailed implementation**
-- Devcontainer config files (`.devcontainer/*`)
-- Reference docs in `references/` subdirectory (if any)
-
-### What's Available Where
-
-| Dependency | Local Devcontainer | Web Environment |
-|------------|-------------------|-----------------|
-| TexLive (pdflatex, chktex) | Pre-installed in Dockerfile | NOT available (apt-get blocked) |
-| latexml | Pre-installed in Dockerfile | NOT available (apt-get blocked) |
-| Rust (cargo, rustc) | Pre-installed | Pre-installed |
-| Python + uv | Pre-installed | Pre-installed |
-| Python packages | `uv sync --extra dev` | `uv sync --extra dev` |
-| gh CLI | Pre-installed | Auto-installed by `.claude/hooks/web-env-setup.sh` |
+| Feature | Local | Codespace | CC Web |
+|---------|-------|-----------|--------|
+| TexLive (pdflatex, chktex) | Yes | No | No |
+| latexml | Yes | No | No |
+| Rust (cargo, rustc) | Yes | Yes | Yes |
+| Python + uv | Yes | Yes | Yes |
+| gh CLI | Yes | Yes | Auto-installed |
+| Playwright | Yes | Yes | No |
+| Git worktrees | Manual scripts | Catnip auto | No |
+| Cache persistence | Bind mounts | No | No |
+| Skills | Work | Should work | Broken |
 
 ---
 
 ## Conventions for Modifying Environments
 
-When you need to add dependencies or modify environment setup:
+### 1. Colocate Configuration
+- Environment-specific files go in `.devcontainer/<env>/`
+- Shared scripts go in `.devcontainer/scripts/`
+- Documentation lives alongside config files
 
-### 1. Document with Progressive Disclosure
-- **CLAUDE.md**: Add one-line note to Environment Dependencies section
-- **This skill**: Explain architecture changes if significant
-- **Config files**: Keep comments factual, avoid speculation
-
-### 2. Install Script Conventions
-If you create install scripts:
-- Make scripts idempotent (check before installing)
-- Print helpful messages about time/disk usage
+### 2. Environment-Aware Scripts
+- Use `DEVCONTAINER_ENV` to detect environment
+- Fail gracefully with clear error messages
 - Support `--help` flag
-- Point build/lint scripts to install script in error messages
 
 ### 3. Never Make False Claims
 - Future agents will believe documentation literally
-- Example: Don't call a 2GB install "slim"
-- Example: Don't say "everywhere" when you mean "in local devcontainer"
-- When uncertain, be explicit about what you don't know
+- Be explicit about what's untested
+- Document known limitations
 
 ### 4. Keep It Simple (KISS)
-- Follow standard patterns (cargo, npm, pip/uv; apt-get in local only)
-- Don't over-engineer for hypothetical future requirements
-- Don't add noise to config files that agents don't need
-
-### 5. Maintain Both Environments
-- **Local devcontainer**: Bake dependencies into Dockerfile when reasonable
-- **Web environment**: Only cargo/uv/npm work (no apt-get due to DNS bug)
-- Test changes in both environments (or document what's untested)
-
-### 6. DRY - Don't Repeat Yourself
-- Information should live in ONE canonical place
-- Link to that place rather than duplicating
-- Exception: Error messages can repeat key info (like "local devcontainer only") for convenience
+- Follow standard patterns
+- Don't over-engineer for hypothetical requirements
+- No default devcontainer.json (explicit selection required)
 
 ---
 
 ## Common Tasks
 
-### Detecting Which Environment You're In
-```bash
-# Web environment has this variable
-if [[ -n "${CLAUDE_CODE_REMOTE:-}" ]]; then
-  echo "Running in web environment"
-else
-  echo "Running in local environment (or other)"
-fi
-```
-
 ### Adding a New Dependency
 
-**For Python packages** (works in both environments):
+**For Python packages** (works in all environments):
 1. Add to `packages/python_viterbo/pyproject.toml`
 2. Run `uv sync --extra dev`
 
-**For system dependencies** (local devcontainer only):
-1. Add to `.devcontainer/Dockerfile`
-2. Update build scripts to fail gracefully with clear error in web environment
-3. **Update CLAUDE.md**: Add one line to Environment Dependencies section
+**For Rust crates** (works in all environments):
+1. Add to `packages/rust_viterbo/*/Cargo.toml`
+2. Run `cargo build`
 
-### Fixing Environment-Specific Issues
+**For system dependencies** (local only):
+1. Add to `.devcontainer/local/Dockerfile`
+2. Optionally add to `.devcontainer/codespace/Dockerfile`
+3. Update build scripts to fail gracefully in CC web
 
-Example: Rust builds depend on `CARGO_TARGET_DIR=/workspaces/worktrees/shared/target` in local, but that dir doesn't exist in web.
+### Running Local Devcontainer
 
-**Approach**:
-1. Identify the constraint (worktrees mount only exists in local)
-2. Make it environment-aware (unset CARGO_TARGET_DIR in web, or create dir)
-3. Document the difference in this skill if non-obvious
-4. Test both environments
+```bash
+# From host machine:
+.devcontainer/local/host-devcontainer-rebuild.sh
+.devcontainer/local/host-vscode-tunnel.sh
+```
+
+### Creating a Codespace
+
+```bash
+gh codespace create -r JoernStoehler/msc-viterbo \
+    --devcontainer-path .devcontainer/codespace/devcontainer.json
+```
 
 ---
 
 ## Files to Read
 
-- `.devcontainer/Dockerfile` - What's baked into local devcontainer image
-- `.devcontainer/devcontainer.json` - Local devcontainer configuration
-- `scripts/devcontainer-post-create.sh` - Local environment initialization
-- `.claude/CLAUDE.md` - Top-level environment guidance for agents
+- `.devcontainer/README.md` - Overview of all environments
+- `.devcontainer/local/devcontainer.json` - Local config
+- `.devcontainer/codespace/devcontainer.json` - Codespace config
+- `.devcontainer/ccweb/README.md` - CC web limitations
+- `.devcontainer/scripts/post-create.sh` - Shared post-create script
+- `setup.sh` - Catnip workspace setup (currently disabled)

@@ -30,6 +30,7 @@ packages/
     data/               Output artifacts per experiment
     tests/              pytest tests
 scripts/                Repo-wide dev scripts
+.devcontainer/          Environment configs (local/, codespace/, ccweb/)
 .claude/skills/         Workflow docs (rust-conventions, python-conventions, experiment-workflow, ...)
 docs/                   GitHub Pages site
 TODO.md                 Task tracking and experiment queue
@@ -104,12 +105,20 @@ Scripts support `--help`.
 
 ## Environment
 
-| Dependency | Local devcontainer | Claude Code web |
-|------------|-------------------|-----------------|
-| Rust, Cargo | Yes | Yes |
-| Python, uv | Yes | Yes |
-| gh CLI | Yes | Auto-installed on startup |
-| TeX Live | Yes | No |
+Three environments supported (see `.devcontainer/README.md` for details):
+
+| Feature | Local | Codespace | CC Web |
+|---------|-------|-----------|--------|
+| Rust, Cargo | Yes | Yes | Yes |
+| Python, uv | Yes | Yes | Yes |
+| gh CLI | Yes | Yes | Auto-installed |
+| TeX Live | Yes | No | No |
+| Git worktrees | Manual | Catnip | No |
+| Skills | Work | Should work | Broken |
+
+**Local**: `.devcontainer/local/` - Full-featured, bind mounts, TexLive
+**Codespace**: `.devcontainer/codespace/` - Catnip for worktrees, no TexLive
+**CC Web**: `.devcontainer/ccweb/` (docs only) - Lowest friction, limited features
 
 ## Mathematical Sources
 

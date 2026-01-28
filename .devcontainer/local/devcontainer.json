@@ -1,16 +1,28 @@
 {
-  // Devcontainer definition for msc-viterbo.
-  // Maintenance notes:
-  // - Keep this file aligned with .devcontainer/Dockerfile
-  // - Edit scripts/devcontainer-post-create.sh for multi-step setup
-  "name": "msc-viterbo",
+  // Local devcontainer for msc-viterbo (Jörn's Ubuntu desktop).
+  //
+  // Features:
+  // - Bind mounts for cache persistence (uv, sccache, TeX)
+  // - Bind mounts for OAuth persistence (gh, claude)
+  // - Manual git worktrees via /workspaces/worktrees/
+  // - Full TexLive installation for PDF builds
+  //
+  // Prerequisites on host:
+  // - /srv/devhome/ directories exist
+  // - /srv/devworktrees/msc-viterbo/worktrees/ exists
+  // - devcontainer CLI: npm i -g @devcontainers/cli
+  //
+  // Usage from host:
+  //   .devcontainer/local/host-devcontainer-rebuild.sh
+  //   .devcontainer/local/host-vscode-tunnel.sh
+  "name": "msc-viterbo-local",
   "dockerFile": "Dockerfile",
   "workspaceFolder": "/workspaces/msc-viterbo",
   "updateRemoteUserUID": true,
   "features": {},
-  "postCreateCommand": "bash scripts/devcontainer-post-create.sh",
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
   "containerEnv": {
-    "LOCAL_DEVCONTAINER": "true",
+    "DEVCONTAINER_ENV": "local",
     "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
     "CARGO_TARGET_DIR": "/workspaces/worktrees/shared/target"
   },
