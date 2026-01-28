@@ -58,14 +58,20 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * rotation_diagnostic.rs: full 0-120° sweep at 5° increments showing error pattern
     * action_integral.rs: verified ∫ λ matches support function sum (both give same wrong answer for triangles!)
     * asymmetric_triangles.rs: various irregular triangle combinations
-  - **Critical clues for next agent**:
-    1. Rectangles work perfectly → action formula is correct for those cases
-    2. square×triangle works → not just "any triangle fails"
-    3. Error ONLY when BOTH K_q and K_p are triangles
-    4. Varying ratios (1.65-2.15) → geometry-dependent, not a constant factor
-    5. User note: "don't use dual lengths" but thesis says billiard uses "P^polar-length" (support functions ARE dual lengths!)
-    6. Rotation sweep shows errors at specific angles (max at 15°, min at 30°/60°/90°)
-    7. Almost-triangle (4-gon) test was requested - check if 4-gon×triangle also fails
+  - **Direct observations** (facts from tests):
+    1. ALL rectangle/square products: billiard = HK2017 (AGREEMENT)
+    2. square×triangle: billiard = HK2017 (AGREEMENT)
+    3. triangle×triangle cases: billiard ≠ HK2017, ratio between 1.65 and 2.15 (DISAGREEMENT)
+    4. Rotation sweep: disagreement ratio varies with angle (not constant)
+    5. User feedback: "don't use dual lengths" (thesis says billiard uses "P^polar-length")
+    6. ∫ λ computation gives same values as support function sum
+    7. Orbit validation tests: all pass (breakpoints on boundaries, closure, scaling law)
+  - **Inferences** (logical conclusions - could be wrong):
+    1. Since agreement on rectangles but not triangles, MAYBE error is triangle-specific
+    2. Since square×triangle agrees but triangle×triangle doesn't, MAYBE needs BOTH to be triangles
+    3. Since ratios vary, IF one of them is wrong, it's not off by a constant factor
+  - **NOTE**: Cannot observe which algorithm is "correct" - only whether they agree or disagree
+  - **Unfinished test**: Almost-triangle (4-gon with vertex near edge midpoint) × triangle was added but results not shown
   - **Questions to investigate** (not claims about what the answer is):
     * What does billiard compute? What does HK2017 compute? Are they the same thing?
     * What is the mathematical formula for billiard action from the thesis?
