@@ -54,10 +54,7 @@ use thiserror::Error;
 /// let volume = polytope_volume_hrep(&normals, &heights).unwrap();
 /// assert!((volume - 16.0).abs() < 1e-6);
 /// ```
-pub fn polytope_volume_hrep(
-    normals: &[Vector4<f64>],
-    heights: &[f64],
-) -> Result<f64, VolumeError> {
+pub fn polytope_volume_hrep(normals: &[Vector4<f64>], heights: &[f64]) -> Result<f64, VolumeError> {
     if normals.len() != heights.len() {
         return Err(VolumeError::DimensionMismatch {
             normals: normals.len(),
@@ -115,17 +112,14 @@ fn compute_hull_volume(qh: &Qh, vertices: &[Vector4<f64>]) -> Result<f64, Volume
 
     // Iterate over all facets of the hull (all are simplices due to Qt option)
     for facet in qh.facets() {
-
         // Get vertex indices for this facet
         let facet_vertices = match facet.vertices() {
             Some(v) => v,
             None => continue,
         };
 
-        let vertex_indices: Vec<usize> = facet_vertices
-            .iter()
-            .filter_map(|v| v.index(qh))
-            .collect();
+        let vertex_indices: Vec<usize> =
+            facet_vertices.iter().filter_map(|v| v.index(qh)).collect();
 
         // Each facet should be a 3-simplex (4 vertices) due to Qt triangulation
         if vertex_indices.len() != 4 {
@@ -193,9 +187,9 @@ fn compute_vertices(
 
                         if is_valid {
                             // Check if not already in list (within tolerance)
-                            let is_duplicate = vertices.iter().any(|v: &Vector4<f64>| {
-                                (v - vertex).norm() < 1e-6
-                            });
+                            let is_duplicate = vertices
+                                .iter()
+                                .any(|v: &Vector4<f64>| (v - vertex).norm() < 1e-6);
 
                             if !is_duplicate {
                                 vertices.push(vertex);
@@ -339,12 +333,7 @@ mod tests {
             for s2 in &[-1.0, 1.0] {
                 for s3 in &[-1.0, 1.0] {
                     for s4 in &[-1.0, 1.0] {
-                        normals.push(Vector4::new(
-                            s1 * norm,
-                            s2 * norm,
-                            s3 * norm,
-                            s4 * norm,
-                        ));
+                        normals.push(Vector4::new(s1 * norm, s2 * norm, s3 * norm, s4 * norm));
                         heights.push(norm); // Distance from origin to facet
                     }
                 }
