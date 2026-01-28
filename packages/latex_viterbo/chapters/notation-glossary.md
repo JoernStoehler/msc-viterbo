@@ -27,5 +27,4 @@ Quick reference for notation used in this thesis and correspondence with key pap
 
 ## Open Issues
 
-1. ~~**ω factor of 2**~~: Fixed. Now ω(x,y) = ⟨Jx, y⟩ everywhere (no ½).
-2. **Missing theorems**: `\todoref{thm:simple-min-action-reeb-orbit}`, `\todoref{thm:cz-index}` in algorithms.tex.
+1. **Missing theorems**: `\todoref{thm:simple-min-action-reeb-orbit}`, `\todoref{thm:cz-index}` in algorithms.tex need theorems written in math chapters.
