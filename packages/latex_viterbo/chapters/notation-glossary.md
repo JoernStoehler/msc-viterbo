@@ -49,6 +49,18 @@ This file tracks notation conventions to maintain consistency across chapters.
 
 ## Known Issues to Fix
 
-1. **Section 3.1** uses `n` for facet count → change to `F`
-2. **Section 3.4** uses `n` for facet count → change to `F`
-3. **Factor of 2 in ω**: Check if ω(x,y) = ⟨Jx,y⟩ or ½⟨Jx,y⟩ throughout
+### RESOLVED
+- ~~**Section 3.1** uses `n` for facet count → change to `F`~~ (fixed)
+- ~~**Section 3.4** uses `n` for facet count → change to `F`~~ (fixed)
+- ~~**CH bound qualification** → added "non-Lagrangian polytopes"~~ (fixed)
+
+### TODO: Factor of 2 in symplectic form (needs investigation)
+- `math/01-standard-symplectic.tex` line 10: defines ω(x,y) = ½⟨Jx, y⟩
+- `math/05-reeb-dynamics.tex` line 41: uses ⟨Jn_i, n_j⟩ = ω(n_i, n_j) without factor
+- These differ by factor of 2. Need to audit all ω usages for consistency.
+- Could affect numerical factors in capacity formulas.
+
+### TODO: Unresolved theorem references
+- `algorithms.tex` line ~307 has `\todoref{thm:simple-min-action-reeb-orbit}`
+- `algorithms.tex` line ~307 has `\todoref{thm:cz-index}`
+- These theorems need to be written in math chapters before refs can be resolved.
