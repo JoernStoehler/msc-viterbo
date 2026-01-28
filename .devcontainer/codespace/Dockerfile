@@ -1,59 +1,54 @@
+# -----------------------------------------------------------------------------
+# Codespace devcontainer for msc-viterbo
+#
+# Based on official sources:
+# - Base: mcr.microsoft.com/devcontainers/base:ubuntu (has git, zsh, vscode user)
+# - uv: copied from ghcr.io/astral-sh/uv (recommended by Astral)
+# - Rust: rustup.rs (official)
+# - Node: nodesource (well-tested)
+#
+# NO TexLive - use local devcontainer for PDF builds
+# -----------------------------------------------------------------------------
+
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-SHELL ["/bin/bash", "-lc"]
-
-# -----------------------------------------------------------------------------
-# Codespace devcontainer image for msc-viterbo
-#
-# Simplified version of local Dockerfile:
-# - NO TexLive (use local devcontainer for PDF builds)
-# - Same toolchain: Rust, Python, uv, Node.js
-# -----------------------------------------------------------------------------
-
-# Base system dependencies
+# Build dependencies for Rust crates (ssl, etc)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    git \
-    git-lfs \
     build-essential \
     pkg-config \
     libssl-dev \
     python3 \
     python3-venv \
-    python3-pip \
-    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# CLI tools
+# CLI tools (gh is in Ubuntu repos)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ripgrep \
     jq \
     gh \
-    tree \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js 22.x
+# Node.js 22.x via nodesource
+# https://github.com/nodesource/distributions
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/* \
-    && node -v && npm -v
+    && rm -rf /var/lib/apt/lists/*
 
-# uv (Python packaging)
-ENV UV_INSTALL_DIR=/usr/local
-ENV UV_VERSION=0.5.14
-RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
-    && /usr/local/bin/uv --version
+# uv - copy from official Astral image (recommended approach)
+# https://github.com/astral-sh/uv/blob/main/docs/guides/integration/docker.md
+COPY --from=ghcr.io/astral-sh/uv:0.5.14 /uv /uvx /usr/local/bin/
 
-# Switch to dev user for Rust
+# Switch to vscode user for Rust (toolchain installed per-user)
 USER vscode
 ENV HOME=/home/vscode
-ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+ENV PATH="$HOME/.cargo/bin:$PATH"
 
-# Rust toolchain
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
-    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy
+# Rust via rustup (official)
+# https://rustup.rs/
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
+    && . "$HOME/.cargo/env" \
+    && rustup component add rustfmt clippy
 
 WORKDIR /workspaces/msc-viterbo
