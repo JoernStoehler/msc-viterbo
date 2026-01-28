@@ -29,12 +29,12 @@ The numerical analysis does not really tell us much of interest about the symple
 \paragraph{Half-space Representation of Polytopes}
 The main representation of a convex polytope \(K \subset \R^4\) used in the algorithms is via its unique irredundant half-space representation (H-rep):
 \begin{description}
-  \item[Facet count] \(n \in \Z_{\ge 5}\) is the number of facets \((F_i)_{i=1}^n\) of \(K\). At least 5 facets are needed to enclose a bounded volume in \(\R^4\).
+  \item[Facet count] \(F \in \Z_{\ge 5}\) is the number of facets \((F_i)_{i=1}^F\) of \(K\). At least 5 facets are needed to enclose a bounded volume in \(\R^4\).
   \item[Facet normals] For each facet we have an outward normal vector \(n_i \in \R^4\) with \(\norm{n_i} = 1\).
   \item[Facet heights] For each facet we have a support number \(h_i \in \R_{>0}\) such that the origin is contained in the interior of \(K\).
   \item[Polytope definition] The polytope is then defined as the intersection of the half-spaces:
     \[
-      K = \bigcap_{i=1}^n \{ z \in \R^4 : \inner{n_i}{z} \le h_i \}.
+      K = \bigcap_{i=1}^F \{ z \in \R^4 : \inner{n_i}{z} \le h_i \}.
     \]
   \item[Constraints] We have to assume boundedness and irredundancy as extra constraint, i.e. not every normal and height set defines a bounded polytope irredundantly.
 \end{description}
@@ -42,10 +42,10 @@ The main representation of a convex polytope \(K \subset \R^4\) used in the algo
 \paragraph{Vertex Representation of Polytopes}
 We sometimes convert to the vertex/extreme point representation (V-rep) as needed, using off-the-shelf algorithms.
 \begin{description}
-  \item[Vertex count] \(n_V \in \Z_{\ge 5}\) is the number of vertices of \(K\). No simple correspondence to \(n\) exists in general.
-  \item[Vertices] The vertices are points \(v_j \in \R^4\) for \(j \in \{1, \ldots, n_V\}\) such that
+  \item[Vertex count] \(V \in \Z_{\ge 5}\) is the number of vertices of \(K\). No simple correspondence to \(F\) exists in general.
+  \item[Vertices] The vertices are points \(v_j \in \R^4\) for \(j \in \{1, \ldots, V\}\) such that
     \[
-      K = \conv\{ v_j : j = 1, \ldots, n_V \}.
+      K = \conv\{ v_j : j = 1, \ldots, V \}.
     \]
   \item[Constraints] We have to assume that \(0 \in \interior(K)\) as an extra constraint, as well as again irredundancy, i.e. no vertex can be removed without changing \(K\).
 \end{description}
@@ -55,12 +55,12 @@ We also need to represent the skeleton of the polytope for some algorithms.
 Any of the non-empty \(k\)-Faces of \(K\) for \(k \in \{0,1,2,3\}\) can be represented as a lower-dimensional convex bounded non-empty polytope in a \(k\)-dimensional affine subspace of \(\R^4\) that is the intersection of several hyperplanes defining facets of \(K\).
 Each \(k\)-Face \(F\) has a unique representation using
 \begin{description}
-  \item[Half-space Hyperplane Set] The maximal index set \(I \subset \{1, \ldots, n\}\) of the hyperplanes whose intersection defines the affine subspace containing \(F\). We picked the unique maximum instead of an arbitrary minimal set, to allow us to match data to the \(\ge k+1\)-faces containing \(F\) easily.
-  \item[Half-space Inequalities] The maximal index set \(J \subset \{1, \ldots, n\}\) with \(I \subset J\) of sharp half-space inequalities that define \(F\). We picked the sharp inequalities to easily talk about the \(\le k-1\)-faces contained in \(F\). Unsharp inequalities are redundant not just for \(F\) but all sub-faces, and so we omit them.
+  \item[Half-space Hyperplane Set] The maximal index set \(I \subset \{1, \ldots, F\}\) of the hyperplanes whose intersection defines the affine subspace containing \(F\). We picked the unique maximum instead of an arbitrary minimal set, to allow us to match data to the \(\ge k+1\)-faces containing \(F\) easily.
+  \item[Half-space Inequalities] The maximal index set \(J \subset \{1, \ldots, F\}\) with \(I \subset J\) of sharp half-space inequalities that define \(F\). We picked the sharp inequalities to easily talk about the \(\le k-1\)-faces contained in \(F\). Unsharp inequalities are redundant not just for \(F\) but all sub-faces, and so we omit them.
     \[
       F = \bigcap_{i \in J} \{ z \in \R^4 : \inner{n_i}{z} \le h_i \} \subset \bigcap_{i \in I} \{ z \in \R^4 : \inner{n_i}{z} = h_i \} \cong \R^k.
     \]
-  \item[Face Vertices] Indices \(L \subset \{1, \ldots, n_V\}\) of the vertices of \(K\) that are the extreme points of \(F\). We have
+  \item[Face Vertices] Indices \(L \subset \{1, \ldots, V\}\) of the vertices of \(K\) that are the extreme points of \(F\). We have
     \[
       F = \conv\{ v_l : l \in L \}.
     \]
@@ -294,7 +294,7 @@ We start by focusing on the case of a search over orbits that do not involve any
 
 \subsection{Case: Orbits Without Lagrangian 2-Faces}
 Let \(K \subset \R^4\) be a convex polytope.
-Let \((F_i)_{i=1}^n\) be the set of facets of \(K\). The number of facets is \(n \ge 5\).
+Let \((F_i)_{i=1}^F\) be the set of facets of \(K\). The number of facets is \(F \ge 5\).
 
 \begin{definition}[2-Face]
   An intersection \(F_i \cap F_j\) of two facets \(F_i, F_j\) is called a 2-face of \(K\) if it has non-empty interior.
@@ -472,7 +472,7 @@ We can now present a fallback algorithm that explores all Reeb orbits that do cr
 The true minimum action capacity is then the minimum of the two cases.
 
 Let \(K \subset \R^4\) be a convex polytope with at least one lagrangian 2-face.
-Let \((F_i)_{i=1}^n\) be the set of facets of \(K\). The number of facets is \(n \ge 5\).
+Let \((F_i)_{i=1}^F\) be the set of facets of \(K\). The number of facets is \(F \ge 5\).
 
 Just like before, we can define combinatorial classes of Reeb trajectories.
 
