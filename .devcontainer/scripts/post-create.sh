@@ -104,14 +104,12 @@ fi
 # -----------------------------------------------------------------------------
 
 if [[ "$ENV" == "codespace" ]]; then
-  echo "Codespace environment"
+  echo "Codespace environment (no TexLive - use local for PDF builds)"
 
-  # Verify LaTeX tooling
-  if command -v latexmk >/dev/null 2>&1; then
-    echo "latexmk: $(latexmk --version 2>/dev/null | head -1 || echo 'available')"
-  else
-    echo "WARNING: latexmk not found" >&2
-  fi
+  # Verify core tools
+  echo "rust: $(rustc --version 2>/dev/null || echo 'not found')"
+  echo "uv: $(uv --version 2>/dev/null || echo 'not found')"
+  echo "node: $(node --version 2>/dev/null || echo 'not found')"
 fi
 
 # -----------------------------------------------------------------------------

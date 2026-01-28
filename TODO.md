@@ -82,6 +82,7 @@ Tasks identified during code quality assessment (2026-01-27).
 **Done:**
 - [x] Achieve clean tool output (pyright 0 errors/warnings, ruff clean, clippy 0 warnings) (2026-01-27)
 - [x] Document "no coverage tools" decision in quality-improvement skill (2026-01-27)
+- [x] Fix codespace devcontainer build: use pre-built features instead of manual installs, remove TexLive (2026-01-28)
 
 ## Deferred Decisions (#24)
 
