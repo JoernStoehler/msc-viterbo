@@ -557,6 +557,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "geom",
+ "hk2017",
  "nalgebra",
  "proptest",
  "thiserror",
