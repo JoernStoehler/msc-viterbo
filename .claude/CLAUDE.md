@@ -117,7 +117,7 @@ Three environments supported (see `.devcontainer/README.md` for details):
 | Skills | Work | Should work | Broken |
 
 **Local**: `.devcontainer/local/` - Full-featured, bind mounts
-**Codespace**: `.devcontainer/codespace/` - Fast startup via features, no TeX Live
+**Codespace**: `.devcontainer/codespace/` - Simplified Dockerfile, no TeX Live
 **CC Web**: `.devcontainer/ccweb/` (docs only) - Lowest friction, limited features
 
 ## Mathematical Sources

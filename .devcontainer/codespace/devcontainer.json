@@ -1,8 +1,9 @@
 {
   // GitHub Codespaces devcontainer for msc-viterbo.
   //
-  // Design: Uses pre-built devcontainer features for fast startup.
-  // TexLive is NOT included (use local devcontainer for PDF builds).
+  // Simplified version of local devcontainer:
+  // - NO TexLive (use local devcontainer for PDF builds)
+  // - Same toolchain: Rust, Python, uv, Node.js
   //
   // Known limitations:
   // - Codespaces auto-stops after idle period
@@ -14,26 +15,7 @@
   // - Create codespace from GitHub UI, select this config
   // - Or: gh codespace create --devcontainer-path .devcontainer/codespace/devcontainer.json
   "name": "msc-viterbo-codespace",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  "features": {
-    // Rust toolchain with rustfmt and clippy
-    "ghcr.io/devcontainers/features/rust:1": {
-      "version": "stable",
-      "profile": "default"
-    },
-    // Python 3.12 (system Python also available)
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.12"
-    },
-    // uv package manager (fast Python packaging)
-    "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
-    // Node.js for JS tooling
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "22"
-    },
-    // GitHub CLI
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
+  "dockerFile": "Dockerfile",
   "workspaceFolder": "/workspaces/msc-viterbo",
   "updateRemoteUserUID": true,
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",

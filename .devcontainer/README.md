@@ -16,7 +16,7 @@ This project supports three development environments:
 | Cache persistence | Bind mounts | No | No |
 | Git worktrees | Manual scripts | Manual | No |
 | Skills | Work | Should work | Broken |
-| Startup time | Fast | Fast | Fast |
+| Startup time | Fast | Moderate | Fast |
 | Friction | Medium | Low | Low |
 
 ## Local (`local/`)
@@ -36,7 +36,7 @@ Prerequisites:
 
 ## Codespace (`codespace/`)
 
-GitHub Codespaces for remote development. Uses devcontainer features for fast startup.
+GitHub Codespaces for remote development. Simplified Dockerfile (no TexLive).
 
 ```bash
 # Create codespace:
@@ -44,9 +44,9 @@ gh codespace create -r JoernStoehler/msc-viterbo \
     --devcontainer-path .devcontainer/codespace/devcontainer.json
 ```
 
-Pre-installed via features:
+Pre-installed:
 - Rust (stable with rustfmt, clippy)
-- Python 3.12 with uv
+- Python 3 with uv
 - Node.js 22
 - GitHub CLI
 
