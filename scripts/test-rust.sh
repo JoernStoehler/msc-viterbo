@@ -16,6 +16,8 @@
 #   RELEASE MODE tests verify output correctness (expensive, no debug dependency)
 
 set -euo pipefail
+
+SCRIPT_PATH="$(realpath "$0")"
 cd "$(dirname "$0")/../packages/rust_viterbo"
 
 RUN_DEBUG=true
@@ -26,7 +28,7 @@ for arg in "$@"; do
         --debug) RUN_RELEASE=false ;;
         --release) RUN_DEBUG=false ;;
         --help|-h)
-            head -16 "$0" | tail -15
+            head -16 "$SCRIPT_PATH" | tail -15
             exit 0
             ;;
     esac

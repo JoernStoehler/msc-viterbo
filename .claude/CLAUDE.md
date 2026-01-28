@@ -112,12 +112,12 @@ Three environments supported (see `.devcontainer/README.md` for details):
 | Rust, Cargo | Yes | Yes | Yes |
 | Python, uv | Yes | Yes | Yes |
 | gh CLI | Yes | Yes | Auto-installed |
-| TeX Live | Yes | No | No |
-| Git worktrees | Manual | Catnip | No |
+| TeX Live | Yes | Yes | No |
+| Git worktrees | Scripts | Manual | No |
 | Skills | Work | Should work | Broken |
 
-**Local**: `.devcontainer/local/` - Full-featured, bind mounts, TexLive
-**Codespace**: `.devcontainer/codespace/` - Catnip for worktrees, no TexLive
+**Local**: `.devcontainer/local/` - Full-featured, bind mounts
+**Codespace**: `.devcontainer/codespace/` - Full-featured, no cache persistence
 **CC Web**: `.devcontainer/ccweb/` (docs only) - Lowest friction, limited features
 
 ## Mathematical Sources

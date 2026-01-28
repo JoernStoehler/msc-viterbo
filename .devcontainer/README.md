@@ -5,18 +5,17 @@ This project supports three development environments:
 | Environment | Folder | Use Case |
 |-------------|--------|----------|
 | **Local** | `local/` | Jörn's Ubuntu desktop with bind mounts |
-| **Codespace** | `codespace/` | GitHub Codespaces with catnip |
+| **Codespace** | `codespace/` | GitHub Codespaces |
 | **CC Web** | `ccweb/` | Claude Code Web (no devcontainer) |
 
 ## Quick Comparison
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| TexLive (PDF builds) | Yes | No | No |
+| TexLive (PDF builds) | Yes | Yes | No |
 | Cache persistence | Bind mounts | No | No |
-| Git worktrees | Manual scripts | Catnip auto | No |
+| Git worktrees | Manual scripts | Manual | No |
 | Skills | Work | Should work | Broken |
-| Playwright | Yes | Yes | No |
 | Startup time | Fast | Moderate | Fast |
 | Friction | Medium | Medium | Low |
 
@@ -37,14 +36,12 @@ Prerequisites:
 
 ## Codespace (`codespace/`)
 
-GitHub Codespaces with catnip for mobile access and worktree management.
+GitHub Codespaces for remote development.
 
 ```bash
 # Create codespace:
 gh codespace create -r JoernStoehler/msc-viterbo \
     --devcontainer-path .devcontainer/codespace/devcontainer.json
-
-# Mobile access: catnip.run (after codespace is running)
 ```
 
 Known limitations:

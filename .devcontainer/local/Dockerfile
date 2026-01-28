@@ -84,8 +84,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 # Install uv (Python packaging/runner) globally. Pin for reproducibility.
 # The installer appends "/bin" to UV_INSTALL_DIR, so point it at /usr/local to land in /usr/local/bin.
+# Note: maturin requires uv >= 0.4.25 for editable installs
 ENV UV_INSTALL_DIR=/usr/local
-ENV UV_VERSION=0.4.20
+ENV UV_VERSION=0.5.14
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
     && uv --version
 

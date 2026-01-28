@@ -8,12 +8,9 @@ SHELL ["/bin/bash", "-lc"]
 # Devcontainer image for msc-viterbo (GitHub Codespaces variant)
 #
 # Differences from local/:
-# - No TexLive (~2GB saved, faster startup)
 # - No VS Code tunnel CLI (Codespaces has native tunnel)
-# - Catnip handles git worktrees (no /workspaces/worktrees mount)
-#
-# TexLive omission means: LaTeX/PDF builds require local devcontainer.
-# This is acceptable because thesis PDF builds are Jörn's task, not agents'.
+# - No bind mounts (Codespaces limitation)
+# - No sccache (no persistent cache in Codespaces)
 # -----------------------------------------------------------------------------
 
 # Base system dependencies (rarely change; heavy but shared by all tools).
@@ -28,6 +25,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
     python3-pip \
     ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# TeX toolchain for PDF and HTML builds (~2.5GB installed).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-bibtex-extra \
+    texlive-pictures \
+    texlive-science \
+    texlive-xetex \
+    texlive-luatex \
+    texlive-extra-utils \
+    latexmk \
+    biber \
+    chktex \
+    lacheck \
+    ghostscript \
+    imagemagick \
+    python3-pygments \
+    latexml \
     && rm -rf /var/lib/apt/lists/*
 
 # Common CLI tools used by agents
@@ -49,8 +68,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && node -v && npm -v
 
 # Install uv (Python packaging/runner) globally. Pin for reproducibility.
+# Note: maturin requires uv >= 0.4.25 for editable installs
 ENV UV_INSTALL_DIR=/usr/local
-ENV UV_VERSION=0.4.20
+ENV UV_VERSION=0.5.14
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
     && uv --version
 
