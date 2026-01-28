@@ -124,6 +124,11 @@ pub use types::{
 };
 pub use verify::{verify_results_equivalent, VerificationDetails, VerificationError};
 
+/// Integration tests for the HK2017 algorithm.
+///
+/// These tests verify output correctness and are marked with
+/// `#[cfg_attr(debug_assertions, ignore)]` to run only in release mode.
+/// They perform expensive capacity computations that are ~10x faster in release.
 #[cfg(test)]
 mod integration_tests {
     use super::*;
@@ -146,6 +151,7 @@ mod integration_tests {
         PolytopeHRep::new(normals, heights)
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_full_pipeline_tesseract() {
         let polytope = make_tesseract();
@@ -161,6 +167,7 @@ mod integration_tests {
         assert!(result.verify_checked(&facet_data).is_ok());
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_enumeration_strategies_agree() {
         let polytope = make_tesseract();
@@ -171,6 +178,7 @@ mod integration_tests {
         assert!(verify_results_equivalent(&result_naive, &result_graph, 1e-10).is_ok());
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_scaling_axiom() {
         let polytope = make_tesseract();
@@ -195,6 +203,7 @@ mod integration_tests {
         }
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_capacity_positive() {
         let polytope = make_tesseract();
