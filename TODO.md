@@ -53,14 +53,14 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Research Experiments
 
-**Blocked on volume computation (#31):**
-- [-] billiard-hko-orbit — needs systolic ratio (volume + capacity)
-- [-] random-polytope-sys-distribution — needs systolic ratio
-- [-] lagrangian-product-polygons — needs systolic ratio
-- [-] lagrangian-product-random-polygons — needs systolic ratio
-- [-] fixed-facet-vertex-count — needs main dataset with systolic ratios
-- [-] dataset-dimension-reduction — needs main dataset with systolic ratios
-- [-] sys-ratio-optimization — needs systolic ratio
+**Ready to execute (volume + capacity now available):**
+- [ ] billiard-hko-orbit — validate pentagon counterexample (sys ≈ 1.047, capacity ≈ 3.441)
+- [ ] random-polytope-sys-distribution — how rare are counterexamples (sys > 1)?
+- [ ] lagrangian-product-polygons — systematic study of regular polygon products
+- [ ] lagrangian-product-random-polygons — extend to random polygon products
+- [ ] fixed-facet-vertex-count — filter dataset by combinatorial complexity
+- [ ] dataset-dimension-reduction — PCA/UMAP on polytope feature space
+- [ ] sys-ratio-optimization — gradient flow toward maximum systolic ratio
 
 **Blocked on other dependencies:**
 - [-] algorithm-performance-comparison — needs all algorithms validated (triangle×triangle bug)
