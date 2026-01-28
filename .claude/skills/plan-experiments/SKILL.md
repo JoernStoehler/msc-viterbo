@@ -10,7 +10,8 @@ description: Planning or executing thesis research experiments. Use when designi
 - **TODO.md tracks experiments** alongside other tasks
 - **Checklist is index; Details sections are documentation**
 - **Don't compress ideas** - preserve intellectual labor when capturing research ideas
-- **One experiment, multiple variants** - use separate config files, not separate experiment entries
+- **One experiment, multiple variants** - use separate config files, not separate experiment entries, when you already know how to abstract
+- **Multiple experiments, abstract later** - if experiments have overlap but are different in lifecycle or purpose, just copy/duplicate in order to have modules that can be changed independently. later, if the overlap remains, you can always refactor and abstract and merge.
 - **Reproduction must be obvious** - pattern should be self-evident from repo structure
 
 ## Study Before Creating
@@ -25,8 +26,10 @@ Always study `src/viterbo/experiments/example_pipeline/` first - it's a complete
 
 1. **Ideation** - Turn vague idea into clear research question
 2. **Specification** - Write SPEC.md with success criteria
-3. **Execution** - Implement and run
+3. **Execution** - Implement and run and interpret
 4. **Polishing** - Clean up for thesis publication
+
+Of course stages are not strictly separated, agents can move back and forth as they learn more about the problem.
 
 ## File Locations
 
@@ -35,6 +38,7 @@ Always study `src/viterbo/experiments/example_pipeline/` first - it's a complete
 | Tracking | TODO.md (checklist + Details section) |
 | Code | `packages/python_viterbo/src/viterbo/experiments/<label>/` |
 | SPEC.md | `packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md` |
+| FINDINGS.md | `packages/python_viterbo/src/viterbo/experiments/<label>/FINDINGS.md` |
 | Configs | `packages/python_viterbo/config/<label>/` |
 | Data | `packages/python_viterbo/data/<label>/` |
 | Thesis assets | `packages/latex_viterbo/assets/<label>/` |
@@ -56,7 +60,7 @@ How will we answer the question?
 
 ## Success Criteria
 
-What outcome means "it worked"?
+What outcome means "we are satisfied"?
 
 ## Expected Outputs
 
@@ -83,6 +87,7 @@ Create experiment folder with SPEC.md. Update TODO.md tracking to "Specified".
 ## Execution Stage
 
 Implement stages, run, produce data. See develop-python skill for code structure.
+Analyze results, write FINDINGS.md with observations, interpretations and learnings.
 
 ## Polishing Stage
 
@@ -93,4 +98,6 @@ Clean up code, generate publication-quality figures, write thesis section.
 When finishing work:
 1. Update TODO.md (checklist status + Details section if needed)
 2. Ensure SPEC.md reflects current state
-3. Commit with message referencing label
+3. Ensure FINDINGS.md records interpretations
+4. Ensure thesis assets and text pass style review
+5. Commit with message referencing label

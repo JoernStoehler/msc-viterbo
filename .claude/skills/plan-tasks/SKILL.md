@@ -5,15 +5,6 @@ description: Adding or reorganizing tasks in TODO.md. Use when Jörn requests ta
 
 # Task Planning
 
-**When to use this skill:**
-- You need to add new tasks to TODO.md (work discovered that can't be done now)
-- You need to restructure/reorganize TODO.md for clarity
-- Jörn explicitly asks you to add tasks
-
-**When NOT to use:**
-- Just marking tasks `[x]` as done (that's in CLAUDE.md Agent Protocol, always-on)
-- Normal work (build, test, commit)
-
 ## TODO.md Structure
 
 - **Checklist sections** at top for quick scanning

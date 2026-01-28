@@ -5,28 +5,20 @@ description: Downloading arXiv papers for thesis research. Use when you need to 
 
 # arXiv Paper Management
 
-## When to Use
+## Check Existing Papers First
 
-- You found an arXiv paper via web search and need to read its actual content
-- You need to verify formulas, definitions, or proofs from a paper
-- A paper is repeatedly needed across sessions and should be cached locally
-
-**Do NOT use** for papers you only need to cite without reading deeply. Just add a BibTeX entry to `packages/latex_viterbo/references.bib`.
-
-## Location
-
-Papers live in `docs/papers/`. Check existing folders first:
 ```bash
 ls -la docs/papers/
 ```
 
+If the paper folder exists, just read the `.tex` files directly. No download needed.
+
 ## Download Workflow
 
-**Use the download script** (requires TeX sources on arXiv):
+When the paper is NOT in `docs/papers/` yet:
 
 ```bash
-# Clone download script from OLD_SKILLS_ARCHIVE.md if needed
-# Then run:
+cd /workspaces/worktrees/<task>/
 bash .claude/skills/download-arxiv-papers/download-arxiv.sh <arxiv-id> <folder-name>
 
 # Example:
@@ -34,15 +26,15 @@ bash .claude/skills/download-arxiv-papers/download-arxiv.sh 2203.02043 Rudolf202
 ```
 
 **Folder naming convention:**
-- Single author: `Surname + Year + description` (e.g., `Rudolf2022-worm-problem`)
-- Multiple authors: `Initials + Year + description` (e.g., `HK2024-counterexample`)
+- `Initials + Year + description` (e.g., `HK2024-counterexample`)
 
-The script handles format detection (tar.gz vs gzip'd single file) automatically.
+The script automatically detects format (tar.gz or gzip'd single file) and extracts.
 
-### After Downloading Checklist
+## After Downloading: Required Steps
 
-1. **Update `docs/papers/README.md`** - add row to the table
-2. **Add BibTeX to `packages/latex_viterbo/references.bib`** - websearch `arXiv <id>` for title/authors:
+1. **Update [docs/papers/README.md](docs/papers/README.md)** - add row to the table with paper details
+
+2. **Add BibTeX to [packages/latex_viterbo/references.bib](packages/latex_viterbo/references.bib)** - websearch `arXiv <id>` for title/authors:
    ```bibtex
    @article{Rudolf2022,
      title        = {Viterbo's conjecture as a worm problem},
@@ -55,59 +47,32 @@ The script handles format detection (tar.gz vs gzip'd single file) automatically
      note         = {Brief description of key results.}
    }
    ```
-3. **Verify extraction** - `ls -la docs/papers/<folder>/` to see files
 
-## Reading Papers
+3. **Verify extraction worked**:
+   ```bash
+   ls -la docs/papers/<folder>/
+   ```
 
-**Read the .tex files directly.** They are plain text and more reliable than PDF parsing.
+## First-Time Navigation Tips
 
-**Watch for custom macros:** Some papers define shortcuts like `\bthm` instead of `\begin{theorem}`. If standard searches return nothing, check the preamble for `\def\bthm` or similar. Search for both patterns:
+After downloading, you'll have raw `.tex` files. Quick tips for exploring:
 
+**Find main content:**
 ```bash
-# Standard LaTeX theorem environments
+# Look for main theorem/definition/lemma environments
 grep -n "begin{theorem}\\|begin{definition}\\|begin{lemma}" docs/papers/FOLDER/*.tex
 
-# Custom macros (common in some papers)
-grep -n "\\\\bthm\\|\\\\blem\\|\\\\bprop\\|\\\\bdefi" docs/papers/FOLDER/*.tex
-
-# Find all labels
-grep -n "\\\\label{" docs/papers/FOLDER/*.tex
+# Some papers use custom macros like \bthm - check preamble if standard search fails
+grep -n "\\\\bthm\\|\\\\blem\\|\\\\bprop" docs/papers/FOLDER/*.tex
 ```
 
-## Labels vs Numbers (TeX vs PDF)
+**Find specific results by label:**
+```bash
+# TeX uses labels (\label{thm:main}), not numbers ("Theorem 3.2")
+grep -B2 -A10 "\\\\label{thm:main}" docs/papers/FOLDER/*.tex
+```
 
-TeX files use **labels** (e.g., `\label{thm:main}`), while PDFs show **numbers** (e.g., "Theorem 3.2").
-
-**How to navigate**:
-
-1. **Find where a label is defined** - the theorem text is right there:
-   ```bash
-   grep -B2 -A10 "\\\\label{thm:main}" docs/papers/FOLDER/*.tex
-   ```
-
-2. **Find all label definitions** to build a mental map:
-   ```bash
-   grep -n "\\\\label{" docs/papers/FOLDER/*.tex | head -30
-   ```
-
-3. **Labels are descriptive**: `thm:capacity`, `lem:rotation-bound` tell you more than numbers
-
-4. **When humans reference by number**: Ask for label/section name, or look for context clues
-
-**Do not rely on PDF for math content** - PDF parsing mangles formulas. Use PDF only to verify theorem numbering if absolutely necessary.
-
-## Folder Naming Rationale
-
-The scheme `CITATIONKEY-description/` with original filenames inside enables:
-- **Discoverability**: Find papers by author, year, or topic via folder names
-- **Citation linking**: Folder prefix matches `references.bib` entries
-- **Intact references**: Internal `\input{section1}` still works
-- **Easy browsing**: `ls -la` shows all paper files
-
-## Why TeX over PDF
-
-- TeX files are plain text, easy to grep and read
-- PDF parsing in agents is unreliable for math notation
-- Formulas appear exactly as the author wrote them
-- Labels are searchable; following `\ref{}` is straightforward
-- Smaller file size, faster to process
+**Why not PDF?**
+- Agents can directly read PDFs, but transcription errors are common, including in formulas where they are impossible to catch.
+- PDFs when read directly consume more context window budget than the source `.tex` files.
+- Reading `.tex` source avoids OCR issues and allows direct access to mathematical content.

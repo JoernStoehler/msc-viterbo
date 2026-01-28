@@ -22,12 +22,12 @@ description: Working with development environments, git worktrees for parallel a
 ## Environment Detection
 
 ```bash
-if [[ "${DEVCONTAINER_ENV:-}" == "codespace" ]]; then
+if [[ -n "${CODESPACE:-}" ]]; then
   echo "Codespace"
-elif [[ -n "${CODESPACES:-}" ]]; then
-  echo "Codespace (env var not set)"
 elif [[ -n "${CLAUDE_CODE_REMOTE:-}" ]]; then
   echo "CC Web"
+else
+  echo "Local"
 fi
 ```
 
@@ -37,13 +37,6 @@ fi
 - OAuth may not persist across rebuilds
 - Caches don't persist across rebuilds
 - `/workspaces/` persists across rebuilds (use for worktrees)
-
-## Creating Codespace
-
-```bash
-gh codespace create -r JoernStoehler/msc-viterbo \
-    --devcontainer-path .devcontainer/codespace/devcontainer.json
-```
 
 ## Git Worktrees for Parallel Agents
 
@@ -67,32 +60,7 @@ git worktree add /workspaces/worktrees/fix-billiard-bug -b fix-billiard-bug
 
 ```bash
 # Always cd before running commands
-cd /workspaces/worktrees/<task> && cargo test
-cd /workspaces/worktrees/<task> && git status
-cd /workspaces/worktrees/<task> && uv run pytest
-
-# Chain multiple commands
-cd /workspaces/worktrees/<task> && cargo fmt && cargo clippy && git add .
-```
-
-### Common Operations
-
-```bash
-# Rust tests
-cd /workspaces/worktrees/<task> && cargo test
-
-# Python tests
-cd /workspaces/worktrees/<task> && cd packages/python_viterbo && uv run pytest
-
-# Format and lint
-cd /workspaces/worktrees/<task> && cargo fmt --all
-cd /workspaces/worktrees/<task> && cargo clippy --workspace
-
-# Git operations
-cd /workspaces/worktrees/<task> && git status
-cd /workspaces/worktrees/<task> && git add .
-cd /workspaces/worktrees/<task> && git commit -m "Fix bug"
-cd /workspaces/worktrees/<task> && git push -u origin <branch>
+cd /workspaces/worktrees/<task> && cd packages/rust_viterbo && cargo build
 ```
 
 ### Cleanup
@@ -109,29 +77,10 @@ git worktree list
 
 ### Key Limitations
 
-1. **Skills and CLAUDE.md read from main repo**, not worktree
+1. **Skills and CLAUDE.md read from main repo** at session start, not worktree
 2. **Working directory is always main repo** (IDE extension behavior)
 3. **No shared build cache** (each worktree builds independently, ~60s cold start for Rust)
 4. **/workspaces/ persists** across Codespace rebuilds
-
-### Alternative: Terminal CLI
-
-If the IDE extension's `cd` requirement becomes too high friction:
-
-```bash
-# Create worktree
-git worktree add /workspaces/worktrees/<task> -b <branch>
-
-# Open new terminal tab/pane in VSCode
-cd /workspaces/worktrees/<task>
-claude  # Run CLI session here
-```
-
-Terminal CLI sessions:
-- Have full feature parity with IDE extension
-- Operate in the directory where you run `claude`
-- Support tmux/screen for session management
-- Lack the GUI's visual polish
 
 ## Modifying Environments
 
@@ -158,7 +107,6 @@ Terminal CLI sessions:
 
 ## CC Web Limitations (Emergency Backup Only)
 
-- apt-get does NOT work (DNS blocked by proxy)
+- apt-get, https does NOT work (DNS blocked by proxy)
 - Skills are broken (not auto-loaded)
-- No Playwright browsers
-- No git worktrees support
+- Playwright is broken (browsers not installed)

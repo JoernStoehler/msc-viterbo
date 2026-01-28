@@ -8,7 +8,7 @@ description: Editing the thesis or building PDF/HTML output. Use when writing th
 ## Commands
 
 ```bash
-cd packages/latex_viterbo
+cd /workspaces/worktrees/<task>/packages/latex_viterbo
 
 scripts/lint.sh           # chktex + draft compile + latexml sanity
 scripts/build.sh          # Full build (PDF + HTML)

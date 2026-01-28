@@ -8,14 +8,14 @@ description: Building or modifying Rust-Python FFI bindings using PyO3 and matur
 ## Build
 
 ```bash
-cd packages/python_viterbo
+cd /workspaces/worktrees/<task>/packages/python_viterbo
 uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
 ```
 
 ## Test
 
 ```bash
-cd packages/python_viterbo
+cd /workspaces/worktrees/<task>/packages/python_viterbo
 uv run pytest tests/test_ffi_capacity_hrep.py -v
 ```
 
