@@ -16,11 +16,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 try:
     import rust_viterbo_ffi as ffi
 except ImportError:
-    ffi = None  # type: ignore
+    ffi: Any = None
 
 
 def add_volumes(polytopes: list[dict]) -> list[dict]:

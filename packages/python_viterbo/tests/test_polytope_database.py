@@ -5,6 +5,7 @@ Tests the staged pipeline: stage_polytopes, stage_volume, stage_capacity.
 
 import json
 import math
+from typing import Any
 
 import pytest
 
@@ -22,6 +23,11 @@ from viterbo.experiments.polytope_database.stage_polytopes import (
     tesseract_hrep,
 )
 from viterbo.experiments.polytope_database.stage_volume import add_volumes
+
+try:
+    import rust_viterbo_ffi as ffi
+except ImportError:
+    ffi: Any = None
 
 
 class TestHRepGenerators:
@@ -206,8 +212,23 @@ class TestStagePolytopes:
         assert cell["has_lagrangian_2face"]  # Has some Lagrangian 2-faces
 
 
+@pytest.fixture(autouse=True)
+def require_ffi_for_volume_tests() -> None:
+    """Skip volume tests if FFI is not installed."""
+    if ffi is None:
+        pytest.skip(
+            "rust_viterbo_ffi is not installed. Build it with: "
+            "cd packages/python_viterbo && uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml"
+        )
+
+
 class TestStageVolume:
     """Test stage 2: volume addition."""
+
+    @pytest.fixture(autouse=True)
+    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
+        """Use the FFI requirement fixture for all tests in this class."""
+        pass
 
     def test_adds_volume_to_all(self) -> None:
         polytopes = generate_polytopes()
@@ -232,6 +253,11 @@ class TestStageVolume:
 
 class TestStageCapacity:
     """Test stage 3: capacity addition."""
+
+    @pytest.fixture(autouse=True)
+    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
+        """Use the FFI requirement fixture for all tests in this class."""
+        pass
 
     def test_adds_capacity_fields(self) -> None:
         polytopes = generate_polytopes()
@@ -264,6 +290,11 @@ class TestStageCapacity:
 
 class TestFullPipeline:
     """Test the complete staged pipeline."""
+
+    @pytest.fixture(autouse=True)
+    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
+        """Use the FFI requirement fixture for all tests in this class."""
+        pass
 
     def test_pipeline_produces_complete_data(self) -> None:
         # Stage 1: polytopes
