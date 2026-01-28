@@ -86,6 +86,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * **This investigation succeeded at testing**: Created comprehensive test suite revealing the error pattern (works for rectangles, fails for triangles with varying ratios)
     * **But failed at fixing**: Attempted fixes without mathematical understanding, just pattern matching
     * **Takeaway**: Testing reveals WHAT is wrong, math understanding reveals WHY, only then can you fix it correctly
+    * **CRITICAL: DO NOT seek empirical correction factors**: The error is NOT a missing complex function that computes geometry-dependent adjustments. The varying ratios (1.65-2.15) do NOT mean you should write code like `if (is_triangle) { factor = compute_weird_adjustment(angles, symmetry, ...) }`. That's wrong. The fix will be SIMPLE once the underlying formula is understood correctly - likely a single term missing or doubled, not a complex conditional adjustment.
   - **Additional test cases to add** (expand the test suite before attempting fixes):
     * Almost-triangle (4-gon with vertex near edge) × triangle - does it fail like triangle×triangle or pass like square×triangle?
     * Pentagon × triangle - where does N-gon×triangle transition from working to failing?
