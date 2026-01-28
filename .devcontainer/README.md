@@ -12,12 +12,12 @@ This project supports three development environments:
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| TexLive (PDF builds) | Yes | Yes | No |
+| TexLive (PDF builds) | Yes | No | No |
 | Cache persistence | Bind mounts | No | No |
 | Git worktrees | Manual scripts | Manual | No |
 | Skills | Work | Should work | Broken |
-| Startup time | Fast | Moderate | Fast |
-| Friction | Medium | Medium | Low |
+| Startup time | Fast | Fast | Fast |
+| Friction | Medium | Low | Low |
 
 ## Local (`local/`)
 
@@ -36,7 +36,7 @@ Prerequisites:
 
 ## Codespace (`codespace/`)
 
-GitHub Codespaces for remote development.
+GitHub Codespaces for remote development. Uses devcontainer features for fast startup.
 
 ```bash
 # Create codespace:
@@ -44,7 +44,14 @@ gh codespace create -r JoernStoehler/msc-viterbo \
     --devcontainer-path .devcontainer/codespace/devcontainer.json
 ```
 
+Pre-installed via features:
+- Rust (stable with rustfmt, clippy)
+- Python 3.12 with uv
+- Node.js 22
+- GitHub CLI
+
 Known limitations:
+- **No TexLive** - use local devcontainer for PDF builds
 - Auto-stops after idle period
 - OAuth may not persist across rebuilds
 - Caches don't persist
