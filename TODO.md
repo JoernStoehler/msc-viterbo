@@ -17,9 +17,18 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 **CRITICAL (blocks experiments):**
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
-  - Add orbit validation tests to billiard (port from tube/tests/orbit_invariants.rs)
-  - Verify returned orbits are valid Reeb orbits (breakpoints on facets, segments along Reeb vector)
-  - Trace mathematical reason for discrepancy, not just pattern matching
+  - **Status (2026-01-28)**: Investigation attempted but FAILED. Branch fix/triangle-billiard-discrepancy REJECTED.
+  - **What was tried**: Changed action formula from support functions to ∫ λ = (1/2)∫⟨Jγ, γ̇⟩dt
+  - **Findings from comprehensive tests** (see /workspaces/worktrees/fix-triangle-billiard-discrepancy/):
+    * ALL rectangle/square cases PASS perfectly (ratio = 1.0)
+    * ALL triangle cases FAIL with varying ratios: 1.65 to 2.15 (NOT a constant factor!)
+    * Orbit validation tests ALL PASS: breakpoints on boundaries, closure, scaling c(λK)=λ²c(K)
+    * The orbits themselves are geometrically valid
+    * Error is in action formula or capacity computation, not orbit geometry
+  - **Key insight**: Error is NOT a simple constant - varies with geometry (1.65 for asymmetric, 2.0 for symmetric, 2.15 for certain angles)
+  - **What's needed**: Mathematical understanding of what billiard SHOULD compute, not pattern matching fixes
+  - **Test suite created**: comprehensive_comparison.rs with 15 cases, orbit_invariants.rs with 6 validation tests
+  - **For next agent**: Don't try correction factors. Understand the mathematical formula first. Check if billiard computes dual action vs primal action.
 
 **Algorithm completion:**
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
