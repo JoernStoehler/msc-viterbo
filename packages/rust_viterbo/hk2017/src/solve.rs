@@ -13,8 +13,17 @@
 //! 3. Solve the KKT system [H A^T; A 0] [beta; lambda] = [0; b]
 //! 4. Check if the solution satisfies beta >= 0
 //!
-//! WARNING: This only finds the interior critical point. If the true maximum
-//! is on the boundary (some beta_i = 0), this method will fail to find it.
+//! # Interior-only correctness
+//!
+//! This solver only finds the interior critical point (ignoring beta >= 0
+//! during solving). If some beta_i < 0, we reject the permutation.
+//!
+//! This is correct because boundary maxima (where some beta_i = 0) are found
+//! via smaller subsets: if the optimum has beta_j = 0, dropping facet j gives
+//! the same Q value with fewer facets, where it becomes an interior point.
+//!
+//! See crate-level documentation and thesis Section 3.3 (Lemma: Boundary
+//! Reduction, Corollary: Correctness of Interior-Only Search) for the proof.
 
 use nalgebra::{DMatrix, DVector};
 
