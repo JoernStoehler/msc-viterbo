@@ -1,30 +1,51 @@
-"""Build stage: Run capacity algorithms on test polytopes and store results."""
+"""Build stage: Run capacity algorithms on test polytopes and store results.
+
+Data format: Each row is a polytope with columns for:
+- Geometry (name, type, vertices, facet count)
+- Literature value (if known)
+- Algorithm results (capacity, walltime, error)
+"""
 
 import json
 import math
-from dataclasses import asdict, dataclass
+import time
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import rust_viterbo_ffi as ffi
 
 
 @dataclass
-class AlgorithmResult:
-    """Result from a single algorithm run."""
+class PolytopeRecord:
+    """One row in the comparison dataset."""
 
-    algorithm: str
-    capacity: float | None
-    error: str | None
-    metadata: dict
-
-
-@dataclass
-class ComparisonRecord:
-    """Comparison record for a single polytope."""
-
+    # Geometry
     name: str
-    polytope_type: str  # "lagrangian_product" or "general"
-    results: list[AlgorithmResult]
+    polytope_type: str  # "lagrangian_product"
+    vertices_q: list[list[float]]
+    vertices_p: list[list[float]]
+    facet_count: int  # n_q + n_p for Lagrangian products
+
+    # Literature
+    literature_capacity: float | None
+    literature_source: str | None
+
+    # Billiard results
+    billiard_capacity: float | None = None
+    billiard_error: str | None = None
+    billiard_walltime_ms: float | None = None
+    billiard_num_bounces: int | None = None
+
+    # HK2017 results
+    hk2017_capacity: float | None = None
+    hk2017_error: str | None = None
+    hk2017_walltime_ms: float | None = None
+    hk2017_permutations: int | None = None
+
+    # Tube results (N/A for Lagrangian products - they have Lagrangian 2-faces)
+    tube_capacity: float | None = None
+    tube_error: str | None = "N/A for Lagrangian products"
+    tube_walltime_ms: float | None = None
 
 
 def square_vertices(half_width: float) -> list[list[float]]:
@@ -50,141 +71,174 @@ def rotated_vertices(vertices: list[list[float]], angle: float) -> list[list[flo
 def lagrangian_product_to_hrep(
     vertices_q: list[list[float]], vertices_p: list[list[float]]
 ) -> tuple[list[list[float]], list[float]]:
-    """Convert Lagrangian product K_q × K_p to H-rep for HK2017.
-
-    For a Lagrangian product, each edge of K_q contributes a facet with normal
-    (n_q, 0) and each edge of K_p contributes a facet with normal (0, n_p).
-    """
+    """Convert Lagrangian product K_q × K_p to H-rep for HK2017."""
     normals = []
     heights = []
 
-    # Facets from K_q (in q1, q2 coordinates = first two of R^4)
-    n_q = len(vertices_q)
-    for i in range(n_q):
-        v0 = vertices_q[i]
-        v1 = vertices_q[(i + 1) % n_q]
-        edge = [v1[0] - v0[0], v1[1] - v0[1]]
-        # Outward normal (rotate edge 90° CW for CCW vertices)
-        normal_2d = [edge[1], -edge[0]]
-        length = math.sqrt(normal_2d[0] ** 2 + normal_2d[1] ** 2)
-        normal_2d = [normal_2d[0] / length, normal_2d[1] / length]
-        height = normal_2d[0] * v0[0] + normal_2d[1] * v0[1]
-        # Embed in R^4: (n1, n2, 0, 0)
-        normals.append([normal_2d[0], normal_2d[1], 0.0, 0.0])
-        heights.append(height)
-
-    # Facets from K_p (in p1, p2 coordinates = last two of R^4)
-    n_p = len(vertices_p)
-    for i in range(n_p):
-        v0 = vertices_p[i]
-        v1 = vertices_p[(i + 1) % n_p]
-        edge = [v1[0] - v0[0], v1[1] - v0[1]]
-        normal_2d = [edge[1], -edge[0]]
-        length = math.sqrt(normal_2d[0] ** 2 + normal_2d[1] ** 2)
-        normal_2d = [normal_2d[0] / length, normal_2d[1] / length]
-        height = normal_2d[0] * v0[0] + normal_2d[1] * v0[1]
-        # Embed in R^4: (0, 0, n1, n2)
-        normals.append([0.0, 0.0, normal_2d[0], normal_2d[1]])
-        heights.append(height)
+    for verts, embed in [(vertices_q, lambda n: [n[0], n[1], 0.0, 0.0]),
+                          (vertices_p, lambda n: [0.0, 0.0, n[0], n[1]])]:
+        n_v = len(verts)
+        for i in range(n_v):
+            v0, v1 = verts[i], verts[(i + 1) % n_v]
+            edge = [v1[0] - v0[0], v1[1] - v0[1]]
+            normal_2d = [edge[1], -edge[0]]
+            length = math.sqrt(normal_2d[0] ** 2 + normal_2d[1] ** 2)
+            normal_2d = [normal_2d[0] / length, normal_2d[1] / length]
+            height = normal_2d[0] * v0[0] + normal_2d[1] * v0[1]
+            normals.append(embed(normal_2d))
+            heights.append(height)
 
     return normals, heights
 
 
-def run_comparison(name: str, vertices_q: list, vertices_p: list) -> ComparisonRecord:
-    """Run HK2017 and Billiard on a Lagrangian product."""
-    results = []
-
+def run_algorithms(record: PolytopeRecord) -> None:
+    """Run billiard and HK2017 on a Lagrangian product, updating record in place."""
     # Billiard
     try:
-        r = ffi.billiard_capacity_polygons(vertices_q, vertices_p)
-        results.append(
-            AlgorithmResult(
-                algorithm="billiard",
-                capacity=r.capacity,
-                error=None,
-                metadata={"num_bounces": r.num_bounces, "combinations": r.combinations_evaluated},
-            )
-        )
+        start = time.perf_counter()
+        r = ffi.billiard_capacity_polygons(record.vertices_q, record.vertices_p)
+        record.billiard_walltime_ms = (time.perf_counter() - start) * 1000
+        record.billiard_capacity = r.capacity
+        record.billiard_num_bounces = r.num_bounces
     except Exception as e:
-        results.append(AlgorithmResult(algorithm="billiard", capacity=None, error=str(e), metadata={}))
+        record.billiard_error = str(e)
 
     # HK2017
     try:
-        normals, heights = lagrangian_product_to_hrep(vertices_q, vertices_p)
+        normals, heights = lagrangian_product_to_hrep(record.vertices_q, record.vertices_p)
+        start = time.perf_counter()
         r = ffi.hk2017_capacity_hrep(normals, heights)
-        results.append(
-            AlgorithmResult(
-                algorithm="hk2017",
-                capacity=r.capacity,
-                error=None,
-                metadata={"permutations_evaluated": r.permutations_evaluated},
-            )
-        )
+        record.hk2017_walltime_ms = (time.perf_counter() - start) * 1000
+        record.hk2017_capacity = r.capacity
+        record.hk2017_permutations = r.permutations_evaluated
     except Exception as e:
-        results.append(AlgorithmResult(algorithm="hk2017", capacity=None, error=str(e), metadata={}))
-
-    return ComparisonRecord(name=name, polytope_type="lagrangian_product", results=results)
+        record.hk2017_error = str(e)
 
 
 def main(output_dir: Path) -> None:
     """Run all comparisons and save results."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    records: list[ComparisonRecord] = []
+    records: list[PolytopeRecord] = []
 
-    # === Lagrangian Products ===
+    # === Fixed test cases with literature values ===
 
-    # Tesseract (square × square)
+    # Tesseract: known capacity = 4.0 (HK2017 Example 4.6)
     square = square_vertices(1.0)
-    records.append(run_comparison("tesseract", square, square))
+    records.append(PolytopeRecord(
+        name="tesseract",
+        polytope_type="lagrangian_product",
+        vertices_q=square,
+        vertices_p=square,
+        facet_count=8,
+        literature_capacity=4.0,
+        literature_source="HK2017 Example 4.6",
+    ))
+
+    # Pentagon counterexample: known capacity ≈ 3.441 (HK-O 2024)
+    pentagon = regular_polygon_vertices(5, 1.0)
+    rotated_pentagon = rotated_vertices(pentagon, math.pi / 2)
+    expected_pentagon = 2 * math.cos(math.pi / 10) * (1 + math.cos(math.pi / 5))
+    records.append(PolytopeRecord(
+        name="pentagon_counterexample",
+        polytope_type="lagrangian_product",
+        vertices_q=pentagon,
+        vertices_p=rotated_pentagon,
+        facet_count=10,
+        literature_capacity=expected_pentagon,
+        literature_source="HK-O 2024 Theorem 1.1",
+    ))
+
+    # === Fixed test cases without literature values ===
+    # (first idea accepted - no systematic evaluation of alternatives)
 
     # Rectangle × Square
     rect = [[-1.0, -2.0], [1.0, -2.0], [1.0, 2.0], [-1.0, 2.0]]
-    records.append(run_comparison("rectangle_x_square", rect, square))
+    records.append(PolytopeRecord(
+        name="rectangle_x_square",
+        polytope_type="lagrangian_product",
+        vertices_q=rect,
+        vertices_p=square,
+        facet_count=8,
+        literature_capacity=None,
+        literature_source=None,
+    ))
 
     # Triangle × Triangle
     triangle = regular_polygon_vertices(3, 1.0)
-    records.append(run_comparison("triangle_x_triangle", triangle, triangle))
+    records.append(PolytopeRecord(
+        name="triangle_x_triangle",
+        polytope_type="lagrangian_product",
+        vertices_q=triangle,
+        vertices_p=triangle,
+        facet_count=6,
+        literature_capacity=None,
+        literature_source=None,
+    ))
 
-    # Square × Triangle (asymmetric)
-    records.append(run_comparison("square_x_triangle", square, triangle))
+    # Square × Triangle
+    records.append(PolytopeRecord(
+        name="square_x_triangle",
+        polytope_type="lagrangian_product",
+        vertices_q=square,
+        vertices_p=triangle,
+        facet_count=7,
+        literature_capacity=None,
+        literature_source=None,
+    ))
 
-    # Small square × Large square
-    small_square = square_vertices(0.5)
-    large_square = square_vertices(2.0)
-    records.append(run_comparison("small_x_large_square", small_square, large_square))
+    # === Random Lagrangian products ===
+    # (added after user feedback - no systematic evaluation of sampling strategy)
+    import random
+    for seed in range(20):
+        random.seed(seed)
+        n, m = random.randint(3, 6), random.randint(3, 6)
+        r_q, r_p = 0.5 + random.random(), 0.5 + random.random()
+        rot_q, rot_p = random.random() * 2 * math.pi, random.random() * 2 * math.pi
 
-    # Pentagon × Rotated Pentagon (HK-O 2024 counterexample)
-    pentagon = regular_polygon_vertices(5, 1.0)
-    rotated_pentagon = rotated_vertices(pentagon, math.pi / 2)
-    records.append(run_comparison("pentagon_counterexample", pentagon, rotated_pentagon))
+        poly_q = rotated_vertices(regular_polygon_vertices(n, r_q), rot_q)
+        poly_p = rotated_vertices(regular_polygon_vertices(m, r_p), rot_p)
 
-    # === Save Results ===
+        records.append(PolytopeRecord(
+            name=f"random_{seed}_{n}gon_x_{m}gon",
+            polytope_type="lagrangian_product",
+            vertices_q=poly_q,
+            vertices_p=poly_p,
+            facet_count=n + m,
+            literature_capacity=None,
+            literature_source=None,
+        ))
+
+    # === Run algorithms ===
+    for record in records:
+        run_algorithms(record)
+
+    # === Save results ===
     output_file = output_dir / "results.json"
     with open(output_file, "w") as f:
         json.dump([asdict(r) for r in records], f, indent=2)
 
-    print(f"Saved {len(records)} comparison records to {output_file}")
+    print(f"Saved {len(records)} records to {output_file}")
 
-    # Print summary
+    # === Print summary ===
     print("\n=== Summary ===")
-    for record in records:
-        caps = {r.algorithm: r.capacity for r in record.results if r.capacity is not None}
-        if len(caps) == 2:
-            b, h = caps.get("billiard"), caps.get("hk2017")
-            if b and h:
-                ratio = b / h
-                agree = abs(ratio - 1.0) < 0.01
-                status = "AGREE" if agree else f"DISAGREE (ratio={ratio:.4f})"
-                print(f"{record.name}: billiard={b:.4f}, hk2017={h:.4f} -> {status}")
+    print(f"{'Name':<30} {'Lit.':<8} {'Billiard':<10} {'HK2017':<10} {'Status'}")
+    print("-" * 75)
+
+    for r in records:
+        lit = f"{r.literature_capacity:.4f}" if r.literature_capacity else "N/A"
+        bil = f"{r.billiard_capacity:.4f}" if r.billiard_capacity else "ERR"
+        hk = f"{r.hk2017_capacity:.4f}" if r.hk2017_capacity else "ERR"
+
+        if r.billiard_capacity and r.hk2017_capacity:
+            ratio = r.billiard_capacity / r.hk2017_capacity
+            status = "AGREE" if abs(ratio - 1.0) < 0.01 else f"DISAGREE ({ratio:.2f}x)"
         else:
-            print(f"{record.name}: incomplete ({caps})")
+            status = "INCOMPLETE"
+
+        print(f"{r.name:<30} {lit:<8} {bil:<10} {hk:<10} {status}")
 
 
 if __name__ == "__main__":
     import sys
-
-    if len(sys.argv) > 1:
-        output_dir = Path(sys.argv[1])
-    else:
-        output_dir = Path(__file__).parent.parent.parent.parent.parent / "data" / "algorithm-comparison"
+    output_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent.parent.parent.parent / "data" / "algorithm-comparison"
     main(output_dir)
