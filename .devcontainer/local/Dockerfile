@@ -1,71 +1,76 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu
+# -----------------------------------------------------------------------------
+# Devcontainer image for msc-viterbo (local development variant)
+#
+# Layer ordering strategy for development iteration speed:
+#   1. Base + system packages (very stable)
+#   2. TeX packages (huge ~2.5GB, very stable) - cache this!
+#   3. CLI tools (stable)
+#   4. VS Code tunnel CLI (stable)
+#   5. Node.js (stable)
+#   6. uv (version may change)
+#   7. Rust toolchain + sccache (components may change)
+#
+# Differences from codespace/:
+# - Includes VS Code tunnel CLI for remote access
+# - Includes sccache for faster Rust rebuilds (with persistent cache)
+# - Designed for bind mounts from host
+# -----------------------------------------------------------------------------
+
+# Pin base image for reproducibility. Check for updates periodically:
+# https://mcr.microsoft.com/v2/devcontainers/base/tags/list
+FROM mcr.microsoft.com/devcontainers/base:1-ubuntu-24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-SHELL ["/bin/bash", "-lc"]
-
-# -----------------------------------------------------------------------------
-# Devcontainer image for msc-viterbo
-#
-# Design goals:
-# - Keep the image simple and close to standard devcontainer patterns (KISS).
-# - Install heavyweight, rarely changing dependencies in earlier layers so they
-#   are cached across rebuilds.
-# - Install more frequently tweaked tools (Node/npm, uv) after base deps.
-# - Install language toolchains (Rust) once for the dev user here rather
-#   than in postCreate, so they are baked into the image.
-# -----------------------------------------------------------------------------
-
-# Base system dependencies (rarely change; heavy but shared by all tools).
+# Layer 1: Base system dependencies (rarely change)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
     curl \
     git \
     git-lfs \
-    build-essential \
-    pkg-config \
     libssl-dev \
+    pkg-config \
     python3 \
-    python3-venv \
     python3-pip \
-    ca-certificates \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# TeX toolchain for PDF and HTML builds (~2GB installed).
+# Layer 2: TeX toolchain (~2.5GB installed, very stable - cache this!)
 # TexLive 2023 from Ubuntu apt repositories.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    texlive-latex-recommended \
-    texlive-latex-extra \
-    texlive-fonts-recommended \
-    texlive-fonts-extra \
+    biber \
+    chktex \
+    ghostscript \
+    imagemagick \
+    lacheck \
+    latexml \
+    latexmk \
+    python3-pygments \
     texlive-bibtex-extra \
+    texlive-extra-utils \
+    texlive-fonts-extra \
+    texlive-fonts-recommended \
+    texlive-latex-extra \
+    texlive-latex-recommended \
+    texlive-luatex \
     texlive-pictures \
     texlive-science \
     texlive-xetex \
-    texlive-luatex \
-    texlive-extra-utils \
-    latexmk \
-    biber \
-    chktex \
-    lacheck \
-    ghostscript \
-    imagemagick \
-    python3-pygments \
-    latexml \
     && rm -rf /var/lib/apt/lists/*
 
- 
-# Common CLI tools used by agents (cheap to adjust; comes after base deps)
+# Layer 3: CLI tools used by agents (stable)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ripgrep \
-    jq \
-    gh \
-    universal-ctags \
-    tree \
-    inotify-tools \
     entr \
+    gh \
+    inotify-tools \
+    jq \
+    ripgrep \
+    tree \
+    universal-ctags \
     && rm -rf /var/lib/apt/lists/*
 
-# VS Code tunnel CLI (bake into image to avoid slow postCreate download)
+# Layer 4: VS Code tunnel CLI (local-only, for remote access)
 RUN set -eux; \
     tmpdir="$(mktemp -d)"; \
     curl -fsSL "https://update.code.visualstudio.com/latest/cli-linux-x64/stable" -o "$tmpdir/vscode-cli.tar.gz"; \
@@ -73,33 +78,30 @@ RUN set -eux; \
     install -m 0755 "$tmpdir/code" /usr/local/bin/code-tunnel; \
     rm -rf "$tmpdir"
 
-# Node.js 22.x (npm included) for JS tooling.
-# We keep this in the image so that npm is always available for postCreate
-# steps without re-downloading Node on each run.
+# Layer 5: Node.js 22.x (stable, version might bump occasionally)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/* \
     && node -v && npm -v
 
-# Install uv (Python packaging/runner) globally. Pin for reproducibility.
-# The installer appends "/bin" to UV_INSTALL_DIR, so point it at /usr/local to land in /usr/local/bin.
+# Layer 6: uv (Python packaging/runner) - version changes more often
 # Note: maturin requires uv >= 0.4.25 for editable installs
+ARG UV_VERSION=0.5.14
 ENV UV_INSTALL_DIR=/usr/local
-ENV UV_VERSION=0.5.14
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
     && /usr/local/bin/uv --version
 
-# Switch to dev user for language toolchains.
-# Toolchains live in the dev user's HOME so that cargo/elan behave normally.
+# Switch to non-root user for remaining installs
 USER vscode
 ENV HOME=/home/vscode
 ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
-# Install Rust (rustup + basic components) in this devcontainer image.
-# We install rustfmt/clippy here so they're available without additional setup.
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
-    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true \
-    && "$HOME/.cargo/bin/cargo" install sccache || true
+# Layer 7: Rust toolchain + sccache (components may change during development)
+# sccache provides faster rebuilds with persistent cache on local
+ARG RUST_TOOLCHAIN=stable
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_TOOLCHAIN} \
+    && rustup component add rustfmt clippy \
+    && cargo install sccache \
+    && rustc --version && cargo --version && sccache --version
 
 WORKDIR /workspaces/msc-viterbo
