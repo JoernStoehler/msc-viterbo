@@ -2,8 +2,6 @@
 
 This stage reads polytopes.json and adds volume calculations using the Rust FFI.
 
-BLOCKED: Waiting for volume_hrep() FFI implementation (TODO in issue #31).
-
 Usage:
     uv run python -m viterbo.experiments.polytope_database.stage_volume
 
@@ -19,31 +17,24 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+try:
+    import rust_viterbo_ffi as ffi
+except ImportError:
+    ffi = None  # type: ignore
+
 
 def add_volumes(polytopes: list[dict]) -> list[dict]:
-    """Add volume calculations to polytopes.
-
-    TODO: Once volume FFI is ready, implement as:
-        from viterbo import ffi
-        for p in polytopes:
-            p["volume"] = ffi.volume_hrep(p["normals"], p["heights"])
-    """
-    # Stub: use fake volumes for now (matching stage_build.py behavior)
-    import random
+    """Add volume calculations to polytopes using FFI."""
+    if ffi is None:
+        raise ImportError(
+            "rust_viterbo_ffi is not installed. Build it with:\n"
+            "  cd packages/python_viterbo\n"
+            "  uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml"
+        )
 
     for p in polytopes:
-        if p["id"] == "tesseract":
-            p["volume"] = 16.0  # Ground truth: 2^4
-        elif p["id"] == "simplex":
-            p["volume"] = 0.1  # Approximate, fake
-        elif p["id"] == "cross-polytope":
-            p["volume"] = 2.0  # Approximate, fake
-        elif p["id"] == "24-cell":
-            p["volume"] = 4.0  # Approximate, fake
-        else:
-            # Random polytopes: fake volumes
-            seed = int(p["id"].split("-")[1]) + 2000
-            p["volume"] = random.Random(seed).uniform(1.0, 20.0)
+        # Compute volume using FFI
+        p["volume"] = ffi.volume_hrep(p["normals"], p["heights"])
 
     return polytopes
 
@@ -68,8 +59,10 @@ def main() -> None:
 
     print(f"Added volumes to {len(polytopes)} polytopes")
     print(f"Saved to {out_path}")
-    print()
-    print("NOTE: Using stub/fake volumes until volume_hrep() FFI is implemented.")
+
+    # Show some sample volumes
+    for p in polytopes[:4]:
+        print(f"  {p['id']:20s}: volume = {p['volume']:.6f}")
 
 
 if __name__ == "__main__":

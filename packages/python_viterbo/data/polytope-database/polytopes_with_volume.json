@@ -65,7 +65,7 @@
     ],
     "has_lagrangian_2face": true,
     "is_lagrangian_product": true,
-    "volume": 16.0
+    "volume": 16.00000000000001
   },
   {
     "id": "simplex",
@@ -112,7 +112,7 @@
     ],
     "has_lagrangian_2face": true,
     "is_lagrangian_product": false,
-    "volume": 0.1
+    "volume": 2.329237476562281
   },
   {
     "id": "cross-polytope",
@@ -236,7 +236,7 @@
     ],
     "has_lagrangian_2face": true,
     "is_lagrangian_product": false,
-    "volume": 2.0
+    "volume": 0.6666666666666665
   },
   {
     "id": "24-cell",
@@ -416,7 +416,7 @@
     ],
     "has_lagrangian_2face": true,
     "is_lagrangian_product": false,
-    "volume": 4.0
+    "volume": 1.9999999999999978
   },
   {
     "id": "random-000",
@@ -477,7 +477,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 9.520683340300042
+    "volume": 426.11140812984104
   },
   {
     "id": "random-001",
@@ -559,7 +559,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 12.142203520325742
+    "volume": 36.864005485805414
   },
   {
     "id": "random-002",
@@ -620,7 +620,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 14.82233166700495
+    "volume": 43.12542511380583
   },
   {
     "id": "random-003",
@@ -709,7 +709,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 3.1425107385878124
+    "volume": 53.809990969729576
   },
   {
     "id": "random-004",
@@ -763,7 +763,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 10.966364891067764
+    "volume": 1.010241773057231
   },
   {
     "id": "random-005",
@@ -845,7 +845,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 9.557048948540807
+    "volume": 262.2953856033358
   },
   {
     "id": "random-006",
@@ -934,7 +934,7 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 11.542244422977102
+    "volume": 78.42760618146231
   },
   {
     "id": "random-007",
@@ -995,6 +995,6 @@
     ],
     "has_lagrangian_2face": false,
     "is_lagrangian_product": false,
-    "volume": 4.850874936286688
+    "volume": 406.9598584683671
   }
 ]
