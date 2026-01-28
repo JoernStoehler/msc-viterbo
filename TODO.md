@@ -16,6 +16,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Algorithm Toolbox
 
 **CRITICAL (blocks experiments):**
+- [ ] **Meta-task: Check for hidden blockers** — For every current TODO item, verify it's not secretly blocked on undocumented dependencies. Example: triangle×triangle debugging was attempted 3 times without anyone noticing the thesis section on billiard algorithm was incomplete.
 - [ ] Implement comprehensive billiard validation test suite (see packages/rust_viterbo/billiard/TEST_SPEC.md):
   - Task 1: Orbit validation tests on all 625 Lagrangian products (25×25 polygon pairs)
   - Task 2: Algorithm comparison tests (billiard vs HK2017) on all 625 products
@@ -132,6 +133,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Thesis Writing
 
+- [ ] **Complete billiard algorithm section** — [packages/latex_viterbo/chapters/algorithms.tex:285-287](packages/latex_viterbo/chapters/algorithms.tex#L285-L287) has TODO marker indicating incomplete documentation. This is blocking triangle×triangle debugging because agents can't understand what the algorithm computes. Need: mathematical formula for billiard action, how it relates to primal/dual formulations, and worked example (e.g., square×square).
 - [x] Talk: Clarke duality — migrate text content to thesis (2026-01-27)
 - [ ] Add images to Clarke duality talk (#41, manual) — see `\DraftImage` placeholders in `packages/latex_talk_clarke_duality/main.tex`
 
