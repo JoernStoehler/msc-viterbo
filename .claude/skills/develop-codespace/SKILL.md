@@ -50,6 +50,8 @@ Enable multiple agents to work in parallel on different branches without interfe
 # Create worktree for your task
 git worktree add /workspaces/worktrees/<task-name> -b <branch-name>
 
+# IMPORTANT: Use hyphens, not slashes in names (avoid feat/name - use feat-name)
+
 # Example:
 git worktree add /workspaces/worktrees/fix-billiard-bug -b fix-billiard-bug
 ```
