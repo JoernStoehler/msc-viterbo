@@ -23,7 +23,7 @@ This project supports **three environments**:
 | Environment | Config Location | Use Case |
 |-------------|-----------------|----------|
 | Local | `.devcontainer/local/` | Jörn's Ubuntu desktop |
-| Codespace | `.devcontainer/codespace/` | GitHub Codespaces + catnip |
+| Codespace | `.devcontainer/codespace/` | GitHub Codespaces |
 | CC Web | `.devcontainer/ccweb/` (docs only) | Claude Code Web |
 
 ### 1. Local Devcontainer (Jörn's machine)
@@ -43,12 +43,10 @@ This project supports **three environments**:
 
 - **Defined by**: `.devcontainer/codespace/devcontainer.json`, `.devcontainer/codespace/Dockerfile`
 - **Post-create**: `.devcontainer/scripts/post-create.sh`
-- **Catnip setup**: `setup.sh` (in repo root, currently disabled)
-- **What it does**: Cloud dev environment with catnip for worktree management
+- **What it does**: Cloud dev environment
 - **Special features**:
-  - Catnip feature for git worktree management and mobile access
-  - No TexLive (saves 2GB, PDF builds require local)
-  - Port 6369 forwarded for catnip
+  - Full TexLive installation for PDF builds
+  - Manual git worktrees via `git worktree` commands
 - **Known limitations**:
   - Auto-stops after idle period
   - OAuth may not persist across rebuilds
@@ -93,13 +91,13 @@ fi
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| TexLive (pdflatex, chktex) | Yes | No | No |
-| latexml | Yes | No | No |
+| TexLive (pdflatex, chktex) | Yes | Yes | No |
+| latexml | Yes | Yes | No |
 | Rust (cargo, rustc) | Yes | Yes | Yes |
 | Python + uv | Yes | Yes | Yes |
 | gh CLI | Yes | Yes | Auto-installed |
 | Playwright | Yes | Yes | No |
-| Git worktrees | Manual scripts | Catnip auto | No |
+| Git worktrees | Manual scripts | Manual | No |
 | Cache persistence | Bind mounts | No | No |
 | Skills | Work | Should work | Broken |
 
@@ -170,4 +168,3 @@ gh codespace create -r JoernStoehler/msc-viterbo \
 - `.devcontainer/codespace/devcontainer.json` - Codespace config
 - `.devcontainer/ccweb/README.md` - CC web limitations
 - `.devcontainer/scripts/post-create.sh` - Shared post-create script
-- `setup.sh` - Catnip workspace setup (currently disabled)

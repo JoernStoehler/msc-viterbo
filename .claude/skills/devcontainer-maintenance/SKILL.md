@@ -19,7 +19,6 @@ Shared files:
 - `.devcontainer/scripts/post-create.sh` - Post-create script (env-aware)
 - `.devcontainer/scripts/warmup-cache.sh` - Background cache warming
 - `.devcontainer/README.md` - Overview documentation
-- `setup.sh` - Catnip workspace setup (repo root)
 
 ## Policy
 
@@ -51,7 +50,7 @@ Notes:
 
 ## Codespace Environment
 
-Cloud development with catnip for worktree management.
+Cloud development environment.
 
 ```bash
 gh codespace create -r JoernStoehler/msc-viterbo \
@@ -63,10 +62,8 @@ Files:
 - `.devcontainer/codespace/Dockerfile`
 
 Notes:
-- No TexLive (saves 2GB)
-- Catnip feature for git worktrees
-- Port 6369 forwarded for catnip
-- `setup.sh` in repo root for catnip workspace init (currently disabled)
+- Full TexLive for PDF builds
+- Manual git worktrees via `git worktree` commands
 
 ## CC Web Environment
 

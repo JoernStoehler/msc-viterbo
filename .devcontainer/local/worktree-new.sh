@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# DEPRECATED: This script is for the local devcontainer only.
-#
-# In GitHub Codespaces, use catnip for worktree management instead.
-# Catnip automatically creates worktrees via refs/catnip/* branches.
-# See: https://github.com/wandb/catnip
-#
-# This script will be removed once catnip workflow is validated.
+# Local devcontainer only - in Codespaces, use manual git worktree commands.
 
 # Why this script exists:
 # - Agents use worktrees to avoid stepping on each other.
@@ -131,7 +125,7 @@ main() {
   fi
 
   local repo_root
-  repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+  repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
   local path="${positional[0]}"
   local branch="${positional[1]}"
 

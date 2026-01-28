@@ -64,4 +64,4 @@ CC web startup (downloads tarball, no apt-get needed).
 - LaTeX/PDF builds (use local)
 - Literature search requiring JS websites (use local/codespace)
 - Tasks requiring skills to work reliably (use local/codespace)
-- Parallel agent work with worktrees (use local with catnip/codespace)
+- Parallel agent work with worktrees (use local/codespace)

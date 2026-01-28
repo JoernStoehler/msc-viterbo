@@ -13,7 +13,7 @@ Called automatically when the container is created.
 
 Environment detection via DEVCONTAINER_ENV:
   - "local": Jörn's Ubuntu desktop with bind mounts
-  - "codespace": GitHub Codespaces with catnip
+  - "codespace": GitHub Codespaces
 
 Sets up:
   - User directories (~/.config, ~/.local, ~/.cache, etc.)
@@ -104,18 +104,14 @@ fi
 # -----------------------------------------------------------------------------
 
 if [[ "$ENV" == "codespace" ]]; then
-  # No worktrees mount required - catnip handles worktrees
-  echo "Codespace environment: catnip handles git worktrees"
+  echo "Codespace environment"
 
-  # Background cache warming (optional, commented out to avoid 10min delay)
-  # Uncomment to warm Rust/Python caches in background on startup:
-  # if [[ -x "${REPO_ROOT}/.devcontainer/scripts/warmup-cache.sh" ]]; then
-  #   nohup "${REPO_ROOT}/.devcontainer/scripts/warmup-cache.sh" \
-  #     >> "${HOME}/.cache/warmup.log" 2>&1 &
-  #   echo "Background cache warming started (see ~/.cache/warmup.log)"
-  # fi
-
-  echo "Note: TexLive not available in codespace (use local for PDF builds)"
+  # Verify LaTeX tooling
+  if command -v latexmk >/dev/null 2>&1; then
+    echo "latexmk: $(latexmk --version 2>/dev/null | head -1 || echo 'available')"
+  else
+    echo "WARNING: latexmk not found" >&2
+  fi
 fi
 
 # -----------------------------------------------------------------------------
