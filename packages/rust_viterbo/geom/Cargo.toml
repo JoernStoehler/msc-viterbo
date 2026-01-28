@@ -9,3 +9,4 @@ authors.workspace = true
 [dependencies]
 nalgebra = "0.33"
 thiserror = "2"
+qhull = "0.4"

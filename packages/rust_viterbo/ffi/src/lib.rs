@@ -36,6 +36,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use billiard::{billiard_capacity_from_polygons, BilliardError, Polygon2D};
+use geom::{systolic::systolic_ratio as geom_systolic_ratio, volume::polytope_volume_hrep};
 use hk2017::{hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep};
 use tube::{tube_capacity, PolytopeHRep as TubePolytopeHRep, TubeError};
 
@@ -334,6 +335,90 @@ fn convert_tube_error(e: TubeError) -> PyErr {
 }
 
 // =============================================================================
+// Volume and Systolic Ratio
+// =============================================================================
+
+/// Compute the 4D volume of a polytope from its H-representation.
+///
+/// # Arguments
+/// * `normals` - Unit outward normal vectors for each facet
+/// * `heights` - Signed distances from origin to each facet (must be positive)
+///
+/// # Returns
+/// The 4-dimensional Lebesgue volume of the polytope.
+///
+/// # Raises
+/// * `ValueError` if the polytope is invalid or volume computation fails.
+///
+/// # Example
+/// ```python
+/// # Tesseract [-1, 1]^4 has volume 2^4 = 16
+/// normals = [
+///     [1, 0, 0, 0], [-1, 0, 0, 0],
+///     [0, 1, 0, 0], [0, -1, 0, 0],
+///     [0, 0, 1, 0], [0, 0, -1, 0],
+///     [0, 0, 0, 1], [0, 0, 0, -1],
+/// ]
+/// heights = [1.0] * 8
+/// volume = ffi.volume_hrep(normals, heights)
+/// # volume ≈ 16.0
+/// ```
+#[pyfunction]
+fn volume_hrep(normals: Vec<[f64; 4]>, heights: Vec<f64>) -> PyResult<f64> {
+    let normals_vec: Vec<Vector4<f64>> = normals
+        .into_iter()
+        .map(|n| Vector4::new(n[0], n[1], n[2], n[3]))
+        .collect();
+
+    match polytope_volume_hrep(&normals_vec, &heights) {
+        Ok(volume) => Ok(volume),
+        Err(e) => Err(PyValueError::new_err(format!("Volume error: {}", e))),
+    }
+}
+
+/// Compute the systolic ratio from capacity and volume.
+///
+/// The systolic ratio is defined as:
+///     sys(K) = c_EHZ(K)² / (2 · vol(K))
+///
+/// For balls and cylinders, sys = 1.
+///
+/// # Arguments
+/// * `capacity` - The EHZ capacity (must be > 0)
+/// * `volume` - The 4D volume (must be > 0)
+///
+/// # Returns
+/// The systolic ratio, a dimensionless positive number.
+///
+/// # Raises
+/// * `ValueError` if capacity or volume is non-positive or NaN.
+///
+/// # Example
+/// ```python
+/// # For a tesseract: c = 4.0, vol = 16.0
+/// sys = ffi.systolic_ratio(4.0, 16.0)
+/// # sys = 0.5
+/// ```
+#[pyfunction]
+fn systolic_ratio(capacity: f64, volume: f64) -> PyResult<f64> {
+    // The geom function will panic on invalid input, so we check first
+    if !capacity.is_finite() || capacity <= 0.0 {
+        return Err(PyValueError::new_err(format!(
+            "capacity must be positive and finite, got {}",
+            capacity
+        )));
+    }
+    if !volume.is_finite() || volume <= 0.0 {
+        return Err(PyValueError::new_err(format!(
+            "volume must be positive and finite, got {}",
+            volume
+        )));
+    }
+
+    Ok(geom_systolic_ratio(capacity, volume))
+}
+
+// =============================================================================
 // Module Registration
 // =============================================================================
 
@@ -351,6 +436,10 @@ fn rust_viterbo_ffi(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Tube
     m.add_function(wrap_pyfunction!(tube_capacity_hrep, m)?)?;
     m.add_class::<TubeResult>()?;
+
+    // Volume and systolic ratio
+    m.add_function(wrap_pyfunction!(volume_hrep, m)?)?;
+    m.add_function(wrap_pyfunction!(systolic_ratio, m)?)?;
 
     // Utilities
     m.add_function(wrap_pyfunction!(symplectic_form_4d, m)?)?;
