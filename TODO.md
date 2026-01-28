@@ -66,11 +66,12 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     5. User note: "don't use dual lengths" but thesis says billiard uses "P^polar-length" (support functions ARE dual lengths!)
     6. Rotation sweep shows errors at specific angles (max at 15°, min at 30°/60°/90°)
     7. Almost-triangle (4-gon) test was requested - check if 4-gon×triangle also fails
-  - **Hypotheses to investigate**:
-    * Does billiard compute dual action instead of primal action for triangle×triangle?
-    * Is there a missing factor in the action formula derivation for non-rectangular cases?
-    * Does the rectangular path assumption break down for triangular factors?
-    * Check HK2017 β coefficients for triangle - does it use all 6 facets uniformly (β=1/3)?
+  - **Questions to investigate** (not claims about what the answer is):
+    * What does billiard compute? What does HK2017 compute? Are they the same thing?
+    * What is the mathematical formula for billiard action from the thesis?
+    * What is the mathematical formula for HK2017 capacity?
+    * For a specific case (e.g., square×square), manually compute both and see where they differ
+    * Check HK2017 β coefficients: for triangle×triangle, which facets participate and with what weights?
   - **For next agent - REQUIRED SYSTEMATIC APPROACH**:
     1. **Before touching code**: Read thesis algorithms.tex lines 93-99 on billiard formula
     2. **Manual computation**: Compute action for square×square step-by-step by hand using thesis formula
@@ -86,7 +87,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * **This investigation succeeded at testing**: Created comprehensive test suite revealing the error pattern (works for rectangles, fails for triangles with varying ratios)
     * **But failed at fixing**: Attempted fixes without mathematical understanding, just pattern matching
     * **Takeaway**: Testing reveals WHAT is wrong, math understanding reveals WHY, only then can you fix it correctly
-    * **CRITICAL: DO NOT seek empirical correction factors**: The error is NOT a missing complex function that computes geometry-dependent adjustments. The varying ratios (1.65-2.15) do NOT mean you should write code like `if (is_triangle) { factor = compute_weird_adjustment(angles, symmetry, ...) }`. That's wrong. The fix will be SIMPLE once the underlying formula is understood correctly - likely a single term missing or doubled, not a complex conditional adjustment.
+    * **CRITICAL: The attempted fix (using ∫λ = (1/2)∫⟨Jγ, γ̇⟩dt) is CERTAINLY WRONG**: Made things worse. Do not continue down this path.
   - **Additional test cases to add** (expand the test suite before attempting fixes):
     * Almost-triangle (4-gon with vertex near edge) × triangle - does it fail like triangle×triangle or pass like square×triangle?
     * Pentagon × triangle - where does N-gon×triangle transition from working to failing?
