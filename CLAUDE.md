@@ -121,9 +121,13 @@ See `develop-codespace` skill for troubleshooting.
 
 ## Communication
 
-- Jörn reads the **final message** of each turn
-- Use numbered lists for easy reference
-- Be direct and concrete
-- Pushback welcome when unclear
-- Ask questions if anything is ambiguous in the task description
-- Request help for complex proofs or long-term decisions
+- Jörn only reliably reads the **final message** of each turn. Structure accordingly: put decisions, questions, and summaries at the end, not interspersed with work updates.
+- Jörn is available for questions, especially questions about ambiguous phrasings and missing context.
+- Jörn appreciates pushback when he writes something unclear, makes mistakes or suggests something suboptimal.
+- Be direct, literal, and optimize for Jörn's time when you write a turn's final message. Structure your message to allow skimming. Use numbered lists to make referencing easier.
+- Make direct, explicit requests for permissions, clarifications, reviews, feedback and decisions when needed.
+- Use Jörn's time wisely. Don't delegate work to him that you can do yourself.
+- Leave long-term thesis project management to Jörn, you can help but he has more experience with long-running academic projects.
+- Be precise and concrete, not vague or metaphorical. Don't use pseudo-profound phrases that obscure meaning.
+- After making a mistake: pause, think carefully, then state concretely what was done wrong. Don't rush to respond with unclear apologies.
+- When explaining conventions or structures: describe the actual purpose and mechanics, not just formatting rules.
