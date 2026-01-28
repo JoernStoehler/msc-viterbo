@@ -133,7 +133,15 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Thesis Writing
 
-- [ ] **Complete billiard algorithm section** — [packages/latex_viterbo/chapters/algorithms.tex:285-287](packages/latex_viterbo/chapters/algorithms.tex#L285-L287) has TODO marker indicating incomplete documentation. This is blocking triangle×triangle debugging because agents can't understand what the algorithm computes. Need: mathematical formula for billiard action, how it relates to primal/dual formulations, and worked example (e.g., square×square).
+- [ ] **Complete billiard algorithm section** — [packages/latex_viterbo/chapters/algorithms.tex:285-287](packages/latex_viterbo/chapters/algorithms.tex#L285-L287) has TODO marker indicating incomplete documentation. This is blocking triangle×triangle debugging because agents can't understand what the algorithm computes.
+  - **Required content**:
+    1. Definition: k-bounce orbit = alternates moving in q-space (p constant) and p-space (q constant), has 2k segments (affine with convex mixture of Reeb velocities, not pure Reeb vectors)
+    2. Literature theorem: searching 2-bounce and 3-bounce orbits suffices for 4D Lagrangian products (needs citation)
+    3. Computational approach: search over parametrized 2-/3-bounce orbits
+    4. Parametrization constraints: differential inclusion on 2-faces, differential equation on 3-facets
+    5. Worked example showing the parametrization (e.g., square×square)
+  - **NOT to include**: Support functions/duality (historical naming only, not computational method)
+  - **Context**: No prior implementation exists - this explains the implementation complexity
 - [x] Talk: Clarke duality — migrate text content to thesis (2026-01-27)
 - [ ] Add images to Clarke duality talk (#41, manual) — see `\DraftImage` placeholders in `packages/latex_talk_clarke_duality/main.tex`
 
