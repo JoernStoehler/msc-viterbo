@@ -50,7 +50,7 @@ uv run pytest                       # Run tests
 uv run ruff check src tests         # Lint
 
 # Exploration
-scripts/repo-map.sh                 # Detailed file tree
+scripts/repo-map.py                 # Detailed file tree
 ```
 
 ## Onboarding

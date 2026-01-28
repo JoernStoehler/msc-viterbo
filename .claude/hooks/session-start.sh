@@ -1,15 +1,46 @@
 #!/bin/bash
-# SessionStart hook: install gh CLI in web environments (silent)
+# SessionStart hook: install gh CLI in Claude Code web environments (silent)
+# Only runs on startup, not resume/compact/clear (gh persists in VM)
 
 set -e
 
-# Read hook input from stdin (SessionStart provides JSON with source field)
+# Read hook input from stdin
 hook_input=$(cat)
 source=$(echo "$hook_input" | jq -r '.source // "startup"')
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Only install on startup
+[ "$source" != "startup" ] && exit 0
 
-# web-env-setup: only on startup (gh persists in VM)
-if [ "$source" = "startup" ]; then
-    echo "$hook_input" | "$SCRIPT_DIR/web-env-setup.sh" || true
+# Only in web environment
+[ "$CLAUDE_CODE_REMOTE" != "true" ] && exit 0
+
+# Skip if gh already installed
+command -v gh &>/dev/null && exit 0
+
+# Install gh CLI (silent unless errors)
+(
+    type -p wget >/dev/null || exit 1
+
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    wget -q "https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz" -O "$tmpdir/gh.tar.gz" || exit 1
+    tar -xzf "$tmpdir/gh.tar.gz" -C "$tmpdir" || exit 1
+
+    mkdir -p "$HOME/.local/bin"
+    cp "$tmpdir/gh_2.63.2_linux_amd64/bin/gh" "$HOME/.local/bin/" || exit 1
+    chmod +x "$HOME/.local/bin/gh"
+) 2>&1 | grep -i error >&2
+
+# Add to PATH if needed
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+    [ -n "$CLAUDE_ENV_FILE" ] && echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$CLAUDE_ENV_FILE"
 fi
+
+# Verify (warn but don't block)
+if ! "$HOME/.local/bin/gh" --version &>/dev/null; then
+    echo "gh CLI installation failed (non-blocking)" >&2
+fi
+
+exit 0

@@ -2,7 +2,21 @@
 set -euo pipefail
 
 # Rebuild the devcontainer image and recreate the container from the host.
-# Usage: scripts/host-devcontainer-rebuild.sh [devcontainer build args...]
+
+if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
+  cat <<'EOF'
+Usage: scripts/host-devcontainer-rebuild.sh [devcontainer build args...]
+
+Rebuild the devcontainer image and recreate the container.
+Run from the host machine (not inside the container).
+
+Additional arguments are passed to `devcontainer build`.
+
+Requires:
+  - devcontainer CLI (npm i -g @devcontainers/cli)
+EOF
+  exit 0
+fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 

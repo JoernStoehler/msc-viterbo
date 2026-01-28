@@ -1,6 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Devcontainer lifecycle script: postCreateCommand
+
+if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
+  cat <<'EOF'
+Usage: scripts/devcontainer-post-create.sh
+
+Devcontainer postCreateCommand lifecycle script.
+Called automatically when the container is created.
+
+Sets up:
+  - User directories (~/.config, ~/.local, ~/.cache, etc.)
+  - npm prefix/cache configuration
+  - GitHub CLI git credential helper
+  - TeX format pre-warming
+EOF
+  exit 0
+fi
+
 REPO_ROOT="/workspaces/msc-viterbo"
 
 # Ensure various directories exist and are owned by the non-root user
