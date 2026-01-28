@@ -16,19 +16,69 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 ## Algorithm Toolbox
 
 **CRITICAL (blocks experiments):**
+- [ ] Salvage orbit validation tests from Agent 3's abandoned worktree (URGENT - before cleanup):
+  - Copy /workspaces/worktrees/fix-triangle-billiard-discrepancy/packages/rust_viterbo/billiard/tests/orbit_invariants.rs to main
+  - Copy /workspaces/worktrees/fix-triangle-billiard-discrepancy/packages/rust_viterbo/billiard/tests/comprehensive_comparison.rs to main
+  - Exclude the bogus action formula changes
+  - Open PR with ONLY the tests (no "fixes")
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
   - **Status (2026-01-28)**: Investigation attempted but FAILED. Branch fix/triangle-billiard-discrepancy REJECTED.
   - **What was tried**: Changed action formula from support functions to ∫ λ = (1/2)∫⟨Jγ, γ̇⟩dt
-  - **Findings from comprehensive tests** (see /workspaces/worktrees/fix-triangle-billiard-discrepancy/):
-    * ALL rectangle/square cases PASS perfectly (ratio = 1.0)
-    * ALL triangle cases FAIL with varying ratios: 1.65 to 2.15 (NOT a constant factor!)
-    * Orbit validation tests ALL PASS: breakpoints on boundaries, closure, scaling c(λK)=λ²c(K)
-    * The orbits themselves are geometrically valid
-    * Error is in action formula or capacity computation, not orbit geometry
-  - **Key insight**: Error is NOT a simple constant - varies with geometry (1.65 for asymmetric, 2.0 for symmetric, 2.15 for certain angles)
-  - **What's needed**: Mathematical understanding of what billiard SHOULD compute, not pattern matching fixes
-  - **Test suite created**: comprehensive_comparison.rs with 15 cases, orbit_invariants.rs with 6 validation tests
-  - **For next agent**: Don't try correction factors. Understand the mathematical formula first. Check if billiard computes dual action vs primal action.
+  - **Detailed test results** (comprehensive_comparison.rs with 15 cases):
+    * ✅ square×square (tesseract): billiard=4.0000, hk2017=4.0000, ratio=1.0000
+    * ✅ rectangle×square: billiard=4.0000, hk2017=4.0000, ratio=1.0000
+    * ❌ triangle×triangle (same): billiard=3.0000, hk2017=1.5000, ratio=2.0000
+    * ✅ square×triangle: billiard=3.0000, hk2017=3.0000, ratio=1.0000
+    * ✅ square(r=0.5)×square(r=2): billiard=4.0000, hk2017=4.0000, ratio=1.0000
+    * ❌ triangle×triangle (rot 15°): billiard=2.8978, hk2017=1.3449, ratio=2.1547
+    * ❌ triangle×triangle (rot 30°): billiard=2.5981, hk2017=1.2990, ratio=2.0000
+    * ❌ triangle×triangle (rot 60°): billiard=3.0000, hk2017=1.5000, ratio=2.0000
+    * ❌ triangle×triangle (rot 90°): billiard=2.5981, hk2017=1.2990, ratio=2.0000
+    * ❌ triangle(r=1)×triangle(r=2): billiard=6.0000, hk2017=3.0000, ratio=2.0000
+    * ❌ triangle(r=1)×triangle(r=1.5,rot 25°): billiard=4.0784, hk2017=1.9560, ratio=2.0851
+    * ❌ asymmetric tri_a × tri_b: billiard=2.7712, hk2017=1.6768, ratio=1.6526
+    * ✅ square×square (rot 45°): billiard=5.6569, hk2017=5.6569, ratio=1.0000
+    * ✅ rectangle(1×2) × rectangle(1.5×1): billiard=6.0000, hk2017=6.0000, ratio=1.0000
+  - **Pattern discovered**:
+    * ALL cases with ONLY rectangles/squares: ratio = 1.0 (perfect agreement)
+    * ALL cases with at least ONE triangle: ratio between 1.65 and 2.15 (NOT constant!)
+    * Symmetric triangle cases: ratio ≈ 2.0 exactly
+    * Asymmetric triangles: ratio = 1.65
+    * Certain rotation angles (15°, 25°): ratio > 2.0
+    * Note: square×triangle works! Only fails when BOTH factors are triangles
+  - **Orbit validation tests** (orbit_invariants.rs with 6 tests) - ALL PASS:
+    * ✅ Breakpoints on facet boundaries
+    * ✅ Orbit closure (displacements sum to zero)
+    * ✅ Segments follow allowed directions
+    * ✅ Action positive and finite
+    * ✅ Scaling property c(λK) = λ²c(K) holds correctly
+    * ✅ Deterministic (same answer on repeated runs)
+    * **Conclusion**: The orbits themselves are geometrically VALID
+  - **Additional diagnostic tests created**:
+    * rotation_diagnostic.rs: full 0-120° sweep at 5° increments showing error pattern
+    * action_integral.rs: verified ∫ λ matches support function sum (both give same wrong answer for triangles!)
+    * asymmetric_triangles.rs: various irregular triangle combinations
+  - **Critical clues for next agent**:
+    1. Rectangles work perfectly → action formula is correct for those cases
+    2. square×triangle works → not just "any triangle fails"
+    3. Error ONLY when BOTH K_q and K_p are triangles
+    4. Varying ratios (1.65-2.15) → geometry-dependent, not a constant factor
+    5. User note: "don't use dual lengths" but thesis says billiard uses "P^polar-length" (support functions ARE dual lengths!)
+    6. Rotation sweep shows errors at specific angles (max at 15°, min at 30°/60°/90°)
+    7. Almost-triangle (4-gon) test was requested - check if 4-gon×triangle also fails
+  - **Hypotheses to investigate**:
+    * Does billiard compute dual action instead of primal action for triangle×triangle?
+    * Is there a missing factor in the action formula derivation for non-rectangular cases?
+    * Does the rectangular path assumption break down for triangular factors?
+    * Check HK2017 β coefficients for triangle - does it use all 6 facets uniformly (β=1/3)?
+  - **For next agent - REQUIRED SYSTEMATIC APPROACH**:
+    1. **Before touching code**: Read thesis algorithms.tex lines 93-99 on billiard formula
+    2. **Manual computation**: Compute action for square×square step-by-step by hand using thesis formula
+    3. **Compare**: Manually compute HK2017 for same case, find WHERE formulas differ
+    4. **Understand**: What does billiard compute? Primal action? Dual action? Something else?
+    5. **Then and only then**: Change code with mathematical justification
+    6. **Test systematically**: orbit validation first, then comparison tests
+    7. **NO pattern matching or correction factors**
 
 **Algorithm completion:**
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
