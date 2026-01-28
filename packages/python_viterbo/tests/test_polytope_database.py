@@ -223,19 +223,11 @@ class TestStageVolume:
         assert "volume" in new_keys
 
     def test_tesseract_volume(self) -> None:
-        polytopes = [
-            {
-                "id": "tesseract",
-                "normals": [[1, 0, 0, 0]],
-                "heights": [1],
-                "facet_count": 8,
-                "family": "tesseract",
-                "has_lagrangian_2face": True,
-                "is_lagrangian_product": True,
-            }
-        ]
-        polytopes_with_vol = add_volumes(polytopes)
-        assert polytopes_with_vol[0]["volume"] == 16.0
+        """Test that tesseract volume is computed correctly via FFI."""
+        polytopes = generate_polytopes()
+        tess = next(p for p in polytopes if p["id"] == "tesseract")
+        polytopes_with_vol = add_volumes([tess])
+        assert abs(polytopes_with_vol[0]["volume"] - 16.0) < 1e-6
 
 
 class TestStageCapacity:
