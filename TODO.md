@@ -20,7 +20,14 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31)
 - [ ] Benchmarks/profiling harness for algorithm trusted v1 (#33)
 - [-] Download HK thesis: verify sys ≤ 3/4 for simplices claim, extract known polytope values for validation — blocked on CC web (no CONNECT tunneling for JS pages); retry in local devcontainer
-- [ ] Cross-algorithm validation: billiard vs hk2017 on Lagrangian products, continuity-based billiard↔tube comparison; thesis section + code fixtures
+- [~] Cross-algorithm validation (algorithm-comparison experiment): billiard vs hk2017 on Lagrangian products — IN PROGRESS
+  - [x] FFI: exposed billiard and tube algorithms
+  - [x] stage_build.py: runs billiard + HK2017 on Lagrangian products
+  - [x] Documented known triangle×triangle discrepancy (billiard=3.0, hk2017=1.5)
+  - [ ] Add non-Lagrangian polytopes (fixtures exist in tube/src/fixtures.rs)
+  - [ ] Expose fixtures via FFI (cross-polytope, 24-cell, asymmetric, random_hrep)
+  - [ ] Run HK2017 vs Tube comparison on non-Lagrangian polytopes
+  - [ ] stage_analyze + stage_plot
 - [x] FFI cleanup: removed archived stubs, legacy aliases, fixed type stubs (#37) (2026-01-27)
 - [-] HK2017 QCQP solver: remove interior-point assumption — blocked on higher-prio items; big feature but worth background attempt
 
