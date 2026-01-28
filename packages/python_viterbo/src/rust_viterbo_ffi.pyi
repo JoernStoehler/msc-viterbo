@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from typing import Sequence
 
-Vector4 = tuple[float, float, float, float]
+Vector4 = tuple[float, float, float, float] | list[float]
+Vector2 = tuple[float, float] | list[float]
 
 class Hk2017Result:
     """Result of HK2017 capacity computation."""
@@ -87,5 +88,84 @@ def symplectic_form_4d(a: Vector4, b: Vector4) -> float:
 
     Returns:
         The symplectic form value ω(a, b).
+    """
+    ...
+
+class BilliardResult:
+    """Result of billiard capacity computation."""
+
+    @property
+    def capacity(self) -> float:
+        """The computed EHZ capacity."""
+        ...
+
+    @property
+    def num_bounces(self) -> int:
+        """Number of bounces in the optimal trajectory (2 or 3)."""
+        ...
+
+    @property
+    def combinations_evaluated(self) -> int:
+        """Number of edge combinations evaluated."""
+        ...
+
+def billiard_capacity_polygons(
+    vertices_q: Sequence[Vector2],
+    vertices_p: Sequence[Vector2],
+) -> BilliardResult:
+    """Compute EHZ capacity using the billiard algorithm for Lagrangian products.
+
+    The billiard algorithm computes capacity for K_q × K_p where K_q and K_p
+    are 2D convex polygons. This is specialized for Lagrangian products and
+    enumerates 2-bounce and 3-bounce trajectories.
+
+    Args:
+        vertices_q: Vertices of K_q polygon in CCW order, each as [x, y].
+        vertices_p: Vertices of K_p polygon in CCW order, each as [x, y].
+
+    Returns:
+        BilliardResult with capacity and trajectory information.
+
+    Raises:
+        ValueError: If polygons are invalid (< 3 vertices, non-convex, etc.).
+    """
+    ...
+
+class TubeResult:
+    """Result of tube capacity computation."""
+
+    @property
+    def capacity(self) -> float:
+        """The computed EHZ capacity."""
+        ...
+
+    @property
+    def tubes_explored(self) -> int:
+        """Number of tubes explored in branch-and-bound."""
+        ...
+
+    @property
+    def tubes_pruned(self) -> int:
+        """Number of tubes pruned by bounds."""
+        ...
+
+def tube_capacity_hrep(
+    normals: Sequence[Vector4],
+    heights: Sequence[float],
+) -> TubeResult:
+    """Compute EHZ capacity using the tube algorithm for non-Lagrangian polytopes.
+
+    The tube algorithm uses Reeb dynamics and branch-and-bound search over
+    "tubes" of trajectories. It requires all 2-faces to be non-Lagrangian.
+
+    Args:
+        normals: Unit outward normal vectors for each facet, as [x, y, z, w].
+        heights: Signed distances from origin to each facet (must be positive).
+
+    Returns:
+        TubeResult with capacity and orbit information.
+
+    Raises:
+        ValueError: If polytope has Lagrangian 2-faces or other issues.
     """
     ...
