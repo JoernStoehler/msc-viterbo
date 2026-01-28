@@ -14,7 +14,6 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
 hk2017 = { path = "../hk2017" }
-billiard = { path = "../billiard" }
 tube = { path = "../tube" }
 geom = { path = "../geom" }
 nalgebra = "0.33"

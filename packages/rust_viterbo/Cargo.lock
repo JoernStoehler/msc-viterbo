@@ -27,17 +27,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
-name = "billiard"
-version = "0.1.0"
-dependencies = [
- "approx",
- "hk2017",
- "itertools 0.14.0",
- "nalgebra",
- "thiserror",
-]
-
-[[package]]
 name = "bindgen"
 version = "0.69.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -161,6 +150,7 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 name = "geom"
 version = "0.1.0"
 dependencies = [
+ "approx",
  "nalgebra",
  "qhull",
  "thiserror",
@@ -645,7 +635,6 @@ checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 name = "rust_viterbo_ffi"
 version = "0.3.0"
 dependencies = [
- "billiard",
  "geom",
  "hk2017",
  "nalgebra",

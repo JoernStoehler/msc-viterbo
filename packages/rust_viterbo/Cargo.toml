@@ -1,5 +1,5 @@
 [workspace]
-members = ["geom", "hk2017", "billiard", "tube", "ffi"]
+members = ["geom", "hk2017", "tube", "ffi"]
 resolver = "2"
 
 [workspace.package]

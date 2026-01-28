@@ -7,7 +7,6 @@
 //!
 //! - **HK2017**: Haim-Kislev's combinatorial formula from "On the Symplectic
 //!   Size of Convex Polytopes" (arXiv:1712.03494, published GAFA 2019).
-//! - **Billiard**: Minkowski billiard algorithm for Lagrangian products.
 //! - **Tube**: Reeb dynamics algorithm for non-Lagrangian polytopes.
 //!
 //! ## Usage from Python
@@ -31,11 +30,10 @@
 // Clippy false positive with PyO3's PyResult type annotations
 #![allow(clippy::useless_conversion)]
 
-use nalgebra::{Vector2, Vector4};
+use nalgebra::Vector4;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use billiard::{billiard_capacity_from_polygons, BilliardError, Polygon2D};
 use geom::{systolic::systolic_ratio as geom_systolic_ratio, volume::polytope_volume_hrep};
 use hk2017::{hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep};
 use tube::{tube_capacity, PolytopeHRep as TubePolytopeHRep, TubeError};
@@ -187,83 +185,6 @@ fn convert_error(e: Hk2017Error) -> PyErr {
             PyValueError::new_err(format!("Result verification failed: {}", msg))
         }
     }
-}
-
-// =============================================================================
-// Billiard Algorithm FFI
-// =============================================================================
-
-/// Compute EHZ capacity using the billiard algorithm for Lagrangian products.
-///
-/// The billiard algorithm computes capacity for K_q × K_p where K_q and K_p
-/// are 2D convex polygons. This is specialized for Lagrangian products and
-/// enumerates 2-bounce and 3-bounce trajectories.
-///
-/// # Arguments
-/// * `vertices_q` - Vertices of K_q polygon in CCW order, each as [x, y]
-/// * `vertices_p` - Vertices of K_p polygon in CCW order, each as [x, y]
-///
-/// # Returns
-/// A `BilliardResult` with capacity and trajectory information.
-///
-/// # Raises
-/// * `ValueError` if polygons are invalid (< 3 vertices, non-convex, etc.)
-#[pyfunction]
-fn billiard_capacity_polygons(
-    vertices_q: Vec<[f64; 2]>,
-    vertices_p: Vec<[f64; 2]>,
-) -> PyResult<BilliardResult> {
-    let verts_q: Vec<Vector2<f64>> = vertices_q
-        .into_iter()
-        .map(|v| Vector2::new(v[0], v[1]))
-        .collect();
-    let verts_p: Vec<Vector2<f64>> = vertices_p
-        .into_iter()
-        .map(|v| Vector2::new(v[0], v[1]))
-        .collect();
-
-    let k_q = Polygon2D::from_vertices(verts_q).map_err(convert_billiard_error)?;
-    let k_p = Polygon2D::from_vertices(verts_p).map_err(convert_billiard_error)?;
-
-    match billiard_capacity_from_polygons(&k_q, &k_p) {
-        Ok(result) => Ok(BilliardResult {
-            capacity: result.capacity,
-            num_bounces: result.witness.num_bounces,
-            combinations_evaluated: result.combinations_evaluated,
-        }),
-        Err(e) => Err(convert_billiard_error(e)),
-    }
-}
-
-/// Result of billiard capacity computation.
-#[pyclass]
-#[derive(Clone)]
-struct BilliardResult {
-    /// The computed EHZ capacity.
-    #[pyo3(get)]
-    capacity: f64,
-
-    /// Number of bounces in the optimal trajectory (2 or 3).
-    #[pyo3(get)]
-    num_bounces: usize,
-
-    /// Number of edge combinations evaluated.
-    #[pyo3(get)]
-    combinations_evaluated: usize,
-}
-
-#[pymethods]
-impl BilliardResult {
-    fn __repr__(&self) -> String {
-        format!(
-            "BilliardResult(capacity={:.6}, num_bounces={}, combinations={})",
-            self.capacity, self.num_bounces, self.combinations_evaluated
-        )
-    }
-}
-
-fn convert_billiard_error(e: BilliardError) -> PyErr {
-    PyValueError::new_err(format!("Billiard error: {}", e))
 }
 
 // =============================================================================
@@ -428,10 +349,6 @@ fn rust_viterbo_ffi(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // HK2017
     m.add_function(wrap_pyfunction!(hk2017_capacity_hrep, m)?)?;
     m.add_class::<Hk2017Result>()?;
-
-    // Billiard
-    m.add_function(wrap_pyfunction!(billiard_capacity_polygons, m)?)?;
-    m.add_class::<BilliardResult>()?;
 
     // Tube
     m.add_function(wrap_pyfunction!(tube_capacity_hrep, m)?)?;

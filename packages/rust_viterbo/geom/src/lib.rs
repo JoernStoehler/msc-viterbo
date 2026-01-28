@@ -1,7 +1,7 @@
 //! Shared geometry types for symplectic capacity algorithms.
 //!
 //! This crate provides fundamental geometric types used across all
-//! symplectic capacity algorithms (HK2017, tube, billiard).
+//! symplectic capacity algorithms (HK2017, tube).
 //!
 //! # Design Philosophy
 //!
@@ -27,10 +27,12 @@
 //! - [`volume`]: Volume computation using QHull
 //! - [`systolic`]: Systolic ratio from capacity and volume
 
+pub mod polygon2d;
 pub mod polytope;
 pub mod systolic;
 pub mod tolerances;
 pub mod volume;
 
+pub use polygon2d::{support_function, t_dual_length, Polygon2D, Polygon2DError};
 pub use polytope::PolytopeHRep;
 pub use tolerances::{EPS, EPS_UNIT};

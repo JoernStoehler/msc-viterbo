@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import Sequence
 
 Vector4 = tuple[float, float, float, float] | list[float]
-Vector2 = tuple[float, float] | list[float]
 
 class Hk2017Result:
     """Result of HK2017 capacity computation."""
@@ -88,46 +87,6 @@ def symplectic_form_4d(a: Vector4, b: Vector4) -> float:
 
     Returns:
         The symplectic form value ω(a, b).
-    """
-    ...
-
-class BilliardResult:
-    """Result of billiard capacity computation."""
-
-    @property
-    def capacity(self) -> float:
-        """The computed EHZ capacity."""
-        ...
-
-    @property
-    def num_bounces(self) -> int:
-        """Number of bounces in the optimal trajectory (2 or 3)."""
-        ...
-
-    @property
-    def combinations_evaluated(self) -> int:
-        """Number of edge combinations evaluated."""
-        ...
-
-def billiard_capacity_polygons(
-    vertices_q: Sequence[Vector2],
-    vertices_p: Sequence[Vector2],
-) -> BilliardResult:
-    """Compute EHZ capacity using the billiard algorithm for Lagrangian products.
-
-    The billiard algorithm computes capacity for K_q × K_p where K_q and K_p
-    are 2D convex polygons. This is specialized for Lagrangian products and
-    enumerates 2-bounce and 3-bounce trajectories.
-
-    Args:
-        vertices_q: Vertices of K_q polygon in CCW order, each as [x, y].
-        vertices_p: Vertices of K_p polygon in CCW order, each as [x, y].
-
-    Returns:
-        BilliardResult with capacity and trajectory information.
-
-    Raises:
-        ValueError: If polygons are invalid (< 3 vertices, non-convex, etc.).
     """
     ...
 
