@@ -82,7 +82,10 @@ fn test_hk2017_vs_tube_random_8_facet() {
 
     // Relax assertion - just report findings
     if compared < 5 {
-        println!("\nWARNING: Only compared {} polytopes (target: 5)", compared);
+        println!(
+            "\nWARNING: Only compared {} polytopes (target: 5)",
+            compared
+        );
     }
     if !mismatches.is_empty() {
         println!(
