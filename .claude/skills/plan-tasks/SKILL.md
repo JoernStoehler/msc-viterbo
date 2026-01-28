@@ -1,44 +1,96 @@
 ---
 name: plan-tasks
-description: Adding or reorganizing tasks in TODO.md. Use when Jörn requests task additions, when discovered work needs tracking, or when restructuring the task list. NOT for normal task completion (marking [x]).
+description: Creating and managing tasks in GitHub Issues. Use when Jörn requests task creation, when discovered work needs tracking. NOT for normal work logs (use issue comments).
 ---
 
-# Task Planning
+# Task Management with GitHub Issues
 
-## TODO.md Structure
+## Overview
 
-- **Checklist sections** at top for quick scanning
-- **Details section** at bottom for items needing context
-- **Status markers**: `[ ]` pending, `[x]` done, `[-]` blocked/deferred
+Work tracked in **GitHub Issues**, **Milestones**, and **Discussions**.
+
+- Code work → GitHub Issues
+- Experiment ideas → GitHub Discussions → Issue when ready
+- Experiments have tracking issue + SPEC.md/FINDINGS.md in repo
+
+## Creating Issues
+
+Use `gh issue create` with templates:
+
+```bash
+# Bug report
+gh issue create --template bug.yml --title "Volume returns negative for simplex"
+
+# Feature request
+gh issue create --template feature.yml --title "Remove FFI 10-facet limit"
+
+# Experiment
+gh issue create --template experiment.md --title "random-polytope-sys-distribution"
+```
+
+Or use web UI: templates at `.github/ISSUE_TEMPLATE/`
+
+## Issue Structure
+
+**Title:** Action-oriented, specific
+- Good: "Fix negative volume for degenerate polytopes"
+- Bad: "Volume bug"
+
+**Description:** Problem, approach, acceptance criteria (template guides this)
+
+**Labels:** Apply as needed
+- Type: `bug`, `enhancement`, `experiment`, `documentation`
+- Area: `rust`, `python`, `thesis`, `infra`
+- `blocked` when waiting on dependencies
+
+**Footer (REQUIRED):**
+```markdown
+---
+*Agent: worktree-name*
+```
+Issues without footer = from Jörn.
+
+## Work Logs
+
+Use **issue comments** for chronological notes:
+
+```bash
+gh issue comment 123 --body "Tried approach X, failed because Y.
+
+Found that module A depends on B unexpectedly. Need to refactor or work around.
+
+---
+*Agent: feat/fix-volume*"
+```
+
+Work logs should be:
+- **High fidelity, low shame**: "Tried X, failed" is valuable
+- **Chronological**: Each comment = progress update
+- **Attributed**: Footer shows which agent/branch
 
 ## When to Add Tasks
 
 Only when:
-- Work is discovered that can't be done now (blocked, out of scope)
+- Work discovered that can't be done now (blocked, out of scope)
 - Jörn explicitly requests it
 
 **Don't speculatively add tasks** - Jörn manages the backlog.
 
-## Simple vs Detailed Items
+## Cross-Referencing
 
-**Simple items:** One line in checklist
+Use `#123` to reference issues:
 ```markdown
-- [ ] Fix FFI facet limit
+Blocked by: #45 (complete billiard section)
+Blocks: #67 (algorithm comparison experiment)
+See also: #89 (related PR)
 ```
 
-**Items with context:** Add sub-bullets or `## label` section in Details
-```markdown
-## fix-ffi-facet-limit
+## Closing Issues
 
-Current FFI limits to 10 facets due to timeout concerns. Need to:
-1. Profile HK2017 on 11-12 facet polytopes
-2. Adjust timeout if performance acceptable
-3. Update FFI validation
+When work complete:
+```bash
+gh issue close 123 --comment "Completed. Tests passing, docs updated.
+
+---
+*Agent: feat/fix-volume*"
 ```
-
-## How to Write Good Task Descriptions
-
-- **Action-oriented**: "Fix X", "Implement Y", "Verify Z"
-- **Include acceptance criteria** if not obvious
-- **Reference related issues/experiments/code** locations
-- **Note blockers explicitly** with `[-]` marker

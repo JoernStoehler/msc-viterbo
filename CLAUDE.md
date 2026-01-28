@@ -69,18 +69,17 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 
 ### When Assigned a Task
 
-1. **IMPORTANT: Read TODO.md first** to understand context
-2. If the assigned task isn't in TODO.md, add it before starting
-3. Working directory: 
-  - Work on specified branch inside specified git worktree 
+1. **Check GitHub Issues** for assigned work or create issue if needed
+2. Working directory:
+  - Work on specified branch inside specified git worktree
   - If told to work on the main `/workspaces/msc-viterbo` branch, do so
   - If no worktree specified, create a new one from main
-4. Read skills that are relevant to the work
-5. Continue as usual
+3. Read skills that are relevant to the work
+4. Continue as usual
 
 ### After Completing Work
 
-1. **IMPORTANT: Mark task [x] in TODO.md**
+1. **Close issue** with comment summarizing what was done (include footer)
 2. Ensure tests pass, no broken code
 3. Update docs/comments if behavior changed
 4. Remove stale TODOs/comments
@@ -96,12 +95,32 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 
 ### Task Management
 
+Work tracked in GitHub Issues, Milestones, and Discussions.
+
+**GitHub Issues:**
+- Code work (bugs, features, investigations, chores) → create issues
+- Use `gh issue create/view/comment/close` commands
+- Add footer for attribution: `---\n*Agent: worktree-name*`
+- Issues without footer = from Jörn
+- Use issue templates when creating (.github/ISSUE_TEMPLATE/)
+- Work logs go in issue comments (chronological, with footer)
+
+**Experiments:**
+- Create tracking issue (use experiment template)
+- Implementation in repo: SPEC.md + FINDINGS.md + stage files
+- FINDINGS.md = living document, updated as work progresses
+- See `plan-experiments` skill
+
+**Discussions:**
+- Experiment ideas before they're specified
+- Open-ended research questions
+- Can convert discussion → issue when ready
+
 **IMPORTANT: Don't speculatively add tasks.** Jörn manages the backlog.
 
 Only add tasks when:
 - Work is discovered that can't be done now (blocked, out of scope)
 - Jörn explicitly requests it
-- Use `plan-tasks` skill for adding/reorganizing beyond simple todo items
 
 ### Cleanup & Standards
 
