@@ -13,7 +13,7 @@ Quick reference for notation used in this thesis and correspondence with key pap
 | `k`, `S`, `σ` | # participating facets, subset, cyclic ordering |
 | `β_i` | Normalized time coefficient (Σβ_i h_i = 1) |
 | `Q(σ,β)` | Quadratic form; c_EHZ = (2 Q_max)^{-1} |
-| `ω(x,y)` | Symplectic form (⚠️ check factor of 2) |
+| `ω(x,y) = ⟨Jx, y⟩` | Standard symplectic form |
 | `J` | Complex structure: J(q,p) = (-p, q) |
 
 ## Cross-Paper Notation
@@ -27,5 +27,5 @@ Quick reference for notation used in this thesis and correspondence with key pap
 
 ## Open Issues
 
-1. **ω factor of 2**: `01-standard-symplectic.tex` uses ω = ½⟨Jx,y⟩ but `05-reeb-dynamics.tex` omits the ½. Audit needed.
+1. ~~**ω factor of 2**~~: Fixed. Now ω(x,y) = ⟨Jx, y⟩ everywhere (no ½).
 2. **Missing theorems**: `\todoref{thm:simple-min-action-reeb-orbit}`, `\todoref{thm:cz-index}` in algorithms.tex.
