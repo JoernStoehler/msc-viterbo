@@ -24,11 +24,12 @@ import json
 import math
 import random
 from pathlib import Path
+from typing import Any
 
 try:
     import rust_viterbo_ffi as ffi
 except ImportError:
-    ffi = None  # type: ignore
+    ffi: Any = None
 
 
 def generate_stub_orbit(
