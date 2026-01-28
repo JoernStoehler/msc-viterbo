@@ -139,7 +139,7 @@ The HK2017 algorithm computes \(\cEHZ(K)\) by direct optimization over the combi
 
 Let \(K \subset \R^4\) be a convex polytope with \(F\) facets, outward unit normals \((n_i)_{i=1}^F\), and heights \((h_i)_{i=1}^F\). By \cref{thm-simple-minimizer-existence}, the minimum-action closed characteristic can be taken to be simple: each facet Reeb vector appears at most once. A simple orbit is encoded by:
 \begin{itemize}
-  \item A subset \(S \subseteq \{1,\ldots,F\}\) of participating facets, with \(k = |S| \ge 3\).
+  \item A subset \(S \subseteq \{1,\ldots,F\}\) of participating facets, with \(k = |S| \ge 3\).\footnote{For \(k=1\), closure \(\beta_1 n_1 = 0\) with \(\beta_1 > 0\) is impossible. For \(k=2\), closure requires \(n_1 \parallel n_2\) with opposite signs, giving \(\omega(n_1, n_2) = 0\) and hence \(Q = 0\).}
   \item A cyclic ordering \(\sigma: \{1,\ldots,k\} \to S\) specifying the order in which facets are visited.
   \item Coefficients \(\beta_i \ge 0\) for \(i \in S\), representing normalized time spent with each facet's Reeb velocity.
 \end{itemize}
@@ -150,7 +150,7 @@ The constraints on \(\beta\) encode closure and normalization:
   \sum_{i \in S} \beta_i n_i &= 0 \quad \text{(closure constraint, 4 equations)}. \label{eq:hk-closure}
 \end{align}
 
-The quadratic form \(Q\) computes (twice the inverse of) the action:
+The quadratic form \(Q\) is related to action by \(\cEHZ = (2 Q_{\max})^{-1}\):
 \begin{equation}\label{eq:hk-quadratic}
   Q(\sigma, \beta) = \sum_{1 \le j < i \le k} \beta_{\sigma(i)} \beta_{\sigma(j)} \, \omega(n_{\sigma(i)}, n_{\sigma(j)}).
 \end{equation}
@@ -183,7 +183,7 @@ For fixed \(S\) and \(\sigma\), the feasible region is
 This is the intersection of an affine subspace (the equality constraints) with the non-negative orthant.
 
 \begin{lemma}[Feasible Region Properties]\label{lem:hk-feasible}
-The set \(M(S)\) is a compact convex polytope of dimension at most \(k - 5\). It is bounded because \(\beta_i \ge 0\) and \(\sum \beta_i h_i = 1\) with \(h_i > 0\) imply \(\beta_i \le 1/h_i\).
+The set \(M(S)\) is a compact convex polytope of dimension at most \(k - 5\), with equality when the 5 constraint rows (1 height + 4 closure) are linearly independent. It is bounded because \(\beta_i \ge 0\) and \(\sum \beta_i h_i = 1\) with \(h_i > 0\) imply \(\beta_i \le 1/h_i\). For \(k < 5\), the feasible region is generically empty or a single point.
 \end{lemma}
 
 The interior of \(M(S)\) is \(M^\circ(S) = \{\beta \in M(S) : \beta_i > 0 \text{ for all } i\}\). The boundary consists of faces where some \(\beta_i = 0\).
@@ -241,7 +241,7 @@ The global maximum \(\max_{S, \sigma, \beta} Q(\sigma, \beta)\) is achieved at a
 \end{corollary}
 
 \begin{proof}
-Let \((S^*, \sigma^*, \beta^*)\) achieve the global maximum. If some \(\beta^*_j = 0\), by \cref{lem:hk-boundary}, the same \(Q\) value is achieved by \((S', \sigma', \beta')\) with \(|S'| < |S^*|\). Repeating until no \(\beta_i = 0\) gives a strictly interior maximizer.
+The search space is finite (finitely many subsets and permutations) and each \(M(S)\) is compact, so a global maximum exists. Let \((S^*, \sigma^*, \beta^*)\) achieve it. If some \(\beta^*_j = 0\), by \cref{lem:hk-boundary}, the same \(Q\) value is achieved by \((S', \sigma', \beta')\) with \(|S'| < |S^*|\). Repeating until no \(\beta_i = 0\) (terminating since \(|S| \ge 3\)) gives a strictly interior maximizer.
 \end{proof}
 
 \subsection{Algorithm Summary}
@@ -274,7 +274,7 @@ The HK2017 algorithm has the advantage of being self-contained: it requires only
 \begin{itemize}
   \item \textbf{Factorial complexity}: Even with pruning, the permutation search grows rapidly with \(F\).
   \item \textbf{No early termination}: Unlike the tube-based algorithms (\cref{sec:algo-ours}), there is no natural way to obtain upper bounds during the search for pruning.
-  \item \textbf{No geometric certificate}: The output is a permutation and coefficients, not an explicit trajectory on \(\partial K\).
+  \item \textbf{Indirect geometric certificate}: The output \((\sigma, \beta)\) determines a trajectory, but reconstructing explicit breakpoints on \(\partial K\) requires additional computation (solving for positions from velocities and times).
 \end{itemize}
 
 For polytopes with few facets (\(F \le 10\)), HK2017 is practical and serves as a reference for validating other algorithms. For larger polytopes, the tube-based approach of \cref{sec:algo-ours} is preferred.

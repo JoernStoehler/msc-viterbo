@@ -96,8 +96,8 @@
 //! of some (S*, sigma*), and the algorithm correctly finds it.
 //!
 //! **Proof reference:** See thesis Section 3.3 (Algorithm of Haim-Kislev 2017),
-//! specifically Lemma 3.X (Boundary Reduction) and Corollary 3.Y (Correctness
-//! of Interior-Only Search) for the complete argument.
+//! specifically Lemma `lem:hk-boundary` (Boundary Reduction) and Corollary
+//! `cor:hk-interior-correct` (Correctness of Interior-Only Search).
 //!
 //! ## Historical note
 //!
