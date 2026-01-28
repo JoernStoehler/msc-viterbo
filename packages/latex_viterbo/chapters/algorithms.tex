@@ -132,7 +132,152 @@ An overview of the main subroutines the library provides is given in table \ref{
 One main choice we made was to use the optimized third-party ``cddlib'' library for doing non-symplectic euklidean geometry with polytopes.
 
 \section{Algorithm of Haim-Kislev 2017 in Dimension Four}\label{sec:algo-hk2017}
-% TODO: Present the first algorithm for capacity computation from the literature.
+
+The HK2017 algorithm computes \(\cEHZ(K)\) by direct optimization over the combinatorial formula from \cref{thm-hk-combinatorial}. We present the algorithm specialized to dimension four, which simplifies the constraint structure.
+
+\subsection{The Optimization Problem}
+
+Let \(K \subset \R^4\) be a convex polytope with \(F\) facets, outward unit normals \((n_i)_{i=1}^F\), and heights \((h_i)_{i=1}^F\). By \cref{thm-simple-minimizer-existence}, the minimum-action closed characteristic can be taken to be simple: each facet Reeb vector appears at most once. A simple orbit is encoded by:
+\begin{itemize}
+  \item A subset \(S \subseteq \{1,\ldots,F\}\) of participating facets, with \(k = |S| \ge 3\).
+  \item A cyclic ordering \(\sigma: \{1,\ldots,k\} \to S\) specifying the order in which facets are visited.
+  \item Coefficients \(\beta_i \ge 0\) for \(i \in S\), representing normalized time spent with each facet's Reeb velocity.
+\end{itemize}
+
+The constraints on \(\beta\) encode closure and normalization:
+\begin{align}
+  \sum_{i \in S} \beta_i h_i &= 1 \quad \text{(height/normalization constraint)}, \label{eq:hk-height} \\
+  \sum_{i \in S} \beta_i n_i &= 0 \quad \text{(closure constraint, 4 equations)}. \label{eq:hk-closure}
+\end{align}
+
+The quadratic form \(Q\) computes (twice the inverse of) the action:
+\begin{equation}\label{eq:hk-quadratic}
+  Q(\sigma, \beta) = \sum_{1 \le j < i \le k} \beta_{\sigma(i)} \beta_{\sigma(j)} \, \omega(n_{\sigma(i)}, n_{\sigma(j)}).
+\end{equation}
+
+\begin{theorem}[HK2017 Capacity Formula]\label{thm:hk-capacity-formula}
+For a convex polytope \(K \subset \R^4\),
+\[
+  \cEHZ(K) = \frac{1}{2} \left[ \max_{S, \sigma, \beta} Q(\sigma, \beta) \right]^{-1},
+\]
+where the maximum is over all valid subsets \(S\), cyclic orderings \(\sigma\), and coefficients \(\beta\) satisfying \eqref{eq:hk-height}, \eqref{eq:hk-closure}, and \(\beta_i \ge 0\).
+\end{theorem}
+
+\begin{proof}
+See \cite{HK2017} for the general \(2n\)-dimensional proof. The key steps are:
+\begin{enumerate}
+  \item By \cref{thm-simple-minimizer-existence}, minimizers can be taken simple.
+  \item For a simple orbit with velocities \(p_{\sigma(i)} = \frac{2}{h_{\sigma(i)}} J n_{\sigma(i)}\) and time durations \(T_i\), the action is \(A = \sum_{j<i} T_{\sigma(i)} T_{\sigma(j)} \omega(n_{\sigma(i)}, n_{\sigma(j)})\).
+  \item Setting \(\beta_i = T_i / (\sum_j T_j h_j)\) normalizes to constraint \eqref{eq:hk-height}.
+  \item Closure \(\sum T_i p_i = 0\) becomes \eqref{eq:hk-closure} after rescaling.
+  \item The formula \(\cEHZ = (2 Q_{\max})^{-1}\) follows from the scaling. \qedhere
+\end{enumerate}
+\end{proof}
+
+\subsection{Structure of the Feasible Region}
+
+For fixed \(S\) and \(\sigma\), the feasible region is
+\[
+  M(S) = \left\{ \beta \in \R^k : \sum_{i \in S} \beta_i h_i = 1, \; \sum_{i \in S} \beta_i n_i = 0, \; \beta_i \ge 0 \right\}.
+\]
+This is the intersection of an affine subspace (the equality constraints) with the non-negative orthant.
+
+\begin{lemma}[Feasible Region Properties]\label{lem:hk-feasible}
+The set \(M(S)\) is a compact convex polytope of dimension at most \(k - 5\). It is bounded because \(\beta_i \ge 0\) and \(\sum \beta_i h_i = 1\) with \(h_i > 0\) imply \(\beta_i \le 1/h_i\).
+\end{lemma}
+
+The interior of \(M(S)\) is \(M^\circ(S) = \{\beta \in M(S) : \beta_i > 0 \text{ for all } i\}\). The boundary consists of faces where some \(\beta_i = 0\).
+
+\subsection{The KKT Solver for Fixed Permutation}
+
+For a fixed subset \(S\) and ordering \(\sigma\), the subproblem is:
+\[
+  \max_{\beta \in M(S)} Q(\sigma, \beta).
+\]
+This is a quadratic program with linear equality and inequality constraints.
+
+\paragraph{Interior critical points.}
+Ignoring the inequality constraints \(\beta_i \ge 0\), the equality-constrained problem has a unique critical point (generically) found by solving the KKT system:
+\begin{equation}\label{eq:hk-kkt}
+  \begin{pmatrix} H & A^\top \\ A & 0 \end{pmatrix}
+  \begin{pmatrix} \beta \\ \lambda \end{pmatrix}
+  = \begin{pmatrix} 0 \\ b \end{pmatrix},
+\end{equation}
+where \(H\) is the Hessian of \(Q\), \(A\) is the \(5 \times k\) constraint matrix (one row for height, four for closure), \(b = (1, 0, 0, 0, 0)^\top\), and \(\lambda\) are Lagrange multipliers.
+
+\begin{lemma}[Hessian Structure]\label{lem:hk-hessian}
+The Hessian \(H \in \R^{k \times k}\) of \(Q(\sigma, \cdot)\) has entries
+\[
+  H_{\ell m} = \begin{cases}
+    \omega(n_{\sigma(\max(\ell,m))}, n_{\sigma(\min(\ell,m))}) & \text{if } \ell \neq m, \\
+    0 & \text{if } \ell = m.
+  \end{cases}
+\]
+Despite \(\omega\) being antisymmetric, \(H\) is symmetric (the index ordering absorbs the sign). The trace is zero, so \(H\) is generically indefinite.
+\end{lemma}
+
+\paragraph{Post-hoc feasibility check.}
+The KKT system \eqref{eq:hk-kkt} finds the unique critical point of \(Q\) on the affine subspace. If this critical point satisfies \(\beta_i > 0\) for all \(i\), it lies in the interior of \(M(S)\). If some \(\beta_i < 0\), the critical point is outside the feasible region, and we reject this \((S, \sigma)\) pair.
+
+\begin{remark}[No explicit boundary search needed]
+One might worry that the maximum of \(Q\) over \(M(S)\) could occur on the boundary (some \(\beta_i = 0\)) rather than at the interior critical point. However, the following lemma shows this case is handled by the search over smaller subsets.
+\end{remark}
+
+\begin{lemma}[Boundary Reduction]\label{lem:hk-boundary}
+If \(\beta^* \in M(S)\) has \(\beta^*_j = 0\) for some \(j \in S\), then \(\beta^*\) corresponds to a point in \(M(S')\) where \(S' = S \setminus \{j\}\), with the same \(Q\) value.
+\end{lemma}
+
+\begin{proof}
+Removing facet \(j\) from \(S\):
+\begin{itemize}
+  \item Constraints \eqref{eq:hk-height}--\eqref{eq:hk-closure} lose a zero term, so remain satisfied.
+  \item In \(Q\), all terms involving \(\beta_j = 0\) contribute zero.
+\end{itemize}
+Thus \(Q(\sigma, \beta^*) = Q(\sigma', \beta')\) where \(\sigma'\) omits \(j\) and \(\beta'\) omits \(\beta_j\).
+\end{proof}
+
+\begin{corollary}[Correctness of Interior-Only Search]\label{cor:hk-interior-correct}
+The global maximum \(\max_{S, \sigma, \beta} Q(\sigma, \beta)\) is achieved at a point with all \(\beta_i > 0\). Hence searching only interior critical points (via KKT) over all subsets \(S\) finds the global maximum.
+\end{corollary}
+
+\begin{proof}
+Let \((S^*, \sigma^*, \beta^*)\) achieve the global maximum. If some \(\beta^*_j = 0\), by \cref{lem:hk-boundary}, the same \(Q\) value is achieved by \((S', \sigma', \beta')\) with \(|S'| < |S^*|\). Repeating until no \(\beta_i = 0\) gives a strictly interior maximizer.
+\end{proof}
+
+\subsection{Algorithm Summary}
+
+\begin{enumerate}
+  \item \textbf{Enumerate subsets}: For each non-empty \(S \subseteq \{1, \ldots, F\}\) with \(|S| \ge 3\):
+  \item \textbf{Enumerate orderings}: For each cyclic ordering \(\sigma\) of \(S\):
+  \begin{enumerate}
+    \item Solve the KKT system \eqref{eq:hk-kkt} for \(\beta\).
+    \item If all \(\beta_i > 0\) and constraints are satisfied, compute \(Q(\sigma, \beta)\).
+    \item Track the maximum \(Q\) found.
+  \end{enumerate}
+  \item \textbf{Return}: \(\cEHZ(K) = (2 Q_{\max})^{-1}\).
+\end{enumerate}
+
+\paragraph{Complexity.}
+The naive algorithm enumerates \(O(F!)\) permutations. For polytopes with sparse facet transition graphs, many permutations can be pruned by checking geometric adjacency (a valid orbit must transition between facets that share a 2-face with compatible Reeb flow direction). The Chaidez--Hutchings bound \(\rho \le 2\) further limits the search to orbits with bounded combinatorial rotation number \cite{CH2021}.
+
+\paragraph{Numerical considerations.}
+The KKT system is solved via LU decomposition. Tolerances are needed for:
+\begin{itemize}
+  \item Constraint satisfaction: \(|\sum \beta_i h_i - 1| < \epsilon\), \(\|\sum \beta_i n_i\| < \epsilon\).
+  \item Positivity check: \(\beta_i > -\epsilon\) (allowing small numerical violations).
+  \item Singularity detection: the KKT matrix may be singular for degenerate polytopes.
+\end{itemize}
+
+\subsection{Comparison with Other Algorithms}
+
+The HK2017 algorithm has the advantage of being self-contained: it requires only the H-rep data \((n_i, h_i)\) and linear algebra. Its main disadvantages are:
+\begin{itemize}
+  \item \textbf{Factorial complexity}: Even with pruning, the permutation search grows rapidly with \(F\).
+  \item \textbf{No early termination}: Unlike the tube-based algorithms (\cref{sec:algo-ours}), there is no natural way to obtain upper bounds during the search for pruning.
+  \item \textbf{No geometric certificate}: The output is a permutation and coefficients, not an explicit trajectory on \(\partial K\).
+\end{itemize}
+
+For polytopes with few facets (\(F \le 10\)), HK2017 is practical and serves as a reference for validating other algorithms. For larger polytopes, the tube-based approach of \cref{sec:algo-ours} is preferred.
 
 \section{Algorithm of Chadez--Hutchings 2021}\label{sec:algo-ch2021}
 % TODO: Present the second algorithm for capacity computation from the literature.
