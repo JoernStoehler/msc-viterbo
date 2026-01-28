@@ -17,6 +17,11 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 **CRITICAL (blocks experiments):**
 - [ ] Volume(K) in R⁴ + systolic ratio + baseline tests (#31) — use QHull for volume computation
+- [ ] Refactor polytope_database experiment into modular stages:
+  - stage_polytopes.py: generate polytope geometries only
+  - stage_volume.py: add volume calculations (depends on #31)
+  - stage_capacity.py: add capacity via tube algorithm
+  - Enables incremental reruns when fixing individual stages
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
 
 **Algorithm completion:**
@@ -57,12 +62,12 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [-] algorithm-performance-comparison — needs all algorithms validated (triangle×triangle bug)
 - [-] algorithm-optimization-ablation — blocked: performance comparison first
 
-**Completed:**
-- [x] 4d-polytope-visualization — executed 2026-01-27
-- [x] benchmark-hk2017 — executed 2026-01-26
+**Blocked on other dependencies (continued):**
 - [-] nn-regression-mutual-info — blocked: main dataset
 - [-] ml-capacity-prediction — blocked: large labeled dataset
-- [-] sys-ratio-optimization — blocked: capacity algorithm
+
+**Completed:**
+- [x] 4d-polytope-visualization — executed 2026-01-27
 - [x] benchmark-hk2017 — executed 2026-01-26
 
 ## Mysteries to Investigate
