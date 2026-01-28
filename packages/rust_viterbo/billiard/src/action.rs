@@ -1,9 +1,4 @@
-//! Action computation for billiard trajectories.
-//!
-//! The action of a billiard trajectory equals its K_p°-length:
-//! A = Σ ||q_{i+1} - q_i||_{K_p°}
-//!
-//! where ||v||_{K_p°} = h_{K_p}(v) = max_{x ∈ K_p} ⟨v, x⟩ is the support function.
+//! Action computation for billiard trajectories using support functions.
 
 use crate::polygon::t_dual_length;
 use crate::types::Polygon2D;

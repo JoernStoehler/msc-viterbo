@@ -1,21 +1,15 @@
 //! Billiard algorithm for computing EHZ capacity of Lagrangian product polytopes.
 //!
-//! This crate implements the Minkowski billiard algorithm for computing the
+//! This crate implements the billiard algorithm for computing the
 //! Ekeland-Hofer-Zehnder (EHZ) capacity of Lagrangian products K_q × K_p in R⁴,
 //! where K_q and K_p are convex 2D polygons.
 //!
 //! # Algorithm Overview
 //!
-//! For a Lagrangian product K = K_q × K_p, the EHZ capacity equals the minimum
-//! K_p°-length among closed K_p-billiard trajectories in K_q:
+//! Algorithm specification: see thesis algorithms.tex.
 //!
-//! ```text
-//! c_EHZ(K_q × K_p) = min { ||γ||_{K_p°} : γ is a closed K_p-billiard in K_q }
-//! ```
-//!
-//! By the Bezdek-Bezdek bounce bound theorem, we only need to enumerate
-//! 2-bounce and 3-bounce trajectories. The action function is piecewise linear
-//! convex, so the minimum is attained at a vertex of the feasible polytope.
+//! Implementation: enumerates 2-bounce and 3-bounce trajectories (Bezdek-Bezdek theorem)
+//! and computes action using support functions.
 //!
 //! # Usage
 //!
