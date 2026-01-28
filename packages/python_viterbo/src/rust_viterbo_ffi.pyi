@@ -169,3 +169,60 @@ def tube_capacity_hrep(
         ValueError: If polytope has Lagrangian 2-faces or other issues.
     """
     ...
+
+def volume_hrep(
+    normals: Sequence[Vector4],
+    heights: Sequence[float],
+) -> float:
+    """Compute the 4D volume of a polytope from its H-representation.
+
+    Uses QHull to enumerate vertices and compute the convex hull volume.
+
+    Args:
+        normals: Unit outward normal vectors for each facet, as [x, y, z, w].
+        heights: Signed distances from origin to each facet (must be positive).
+
+    Returns:
+        The 4-dimensional Lebesgue volume of the polytope.
+
+    Raises:
+        ValueError: If the polytope is invalid or volume computation fails.
+
+    Example:
+        >>> # Tesseract [-1, 1]⁴ has volume 2⁴ = 16
+        >>> normals = [
+        ...     [1, 0, 0, 0], [-1, 0, 0, 0],
+        ...     [0, 1, 0, 0], [0, -1, 0, 0],
+        ...     [0, 0, 1, 0], [0, 0, -1, 0],
+        ...     [0, 0, 0, 1], [0, 0, 0, -1],
+        ... ]
+        >>> heights = [1.0] * 8
+        >>> volume_hrep(normals, heights)
+        16.0
+    """
+    ...
+
+def systolic_ratio(capacity: float, volume: float) -> float:
+    """Compute the systolic ratio from capacity and volume.
+
+    The systolic ratio is defined as:
+        sys(K) = c_EHZ(K)² / (2 · vol(K))
+
+    For balls and cylinders of radius r, sys = 1.
+
+    Args:
+        capacity: The EHZ capacity (must be > 0).
+        volume: The 4D volume (must be > 0).
+
+    Returns:
+        The systolic ratio, a dimensionless positive number.
+
+    Raises:
+        ValueError: If capacity or volume is non-positive or NaN.
+
+    Example:
+        >>> # For a tesseract: c = 4.0, vol = 16.0
+        >>> systolic_ratio(4.0, 16.0)
+        0.5
+    """
+    ...

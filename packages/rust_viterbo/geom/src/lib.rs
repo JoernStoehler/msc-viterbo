@@ -21,9 +21,16 @@
 //! # Numerical Tolerances
 //!
 //! Tolerances are defined in the [`tolerances`] module with documented justifications.
+//!
+//! # Volume and Systolic Ratio
+//!
+//! - [`volume`]: Volume computation using QHull
+//! - [`systolic`]: Systolic ratio from capacity and volume
 
 pub mod polytope;
+pub mod systolic;
 pub mod tolerances;
+pub mod volume;
 
 pub use polytope::PolytopeHRep;
 pub use tolerances::{EPS, EPS_UNIT};
