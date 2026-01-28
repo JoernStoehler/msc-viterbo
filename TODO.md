@@ -25,7 +25,8 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
   - **Status (2026-01-28)**: Investigation attempted but FAILED. Branch fix/triangle-billiard-discrepancy REJECTED.
   - **What was tried**: Changed action formula from support functions to ∫ λ = (1/2)∫⟨Jγ, γ̇⟩dt
-  - **Detailed test results** (comprehensive_comparison.rs with 15 cases):
+  - **⚠️ UNVERIFIED OBSERVATIONS** (from rejected branch - tests not in main, implementation not trusted):
+  - **Detailed test results** (comprehensive_comparison.rs with 15 cases - NOT IN MAIN):
     * ✅ square×square (tesseract): billiard=4.0000, hk2017=4.0000, ratio=1.0000
     * ✅ rectangle×square: billiard=4.0000, hk2017=4.0000, ratio=1.0000
     * ❌ triangle×triangle (same): billiard=3.0000, hk2017=1.5000, ratio=2.0000
@@ -47,7 +48,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * Asymmetric triangles: ratio = 1.65
     * Certain rotation angles (15°, 25°): ratio > 2.0
     * Note: square×triangle works! Only fails when BOTH factors are triangles
-  - **Orbit validation tests** (orbit_invariants.rs with 6 tests) - ALL PASS:
+  - **Orbit validation tests** (orbit_invariants.rs with 6 tests - NOT IN MAIN, UNVERIFIED) - claimed to PASS:
     * ✅ Breakpoints on facet boundaries
     * ✅ Orbit closure (displacements sum to zero)
     * ✅ Segments follow allowed directions
@@ -55,10 +56,10 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * ✅ Scaling property c(λK) = λ²c(K) holds correctly
     * ✅ Deterministic (same answer on repeated runs)
     * **Conclusion**: The orbits themselves are geometrically VALID
-  - **Additional diagnostic tests created**:
-    * rotation_diagnostic.rs: full 0-120° sweep at 5° increments showing error pattern
-    * action_integral.rs: verified ∫ λ matches support function sum (both give same wrong answer for triangles!)
-    * asymmetric_triangles.rs: various irregular triangle combinations
+  - **Additional diagnostic tests created** (NOT IN MAIN - deleted with worktree):
+    * rotation_diagnostic.rs: claimed 0-120° sweep at 5° increments
+    * action_integral.rs: claimed to verify ∫ λ matches support function sum
+    * asymmetric_triangles.rs: claimed irregular triangle combinations
   - **Direct observations** (facts from tests):
     1. ALL rectangle/square products: billiard = HK2017 (AGREEMENT)
     2. square×triangle: billiard = HK2017 (AGREEMENT)
@@ -102,6 +103,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
     * Non-convex velocity cones: triangles have wide-angle vertices, rectangles have 90° - is this relevant?
     * Degenerate cases: very flat triangle (almost a line segment) × triangle
     * Test HK2017 β coefficients: for triangle×triangle, does HK use all 6 facets with β=1/3? Compare to square×square β pattern
+  - **⚠️ IMPORTANT FOR NEXT AGENT**: All test results above are unverified observations from Agent 3's deleted worktree. The claimed patterns (rectangles work, triangles fail) are directionally useful but specific numbers and test implementations cannot be trusted. Implement independent tests before relying on these claims.
 
 **Algorithm completion:**
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)
