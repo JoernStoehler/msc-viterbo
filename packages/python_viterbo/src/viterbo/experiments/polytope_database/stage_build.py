@@ -1,4 +1,17 @@
-"""Build stub polytope database with fake data.
+"""DEPRECATED: Monolithic stub polytope database builder.
+
+This module has been superseded by the staged pipeline:
+- stage_polytopes.py: Generate polytope geometries
+- stage_volume.py: Add volume calculations
+- stage_capacity.py: Add capacity calculations
+
+This file is kept as a legacy reference and may be removed in the future.
+
+For the new pipeline, see SPEC.md.
+
+---
+
+Original docstring:
 
 This module generates a DataFrame of polytopes with plausible stub data.
 The stub data satisfies mathematical invariants (see SPEC.md) but does not
