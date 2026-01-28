@@ -40,9 +40,10 @@ TODO.md                 Task tracking and experiment queue
 
 ```bash
 # Rust
-scripts/test-rust.sh                # Run all tests (debug + release modes)
-scripts/test-rust.sh --debug        # Debug tests only (with debug_assert!)
-scripts/test-rust.sh --release      # Release tests only (expensive ones)
+cd packages/rust_viterbo
+scripts/test.sh                     # Run all tests (debug + release modes)
+scripts/test.sh --debug             # Debug tests only (with debug_assert!)
+scripts/test.sh --release           # Release tests only (expensive ones)
 cargo clippy --workspace            # Lint
 cargo fmt --all                     # Format
 
@@ -111,7 +112,7 @@ Skills in `.claude/skills/` document workflows. Read the relevant skill before s
 | `review-thesis-writing-style` | Reviewing thesis writing quality and style |
 | `download-arxiv-papers` | Need to read an arXiv paper's actual content |
 | `official-claude-code-guides` | Questions about Claude Code itself |
-| `create-skill` | Creating or editing skills |
+| `skill-creator` | Creating or editing skills |
 
 Scripts support `--help`.
 
