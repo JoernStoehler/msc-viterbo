@@ -1,52 +1,39 @@
 ---
 name: project-management
-description: Add, update, or reorganize tasks in TODO.md. Most agents don't need this — they just complete assigned work.
+description: Conventions for TODO.md structure. All agents mark tasks done per CLAUDE.md Agent Protocol; this skill covers adding/reorganizing tasks.
 ---
 
 # Project Management
 
-[proposed]
+**Essential:** All agents must mark tasks `[x]` when done — see CLAUDE.md Agent Protocol.
 
-## File
+This skill covers TODO.md conventions for agents who need to add or reorganize tasks.
 
-All task tracking lives in `TODO.md` at repo root:
-- **Checklist sections** at top for quick scanning (Algorithm Toolbox, Thesis Writing, Research Experiments, etc.)
+## File Structure
+
+`TODO.md` at repo root:
+- **Checklist sections** at top for quick scanning
 - **Details section** at bottom for items needing context
 
-## Status markers
+## Status Markers
 
 - `[ ]` — pending
 - `[x]` — done
 - `[-]` — blocked or deferred (with note)
 
-## Writing quality
-
-Every entry must be:
-- **Actionable** — clear what "done" means
-- **Unambiguous** — no jargon without definition
-- **Relevant** — only information needed to act on the task
-- **Scannable** — one concept per line; details go in sub-bullets or Details section
-
-## Adding items
+## Adding Items
 
 **Simple items:** One line in the appropriate checklist section.
 ```markdown
 - [ ] Fix FFI facet limit
 ```
 
-**Items with brief context:** Add sub-bullets.
-```markdown
-- [-] FFI ergonomics (#37) — deferred, not blocking core work
-```
+**Items with context:** Add sub-bullets or a `## label` section in Details.
 
-**Items needing rich detail:** Add a `## label` section in the Details area at the bottom.
-
-## Most agents don't modify TODO.md
-
-Typical flow: agent receives task → completes it → marks done → hands off.
+## When to Add Tasks
 
 Only add new tasks when:
 - Work is discovered that can't be done now (blocked, out of scope)
-- Project owner requests it
+- Jörn requests it
 
 Don't speculatively add tasks. Jörn manages the backlog.

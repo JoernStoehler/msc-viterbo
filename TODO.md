@@ -49,7 +49,7 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 - [x] Session-start hook printing output unexpectedly: hook was configured to be silent, but `SessionStart:startup hook success: [repo-map]` appeared in agent context. Why?
   - **Fixed (2026-01-28):** Removed `repo-map.sh` call from session-start hook. Hook now only installs gh CLI (silent). Converted `repo-map.sh` → `repo-map.py` (pure Python) for manual use.
-- [ ] Skills not auto-injected: Per the Agent Skills standard, skill descriptions should load at session start as `<skill>` XML blocks. This didn't happen.
+- [ ] Skills not auto-loading in CC web: skill descriptions should auto-inject per https://code.claude.com/docs/en/skills but don't. Workaround: manual skill index in CLAUDE.md. Remove workaround when CC fixes this.
   - **NOT the cause:** permissions.allow list (disproven - WebFetch/Edit worked fine despite not being listed)
   - **Fixed:** `rust-testing/SKILL.md` missing frontmatter
   - **Likely cause:** Known Claude Code bugs that silently abort skill loading:

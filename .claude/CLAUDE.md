@@ -55,11 +55,52 @@ uv run ruff check src tests         # Lint
 scripts/repo-map.py                 # Detailed file tree
 ```
 
-## Onboarding
+## Agent Protocol
 
-- Skills in `.claude/skills/` document workflows. Key ones: `rust-conventions`, `python-conventions`, `experiment-workflow`
-- Scripts support `--help`
-- Research findings go in `packages/latex_viterbo/chapters/appendix-research-ledger.tex`
+Long-running project with sequential/parallel agents. Leave the repo clean for the next agent.
+
+**When assigned a task:**
+1. **Read `TODO.md`** to understand your task in context
+2. If task isn't in TODO.md, add it before starting
+3. Work on the branch specified in your assignment (create if needed)
+
+**After completing work:**
+1. **Mark task `[x]` in TODO.md** — don't forget this step
+2. Ensure branch is PR-able (tests pass, no broken code)
+3. Update docs/comments if you changed behavior
+4. Remove stale TODOs or comments you created
+5. Commit and push
+
+**Cleanup principles:**
+- Remove misleading content (outdated docs, stale comments, done TODOs)
+- Preserve context where needed (explain "why" in code comments, thesis)
+- Prefer standard patterns over custom solutions — agents know standard patterns well
+
+**Approval markers:**
+- `[proposed]` — agent proposal awaiting Jörn's review
+- Only Jörn removes these markers; ambiguous responses ("sounds fine") don't count
+
+## Skills <!-- workaround: CC web doesn't auto-load skill descriptions -->
+
+Skills in `.claude/skills/` document workflows. Read the relevant skill before starting work of that type.
+
+| Skill | When to read |
+|-------|--------------|
+| `rust-conventions` | Writing Rust code in `packages/rust_viterbo` |
+| `rust-testing` | Writing Rust tests (proptest, fixtures, tolerances) |
+| `python-conventions` | Writing Python code in `packages/python_viterbo` |
+| `latex-conventions` | Editing thesis in `packages/latex_viterbo` |
+| `experiment-workflow` | Planning or executing research experiments |
+| `ffi-pyo3-maturin` | Building/modifying Rust↔Python bindings |
+| `paper-reading` | Need to read an arXiv paper's actual content |
+| `quality-improvement` | Refactoring or code quality work |
+| `skill-authoring` | Creating or editing skills |
+| `worktree-management` | Using git worktrees |
+| `environment` | Troubleshooting or modifying dev environments |
+| `devcontainer-maintenance` | Changing devcontainer specifically |
+| `claude-code-guide` | Questions about Claude Code itself |
+
+Scripts support `--help`.
 
 ## Environment
 
@@ -82,6 +123,3 @@ scripts/repo-map.py                 # Detailed file tree
 - Use numbered lists for easy reference. Be direct and concrete.
 - Pushback welcome when instructions are unclear or suboptimal.
 
-## Agent Handoffs
-
-Long-running project with sequential/parallel agents. Before ending: clean up stale comments, update research ledger, leave clean git status. See `session-handoff` skill.
