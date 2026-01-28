@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# DEPRECATED: This script is for the local devcontainer only.
+#
+# In GitHub Codespaces, use catnip for worktree management instead.
+# Catnip automatically manages worktrees via refs/catnip/* branches.
+# See: https://github.com/wandb/catnip
+#
+# This script will be removed once catnip workflow is validated.
+
 # Why this script exists:
 # - `git worktree remove` is easy to misuse (e.g. passing an unintended flag/path).
 # - Removing a dirty worktree can silently destroy uncommitted work.

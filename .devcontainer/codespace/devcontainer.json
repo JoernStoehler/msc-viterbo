@@ -1,0 +1,36 @@
+{
+  // GitHub Codespaces devcontainer for msc-viterbo.
+  //
+  // Features:
+  // - Catnip for git worktree management and mobile access
+  // - No bind mounts (Codespaces limitation)
+  // - No TexLive (saves 2GB, faster startup)
+  // - Background cache warming on startup
+  //
+  // Known limitations:
+  // - Codespaces auto-stops after idle period
+  // - OAuth (gh, claude) may not persist across rebuilds
+  // - Rust/Python caches don't persist across rebuilds
+  // - Catnip worktree/caching interaction is untested
+  //
+  // Usage:
+  // - Create codespace from GitHub UI, select this config
+  // - Or: gh codespace create --devcontainer-path .devcontainer/codespace/devcontainer.json
+  // - Mobile: catnip.run after codespace is running
+  "name": "msc-viterbo-codespace",
+  "dockerFile": "Dockerfile",
+  "workspaceFolder": "/workspaces/msc-viterbo",
+  "updateRemoteUserUID": true,
+  "features": {
+    // Catnip: git worktree management, mobile access via catnip.run
+    // See: https://github.com/wandb/catnip
+    "ghcr.io/wandb/catnip/feature:1": {}
+  },
+  // Forward catnip port (6369 = "CATS" on phone keypad)
+  "forwardPorts": [6369],
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  "containerEnv": {
+    "DEVCONTAINER_ENV": "codespace"
+  }
+  // No mounts - Codespaces doesn't support host bind mounts
+}
