@@ -1,66 +1,31 @@
-# Notation Glossary for Thesis
+# Notation Glossary
 
-This file tracks notation conventions to maintain consistency across chapters.
+Quick reference for notation used in this thesis and correspondence with key papers.
 
-## Polytope Notation
+## Core Symbols (This Thesis)
 
-| Symbol | Meaning | Notes |
-|--------|---------|-------|
-| `K` | Convex polytope in R^4 | Always K for the main polytope |
-| `F` | Number of facets | **Use F, not n** (n conflicts with normal vectors) |
-| `F_i` | The i-th facet (a 3-face) | i ∈ {1,...,F} |
-| `n_i` | Outward unit normal of facet F_i | |
-| `h_i` | Height (support value) of facet F_i | h_i > 0, origin in interior |
+| Symbol | Meaning |
+|--------|---------|
+| `K` | Convex polytope in R^4 |
+| `F` | Number of facets |
+| `F_i`, `n_i`, `h_i` | Facet, its outward unit normal, its height |
+| `p_i = (2/h_i) J n_i` | Reeb vector for facet i |
+| `k`, `S`, `σ` | # participating facets, subset, cyclic ordering |
+| `β_i` | Normalized time coefficient (Σβ_i h_i = 1) |
+| `Q(σ,β)` | Quadratic form; c_EHZ = (2 Q_max)^{-1} |
+| `ω(x,y)` | Symplectic form (⚠️ check factor of 2) |
+| `J` | Complex structure: J(q,p) = (-p, q) |
 
-## Orbit/Trajectory Notation
+## Cross-Paper Notation
 
-| Symbol | Meaning | Notes |
-|--------|---------|-------|
-| `k` | Number of participating facets in orbit | k = |S| where S ⊆ {1,...,F} |
-| `S` | Subset of participating facet indices | S ⊆ {1,...,F} |
-| `σ` | Cyclic ordering (permutation) of S | σ: {1,...,k} → S |
-| `β_i` | Normalized time coefficient for facet i | β_i ≥ 0, Σβ_i h_i = 1 |
-| `T_i` | Actual time spent with facet i's velocity | Before normalization |
+| This thesis | HK2017 | CH2021 | Notes |
+|-------------|--------|--------|-------|
+| `F` (# facets) | `m` | `n` | |
+| `β_i` | `t_i` | — | Time weights |
+| `Q` | `Q` | — | Same |
+| `σ` | `σ` | — | Permutation |
 
-## Symplectic Notation
+## Open Issues
 
-| Symbol | Meaning | Notes |
-|--------|---------|-------|
-| `J` | Standard complex structure on R^4 | J(q1,q2,p1,p2) = (-p1,-p2,q1,q2) |
-| `ω` | Standard symplectic form | ω(x,y) = ⟨Jx, y⟩ or ½⟨Jx,y⟩? CHECK |
-| `p_i` | Reeb vector for facet F_i | p_i = (2/h_i) J n_i |
-| `λ` | Liouville form | λ = ½(q dp - p dq) |
-
-## Capacity/Action Notation
-
-| Symbol | Meaning | Notes |
-|--------|---------|-------|
-| `c_EHZ(K)` | Ekeland-Hofer-Zehnder capacity | = min action over closed characteristics |
-| `A(γ)` | Action of curve γ | A = ∫ λ |
-| `Q(σ,β)` | Quadratic form in HK formula | c_EHZ = (2 Q_max)^{-1} |
-| `sys(K)` | Systolic ratio | sys = c_EHZ²/(2·vol) |
-
-## Face Notation
-
-| Symbol | Meaning | Notes |
-|--------|---------|-------|
-| `k-face` | k-dimensional face | 3-face = facet, 0-face = vertex |
-| `F_i ∩ F_j` | 2-face (if non-empty interior) | Intersection of two facets |
-
-## Known Issues to Fix
-
-### RESOLVED
-- ~~**Section 3.1** uses `n` for facet count → change to `F`~~ (fixed)
-- ~~**Section 3.4** uses `n` for facet count → change to `F`~~ (fixed)
-- ~~**CH bound qualification** → added "non-Lagrangian polytopes"~~ (fixed)
-
-### TODO: Factor of 2 in symplectic form (needs investigation)
-- `math/01-standard-symplectic.tex` line 10: defines ω(x,y) = ½⟨Jx, y⟩
-- `math/05-reeb-dynamics.tex` line 41: uses ⟨Jn_i, n_j⟩ = ω(n_i, n_j) without factor
-- These differ by factor of 2. Need to audit all ω usages for consistency.
-- Could affect numerical factors in capacity formulas.
-
-### TODO: Unresolved theorem references
-- `algorithms.tex` line ~307 has `\todoref{thm:simple-min-action-reeb-orbit}`
-- `algorithms.tex` line ~307 has `\todoref{thm:cz-index}`
-- These theorems need to be written in math chapters before refs can be resolved.
+1. **ω factor of 2**: `01-standard-symplectic.tex` uses ω = ½⟨Jx,y⟩ but `05-reeb-dynamics.tex` omits the ½. Audit needed.
+2. **Missing theorems**: `\todoref{thm:simple-min-action-reeb-orbit}`, `\todoref{thm:cz-index}` in algorithms.tex.
