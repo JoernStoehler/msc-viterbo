@@ -2,7 +2,23 @@
 set -euo pipefail
 
 # Launch a VS Code tunnel from the host into the devcontainer.
-# Usage: scripts/host-vscode-tunnel.sh
+
+if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
+  cat <<'EOF'
+Usage: scripts/host-vscode-tunnel.sh
+
+Launch a VS Code tunnel from the host into the devcontainer.
+Ensures the devcontainer is running, then starts the tunnel.
+
+Requires:
+  - devcontainer CLI (npm i -g @devcontainers/cli)
+  - code-tunnel binary in the container (baked into image)
+
+Environment:
+  CODE_TUNNEL_BIN  Path to code-tunnel binary (default: /usr/local/bin/code-tunnel)
+EOF
+  exit 0
+fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
