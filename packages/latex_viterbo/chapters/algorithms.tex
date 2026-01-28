@@ -258,7 +258,7 @@ The search space is finite (finitely many subsets and permutations) and each \(M
 \end{enumerate}
 
 \paragraph{Complexity.}
-The naive algorithm enumerates \(O(F!)\) permutations. For polytopes with sparse facet transition graphs, many permutations can be pruned by checking geometric adjacency (a valid orbit must transition between facets that share a 2-face with compatible Reeb flow direction). The Chaidez--Hutchings bound \(\rho \le 2\) further limits the search to orbits with bounded combinatorial rotation number \cite{CH2021}.
+The naive algorithm enumerates \(O(F!)\) permutations. For polytopes with sparse facet transition graphs, many permutations can be pruned by checking geometric adjacency (a valid orbit must transition between facets that share a 2-face with compatible Reeb flow direction). For non-Lagrangian polytopes, the Chaidez--Hutchings bound \(\rho \le 2\) further limits the search to orbits with bounded combinatorial rotation number \cite{CH2021}.
 
 \paragraph{Numerical considerations.}
 The KKT system is solved via LU decomposition. Tolerances are needed for:
