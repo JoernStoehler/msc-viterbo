@@ -17,13 +17,8 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 **CRITICAL (blocks experiments):**
 - [ ] **Meta-task: Check for hidden blockers** — For every current TODO item, verify it's not secretly blocked on undocumented dependencies. Example: triangle×triangle debugging was attempted 3 times without anyone noticing the thesis section on billiard algorithm was incomplete.
-- [ ] Implement comprehensive billiard validation test suite (see packages/rust_viterbo/billiard/TEST_SPEC.md):
-  - Task 1: Orbit validation tests on all 625 Lagrangian products (25×25 polygon pairs)
-  - Task 2: Algorithm comparison tests (billiard vs HK2017) on all 625 products
-  - Properties to verify: P1-P5 (boundary containment, closure, positive capacity, Reeb direction, scaling law)
-  - Goal: systematic characterization of where algorithms agree/disagree
-  - NO fixes - just observe and document
-- [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
+- [-] Implement comprehensive billiard validation test suite — **BLOCKED**: billiard implementation deleted (contaminated with Agent 3 band-aids). Will reimplement from thesis after algorithms.tex section complete.
+- [-] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 — **BLOCKED**: billiard implementation deleted. Will debug after reimplementation from thesis spec.
   - **Status (2026-01-28)**: Investigation attempted but FAILED. Branch fix/triangle-billiard-discrepancy REJECTED.
   - **What was tried**: Changed action formula from support functions to ∫ λ = (1/2)∫⟨Jγ, γ̇⟩dt
   - **⚠️ UNVERIFIED OBSERVATIONS** (from rejected branch - tests not in main, implementation not trusted):
@@ -116,10 +111,8 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
   - stage_capacity.py: uses ffi.tube_capacity_hrep() and ffi.hk2017_capacity_hrep() for real capacities
   - All tests passing (37 tests); SPEC.md updated; stage_build.py deprecated
   - CI consolidated to 2 jobs: Rust + FFI (Rust+Python)
-- [~] Cross-algorithm validation (algorithm-comparison experiment): billiard vs hk2017 on Lagrangian products — IN PROGRESS
-  - [x] FFI: exposed billiard and tube algorithms
-  - [x] stage_build.py: runs billiard + HK2017 on Lagrangian products
-  - [x] Documented known triangle×triangle discrepancy (billiard=3.0, hk2017=1.5)
+- [-] Cross-algorithm validation (algorithm-comparison experiment): billiard vs hk2017 on Lagrangian products — **BLOCKED**: billiard implementation deleted
+  - Note: Can proceed with HK2017 vs Tube comparison on non-Lagrangian polytopes once billiard reimplemented
   - [ ] Expose fixtures via FFI (cross-polytope, 24-cell, asymmetric, random_hrep)
   - [ ] Run HK2017 vs Tube comparison on non-Lagrangian polytopes
   - [ ] stage_analyze.py: compute agreement metrics, error tables
@@ -133,15 +126,16 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
 
 ## Thesis Writing
 
-- [ ] **Complete billiard algorithm section** — [packages/latex_viterbo/chapters/algorithms.tex:285-287](packages/latex_viterbo/chapters/algorithms.tex#L285-L287) has TODO marker indicating incomplete documentation. This is blocking triangle×triangle debugging because agents can't understand what the algorithm computes.
+- [ ] **Complete billiard algorithm section** — [packages/latex_viterbo/chapters/algorithms.tex:285-287](packages/latex_viterbo/chapters/algorithms.tex#L285-L287) has TODO marker indicating incomplete documentation.
+  - **Papers downloaded**: Bezdek-Bezdek 2009 (arxiv 1110.4324), Rudolf 2022 (arxiv 2203.01718) in docs/papers/
   - **Required content**:
     1. Definition: k-bounce orbit = alternates moving in q-space (p constant) and p-space (q constant), has 2k segments (affine with convex mixture of Reeb velocities, not pure Reeb vectors)
-    2. Literature theorem: searching 2-bounce and 3-bounce orbits suffices for 4D Lagrangian products (needs citation)
+    2. Literature theorem: cite Bezdek-Bezdek 2009 + Rudolf 2022 on why 2-bounce and 3-bounce orbits suffice for 4D Lagrangian products
     3. Computational approach: search over parametrized 2-/3-bounce orbits
     4. Parametrization constraints: differential inclusion on 2-faces, differential equation on 3-facets
     5. Worked example showing the parametrization (e.g., square×square)
   - **NOT to include**: Support functions/duality (historical naming only, not computational method)
-  - **Context**: No prior implementation exists - this explains the implementation complexity
+  - **After section complete**: Reimplement billiard algorithm from thesis specification
 - [x] Talk: Clarke duality — migrate text content to thesis (2026-01-27)
 - [ ] Add images to Clarke duality talk (#41, manual) — see `\DraftImage` placeholders in `packages/latex_talk_clarke_duality/main.tex`
 
