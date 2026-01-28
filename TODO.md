@@ -21,6 +21,9 @@ See `.claude/skills/project-management/SKILL.md` for conventions.
   - stage_capacity.py: replace fake capacities with real tube algorithm calls
   - Depends on merging PR#89 first
 - [ ] Debug triangle×triangle discrepancy: billiard=3.0 vs hk2017=1.5 (investigate which is correct)
+  - Add orbit validation tests to billiard (port from tube/tests/orbit_invariants.rs)
+  - Verify returned orbits are valid Reeb orbits (breakpoints on facets, segments along Reeb vector)
+  - Trace mathematical reason for discrepancy, not just pattern matching
 
 **Algorithm completion:**
 - [x] Polytope faces: 2-face extraction + adjacency + transition maps (#28) (2026-01-28, part of tube implementation)

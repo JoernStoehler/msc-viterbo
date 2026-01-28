@@ -65,6 +65,14 @@ git worktree add /workspaces/worktrees/fix-billiard-bug -b fix-billiard-bug
 cd /workspaces/worktrees/<task> && cd packages/rust_viterbo && cargo build
 ```
 
+### PR Merge Strategy
+
+**This repo uses rebase+merge** (not squash, not merge commits):
+- PRs are rebased onto main, then fast-forwarded
+- Linear history, clean git log
+- Individual commits preserved (no squashing)
+- When creating PRs, structure commits logically
+
 ### Cleanup
 
 After your PR is merged:
