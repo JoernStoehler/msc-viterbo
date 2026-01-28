@@ -162,6 +162,8 @@ mod tests {
         PolytopeHRep::new(normals, heights)
     }
 
+    // Expensive tests: run only in release mode (verify output correctness only)
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_tesseract_capacity_naive() {
         let polytope = make_tesseract();
@@ -175,6 +177,7 @@ mod tests {
         assert!(result.permutations_evaluated > 0);
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_tesseract_capacity_graph_pruned() {
         // Graph pruning uses geometric adjacency (shared vertices) to prune
@@ -189,6 +192,7 @@ mod tests {
         assert_relative_eq!(result.capacity, 4.0, epsilon = 1e-6);
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_naive_and_graph_pruned_agree() {
         let polytope = make_tesseract();
@@ -212,6 +216,7 @@ mod tests {
         );
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_scaled_tesseract() {
         // Scaling by lambda should scale capacity by lambda^2
@@ -236,6 +241,7 @@ mod tests {
         assert_relative_eq!(result.capacity, 16.0, epsilon = 1e-6);
     }
 
+    #[cfg_attr(debug_assertions, ignore)]
     #[test]
     fn test_rectangle_product() {
         // Rectangle [0,a]x[0,b] x [0,c]x[0,d] centered at origin

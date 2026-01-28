@@ -1,20 +1,23 @@
 //! Integration tests for the tube algorithm.
 //!
 //! These tests verify mathematical properties of the tube capacity computation.
-//! They do NOT rely on `debug_assert!()` checks - they verify output correctness.
+//! They do NOT rely on `debug_assert!()` checks - they only verify output correctness.
 //!
-//! # Performance note
-//! Tests prefixed with `prop_` or `test_asymmetric_` run many capacity computations
-//! and are slow in debug mode (~90 seconds) but fast in release (~2 seconds).
-//! These can be run with `--release` without losing test validity.
+//! # Release-only tests
+//! All tests in this file are marked with `#[cfg_attr(debug_assertions, ignore)]`
+//! which means they are skipped in debug mode and run only in release mode.
+//! This is because they perform expensive capacity computations:
+//! - Debug mode: ~90 seconds total
+//! - Release mode: ~2 seconds total
 //!
-//! Tests that exercise internal invariants (where debug assertions matter) are in
+//! Tests that exercise internal invariants (where `debug_assert!()` matters) are in
 //! the unit tests (`src/lib.rs`) and other test files (`flow_map_tests.rs`, etc.).
 
 use approx::assert_relative_eq;
 use tube::{fixtures, tube_capacity};
 
 /// Test that c(cross-polytope) = 1.0.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_cross_polytope_capacity() {
     let hrep = fixtures::unit_cross_polytope();
@@ -29,6 +32,7 @@ fn test_cross_polytope_capacity() {
 }
 
 /// Test capacity scaling: c(λK) = λ² c(K).
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_capacity_scaling() {
     let hrep_unit = fixtures::unit_cross_polytope();
@@ -46,6 +50,7 @@ fn test_capacity_scaling() {
 }
 
 /// Test that tesseract is rejected (has Lagrangian 2-faces).
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_tesseract_rejected() {
     let hrep = fixtures::unit_tesseract();
@@ -62,6 +67,7 @@ fn test_tesseract_rejected() {
 /// Test Mahler-type bound: c(K) · c(K°) ≤ 4.
 /// For tesseract and cross-polytope (polar duals):
 ///   c(tesseract) · c(cross-polytope) = 4 · 1 = 4
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_mahler_bound() {
     let c_cross = tube_capacity(&fixtures::unit_cross_polytope())
@@ -82,6 +88,7 @@ fn test_mahler_bound() {
 
 /// Test 4-simplex (pentatope) capacity computation.
 /// The 4-simplex has only 5 facets, testing minimal polytope case.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_four_simplex_capacity() {
     let hrep = fixtures::four_simplex();
@@ -115,6 +122,7 @@ fn test_four_simplex_capacity() {
 /// Test 24-cell capacity computation.
 /// The 24-cell has 24 facets and different symmetry than the cross-polytope.
 /// This tests the algorithm on a different regular polytope.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_24_cell_capacity() {
     let hrep = fixtures::unit_24_cell();
@@ -140,6 +148,7 @@ fn test_24_cell_capacity() {
 
 /// Test asymmetric cross-polytope with multiple seeds.
 /// This tests the algorithm on polytopes with broken symmetry.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_asymmetric_cross_polytope_multiple_seeds() {
     let seeds = [42, 123, 456, 789];
@@ -191,6 +200,7 @@ fn test_asymmetric_cross_polytope_multiple_seeds() {
 /// Proposition: For all valid polytopes K where tube_capacity succeeds, c(K) > 0 and c(K) < ∞.
 ///
 /// Tested on: cross-polytope, 24-cell, asymmetric cross-polytopes with various seeds.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn prop_capacity_positive_and_finite() {
     // Collect test polytopes where algorithm succeeds
@@ -238,6 +248,7 @@ fn prop_capacity_positive_and_finite() {
 /// Proposition: For all λ > 0, c(λK) = λ²c(K).
 ///
 /// Tested on: cross-polytope, 24-cell, asymmetric cross-polytopes.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn prop_scaling_law() {
     let lambdas = [0.25, 0.5, 2.0, 3.0];
@@ -287,6 +298,7 @@ fn prop_scaling_law() {
 }
 
 /// Test that capacity is always positive for valid polytopes.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_capacity_always_positive() {
     let polytopes: Vec<(&str, tube::types::PolytopeHRep)> = vec![
@@ -321,6 +333,7 @@ fn test_capacity_always_positive() {
 }
 
 /// Test capacity scaling law: c(λK) = λ² c(K) with 24-cell.
+#[cfg_attr(debug_assertions, ignore)]
 #[test]
 fn test_24_cell_scaling() {
     // Create scaled 24-cell by scaling heights
