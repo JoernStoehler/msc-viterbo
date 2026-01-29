@@ -117,7 +117,6 @@ Work tracked in GitHub Issues, Milestones, and Discussions.
 - Remove misleading content (outdated docs, stale comments, done TODOs)
 - Preserve context where needed (explain "why" in code/thesis)
 - Prefer standard patterns — agents know them well
-- Don't document failed experiments or rejected approaches — git history has them
 
 ### Approval Markers
 
