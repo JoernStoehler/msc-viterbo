@@ -8,7 +8,7 @@
   // is clearer than trying to share configs with workarounds.
   //
   // Features:
-  // - Bind mounts for cache persistence (uv, sccache, TeX)
+  // - Bind mounts for cache persistence (uv, TeX)
   // - Bind mounts for OAuth persistence (gh, claude)
   // - Manual git worktrees via /workspaces/worktrees/
   // - Full TexLive installation for PDF builds
@@ -27,17 +27,16 @@
   "updateRemoteUserUID": true,
   "features": {},
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  // Removed: CARGO_TARGET_DIR shared between worktrees. See git history to restore.
   "containerEnv": {
     "DEVCONTAINER_ENV": "local",
-    "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
-    "CARGO_TARGET_DIR": "/workspaces/worktrees/shared/target"
+    "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history"
   },
   // Bind mounts: Jörn's specific host paths for cache persistence.
   "mounts": [
     "source=/srv/devhome/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=/srv/devhome/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
     "source=/srv/devhome/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
-    "source=/srv/devhome/.cache/sccache,target=/home/vscode/.cache/sccache,type=bind,consistency=cached",
     "source=/srv/devhome/.texlive2023,target=/home/vscode/.texlive2023,type=bind,consistency=cached",
     "source=/srv/devhome/.texmf-var,target=/home/vscode/.texmf-var,type=bind,consistency=cached",
     "source=/srv/devhome/.texmf-config,target=/home/vscode/.texmf-config,type=bind,consistency=cached",

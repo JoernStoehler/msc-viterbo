@@ -10,7 +10,7 @@ SHELL ["/bin/bash", "-lc"]
 # WHY SEPARATE FROM CODESPACE DOCKERFILE:
 # Local and Codespace environments have different needs. Keeping them separate
 # means editing one doesn't require thinking about effects on the other.
-# Differences: Local has sccache, more TeX packages, extra CLI tools.
+# Differences: Local has more TeX packages, extra CLI tools.
 #
 # Design goals:
 # - Keep the image simple and close to standard devcontainer patterns (KISS).
@@ -92,19 +92,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Note: maturin requires uv >= 0.4.25 for editable installs
 ENV UV_INSTALL_DIR=/usr/local
 ENV UV_VERSION=0.5.14
-RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
-    && /usr/local/bin/uv --version
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
 
 # Switch to dev user for language toolchains.
 # Toolchains live in the dev user's HOME so that cargo/elan behave normally.
 USER vscode
 ENV HOME=/home/vscode
-ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:/usr/local:$PATH"
 
 # Install Rust (rustup + basic components) in this devcontainer image.
 # We install rustfmt/clippy here so they're available without additional setup.
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
-    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true \
-    && "$HOME/.cargo/bin/cargo" install sccache || true
+    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true
 
 WORKDIR /workspaces/msc-viterbo

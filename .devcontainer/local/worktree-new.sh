@@ -2,8 +2,7 @@
 set -euo pipefail
 
 # Works in both Local and Codespace environments.
-# In Local: uses shared CARGO_TARGET_DIR for faster builds.
-# In Codespace: each worktree builds independently (no persistent cache).
+# Each worktree builds independently (no shared Rust build cache).
 
 # Why this script exists:
 # - Agents use worktrees to avoid stepping on each other.
@@ -86,14 +85,8 @@ prep_python() {
 }
 
 prep_rust() {
-  local target_dir
-  # Why: share build artifacts between worktrees to avoid multi-minute rebuilds.
-  target_dir="${CARGO_TARGET_DIR:-/workspaces/worktrees/shared/target}"
-  run mkdir -p "$target_dir"
-  log "CARGO_TARGET_DIR=$(printf '%q' "$target_dir") $(fmt_cmd cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml)"
-  CARGO_TARGET_DIR="$target_dir" cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml
-  log "CARGO_TARGET_DIR=$(printf '%q' "$target_dir") $(fmt_cmd cargo build --manifest-path packages/rust_viterbo/Cargo.toml)"
-  CARGO_TARGET_DIR="$target_dir" cargo build --manifest-path packages/rust_viterbo/Cargo.toml
+  run cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml
+  run cargo build --manifest-path packages/rust_viterbo/Cargo.toml
 }
 
 prep_latex() {

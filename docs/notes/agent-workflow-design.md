@@ -158,7 +158,7 @@ Five agent types with distinct roles. Agent prompts are skills in `.claude/skill
 Local and Codespace Dockerfiles are intentionally separate:
 - Different TeX package requirements
 - Different CLI tools installed
-- Different cache strategies (sccache in Local)
+- Different cache strategies
 - Editing one shouldn't require thinking about effects on the other
 
 ### Why Two devcontainer.json Files

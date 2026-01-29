@@ -4,7 +4,7 @@
 # WHY SEPARATE FROM LOCAL DOCKERFILE:
 # Local and Codespace environments have different needs. Keeping them separate
 # means editing one doesn't require thinking about effects on the other.
-# Local has: sccache, more TeX packages, extra CLI tools (ctags, entr, etc.)
+# Local has: more TeX packages, extra CLI tools (ctags, entr, etc.)
 #
 # Based on official sources:
 # - Base: mcr.microsoft.com/devcontainers/base:ubuntu (has git, zsh, vscode user)
