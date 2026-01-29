@@ -15,6 +15,18 @@ Quick reference for notation used in this thesis and correspondence with key pap
 | `Q(σ,β)` | Quadratic form; c_EHZ = (2 Q_max)^{-1} |
 | `ω(x,y) = ⟨Jx, y⟩` | Standard symplectic form |
 | `J` | Complex structure: J(q,p) = (-p, q) |
+| `c_EHZ(K)` | Ekeland-Hofer-Zehnder capacity |
+| `sys(K)` | Systolic ratio: c_EHZ(K)² / (2 · Vol(K)) |
+
+## Key Terms
+
+| Term | Definition |
+|------|------------|
+| Lagrangian product | K = K₁ × K₂ where K₁ ⊂ R²_q, K₂ ⊂ R²_p (q and p planes decoupled) |
+| Lagrangian 2-face | 2-face where ω(n_i, n_j) = 0 for its two bounding facet normals |
+| Reeb orbit | Closed trajectory on ∂K following Reeb dynamics (piecewise linear for polytopes) |
+| Clarke dual | Dual formulation: min action over closed curves ↔ max over β weights |
+| Rotation number | How many times orbit "winds" around; integer for closed orbits |
 
 ## Cross-Paper Notation
 
