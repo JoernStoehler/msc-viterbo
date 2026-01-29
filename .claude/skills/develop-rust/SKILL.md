@@ -8,10 +8,22 @@ description: Writing or testing Rust code in packages/rust_viterbo. Use when imp
 ## Crate Organization
 
 - **geom**: Clean reference library (symplectic + euclidean geometry, 2D + 4D)
-- **hk2017**: HK2017 algorithm (works on any polytope (with 0 ∈ int K))
-- **billiard**: Billiard algorithm (Lagrangian products only)
-- **tube**: Tube algorithm (polytopes without lagrangian 2-faces)
+- **hk2017**: HK2017 algorithm (works on any polytope with 0 ∈ int K)
+- **tube**: Tube algorithm (polytopes without Lagrangian 2-faces)
 - **ffi**: PyO3/Maturin bindings
+
+## Algorithm Quick Reference
+
+| Property | HK2017 | Tube |
+|----------|--------|------|
+| **Inputs** | H-rep (normals, heights), 0 ∈ int K | H-rep, no Lagrangian 2-faces |
+| **Outputs** | Capacity + optimal β weights | Capacity + closed Reeb orbit |
+| **Performance** | O(F!) permutations, ~1µs each. Practical limit ~10 facets | Branch-and-bound, varies |
+| **Trust level** | High (validated against literature) | High (cross-validated with HK2017) |
+| **Knobs** | `naive` vs `graph_pruned` enumeration | Tolerance constants in `tube/src/constants.rs` |
+| **References** | Thesis §algorithms, HK2017 paper (arXiv:1712.03494) | Thesis §algorithms, CH2021 (arXiv:2008.10111) |
+
+**Note:** Billiard algorithm was deleted pending reimplementation from thesis spec (see issue #92).
 
 ## Philosophy: geom as Reference
 

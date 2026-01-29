@@ -10,6 +10,14 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 - **Priority:** Code correctness first, then experiments
 - **Thesis as source of truth:** Code implements what thesis specifies
 
+## Audience
+
+- **Thesis readers:** MSc math students who took a symplectic geometry lecture
+- **Code developers:** Claude agents with broad knowledge of symplectic geometry, optimization, algorithms
+- **Project owner:** Jörn, up to speed with thesis references
+
+This is a closed project (no external contributors). Papers in `docs/papers/` should be read as needed for specific tasks, not all at once.
+
 ## Project Layout
 
 ```
@@ -20,7 +28,6 @@ packages/
   rust_viterbo/         Rust workspace for geometric computations
     geom/               Polytope representation, convexity, tolerances
     hk2017/             Haim-Kislev 2017 algorithm for EHZ capacity
-    billiard/           Billiard trajectory algorithm (Clarke dual)
     tube/               Tube domain capacity computations
     ffi/                PyO3 bindings exposing Rust to Python
   python_viterbo/       Python package for experiments
@@ -92,6 +99,8 @@ Escalate to Jörn when:
 - Any out-of-scope decision needed
 
 A brief interruption beats running into a dead end.
+
+**Anti-pattern (real example):** The billiard algorithm was deleted because an agent, facing a 2× discrepancy between algorithms, added an empirical "correction factor" `f(K)` to make tests pass. The factor was essentially `if K == failing_test_case then 2 else 1`. This is reward-hacking: optimizing for "tests pass" rather than "implementation is correct." When confused, escalate — don't accumulate hacks.
 
 ### Task Management
 
