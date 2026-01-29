@@ -87,6 +87,13 @@ Don't add files meant for human readers:
 - QUICK_REFERENCE.md
 - CHANGELOG.md
 
+**Don't duplicate live state.** Skills should contain stable workflows, not information that changes with the codebase. Examples of what belongs in code, not skills:
+- Which functions are currently exposed via FFI → check `.pyi` stub
+- Current test coverage → run tests
+- List of implemented features → read the code
+
+Skills document *how* to work, not *what* currently exists.
+
 Only include files essential for AI agent execution.
 
 # Progressive Disclosure Design Principle
