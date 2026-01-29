@@ -2355,9 +2355,9 @@ fn tube_capacity(K: &PolytopeHRep) -> Result<f64, Error> {
 
 | Polytope Type | 2-Face Character | Status |
 |---------------|------------------|--------|
-| Lagrangian products | ALL Lagrangian | ✓ Billiard, HK2017 |
+| Lagrangian products | ALL Lagrangian | ✓ Billiard (pending reimplementation), HK2017 |
 | Non-Lagrangian | NO Lagrangian | ✓ Tube, HK2017 |
-| Mixed | SOME Lagrangian | ✗ No algorithm designed |
+| Mixed | SOME Lagrangian | ✓ HK2017 |
 
 **HK2017 QP solver incompleteness:**
 
@@ -2368,7 +2368,7 @@ The quadratic form Q(σ, β) is **indefinite** (the symplectic form has mixed si
 
 A complete implementation requires a global QCQP solver or exhaustive face enumeration. The current approach (KKT solver for interior critical points) assumes the maximum is in the interior of the feasible region. If the true maximum is on the boundary, this method will miss it. For most "typical" polytopes (tesseract, Lagrangian products), the interior assumption holds.
 
-**Pentagon × RotatedPentagon:** ✅ Fixed. The billiard algorithm now correctly returns ≈ 3.441 (matching HK-O 2024 Prop 1). The bug was in orbit validation - see `findings-orbit-validation-2026-01-26.md`.
+**Pentagon × RotatedPentagon:** HK2017 returns ≈ 3.441 (matching HK-O 2024 Prop 1). The billiard algorithm was deleted pending reimplementation from thesis spec.
 
 **Missing tube algorithm test case:**
 
@@ -3302,8 +3302,8 @@ fn hko2024_counterexample() -> PolytopeHRep {
 | Non-Lagrangian polytopes | NO 2-faces Lagrangian | Tube, HK2017 |
 
 **Known Limitations:**
-- No algorithm handles mixed Lagrangian/non-Lagrangian polytopes well
-- HK2017 uses interior-point assumption (if true max is on boundary, result is incorrect)
+- HK2017 uses interior-point assumption (if true max is on boundary, result may be incorrect)
+- Billiard algorithm deleted, pending reimplementation from thesis spec
 
 **Related Files:**
 - `review-spec-v2.md`: Detailed review with recommendations
@@ -3314,28 +3314,25 @@ fn hko2024_counterexample() -> PolytopeHRep {
 
 ## 5. Implementation Status
 
-**All three algorithms are implemented and tested:**
-
 | Crate | Status | Tests | Notes |
 |-------|--------|-------|-------|
-| `billiard/` | ✅ Working | All pass | Pentagon counterexample correct (3.441) |
 | `hk2017/` | ✅ Working | All pass | Interior-point assumption documented |
 | `tube/` | ✅ Working | All pass | Cross-polytope, 24-cell tested |
-| `geom/` | ✅ Working | All pass | Shared polytope representation |
-| `ffi/` | Partial | HK2017 exposed | Billiard/tube FFI not yet wired |
+| `geom/` | ✅ Working | All pass | Shared polytope representation, Polygon2D |
+| `ffi/` | Partial | HK2017, Tube exposed | Volume, symplectic form also available |
+| `billiard/` | ❌ Deleted | — | Pending reimplementation from thesis spec (see #92) |
 
 ### 5.1 Crate Structure
 
 ```
 packages/rust_viterbo/
-├── geom/       # Shared: PolytopeHRep, tolerances
-├── billiard/   # Lagrangian product algorithm
+├── geom/       # Shared: PolytopeHRep, Polygon2D, tolerances
 ├── hk2017/     # Permutation enumeration algorithm
 ├── tube/       # Branch-and-bound on non-Lagrangian polytopes
-└── ffi/        # PyO3 bindings (hk2017 working, others stub)
+└── ffi/        # PyO3 bindings
 ```
 
 ### 5.2 Next Steps
 
-1. **Wire up FFI** for billiard and tube to enable Python experiments
+1. **Reimplement billiard** from completed thesis spec (#92)
 2. **Run experiments** to generate thesis content
