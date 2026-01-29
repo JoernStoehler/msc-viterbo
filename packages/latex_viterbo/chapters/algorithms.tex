@@ -283,7 +283,104 @@ For polytopes with few facets (\(F \le 10\)), HK2017 is practical and serves as 
 % TODO: Present the second algorithm for capacity computation from the literature.
 
 \section{Algorithm of Minkowski Billiards}\label{sec:algo-billiards}
-% TODO: Present the third algorithm for capacity computation from the literature.
+
+% =============================================================================
+% DESIGN NOTES (2026-01-29 discussion between Jörn and Claude)
+% =============================================================================
+%
+% CONTEXT: The literature (Rudolf 2022, Bezdek-Bezdek 2009) proves that for
+% Lagrangian products $K_q \times K_p \subset \R^4$, the EHZ capacity equals
+% the minimal length of closed Minkowski billiard trajectories with at most
+% $n+1 = 3$ bounces. However, no explicit computational algorithm is given.
+%
+% KEY THEOREM (Rudolf 2022, Thm 1.1):
+%   $c_{EHZ}(K_q \times K_p) = \min_{q \in M_{n+1}(K_q,K_p)} \ell_{K_p}(q)$
+% where $M_{n+1}$ = billiard trajectories with $\le n+1$ bouncing points.
+%
+% COMPLEXITY MOTIVATION:
+%   - HK2017: $O(F!)$ where $F$ = facet count
+%   - Billiard algorithm: $O((E_q + E_p)^6)$ where $E$ = edge counts
+%   - Polynomial vs factorial is a major improvement for Lagrangian products
+%
+% -----------------------------------------------------------------------------
+% STRUCTURE OF A 3-BOUNCE ORBIT
+% -----------------------------------------------------------------------------
+%
+% A 3-bounce orbit has 6 breakpoints alternating constant-$q$ and constant-$p$:
+%   $(q_1,p_1) \to (q_1,p_2) \to (q_2,p_2) \to (q_2,p_3) \to (q_3,p_3) \to (q_3,p_1) \to (q_1,p_1)$
+%
+% Variables: 3 points $q_1,q_2,q_3 \in \partial K_q$ and 3 points $p_1,p_2,p_3 \in \partial K_p$.
+% Each point is (edge index, position on edge $\in [0,1)$).
+%
+% -----------------------------------------------------------------------------
+% REFLECTION RULE AND CONSTRAINTS
+% -----------------------------------------------------------------------------
+%
+% Rudolf's reflection rule $q_{j+1} - q_j \in N_{K_p}(p_j)$ is equivalent to
+% the differential inclusion for Reeb orbits (no new theory needed).
+%
+% For polygons:
+%   - If $p_j$ is on edge interior: $N_{K_p}(p_j) = \R_+ \cdot n_e$ (1D, single normal)
+%     Constraint: $q_{j+1} - q_j = t \cdot \frac{2}{h} n_e$ with $t \ge 0$ (equality + sign)
+%
+%   - If $p_j$ is a vertex (intersection of edges $L,R$):
+%     $N_{K_p}(p_j) = \R_+ \cdot \conv\{n_L, n_R\}$ (2D cone)
+%     Constraint: $q_{j+1} - q_j = t_L \cdot \frac{2}{h_L} n_L + t_R \cdot \frac{2}{h_R} n_R$
+%     with $t_L, t_R \ge 0$ (inequalities)
+%
+% OBJECTIVE: Minimize action $= \sum (t_L + t_R + \ldots)$ = sum of Reeb coefficients.
+% This is the period of the orbit ($\alpha(R) = 1$ by Reeb normalization).
+%
+% RESULT: Linear programming problem per combinatorial configuration!
+%
+% -----------------------------------------------------------------------------
+% ALGORITHM OUTLINE
+% -----------------------------------------------------------------------------
+%
+% 1. COMBINATORIAL OUTER LOOP: For each configuration
+%    - Which edge of $K_q$ does each $q_i$ lie on? $\to E_q^3$ choices
+%    - Which edge of $K_p$ does each $p_i$ lie on? $\to E_p^3$ choices
+%    - For each of 6 points: vertex or edge-interior? $\to 2^6$ sub-choices
+%
+% 2. LP INNER PROBLEM: For each configuration, solve:
+%    - Variables: 6 edge-position parameters + time coefficients $(t_L, t_R)$ per transition
+%    - Constraints: reflection rules as linear (in)equalities, $t \ge 0$
+%    - Objective: minimize $\sum t_i$ = action
+%
+% 3. RETURN: Global minimum action and corresponding orbit
+%
+% -----------------------------------------------------------------------------
+% UNIFORM LP FORMULATION (to avoid heterogeneous constraint structures)
+% -----------------------------------------------------------------------------
+%
+% Always use $(t_L, t_R)$ per transition, even for edge-interior points:
+%   - For edge-interior: add constraint $t_L = 0$ (or $t_R = 0$), using only true normal
+%   - For vertex: both $t_L, t_R$ free
+%
+% This gives fixed variable count (18 = 6 positions + 12 times) with uniform
+% constraint matrix structure. Only which $t_L = 0$ constraints are active varies.
+%
+% The "fake edge" framing: pretend there are always 2 adjacent edges at each
+% bounce point, but one has zero time allocation for edge-interior points.
+%
+% -----------------------------------------------------------------------------
+% OPEN QUESTIONS
+% -----------------------------------------------------------------------------
+%
+% 1. Can we prove minimum-action orbit always has bounces at vertices (not
+%    edge-interiors)? This would eliminate the $2^6$ factor.
+%
+% 2. Exact LP constraint structure for closure and geometric compatibility.
+%
+% 3. 2-bounce orbits: simpler (4 breakpoints, 2 $q$-values, 2 $p$-values).
+%
+% 4. Numerical considerations: LP solver choice, tolerances, degeneracies.
+%
+% =============================================================================
+% END DESIGN NOTES
+% =============================================================================
+
+% TODO: Write up formal algorithm based on above design notes.
 
 \section{Algorithm Developed in This Thesis}\label{sec:algo-ours}
 
