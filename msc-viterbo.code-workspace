@@ -59,6 +59,8 @@
 		"claudeCode.initialPermissionMode": "bypassPermissions",
 		"claudeCode.allowDangerouslySkipPermissions": true,
 		"claudeCode.respectGitIgnore": false,
+		"chat.useAgentSkills": true,
+		"github.copilot.chat.anthropic.tools.websearch.enabled": true,
 	},
 	"extensions": {
 		"recommendations": [
