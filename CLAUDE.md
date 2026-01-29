@@ -30,9 +30,9 @@ Use it to orient yourself. For detailed exploration, run `scripts/repo-map.py`.
 | `packages/rust_viterbo/` | Rust workspace: `geom/` (primitives), `hk2017/` (EHZ capacity), `tube/` (tube domain), `ffi/` (PyO3) |
 | `packages/python_viterbo/` | Python experiments in `src/viterbo/experiments/<label>/` |
 | `packages/latex_viterbo/chapters/` | Thesis source; `chapters/math/` has core definitions |
-| `docs/conventions/` | Development conventions (testing, FFI, experiments) |
+| `docs/conventions/` | Development conventions, workflows, and checklists |
 | `docs/papers/README.md` | Index of downloaded literature with key theorem locations |
-| `.claude/skills/` | Workflow guides (read when relevant to task) |
+| `.claude/skills/` | Agent role prompts (planner, developer, reviewer, etc.) |
 
 ### Project Structure
 
@@ -76,7 +76,7 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 ### When Assigned a Task
 
 1. Work in the directory specified (default: `/workspaces/msc-viterbo`)
-2. Read skills relevant to the work
+2. Consult `docs/conventions/` for relevant workflows and conventions
 3. Do the work
 
 ### After Completing Work
@@ -88,7 +88,7 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 ### Working Directory
 
 - **CRITICAL:** Always use `cd /workspaces/worktrees/<task> && command`
-- See `develop-codespace` skill for troubleshooting
+- See `docs/conventions/environments.md` for troubleshooting
 
 ### Escalation
 
@@ -119,7 +119,7 @@ Don't bother with task management unless explicitly assigned.
 ## Environment
 
 The environment is provisioned for you, and everything should work out of the box.
-See `develop-codespace` skill for troubleshooting.
+See `docs/conventions/environments.md` for troubleshooting.
 
 ## Communication
 
