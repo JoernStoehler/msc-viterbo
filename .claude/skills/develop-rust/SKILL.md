@@ -10,6 +10,7 @@ description: Writing or testing Rust code in packages/rust_viterbo. Use when imp
 - **geom**: Clean reference library (symplectic + euclidean geometry, 2D + 4D)
 - **hk2017**: HK2017 algorithm (works on any polytope with 0 ∈ int K)
 - **tube**: Tube algorithm (polytopes without Lagrangian 2-faces)
+- **billiard**: Minkowski billiard algorithm for Lagrangian products (draft, see SPEC.md)
 - **ffi**: PyO3/Maturin bindings
 
 ## Algorithm Quick Reference
@@ -23,7 +24,7 @@ description: Writing or testing Rust code in packages/rust_viterbo. Use when imp
 | **Knobs** | `naive` vs `graph_pruned` enumeration | Tolerance constants in `tube/src/constants.rs` |
 | **References** | Thesis §algorithms, HK2017 paper (arXiv:1712.03494) | Thesis §algorithms, CH2021 (arXiv:2008.10111) |
 
-**Note:** Billiard algorithm was deleted pending reimplementation from thesis spec (see issue #92).
+**Note:** Billiard algorithm has design spec (see `billiard/SPEC.md`), implementation pending. See issue #92.
 
 ## Philosophy: geom as Reference
 
@@ -52,6 +53,8 @@ cargo bench                      # Benchmarks
 ## Testing Philosophy: Tests as Propositions
 
 Write tests that verify mathematical propositions, not just "does it run without crashing."
+
+**For comprehensive algorithm testing strategy, see `develop-rust-tests` skill.**
 
 **Good**: `prop_scaling_law` - "∀K, ∀λ>0: c(λK) = λ²c(K)"
 **Bad**: `test_random_stuff` - "call function, check no panic"
