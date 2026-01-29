@@ -18,37 +18,27 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 
 This is a closed project (no external contributors). Papers in `docs/papers/` should be read as needed for specific tasks, not all at once.
 
-## Project Layout
+## File Index
+
+A compressed file index is printed at session startup (via `.claude/hooks/session-start.sh`).
+Use it to orient yourself. For detailed exploration, run `scripts/repo-map.py`.
+
+### Key Locations
+
+| Path | Purpose |
+|------|---------|
+| `packages/rust_viterbo/` | Rust workspace: `geom/` (primitives), `hk2017/` (EHZ capacity), `tube/` (tube domain), `ffi/` (PyO3) |
+| `packages/python_viterbo/` | Python experiments in `src/viterbo/experiments/<label>/` |
+| `packages/latex_viterbo/chapters/` | Thesis source; `chapters/math/` has core definitions |
+| `docs/conventions/` | Development conventions (testing, FFI, experiments) |
+| `docs/papers/README.md` | Index of downloaded literature with key theorem locations |
+| `.claude/skills/` | Workflow guides (read when relevant to task) |
+
+### Project Structure
 
 ```
 /workspaces/msc-viterbo/        Main worktree
 /workspaces/worktrees/<task>/   Task-specific worktree
-
-CLAUDE.md               This file, always relevant knowledge for agents
-.claude/skills/         Situationally useful knowledge for agents
-packages/
-  latex_viterbo/        Thesis (source of truth: code implements what thesis specifies)
-    chapters/           .tex files; chapters/math/ has core definitions
-    assets/             Figures, generated plots
-  rust_viterbo/         Rust workspace for geometric computations
-    geom/               Polytope representation, convexity, tolerances
-    hk2017/             Haim-Kislev 2017 algorithm for EHZ capacity
-    tube/               Tube domain capacity computations
-    ffi/                PyO3 bindings exposing Rust to Python
-  python_viterbo/       Python package for experiments
-    src/viterbo/        Quickly developed research experiments
-    config/             JSON configs per experiment
-    data/               Output artifacts per experiment
-    tests/              Sanity checks for experiments
-scripts/                Repo-wide dev scripts
-.devcontainer/          Environment configs
-  local/
-  codespace/
-  ccweb/
-docs/                   
-  papers/               Downloaded literature .tex/pdf files
-  notes/                Unsorted extra knowledge
-.github/                CI, templates
 ```
 
 ## Quick Commands
