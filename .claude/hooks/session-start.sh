@@ -1,6 +1,7 @@
 #!/bin/bash
-# SessionStart hook: install gh CLI in Claude Code web environments (silent)
-# Only runs on startup, not resume/compact/clear (gh persists in VM)
+# SessionStart hook:
+# 1. Print compressed file index (all environments, startup only)
+# 2. Install gh CLI in Claude Code web environments (silent)
 
 set -e
 
@@ -8,10 +9,20 @@ set -e
 hook_input=$(cat)
 source=$(echo "$hook_input" | jq -r '.source // "startup"')
 
-# Only install on startup
+# Only run on startup (not resume/compact/clear)
 [ "$source" != "startup" ] && exit 0
 
-# Only in web environment
+# --- File Index (all environments) ---
+# Print compressed repo structure so agent has file awareness in context
+echo "=== Session Startup: Repository File Index ==="
+echo "(This index is auto-generated to help you navigate the codebase)"
+echo ""
+python3 "$CLAUDE_PROJECT_DIR/scripts/file-index.py" 2>/dev/null || echo "(file-index.py not available)"
+echo ""
+echo "=== End File Index ==="
+echo ""
+
+# --- gh CLI installation (web environment only) ---
 [ "$CLAUDE_CODE_REMOTE" != "true" ] && exit 0
 
 # Skip if gh already installed

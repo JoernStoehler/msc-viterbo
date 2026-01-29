@@ -5,29 +5,21 @@ description: Building or modifying Rust-Python FFI bindings using PyO3 and matur
 
 # Rust-Python FFI
 
-## Build
+See `docs/conventions/python-rust-ffi.md` for key files and design principles.
 
+## Quick Reference
+
+**Build:**
 ```bash
 cd /workspaces/worktrees/<task>/packages/python_viterbo
 uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
 ```
 
-## Test
-
+**Test:**
 ```bash
-cd /workspaces/worktrees/<task>/packages/python_viterbo
 uv run pytest tests/test_ffi_capacity_hrep.py -v
 ```
 
-## Design Principles
-
-1. **Keep wrappers thin**: Convert types at boundary, delegate to library crates
-2. **Validate at boundary**: Check inputs in FFI code, return structured errors
-3. **Expose only working code**: No stubs or archived placeholders
-4. **Match stubs to implementation**: `rust_viterbo_ffi.pyi` must accurately reflect actual API
-
-## Key Files
-
-- Rust FFI: `packages/rust_viterbo/ffi/src/lib.rs`
-- Python stubs: `packages/python_viterbo/src/rust_viterbo_ffi.pyi`
-- Tests: `packages/python_viterbo/tests/test_ffi_capacity_hrep.py`
+**Key files:**
+- Rust: `packages/rust_viterbo/ffi/src/lib.rs`
+- Stubs: `packages/python_viterbo/src/rust_viterbo_ffi.pyi`
