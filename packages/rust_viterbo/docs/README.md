@@ -6,12 +6,11 @@ EHZ capacity algorithms for convex polytopes.
 
 | Crate | Domain | Tests | FFI |
 |-------|--------|-------|-----|
-| **billiard** | Lagrangian products K₁ × K₂ | ✅ Pass | Stub |
 | **hk2017** | Any polytope | ✅ Pass | ✅ Working |
-| **tube** | Non-Lagrangian polytopes | ✅ Pass | Stub |
+| **tube** | Non-Lagrangian polytopes | ✅ Pass | ✅ Working |
 | **geom** | Shared polytope types | ✅ Pass | N/A |
 
-**Next:** Wire up billiard and tube FFI to enable Python experiments.
+**Note:** Billiard algorithm was deleted pending reimplementation from thesis spec (see issue #92).
 
 ## Documents
 
