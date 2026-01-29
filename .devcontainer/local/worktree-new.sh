@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local devcontainer only - in Codespaces, use manual git worktree commands.
+# Works in both Local and Codespace environments.
+# In Local: uses shared CARGO_TARGET_DIR for faster builds.
+# In Codespace: each worktree builds independently (no persistent cache).
 
 # Why this script exists:
 # - Agents use worktrees to avoid stepping on each other.
@@ -167,6 +169,24 @@ main() {
   fi
   if ! git rev-parse --verify origin/main >/dev/null 2>&1; then
     die "expected remote-tracking branch 'origin/main' to exist after fetch; check your remotes and retry"
+  fi
+
+  # Check if worktree path already exists
+  if [[ -e "$path" ]]; then
+    if $force; then
+      log "path $path already exists, proceeding anyway (--force)"
+    else
+      die "path $path already exists; remove it first or use --force"
+    fi
+  fi
+
+  # Check if worktree is already registered
+  if git worktree list | grep -q "^$path "; then
+    if $force; then
+      log "worktree at $path already registered, proceeding anyway (--force)"
+    else
+      die "worktree at $path already registered; use 'git worktree remove $path' or --force"
+    fi
   fi
 
   # Why: `git worktree add <path> <branch>` requires <branch> to already exist.

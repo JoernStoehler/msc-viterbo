@@ -32,7 +32,6 @@ scripts/                Repo-wide dev scripts
 .devcontainer/          Environment configs (local/, codespace/, ccweb/)
 .claude/skills/         Workflow docs (develop-*, plan-*, review-*, etc.)
 docs/                   GitHub Pages site
-TODO.md                 Task tracking and experiment queue
 ```
 
 ## Quick Commands
@@ -69,58 +68,40 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 
 ### When Assigned a Task
 
-1. **Check GitHub Issues** for assigned work or create issue if needed
-2. Working directory:
-  - Work on specified branch inside specified git worktree
-  - If told to work on the main `/workspaces/msc-viterbo` branch, do so
-  - If no worktree specified, create a new one from main
-3. Read skills that are relevant to the work
-4. Continue as usual
+1. Work in the directory specified (default: `/workspaces/msc-viterbo`)
+2. Read skills relevant to the work
+3. Do the work
 
 ### After Completing Work
 
-1. **Close issue** with comment summarizing what was done (include footer)
-2. Ensure tests pass, no broken code
-3. Update docs/comments if behavior changed
-4. Remove stale TODOs/comments
-5. Commit and push
-6. If using worktree: clean up after you are told the PR is merged
+1. Ensure tests pass
+2. Commit and push (reference issue via "fixes #X" if applicable)
+3. Note any out-of-scope discoveries in PR description
 
-### Parallel Workflows with Git Worktrees
+### Working Directory
 
-- Multiple agents work simultaneously on different branches
-- Each agent works in `/workspaces/worktrees/<task-name>`
 - **CRITICAL:** Always use `cd /workspaces/worktrees/<task> && command`
 - See `develop-codespace` skill for troubleshooting
+
+### Escalation
+
+Escalate to Jörn when:
+- Task is ambiguous
+- Tests pass but behavior seems wrong
+- Spec has a mistake or contradiction
+- Any out-of-scope decision needed
+
+A brief interruption beats running into a dead end.
 
 ### Task Management
 
 Work tracked in GitHub Issues, Milestones, and Discussions.
 
-**GitHub Issues:**
-- Code work (bugs, features, investigations, chores) → create issues
-- Use `gh issue create/view/comment/close` commands
+- **Don't create issues** - note out-of-scope discoveries in PR description instead
+- Issues are created by Jörn or PM agent
+- Use `gh issue view/comment` to read and update existing issues
 - Add footer for attribution: `---\n*Agent: worktree-name*`
-- Issues without footer = from Jörn
-- Use issue templates when creating (.github/ISSUE_TEMPLATE/)
-- Work logs go in issue comments (chronological, with footer)
-
-**Experiments:**
-- Create tracking issue (use experiment template)
-- Implementation in repo: SPEC.md + FINDINGS.md + stage files
-- FINDINGS.md = living document, updated as work progresses
-- See `plan-experiments` skill
-
-**Discussions:**
-- Experiment ideas before they're specified
-- Open-ended research questions
-- Can convert discussion → issue when ready
-
-**IMPORTANT: Don't speculatively add tasks.** Jörn manages the backlog.
-
-Only add tasks when:
-- Work is discovered that can't be done now (blocked, out of scope)
-- Jörn explicitly requests it
+- See `plan-experiments` skill for experiment workflows
 
 ### Cleanup & Standards
 

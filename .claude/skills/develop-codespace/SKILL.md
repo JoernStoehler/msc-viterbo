@@ -9,7 +9,7 @@ description: Working with development environments, git worktrees for parallel a
 
 | Feature | Local | Codespace | CC Web |
 |---------|-------|-----------|--------|
-| Status | Backup | **Primary** | Emergency backup |
+| Status | **Primary** | Backup | Emergency backup |
 | TexLive | Yes | Yes | No |
 | LaTeXML | Yes | Yes | No |
 | Rust/Python | Yes | Yes | Yes |
@@ -17,7 +17,7 @@ description: Working with development environments, git worktrees for parallel a
 | Skills | Work | Work | Broken |
 | Cache persistence | Bind mounts | No | No |
 
-**Currently using**: GitHub Codespaces
+**Currently using**: Local devcontainer
 
 ## Environment Detection
 
@@ -42,19 +42,7 @@ fi
 
 ### Purpose
 
-Enable multiple agents to work in parallel on different branches without interfering. Each worktree is an isolated working directory with its own branch and files, sharing the same Git history.
-
-### Setup
-
-```bash
-# Create worktree for your task
-git worktree add /workspaces/worktrees/<task-name> -b <branch-name>
-
-# IMPORTANT: Use hyphens, not slashes in names (avoid feat/name - use feat-name)
-
-# Example:
-git worktree add /workspaces/worktrees/fix-billiard-bug -b fix-billiard-bug
-```
+Multiple agents work in parallel on different branches. Each worktree is an isolated working directory at `/workspaces/worktrees/<task-name>`.
 
 ### Working Pattern
 
@@ -72,18 +60,6 @@ cd /workspaces/worktrees/<task> && cd packages/rust_viterbo && cargo build
 - Linear history, clean git log
 - Individual commits preserved (no squashing)
 - When creating PRs, structure commits logically
-
-### Cleanup
-
-After your PR is merged:
-
-```bash
-# Remove the worktree (branch stays on GitHub as PR history)
-git worktree remove /workspaces/worktrees/<task>
-
-# Verify it's gone
-git worktree list
-```
 
 ### Key Limitations
 

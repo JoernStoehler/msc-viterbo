@@ -1,5 +1,11 @@
 {
   // Local devcontainer for msc-viterbo (Jörn's Ubuntu desktop).
+  // PRIMARY ENVIRONMENT.
+  //
+  // WHY SEPARATE FROM CODESPACE CONFIG:
+  // devcontainer spec doesn't support conditionals. Local needs bind mounts
+  // for cache persistence; Codespace can't have them. Explicit separation
+  // is clearer than trying to share configs with workarounds.
   //
   // Features:
   // - Bind mounts for cache persistence (uv, sccache, TeX)

@@ -5,7 +5,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-lc"]
 
 # -----------------------------------------------------------------------------
-# Devcontainer image for msc-viterbo
+# Local devcontainer image for msc-viterbo (Jörn's Ubuntu desktop)
+#
+# WHY SEPARATE FROM CODESPACE DOCKERFILE:
+# Local and Codespace environments have different needs. Keeping them separate
+# means editing one doesn't require thinking about effects on the other.
+# Differences: Local has sccache, more TeX packages, extra CLI tools.
 #
 # Design goals:
 # - Keep the image simple and close to standard devcontainer patterns (KISS).

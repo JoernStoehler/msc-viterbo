@@ -18,7 +18,7 @@ This project supports three development environments:
 | Git worktrees | Manual scripts | Manual | No |
 | Parallel agents | Scripts | Worktrees + IDE | No |
 | Skills | Work | Work | Broken |
-| Status | Backup | **Primary** | Emergency backup |
+| Status | **Primary** | Backup | Emergency backup |
 
 ## Local (`local/`)
 
@@ -35,9 +35,9 @@ Prerequisites:
 - `/srv/devworktrees/msc-viterbo/worktrees/` for git worktrees
 - `npm i -g @devcontainers/cli`
 
-## Codespace (`codespace/`) - Primary Environment
+## Codespace (`codespace/`)
 
-GitHub Codespaces for remote development. **This is the primary development environment.**
+GitHub Codespaces for remote development. Backup environment when Local is unavailable.
 
 ```bash
 # Create codespace:

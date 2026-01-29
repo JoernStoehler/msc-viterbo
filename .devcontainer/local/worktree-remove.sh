@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local devcontainer only - in Codespaces, use manual git worktree commands.
+# Works in both Local and Codespace environments.
 
 # Why this script exists:
 # - `git worktree remove` is easy to misuse (e.g. passing an unintended flag/path).

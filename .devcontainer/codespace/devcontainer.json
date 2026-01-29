@@ -1,7 +1,13 @@
 {
   // GitHub Codespaces devcontainer for msc-viterbo.
+  // BACKUP ENVIRONMENT (when Local is unavailable).
   //
-  // Simplified version of local devcontainer:
+  // WHY SEPARATE FROM LOCAL CONFIG:
+  // devcontainer spec doesn't support conditionals. Local needs bind mounts
+  // for cache persistence; Codespace can't have them. Explicit separation
+  // is clearer than trying to share configs with workarounds.
+  //
+  // Features:
   // - Has TexLive for PDF builds
   // - Same toolchain: Rust, Python, uv, Node.js
   //
