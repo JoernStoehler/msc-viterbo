@@ -36,9 +36,21 @@ grep -rn "\\label{" docs/papers/CH2021-systolic/
 grep -rl "rotation" docs/papers/
 ```
 
+## Key Theorems (with line numbers)
+
+Paper sources are frozen, so line numbers are stable references.
+
+| Paper | Theorem | Line | Content |
+|-------|---------|------|---------|
+| HK2017 | Theorem 1 (`formula_theorem`) | 68 | EHZ capacity formula for polytopes |
+| HK2017 | Theorem 2 | 130 | Subadditivity |
+| HK2017 | Theorem 3 | 153 | Simple orbit suffices |
+| Rudolf2022 | Theorem 1.1 (`Thm:relationship`) | 710 | c_EHZ = min billiard length for Lagrangian products |
+| BezdekBezdek2009 | Theorem (`zero`) | 98 | Shortest billiard has period ≤ d+1 |
+| BezdekBezdek2009 | Theorem (`first`) | 118 | Fat disk-polygon: shortest is 2-periodic |
+
 ## Key Sections
 
-- **HK2017 Theorem 1**: The main EHZ capacity formula for polytopes
 - **HK2017 Remark 4**: Alternative MIN formulation
 - **CH2021 s1**: Rotation bounds and algorithm guidance
 - **CH2021 s3**: Reeb dynamics on polytopes (the action derivation)
