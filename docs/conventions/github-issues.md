@@ -1,21 +1,14 @@
----
-name: plan-tasks
-description: Creating and managing tasks in GitHub Issues. Use when Jörn requests task creation, when discovered work needs tracking. NOT for normal work logs (use issue comments).
----
+# GitHub Issues & Task Management
 
-# Task Management with GitHub Issues
+Work tracking conventions using GitHub Issues, Milestones, and Discussions.
 
 ## Overview
-
-Work tracked in **GitHub Issues**, **Milestones**, and **Discussions**.
 
 - Code work → GitHub Issues
 - Experiment ideas → GitHub Discussions → Issue when ready
 - Experiments have tracking issue + SPEC.md/FINDINGS.md in repo
 
 ## Creating Issues
-
-Use `gh issue create` with templates:
 
 ```bash
 # Bug report
@@ -28,7 +21,7 @@ gh issue create --template feature.yml --title "Remove FFI 10-facet limit"
 gh issue create --template experiment.md --title "random-polytope-sys-distribution"
 ```
 
-Or use web UI: templates at `.github/ISSUE_TEMPLATE/`
+Templates at `.github/ISSUE_TEMPLATE/`
 
 ## Issue Structure
 
@@ -38,12 +31,12 @@ Or use web UI: templates at `.github/ISSUE_TEMPLATE/`
 
 **Description:** Problem, approach, acceptance criteria (template guides this)
 
-**Labels:** Apply as needed
+**Labels:**
 - Type: `bug`, `enhancement`, `experiment`, `documentation`
 - Area: `rust`, `python`, `thesis`, `infra`
 - `blocked` when waiting on dependencies
 
-**Footer (REQUIRED):**
+**Footer (REQUIRED for agent-created issues):**
 ```markdown
 ---
 *Agent: worktree-name*
@@ -52,7 +45,7 @@ Issues without footer = from Jörn.
 
 ## Work Logs
 
-Use **issue comments** for chronological notes:
+Use issue comments for chronological progress notes:
 
 ```bash
 gh issue comment 123 --body "Tried approach X, failed because Y.
@@ -68,7 +61,7 @@ Work logs should be:
 - **Chronological**: Each comment = progress update
 - **Attributed**: Footer shows which agent/branch
 
-## When to Add Tasks
+## When to Create Issues
 
 Only when:
 - Work discovered that can't be done now (blocked, out of scope)
@@ -87,7 +80,6 @@ See also: #89 (related PR)
 
 ## Closing Issues
 
-When work complete:
 ```bash
 gh issue close 123 --comment "Completed. Tests passing, docs updated.
 

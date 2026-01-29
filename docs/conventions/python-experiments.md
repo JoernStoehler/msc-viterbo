@@ -1,8 +1,20 @@
-# Python Experiment Conventions
+# Python Experiments
 
-Structure and patterns for experiments in `packages/python_viterbo/`.
+Structure, workflow, and conventions for thesis experiments in `packages/python_viterbo/`.
 
-## Standard Layout
+## File Layout
+
+| Artifact | Location |
+|----------|----------|
+| Tracking | GitHub Issue (label: `experiment`) |
+| Code | `src/viterbo/experiments/<label>/` |
+| SPEC.md | `src/viterbo/experiments/<label>/SPEC.md` |
+| FINDINGS.md | `src/viterbo/experiments/<label>/FINDINGS.md` |
+| Configs | `config/<label>/` |
+| Data | `data/<label>/` |
+| Thesis assets | `packages/latex_viterbo/assets/<label>/` |
+
+### Standard Code Structure
 
 ```
 src/viterbo/experiments/<label>/
@@ -11,18 +23,39 @@ src/viterbo/experiments/<label>/
 ├── stage_build.py       # Generate data
 ├── stage_analyze.py     # Compute results
 └── stage_plot.py        # Create figures
-
-config/<label>/
-├── default.json         # Parameters
-└── test.json            # Alternative configs
-
-data/<label>/            # Output artifacts
-tests/test_<label>.py    # Tests
 ```
 
 ## Teaching Example
 
-`src/viterbo/experiments/example_pipeline/` demonstrates all conventions. Study it before creating new experiments.
+`src/viterbo/experiments/example_pipeline/` demonstrates all conventions. Study it first.
+
+## Workflow Stages
+
+### 1. Ideation
+
+Create GitHub Discussion or propose in existing issue:
+- Research question + motivation
+- Rough approach
+- How it connects to other work
+- Dependencies/blockers
+
+If agent-proposed, mark with `[proposed]` in discussion.
+
+### 2. Specification
+
+1. Create GitHub Issue: `gh issue create --template experiment.md --title "label" --label experiment`
+2. Create experiment folder with SPEC.md
+
+### 3. Execution
+
+1. Implement stages
+2. Run experiments, produce data
+3. Write FINDINGS.md as living document (chronological insights, bugs found, what worked)
+4. Add work logs to issue via comments
+
+### 4. Polishing
+
+Clean code, generate publication-quality figures, write thesis section.
 
 ## Running Stages
 
@@ -33,22 +66,37 @@ uv run python -m viterbo.experiments.<label>.stage_analyze
 uv run python -m viterbo.experiments.<label>.stage_plot
 ```
 
-## Reproduction Must Be Obvious
+## SPEC.md Template
 
-Pattern should be self-evident from repo structure:
+```markdown
+# <label> Experiment
 
-```bash
-# Good
-for cfg in config/polytope-families/*.json; do
-  uv run python -m viterbo.experiments.polytope_families.stage_build "$cfg"
-done
+**Status:** Ideation / Specified / In Progress / Complete
+
+## Research Question
+What are we trying to learn?
+
+## Method
+How will we answer the question?
+
+## Success Criteria
+What outcome means "we are satisfied"?
+
+## Expected Outputs
+- data/<label>/...
+- assets/<label>/...
 ```
 
-Bad: "Run with configs A, B, and C" (which configs? where?)
+## Philosophy
+
+- **GitHub Issue tracks progress** - coordination, blockers, status updates
+- **Files contain research content** - SPEC.md, FINDINGS.md, stages, data
+- **Don't compress ideas** - preserve intellectual labor in SPEC/FINDINGS
+- **Reproduction must be obvious** - pattern self-evident from repo structure
 
 ## Code Style
 
 - **KISS**: Avoid clever tricks and premature abstractions
 - **Pure functions**: Preferred when possible
 - **Type annotations**: Use where helpful; `# type: ignore` for pyright false positives
-- **Testing**: Sanity checks, fast dev cycle, use test configs with small data
+- **Fast dev cycle**: Break interfaces and refactor freely; no external users
