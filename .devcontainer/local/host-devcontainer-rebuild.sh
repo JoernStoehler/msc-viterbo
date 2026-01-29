@@ -21,6 +21,7 @@ EOF
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CONFIG_FILE="${REPO_ROOT}/.devcontainer/local/devcontainer.json"
 
 if ! command -v devcontainer >/dev/null 2>&1; then
   echo "devcontainer CLI not found. Install with 'npm i -g @devcontainers/cli' or via VS Code Dev Containers extension." >&2
@@ -28,9 +29,9 @@ if ! command -v devcontainer >/dev/null 2>&1; then
 fi
 
 echo "Building devcontainer image for ${REPO_ROOT}..."
-devcontainer build --workspace-folder "${REPO_ROOT}" "$@"
+devcontainer build --workspace-folder "${REPO_ROOT}" --config "${CONFIG_FILE}" "$@"
 
 echo "Starting devcontainer (replacing existing container if present)..."
-devcontainer up --workspace-folder "${REPO_ROOT}" --remove-existing-container
+devcontainer up --workspace-folder "${REPO_ROOT}" --config "${CONFIG_FILE}" --remove-existing-container
 
 echo "Devcontainer rebuild complete."

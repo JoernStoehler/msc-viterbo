@@ -31,8 +31,9 @@ fi
 
 TUNNEL_NAME="msc-viterbo"
 CODE_TUNNEL_BIN="${CODE_TUNNEL_BIN:-/usr/local/bin/code-tunnel}"
+CONFIG_FILE="${REPO_ROOT}/.devcontainer/local/devcontainer.json"
 
 # Ensure the devcontainer is running so the tunnel can be launched inside it.
-devcontainer up --workspace-folder "${REPO_ROOT}" >/dev/null
+devcontainer up --workspace-folder "${REPO_ROOT}" --config "${CONFIG_FILE}" >/dev/null
 
-devcontainer exec --workspace-folder "${REPO_ROOT}" -- "${CODE_TUNNEL_BIN}" tunnel --accept-server-license-terms --name "${TUNNEL_NAME}"
+devcontainer exec --workspace-folder "${REPO_ROOT}" --config "${CONFIG_FILE}" -- "${CODE_TUNNEL_BIN}" tunnel --accept-server-license-terms --name "${TUNNEL_NAME}"
