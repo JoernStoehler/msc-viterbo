@@ -21,6 +21,11 @@ This is a closed project (no external contributors). Papers in `docs/papers/` sh
 ## Project Layout
 
 ```
+/workspaces/msc-viterbo/        Main worktree
+/workspaces/worktrees/<task>/   Task-specific worktree
+
+CLAUDE.md               This file, always relevant knowledge for agents
+.claude/skills/         Situationally useful knowledge for agents
 packages/
   latex_viterbo/        Thesis (source of truth: code implements what thesis specifies)
     chapters/           .tex files; chapters/math/ has core definitions
@@ -31,14 +36,19 @@ packages/
     tube/               Tube domain capacity computations
     ffi/                PyO3 bindings exposing Rust to Python
   python_viterbo/       Python package for experiments
-    src/viterbo/        Package source with experiments/ subdirectory
+    src/viterbo/        Quickly developed research experiments
     config/             JSON configs per experiment
     data/               Output artifacts per experiment
-    tests/              pytest tests
+    tests/              Sanity checks for experiments
 scripts/                Repo-wide dev scripts
-.devcontainer/          Environment configs (local/, codespace/, ccweb/)
-.claude/skills/         Workflow docs (develop-*, plan-*, review-*, etc.)
-docs/                   GitHub Pages site
+.devcontainer/          Environment configs
+  local/
+  codespace/
+  ccweb/
+docs/                   
+  papers/               Downloaded literature .tex/pdf files
+  notes/                Unsorted extra knowledge
+.github/                CI, templates
 ```
 
 ## Quick Commands
@@ -93,34 +103,27 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 ### Escalation
 
 Escalate to Jörn when:
-- Task is ambiguous
-- Tests pass but behavior seems wrong
-- Spec has a mistake or contradiction
-- Any out-of-scope decision needed
+- Task is ambiguous, contradictory, non-sensical or contains errors
+- Any out-of-scope actions or decisions are needed
+- You are not confident enough in some step you executed to proceed further
 
 A brief interruption beats running into a dead end.
 
-**Anti-pattern (real example):** The billiard algorithm was deleted because an agent, facing a 2× discrepancy between algorithms, added an empirical "correction factor" `f(K)` to make tests pass. The factor was essentially `if K == failing_test_case then 2 else 1`. This is reward-hacking: optimizing for "tests pass" rather than "implementation is correct." When confused, escalate — don't accumulate hacks.
-
 ### Task Management
 
-Work tracked in GitHub Issues, Milestones, and Discussions.
-
-- **Don't create issues** - note out-of-scope discoveries in PR description instead
-- Issues are created by Jörn or PM agent
-- Use `gh issue view/comment` to read and update existing issues
-- Add footer for attribution: `---\n*Agent: worktree-name*`
-- See `plan-experiments` skill for experiment workflows
+Work tracked in GitHub Issues, Milestones, and Discussions. GH CLI is available.
+Don't bother with task management unless explicitly assigned.
 
 ### Cleanup & Standards
 
-- Remove misleading content (outdated docs, stale comments, done TODOs)
-- Preserve context where needed (explain "why" in code/thesis)
+- Remove any misleading content you find (outdated docs, stale comments, done TODOs)
+- Preserve context where useful for future agents (explain the "why" in code comments, but delete legacy commentary since it is not useful)
 - Prefer standard patterns — agents know them well
+- Mark uncertainties clearly so that unverified false claims don't propagate
 
 ### Approval Markers
 
-- `[proposed]` = agent proposal awaiting Jörn's review
+- `[proposed]` = agent proposal in a sensitive document awaiting Jörn's review
 - Only Jörn removes these; ambiguous responses don't count
 
 ## Environment
@@ -132,11 +135,12 @@ See `develop-codespace` skill for troubleshooting.
 
 - Jörn only reliably reads the **final message** of each turn. Structure accordingly: put decisions, questions, and summaries at the end, not interspersed with work updates.
 - Jörn is available for questions, especially questions about ambiguous phrasings and missing context.
-- Jörn appreciates pushback when he writes something unclear, makes mistakes or suggests something suboptimal.
+- Jörn appreciates pushback when he writes something unclear, makes mistakes or suggests something suboptimal or against best practices.
 - Be direct, literal, and optimize for Jörn's time when you write a turn's final message. Structure your message to allow skimming. Use numbered lists to make referencing easier.
+- Omit superfluous politeness and focus on information transfer and object-level progress.
 - Make direct, explicit requests for permissions, clarifications, reviews, feedback and decisions when needed.
 - Use Jörn's time wisely. Don't delegate work to him that you can do yourself.
 - Leave long-term thesis project management to Jörn, you can help but he has more experience with long-running academic projects.
 - Be precise and concrete, not vague or metaphorical. Don't use pseudo-profound phrases that obscure meaning.
-- After making a mistake: pause, think carefully, then state concretely what was done wrong. Don't rush to respond with unclear apologies.
+- After making a mistake: pause, think carefully, and only then state concretely what was done wrong. Don't rush to respond with unclear apologies or preliminary diagnoses.
 - When explaining conventions or structures: describe the actual purpose and mechanics, not just formatting rules.
