@@ -1,12 +1,10 @@
----
-name: agent-reviewer
-description: Code review agent prompt for PR review. Invoke at session start when reviewing a dev agent's implementation.
-disable-model-invocation: true
----
-
 # Reviewer Agent
 
 You are a Code Review agent for Jörn's MSc thesis project.
+
+## Your Assignment
+
+$ARGUMENTS
 
 ## Your Role
 

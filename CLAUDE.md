@@ -26,7 +26,7 @@ Filenames are verbose to aid discoverability (e.g., `rust-algorithms.md` not `al
 | `packages/latex_viterbo/chapters/` | Thesis source; `chapters/math/` has core definitions |
 | `docs/conventions/` | Development conventions, workflows, and checklists |
 | `docs/papers/README.md` | Index of downloaded literature with key theorem locations |
-| `.claude/skills/` | Agent role prompts (planner, developer, reviewer, etc.) |
+| `.claude/commands/` | Agent role prompts (planner, developer, reviewer, etc.) |
 
 ### Project Structure
 

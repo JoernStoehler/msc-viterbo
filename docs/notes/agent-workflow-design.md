@@ -17,7 +17,7 @@ Terms used throughout this document:
 - **Bypass mode**: Agent can edit files and take actions. Used for implementation.
 - **Task() subagents**: Claude Code feature to spawn focused sub-agents that complete a specific task and return results to the parent agent. Useful for boxing off work that would otherwise expand focus cost.
 - **Spawning an agent**: Starting a new Claude Code session (via IDE extension or CLI) with a specific prompt. Only Jörn spawns full sessions; agents cannot spawn other sessions, only Task() subagents.
-- **Skills**: Markdown files in `.claude/skills/` with YAML frontmatter. Claude Code loads skill bodies when the description matches the current task.
+- **Commands**: Markdown files in `.claude/commands/` with `$ARGUMENTS` placeholder. Invoked via `/command-name <args>`. Args substitute into the prompt.
 - **Context compaction**: When Claude Code transitions from plan mode to bypass mode (or runs low on context), it summarizes prior conversation. This clears some focus-consuming discussion from context.
 
 ---
@@ -64,7 +64,7 @@ Agents appear to have a limited "focus budget" X that measures how diverse their
 
 ## Agent Pipeline
 
-Five agent types with distinct roles. Agent prompts are skills in `.claude/skills/agent-*` (invoke with `/agent-developer`, `/agent-planner`, etc.).
+Five agent types with distinct roles. Agent prompts are commands in `.claude/commands/agent-*.md` (invoke with `/agent-developer <args>`, `/agent-planner <args>`, etc.).
 
 | Agent | Purpose | Mode | Key Actions |
 |-------|---------|------|-------------|
@@ -126,28 +126,24 @@ Five agent types with distinct roles. Agent prompts are skills in `.claude/skill
 | Content | Location | Audience | Notes |
 |---------|----------|----------|-------|
 | Project context | CLAUDE.md | All agents | Minimal: topic, deadline, priority, layout |
-| Agent protocol | CLAUDE.md | All agents | Simplified: work in directory, read skills, do work, commit, escalate |
+| Agent protocol | CLAUDE.md | All agents | Simplified: work in directory, do work, commit, escalate |
 | Quick commands | CLAUDE.md | All agents | Essential 6-8 commands |
-| Domain skills | .claude/skills/ | Agents (pulled) | Loaded when skill description matches task |
-| PM knowledge | `.claude/skills/agent-project-manager/SKILL.md` | PM only | Worktree management, issue triage, prompt writing |
+| Agent prompts | `.claude/commands/agent-*.md` | Agents (via invocation) | Loaded when Jörn invokes `/agent-*` with args |
+| PM knowledge | `.claude/commands/agent-project-manager.md` | PM only | Worktree management, issue triage, prompt writing |
 | Jörn workflows | `docs/project-owner/` (to be created if needed) | Jörn only | Filename signals agents shouldn't read |
 
-### Skills Are Pulled, Not Pushed
+### Commands Load Agent Prompts
 
-- Agent sees task → skill description matches → agent reads skill body
-- This is already just-in-time context loading
-- *Observation:* Problem is skill length, not skill existence
-- *Observation:* Can't cut explanations without making commands cryptic
-- *Observed failure modes without skills:* Agents know too much (focus loss) or too little (violate conventions)
+Agent prompts live in `.claude/commands/agent-*.md`. Each contains:
+- Role description
+- `$ARGUMENTS` placeholder for task-specific context
+- Guidelines and escalation rules
 
-**Known limitation:** Agents working in worktrees see CLAUDE.md and skills from main branch, not their worktree. Mitigating factors: edits to skills/CLAUDE.md are rare, info is loaded at session start (not affected by later main branch changes), branches usually stay close to main.
+Jörn invokes with `/agent-developer <args>` and `$ARGUMENTS` is substituted.
 
-### Commands Are User-Invoked Shortcuts
+**Why commands, not skills:** Skills auto-load based on description matching, but this fails for multi-line invocations. Commands with `$ARGUMENTS` reliably load the full prompt with task context in one message.
 
-- Commands do something when Jörn types `/command`
-- Commands are NOT instructions for agents to follow
-- Wrong pattern: `/create-worktree` that tells agent what to do
-- Right pattern: PM agent has procedural knowledge in its prompt
+**Known limitation:** Agents working in worktrees see CLAUDE.md and commands from main branch, not their worktree. Mitigating factors: edits are rare, info is loaded at session start, branches usually stay close to main.
 
 ---
 
@@ -220,6 +216,5 @@ A brief interruption to answer a question beats agent running into a dead end.
 | Keep separate Dockerfiles | Maintenance is easier without cross-environment thinking |
 | Delete `/create-worktree` command | Wrong pattern; PM agent has procedural knowledge |
 | Simplify CLAUDE.md protocol | Remove worktree/cleanup instructions, add escalation |
-| Create 5 agent prompts as skills | Explicit, controllable; invoke with `/agent-*` |
+| Agent prompts as commands | `.claude/commands/agent-*.md` with `$ARGUMENTS`; skills auto-loading broken for multi-line |
 | YAGNI on workflow docs | Write them once workflows are established |
-| Skills stay | Progressive disclosure works; cutting them causes problems |

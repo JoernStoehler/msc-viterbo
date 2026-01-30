@@ -3,7 +3,7 @@
 This directory contains LaTeX source files for key papers referenced in the thesis.
 **Read the .tex files directly** - they are plain text and much more reliable than PDF parsing.
 
-For the full workflow on adding new papers, see `.claude/skills/paper-reading/SKILL.md`.
+For the full workflow on adding new papers, see `docs/conventions/arxiv-papers.md`.
 
 ## Available Papers
 
@@ -61,4 +61,4 @@ TeX uses labels (`\label{thm:main}`), PDFs show numbers ("Theorem 3.2"). To find
 ```bash
 grep -B2 -A10 "\\label{thm:main}" docs/papers/FOLDER/*.tex
 ```
-See the paper-reading skill for detailed guidance on navigating this.
+See `docs/conventions/arxiv-papers.md` for detailed guidance on navigating this.
