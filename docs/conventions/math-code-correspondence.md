@@ -1,6 +1,14 @@
-# Math-Code Correspondence Review
+# Math-Code Correspondence
 
-Checklist for verifying code implements thesis formulas correctly.
+How mathematical proofs relate to Rust code, and how to verify correspondence.
+
+## Why This Matters
+
+Math proofs use dependent types (values in types); Rust doesn't. Tests and asserts bridge this gap—they encode properties the type system can't express, making the code a valid implementation of the math.
+
+## Review Checklist
+
+Verifying code implements thesis formulas correctly:
 
 ## Checklist
 
