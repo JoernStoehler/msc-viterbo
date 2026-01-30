@@ -1,0 +1,11 @@
+{
+  "output_dir": "data/runtime-performance-analysis",
+  "assets_dir": "../latex_viterbo/assets/runtime-performance-analysis",
+  "seed": 42,
+  "repetitions": 5,
+  "random_polytopes_per_facet": 5,
+  "hk2017_facet_counts": [5, 8, 9, 10],
+  "tube_facet_counts": [8, 10, 12, 14, 16],
+  "min_omega": 0.01,
+  "max_random_attempts": 500
+}
