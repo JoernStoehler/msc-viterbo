@@ -96,4 +96,4 @@ What outcome means "we are satisfied"?
 
 ## Code Style
 
-KISS, pure functions, fast dev cycle (no external users).
+KISS, pure functions (closeness to math), fast dev cycle (no external users).
