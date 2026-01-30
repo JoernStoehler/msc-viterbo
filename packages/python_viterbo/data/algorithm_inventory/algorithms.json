@@ -1,0 +1,37 @@
+{
+  "algorithms": [
+    {
+      "name": "HK2017",
+      "variant": "naive",
+      "applicability": "Any polytope",
+      "complexity": "O(F!)",
+      "implementation": "hk2017/enumerate/naive.rs",
+      "status": "Implemented"
+    },
+    {
+      "name": "HK2017",
+      "variant": "graph-pruned",
+      "applicability": "Sparse facet graphs",
+      "complexity": "O(cycles)",
+      "implementation": "hk2017/enumerate/graph.rs",
+      "status": "Implemented"
+    },
+    {
+      "name": "Tube",
+      "variant": null,
+      "applicability": "No Lagrangian 2-faces",
+      "complexity": "Branch-and-bound",
+      "implementation": "tube/algorithm.rs",
+      "status": "Implemented"
+    },
+    {
+      "name": "Billiard",
+      "variant": null,
+      "applicability": "Lagrangian products",
+      "complexity": "TBD",
+      "implementation": "\u2014",
+      "status": "Absent (blocked)"
+    }
+  ],
+  "generated_at": "2026-01-30T19:05:31.874148+00:00"
+}
