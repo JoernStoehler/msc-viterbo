@@ -29,11 +29,43 @@ Write tests that verify mathematical propositions, not just "does it run without
 
 ## Testing Levels
 
-1. **Debug assertions** (`debug_assert!`): Semi-expensive internal invariants
+1. **Debug assertions** (`debug_assert!`): Semi-expensive internal invariants, every call in debug mode
+   ```rust
+   debug_assert!((n.norm() - 1.0).abs() < 1e-10, "Normal must be unit");
+   ```
+
 2. **Runtime assertions** (`assert!`): Always-checked conditions
-3. **Unit tests** (`#[test]`): Expensive functions, run once per suite
+   ```rust
+   assert_eq!(normals.len(), heights.len(), "Must have same count");
+   ```
+
+3. **Unit tests** (`#[test]`): Expensive functions, once per suite
+   ```rust
+   #[test]
+   fn test_symplectic_form_antisymmetric() { ... }
+   ```
+
 4. **Property tests** (proptest): Random inputs, multiple iterations
+   ```rust
+   proptest! {
+       #[test]
+       fn prop_symplectic_antisymmetric(x in uniform_vector4(), y in uniform_vector4()) {
+           let omega_xy = symplectic_form(&x, &y);
+           let omega_yx = symplectic_form(&y, &x);
+           prop_assert!((omega_xy + omega_yx).abs() < 1e-10);
+       }
+   }
+   ```
+
 5. **Integration tests** (`tests/`): Full algorithm on realistic inputs
+   ```rust
+   #[test]
+   fn test_cross_polytope_capacity() {
+       let hrep = fixtures::unit_cross_polytope();
+       let result = compute_capacity(&hrep).expect("should compute");
+       assert_relative_eq!(result.capacity, 1.0, epsilon = 0.01);
+   }
+   ```
 
 ## Numerical Tolerances
 
@@ -49,9 +81,22 @@ Tolerance values are informed guesses. Document reasoning in comments.
 
 ## Fixtures
 
-- Named constants: `unit_cross_polytope()`, `unit_24_cell()`
-- Parameterized families: `scaled_cross_polytope(lambda)`
-- Random generators: Must be seeded, document distribution and rejection rates
+- **Named constants**: `unit_cross_polytope()`, `unit_24_cell()`
+- **Parameterized families**: `scaled_cross_polytope(lambda)`
+- **Random generators**: Must be seeded, document distribution and rejection rates
+
+Random generator docstring example:
+```rust
+/// Generate random H-rep. Returns None on rejection.
+/// Rejection reasons: not bounded, redundant halfspaces, lagrangian 2-faces.
+///
+/// # Success rates (empirical, 10k seeds)
+/// - n=6: ~31%
+/// - n=8: ~32%
+/// - n=10: ~12%
+pub fn random_hrep(n_facets: usize, min_omega: f64, max_coord: f64, seed: u64)
+    -> Option<PolytopeHRep>
+```
 
 ---
 
