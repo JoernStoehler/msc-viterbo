@@ -36,7 +36,7 @@ cd /workspaces/worktrees/<task> && scripts/ci.sh
 ```
 This runs formatting checks, lints, and tests. Fix any failures before creating PR.
 
-After pushing, wait for GitHub CI to pass. If it fails, fix and push again.
+After pushing, wait for GitHub CI to pass. Do not declare "PR ready" until CI is green. If CI fails, fix and push again.
 
 ### PR Description
 Include:

@@ -59,7 +59,7 @@ If you pushed any commits, run full local CI:
 ```bash
 cd /workspaces/worktrees/<task> && scripts/ci.sh
 ```
-Wait for GitHub CI to pass before approving.
+Wait for GitHub CI to pass before approving. Do not declare "approved" until CI is green.
 
 ### What to Request Changes For
 - Logic errors
