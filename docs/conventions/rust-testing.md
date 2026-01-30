@@ -4,9 +4,9 @@ Testing philosophy for `packages/rust_viterbo/`.
 
 ## Why We Test
 
-Tests are evidence for thesis correctness claims. The thesis says "this code computes capacity correctly"—tests substantiate that claim by verifying mathematical properties hold.
+Tests and asserts bridge the gap between Rust's type system and mathematical proofs. Math uses dependent types (values in types); Rust doesn't. Tests/asserts encode what the type system can't express, substantiating thesis correctness claims.
 
-We're not using tests for API design (TDD) or regression prevention (research code, not production).
+Not for API design (TDD) or regression prevention (research code, not production).
 
 ## Philosophy: Tests as Propositions
 
