@@ -220,6 +220,23 @@ This validates the Mahler bound on available fixtures without requiring new geom
 - `viterbo_ffi` Python package (FFI bindings to Rust)
 - Rust workspace builds successfully (`scripts/test.sh` passes)
 
+## Files to Create/Modify
+
+### New Files
+- `src/viterbo/experiments/algorithm_inventory/stage_build.py` — generates JSON data
+- `src/viterbo/experiments/algorithm_inventory/stage_tabulate.py` — generates LaTeX tables
+- `src/viterbo/experiments/algorithm_inventory/FINDINGS.md` — documents results and escalation
+- `data/algorithm_inventory/*.json` — 4 data files (see Expected Outputs)
+- `packages/latex_viterbo/assets/algorithm_inventory/*.tex` — 4 table files
+
+### Existing Files (no modification expected)
+- `ffi/src/lib.rs` — FFI bindings already expose needed fields
+- `tube/src/fixtures.rs` — fixture definitions (read-only reference)
+
+## Open Questions
+
+None. All feasibility questions resolved during investigation.
+
 ## Out of Scope
 
 - Billiard algorithm (not implemented)
