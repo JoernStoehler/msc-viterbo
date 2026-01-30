@@ -89,6 +89,10 @@ prep_rust() {
   run cargo build --manifest-path packages/rust_viterbo/Cargo.toml
 }
 
+prep_ffi() {
+  run_in_dir packages/python_viterbo uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
+}
+
 prep_latex() {
   : # nothing to hydrate; use packages/latex_viterbo/scripts as needed
 }
@@ -205,6 +209,7 @@ main() {
   if $hydrate; then
     prep_python
     prep_rust
+    prep_ffi
   else
     log "skipping dependency hydration (--no-hydrate)"
   fi

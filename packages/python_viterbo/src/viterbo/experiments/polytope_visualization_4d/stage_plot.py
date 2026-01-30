@@ -458,9 +458,8 @@ def regular_simplex_hrep() -> tuple[list[list[float]], list[float]]:
 
 def main() -> None:
     """Generate visualizations for multiple polytopes."""
-    output_dir = (
-        Path(__file__).parent.parent.parent.parent.parent / "data" / "polytope-visualization-4d"
-    )
+    from viterbo.paths import get_data_dir
+    output_dir = get_data_dir("polytope-visualization-4d")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     polytopes = [

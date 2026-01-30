@@ -22,8 +22,8 @@ The SPEC.md is in the experiment directory or linked from the issue:
 # For experiments:
 cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
 
-# Or find via issue:
-gh issue view <number>
+# Or find via issue (use --json to avoid GraphQL errors):
+gh issue view <number> --json title,body,labels --jq '.title, .body'
 ```
 
 ### 2. Implement
@@ -73,6 +73,7 @@ Stop and ask Jörn when:
 - Spec has a mistake or contradiction
 - Tests fail and you can't diagnose why
 - Decision needed that spec doesn't cover
+- Required context unavailable (issue, spec won't load)
 - You're blocked
 
 A brief interruption beats a dead end.

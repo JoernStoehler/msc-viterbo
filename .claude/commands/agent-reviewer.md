@@ -18,8 +18,8 @@ cd /workspaces/worktrees/<task>
 ### 1. Understand the task
 
 ```bash
-# Read the issue
-gh issue view <number>
+# Read the issue (use --json to avoid GraphQL errors)
+gh issue view <number> --json title,body,labels --jq '.title, .body'
 
 # Read the spec
 cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
@@ -81,3 +81,4 @@ Report your verdict to Jörn.
 | Typo, formatting, obvious one-liner | Fix yourself |
 | Logic error, missing test, spec violation | Request changes |
 | Architectural concern, scope question, unsure | Escalate to Jörn |
+| Required context unavailable (issue, spec, PR won't load) | Escalate to Jörn |

@@ -21,11 +21,13 @@ from pathlib import Path
 
 import rust_viterbo_ffi as ffi
 
+from viterbo.paths import get_data_dir
+
 # =============================================================================
 # Data output directory
 # =============================================================================
 
-DATA_DIR = Path(__file__).parent.parent.parent.parent.parent / "data" / "algorithm_inventory"
+DATA_DIR = get_data_dir("algorithm_inventory")
 
 # Maximum facets for naive HK2017 (F! complexity). 8! = 40320 is tractable.
 # 16! ≈ 2×10¹³ and 24! ≈ 6×10²³ would cause OOM.

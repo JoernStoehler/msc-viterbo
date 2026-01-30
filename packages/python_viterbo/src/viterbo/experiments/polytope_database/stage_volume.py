@@ -42,7 +42,8 @@ def add_volumes(polytopes: list[dict]) -> list[dict]:
 
 def main() -> None:
     """Add volumes to polytopes and save to JSON."""
-    data_dir = Path(__file__).parents[4] / "data" / "polytope-database"
+    from viterbo.paths import get_data_dir
+    data_dir = get_data_dir("polytope-database")
     in_path = data_dir / "polytopes.json"
     out_path = data_dir / "polytopes_with_volume.json"
 

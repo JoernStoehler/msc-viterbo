@@ -17,7 +17,8 @@ cd /workspaces/worktrees/<task>
 ### 1. Read the spec and issue
 
 ```bash
-gh issue view <number>
+# Use --json to avoid GraphQL errors
+gh issue view <number> --json title,body,labels --jq '.title, .body'
 cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
 ```
 

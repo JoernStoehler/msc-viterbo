@@ -233,5 +233,6 @@ def main(output_dir: Path) -> None:
 
 if __name__ == "__main__":
     import sys
-    output_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent.parent.parent.parent.parent / "data" / "algorithm-comparison"
+    from viterbo.paths import get_data_dir
+    output_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else get_data_dir("algorithm-comparison")
     main(output_dir)

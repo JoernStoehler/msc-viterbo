@@ -401,13 +401,8 @@ def load_hko_polytope() -> tuple[list[list[float]], list[float], list[list[float
     Returns:
         Tuple of (normals, heights, orbit_breakpoints)
     """
-    # Path: polytope_visualization_4d/ -> experiments/ -> viterbo/ -> src/ -> python_viterbo/
-    data_path = (
-        Path(__file__).parent.parent.parent.parent.parent
-        / "data"
-        / "counterexample-hko"
-        / "hko2024.json"
-    )
+    from viterbo.paths import get_data_dir
+    data_path = get_data_dir("counterexample-hko") / "hko2024.json"
 
     with open(data_path) as f:
         data = json.load(f)
@@ -455,10 +450,8 @@ def main() -> None:
     print(f"Orbit closed: {orbit_closed}")
 
     # Save geometry to output
-    # Path: experiments/polytope_visualization_4d/ -> experiments/ -> viterbo/ -> src/ -> python_viterbo/
-    output_dir = (
-        Path(__file__).parent.parent.parent.parent.parent / "data" / "polytope-visualization-4d"
-    )
+    from viterbo.paths import get_data_dir
+    output_dir = get_data_dir("polytope-visualization-4d")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     output_path = output_dir / "hko-geometry.json"

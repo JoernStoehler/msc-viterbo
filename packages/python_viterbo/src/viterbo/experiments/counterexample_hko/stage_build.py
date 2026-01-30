@@ -392,8 +392,9 @@ def main() -> None:
     """Build and save the HK&O counterexample data."""
     data = build_output()
 
+    from viterbo.paths import get_data_dir
     # Ensure output directory exists
-    out_dir = Path(__file__).parents[4] / "data" / "counterexample-hko"
+    out_dir = get_data_dir("counterexample-hko")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     out_path = out_dir / "hko2024.json"

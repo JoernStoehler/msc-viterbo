@@ -13,12 +13,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from viterbo.paths import get_assets_dir, get_data_dir
+
 # =============================================================================
 # Paths
 # =============================================================================
 
-DATA_DIR = Path(__file__).parent.parent.parent.parent.parent / "data" / "algorithm_inventory"
-ASSETS_DIR = Path(__file__).parent.parent.parent.parent.parent.parent / "latex_viterbo" / "assets" / "algorithm_inventory"
+DATA_DIR = get_data_dir("algorithm_inventory")
+ASSETS_DIR = get_assets_dir("algorithm_inventory")
 
 
 def escape_latex(s: str) -> str:

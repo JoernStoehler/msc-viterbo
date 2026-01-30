@@ -17,8 +17,8 @@ cd /workspaces/worktrees/<task>
 ### 1. Understand the task
 
 ```bash
-# Read the issue
-gh issue view <number>
+# Read the issue (use --json to avoid GraphQL errors)
+gh issue view <number> --json title,body,labels --jq '.title, .body'
 ```
 
 What problem needs solving? What's the expected outcome?
@@ -100,6 +100,7 @@ Ask Jörn when:
 - Requirements are ambiguous
 - Multiple valid approaches exist (let Jörn choose)
 - You discover blockers or contradictions
+- Required context unavailable (issue won't load)
 
 ## Quality Criteria
 

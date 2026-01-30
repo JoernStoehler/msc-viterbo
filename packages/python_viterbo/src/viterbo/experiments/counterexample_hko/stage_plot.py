@@ -219,19 +219,17 @@ def plot_orbit_projections(data: dict, out_path: Path) -> None:
 
 def main(data_path: str | None = None, assets_dir: str | None = None) -> None:
     """Load data and create orbit projection plot."""
-    pkg_root = Path(__file__).parents[4]
+    from viterbo.paths import get_assets_dir, get_data_dir
 
     resolved_data_path: Path
     if data_path is None:
-        resolved_data_path = pkg_root / "data" / "counterexample-hko" / "hko2024.json"
+        resolved_data_path = get_data_dir("counterexample-hko") / "hko2024.json"
     else:
         resolved_data_path = Path(data_path)
 
     resolved_assets_dir: Path
     if assets_dir is None:
-        resolved_assets_dir = (
-            pkg_root.parent / "latex_viterbo" / "assets" / "counterexample-hko"
-        )
+        resolved_assets_dir = get_assets_dir("counterexample-hko")
     else:
         resolved_assets_dir = Path(assets_dir)
 

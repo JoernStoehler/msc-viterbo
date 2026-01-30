@@ -66,6 +66,12 @@ scripts/ci.sh --python              # Python + FFI only
 
 # Exploration
 scripts/repo-map.py                 # Detailed file tree
+
+# GitHub CLI (note: plain `gh issue view` is broken due to GraphQL deprecation)
+gh issue view <N> --json title,body,labels --jq '.title, .body'  # Read issue
+gh pr view <N>                      # Read PR
+gh pr diff <N>                      # PR diff
+gh pr checks <N> --watch            # Wait for CI
 ```
 
 ## Agent Protocol
@@ -94,6 +100,7 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 Escalate to Jörn when:
 - Task is ambiguous, contradictory, non-sensical or contains errors
 - Any out-of-scope actions or decisions are needed
+- Required context is unavailable (issue, spec, PR won't load)
 - You are not confident enough in some step you executed to proceed further
 
 A brief interruption beats running into a dead end.

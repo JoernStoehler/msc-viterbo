@@ -29,7 +29,7 @@
   // Memory limit: 10GB RAM + 2GB swap max. Protects host from runaway processes.
   // Container survives OOM; only the offending process is killed.
   // --memory-swap is total (RAM+swap), so 12g-10g = 2GB swap allowed.
-  "runArgs": ["--memory=10g", "--memory-swap=12g"],
+  "runArgs": ["--memory=10g", "--memory-swap=12g", "--cap-add=SYS_ADMIN"],
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
   // Removed: CARGO_TARGET_DIR shared between worktrees. See git history to restore.
   "containerEnv": {
