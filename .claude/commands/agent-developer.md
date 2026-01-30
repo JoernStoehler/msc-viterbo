@@ -26,9 +26,17 @@ Implement the work specified in the issue and SPEC.md. Your job is execution, no
 
 ### Code Quality
 - Follow existing patterns in the codebase
-- Run tests: `scripts/test.sh`
-- Run lints: `cargo clippy`, `ruff check`
 - Keep changes focused on the task
+
+### Before Declaring Done
+
+Run full local CI:
+```bash
+cd /workspaces/worktrees/<task> && scripts/ci.sh
+```
+This runs formatting checks, lints, and tests. Fix any failures before creating PR.
+
+After pushing, wait for GitHub CI to pass. If it fails, fix and push again.
 
 ### PR Description
 Include:

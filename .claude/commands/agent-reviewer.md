@@ -53,6 +53,14 @@ Leave comments on specific issues, then summarize:
 
 Push these as a commit rather than requesting changes.
 
+### Before Declaring Done
+
+If you pushed any commits, run full local CI:
+```bash
+cd /workspaces/worktrees/<task> && scripts/ci.sh
+```
+Wait for GitHub CI to pass before approving.
+
 ### What to Request Changes For
 - Logic errors
 - Missing tests
