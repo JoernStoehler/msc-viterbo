@@ -93,15 +93,8 @@ def lagrangian_product_to_hrep(
 
 def run_algorithms(record: PolytopeRecord) -> None:
     """Run billiard and HK2017 on a Lagrangian product, updating record in place."""
-    # Billiard
-    try:
-        start = time.perf_counter()
-        r = ffi.billiard_capacity_polygons(record.vertices_q, record.vertices_p)
-        record.billiard_walltime_ms = (time.perf_counter() - start) * 1000
-        record.billiard_capacity = r.capacity
-        record.billiard_num_bounces = r.num_bounces
-    except Exception as e:
-        record.billiard_error = str(e)
+    # Billiard - not yet implemented in FFI (billiard crate is draft status)
+    record.billiard_error = "Not yet implemented"
 
     # HK2017
     try:
