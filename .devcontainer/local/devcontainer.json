@@ -26,11 +26,15 @@
   "workspaceFolder": "/workspaces/msc-viterbo",
   "updateRemoteUserUID": true,
   "features": {},
+  // Memory limit: 12GB hard cap, no swap. Protects host from runaway processes.
+  // Container survives OOM; only the offending process is killed.
+  "runArgs": ["--memory=12g", "--memory-swap=12g"],
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
   // Removed: CARGO_TARGET_DIR shared between worktrees. See git history to restore.
   "containerEnv": {
     "DEVCONTAINER_ENV": "local",
-    "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history"
+    "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
+    "CARGO_BUILD_JOBS": "4"
   },
   // Bind mounts: Jörn's specific host paths for cache persistence.
   "mounts": [
