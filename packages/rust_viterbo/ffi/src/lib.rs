@@ -255,6 +255,39 @@ fn convert_tube_error(e: TubeError) -> PyErr {
     PyValueError::new_err(format!("Tube error: {}", e))
 }
 
+/// Generate a random polytope in H-representation suitable for the tube algorithm.
+///
+/// Uses Gaussian normalization for uniform random normals on S³, then validates
+/// that the resulting polytope is bounded and has no near-Lagrangian 2-faces.
+///
+/// # Arguments
+/// * `n_facets` - Number of facets (minimum 5)
+/// * `min_omega` - Minimum |ω(n_i, n_j)| for actual 2-faces (e.g., 0.01)
+/// * `seed` - Random seed for reproducibility
+///
+/// # Returns
+/// A tuple (normals, heights) if successful, or None if the generated H-rep
+/// fails validation (unbounded, degenerate, or has near-Lagrangian 2-faces).
+///
+/// # Example
+/// ```python
+/// result = ffi.random_hrep(8, 0.01, 42)
+/// if result is not None:
+///     normals, heights = result
+///     tube_result = ffi.tube_capacity_hrep(normals, heights)
+/// ```
+#[pyfunction]
+fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<(Vec<[f64; 4]>, Vec<f64>)> {
+    tube::fixtures::random_hrep(n_facets, min_omega, seed).map(|hrep| {
+        let normals: Vec<[f64; 4]> = hrep
+            .normals
+            .iter()
+            .map(|n| [n[0], n[1], n[2], n[3]])
+            .collect();
+        (normals, hrep.heights)
+    })
+}
+
 // =============================================================================
 // Volume and Systolic Ratio
 // =============================================================================
@@ -360,6 +393,9 @@ fn rust_viterbo_ffi(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Utilities
     m.add_function(wrap_pyfunction!(symplectic_form_4d, m)?)?;
+
+    // Random polytope generation
+    m.add_function(wrap_pyfunction!(random_hrep, m)?)?;
 
     Ok(())
 }

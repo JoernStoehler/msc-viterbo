@@ -15,3 +15,7 @@ thiserror = "2.0"
 approx = "0.5"
 proptest = "1.4"
 hk2017 = { path = "../hk2017" }
+
+[[bin]]
+name = "profile_workload"
+path = "src/bin/profile_workload.rs"
