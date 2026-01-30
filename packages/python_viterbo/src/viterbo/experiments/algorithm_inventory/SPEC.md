@@ -70,18 +70,34 @@ Output: `data/algorithm_inventory/capacity_matrix.json`
 
 Test mathematical properties on each fixture:
 
-| ID | Proposition | Implementation |
-|----|-------------|----------------|
-| P1 | Scaling: c(λK) = λ²c(K) | Compute c(2K), verify c(2K) = 4·c(K) |
-| P2 | Mahler bound: c(K)·c(K°) ≤ 4 | Compute both, check product (K° requires dual computation) |
-| P3 | Constraint satisfaction | Verify HK2017 output: β≥0, Σβᵢhᵢ=1, Σβᵢnᵢ=0 |
-| P4 | Algorithm agreement | HK2017 = Tube on common domain (within 1% tolerance) |
-| P5 | Orbit closure | Verify Tube output: ||p_first - p_last|| < ε |
+| ID | Proposition | Implementation | FFI Support |
+|----|-------------|----------------|-------------|
+| P1 | Scaling: c(λK) = λ²c(K) | Compute c(2K), verify c(2K) = 4·c(K) | ✓ capacity exposed |
+| P2 | Mahler bound: c(K)·c(K°) ≤ 4 | Test on known dual pairs only | ✓ (limited) |
+| P3 | Constraint satisfaction | Verify HK2017 output: β≥0, Σβᵢhᵢ=1, Σβᵢnᵢ=0 | ✓ optimal_beta exposed |
+| P4 | Algorithm agreement | HK2017 = Tube on common domain (within 1% tolerance) | ✓ capacity exposed |
+| P5 | Orbit closure | Verify Tube output: ||p_first - p_last|| < ε | ✗ breakpoints not exposed |
+
+**P2 Implementation (Known Dual Pairs):**
+General polar computation requires 4D convex hull (V-rep → H-rep), which is not implemented.
+Instead, test P2 on known dual pairs:
+- tesseract ↔ cross-polytope: c(tess)=4.0 (hardcoded), c(cross) computed → product = 4
+- 24-cell is self-dual: c(24)·c(24) ≤ 4
+
+**P5 Implementation (Orbit Closure):**
+`TubeResult` in FFI exposes only `.capacity`, `.tubes_explored`, `.tubes_pruned`.
+Orbit breakpoints are not exposed. Options:
+1. Extend FFI to expose `optimal_orbit.breakpoints` (requires Rust change)
+2. Run `cargo test tube::tests::orbit_invariants --nocapture` and check pass/fail
+3. Skip P5 for now, note as "covered by Rust unit tests"
+
+**Recommendation:** Use option (3) — note P5 as covered by existing Rust tests in `orbit_invariants.rs`.
+The experiment documents that the validation exists; reimplementing it in Python adds no value.
 
 For each (fixture, proposition) pair:
-- Record: PASS/FAIL/SKIP/ERROR
+- Record: PASS/FAIL/SKIP/N/A
 - Record: numerical deviation (where applicable)
-- Record: notes (skip reason, error message)
+- Record: notes (skip reason, test reference)
 
 Output: `data/algorithm_inventory/validation_results.json`
 
@@ -112,15 +128,35 @@ When Rust code changes, update the hardcoded list in `stage_build.py`.
 
 **Rationale:** Capacity computation is expensive and already implemented in Rust. Validation logic (checking ratios, products, tolerances) is simple and natural in Python.
 
-- Use FFI (`viterbo_ffi`) to call `hk2017_capacity()` and `tube_capacity()`
-- Implement proposition checks in Python
-- P3 and P5 require access to algorithm output details (β coefficients, orbit breakpoints), which may require FFI extensions if not already exposed
+**Current FFI bindings** (from `ffi/src/lib.rs`):
 
-**FFI requirements:**
-- `hk2017_capacity(normals, heights, strategy) -> Result with .capacity, .betas, .sigma`
-- `tube_capacity(normals, heights) -> Result with .capacity, .breakpoints`
+```python
+# HK2017
+result = rust_viterbo_ffi.hk2017_capacity_hrep(normals, heights, use_graph_pruning=False)
+result.capacity            # float
+result.q_max               # float
+result.optimal_permutation # list[int] - facet indices in optimal order
+result.optimal_beta        # list[float] - β values at optimum ✓ (for P3)
+result.permutations_evaluated
+result.permutations_rejected
 
-If FFI doesn't expose needed fields, fall back to subprocess `cargo test` with `--nocapture` parsing.
+# Tube
+result = rust_viterbo_ffi.tube_capacity_hrep(normals, heights)
+result.capacity       # float
+result.tubes_explored # int
+result.tubes_pruned   # int
+# NOTE: breakpoints NOT exposed (P5 cannot be validated via FFI)
+
+# Utilities
+rust_viterbo_ffi.volume_hrep(normals, heights)  # float
+rust_viterbo_ffi.systolic_ratio(capacity, volume)  # float
+```
+
+**Proposition feasibility:**
+- P1, P4: ✓ Use `.capacity` from both algorithms
+- P2: ✓ Use known dual pairs (tesseract/cross, self-dual 24-cell)
+- P3: ✓ Use `.optimal_beta` and `.optimal_permutation` from HK2017
+- P5: ✗ Breakpoints not exposed; defer to Rust unit tests
 
 ### Output Format
 
@@ -144,9 +180,16 @@ All data outputs are JSON (human-readable, easy to parse):
 
 ### Dual Polytope (P2)
 
-Computing K° requires vertex enumeration and polar transformation. The `tube::preprocess` module already computes vertices; we may need to add a `compute_polar()` function or skip P2 if it requires significant new code.
+**Investigation result:** General polar computation requires 4D convex hull (converting V-rep of K° to H-rep). The codebase has:
+- `tube::preprocess::enumerate_vertices_4d()` — computes vertices from H-rep
+- Formula K° = conv{n_i/h_i} gives V-rep of polar from H-rep
+- But no H-rep from V-rep conversion (4D convex hull not implemented)
 
-**Decision:** Mark P2 as "deferred" if polar computation is not readily available. The experiment can be extended later.
+**Decision:** Test P2 only on known dual pairs where both capacities are available:
+1. **tesseract ↔ cross-polytope**: c(tess)=4.0 (via HK2017), c(cross)≈1.0 (via Tube) → product ≈ 4
+2. **24-cell (self-dual)**: c(24)² ≤ 4
+
+This validates the Mahler bound on available fixtures without requiring new geometry code.
 
 ## Success Criteria
 
