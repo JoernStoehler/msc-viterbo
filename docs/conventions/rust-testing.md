@@ -4,7 +4,7 @@ Testing philosophy for `packages/rust_viterbo/`.
 
 ## Why We Test
 
-Tests and asserts bridge the gap between Rust's type system and mathematical proofs. Math uses dependent types (values in types); Rust doesn't. Tests/asserts encode what the type system can't express, substantiating thesis correctness claims.
+Tests substantiate thesis correctness claims. See `docs/conventions/math-code-correspondence.md` for how tests bridge Rust's type system and mathematical proofs.
 
 Not for API design (TDD) or regression prevention (research code, not production).
 
