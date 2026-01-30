@@ -23,6 +23,8 @@ This is a closed project (no external contributors). Papers in `docs/papers/` sh
 A compressed file index is printed at session startup (via `.claude/hooks/session-start.sh`).
 Use it to orient yourself. For detailed exploration, run `scripts/repo-map.py`.
 
+Filenames are verbose to aid discoverability (e.g., `rust-algorithms.md` not `algorithms.md`).
+
 ### Key Locations
 
 | Path | Purpose |
