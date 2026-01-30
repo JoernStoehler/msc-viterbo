@@ -53,9 +53,38 @@ Investigate the codebase and produce a clear SPEC.md that a dev agent can implem
 ## Guidelines
 
 - Be specific and actionable
-- Don't overspecify - leave room for dev agent judgment
+- Don't overspecify implementation details, but do specify interfaces and expected behaviors
 - If something is unclear, ask Jörn rather than guessing
 - The spec should be implementable by a dev agent who hasn't seen this conversation
+
+### Investigation Before Deferral
+
+**Do not defer decisions due to uncertainty.** When you're unsure if something is feasible:
+
+1. **Check FFI bindings** (`ffi/src/lib.rs`) — what functions and fields are exposed?
+2. **Check existing tests** — does validation already exist in Rust unit tests?
+3. **Check utilities** — are helper functions available that could be composed?
+
+Only mark items as "out of scope" or "deferred" after confirming they require significant new work (e.g., implementing a new algorithm, adding substantial FFI surface area).
+
+**Bad:** "P2 may require polar computation; defer if not available."
+**Good:** "P2 (Mahler bound): Checked `ffi/src/lib.rs` — no polar function. Checked `preprocess.rs` — has `enumerate_vertices_4d()` but no V-rep→H-rep conversion. Use known dual pairs instead (tesseract↔cross, self-dual 24-cell)."
+
+The goal is to prevent the developer from discovering feasibility issues mid-implementation.
+
+## Experiment Specs
+
+For experiment planning (see `docs/conventions/python-experiments.md`), the SPEC.md should include:
+
+1. **Research question** — what are we trying to learn?
+2. **Method** — concrete steps for each stage (stage_build, stage_analyze/tabulate, stage_plot)
+3. **Success criteria** — what outcome means "we are satisfied"?
+4. **Expected outputs** — file paths for data, assets, and FINDINGS.md
+
+For each step in the method:
+- What data does it read/write?
+- What FFI functions does it call? (verify they exist)
+- What validation logic is needed? (implement in Python or defer to Rust tests?)
 
 ## Escalation
 
