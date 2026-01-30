@@ -1,4 +1,47 @@
 % !TeX root = ../main.tex
-{\color{BrickRed}\textbf{Disclaimer (AI-generated placeholder):} This appendix is AI-drafted placeholder content; experimental details and reproducibility notes must be supplied and validated by the author.}
 
-This appendix will hold extended experimental runs, ablations, and visualizations. Include reproducibility notes (commands, configs) and any negative or redundant results that do not fit the main narrative.
+This appendix documents the computational infrastructure developed for this thesis: the algorithms implemented, the test fixtures used, and empirical findings from benchmarking and profiling.
+The goal is to make the tooling transparent and to provide guidance for reproducing or extending the experiments.
+
+\section{Algorithm Inventory}\label{sec:exp-algorithms}
+
+% Table: algorithm variants, applicability, complexity, status
+% Data source: algorithm_inventory experiment
+% Billiard: note as "absent, blocked"
+
+\section{Polytope Test Fixtures}\label{sec:exp-fixtures}
+
+% Table: 2D primitives (for Lagrangian products)
+% Table: 4D fixtures with facets, vertices, Lagrangian 2-faces, known capacity
+% Data source: algorithm_inventory experiment
+
+\section{Correctness Validation}\label{sec:exp-validation}
+
+% Mathematical propositions:
+% - P1: Scaling c(λK) = λ²c(K)
+% - P2: Mahler bound c(K)·c(K°) ≤ 4
+% - P3: Constraint satisfaction (HK2017)
+% - P4: Algorithm agreement HK2017 = Tube
+% - P5: Orbit closure (Tube)
+% Per-proposition: input table with pass/fail/error, numerical error
+% Data source: algorithm_inventory experiment
+
+\section{Capacity Comparison Matrix}\label{sec:exp-capacity}
+
+% Table: polytope × algorithm → capacity value
+% Data source: algorithm_inventory experiment
+
+\section{Runtime Benchmarks}\label{sec:exp-benchmarks}
+
+% Raw timing data table
+% Analysis: which variables predict runtime?
+% Final heuristic with empirical error
+% Falsified hypotheses
+% Data source: runtime_performance_analysis experiment
+
+\section{Profiling Hotspots}\label{sec:exp-profiling}
+
+% Workload definition
+% Flamegraph figure
+% Top hotspots with interpretation
+% Data source: runtime_performance_analysis experiment
