@@ -2,6 +2,12 @@
 
 Testing philosophy for `packages/rust_viterbo/`.
 
+## Why We Test
+
+Tests are evidence for thesis correctness claims. The thesis says "this code computes capacity correctly"—tests substantiate that claim by verifying mathematical properties hold.
+
+We're not using tests for API design (TDD) or regression prevention (research code, not production).
+
 ## Philosophy: Tests as Propositions
 
 Write tests that verify mathematical propositions, not just "does it run without crashing."

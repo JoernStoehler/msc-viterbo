@@ -25,6 +25,8 @@ src/viterbo/experiments/<label>/
 └── stage_plot.py        # Create figures
 ```
 
+Why stages: separate expensive computation (build) from cheap iteration (analyze/plot). Re-run analysis without regenerating data.
+
 ## Teaching Example
 
 `src/viterbo/experiments/example_pipeline/` demonstrates all conventions. Study it first.

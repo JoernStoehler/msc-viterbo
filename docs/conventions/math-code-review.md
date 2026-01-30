@@ -20,4 +20,4 @@ Checklist for verifying code implements thesis formulas correctly.
 
 ## If Code and Thesis Diverge
 
-Fix thesis first, then update code to match.
+Fix thesis first, then update code to match. Thesis is source of truth; code implements what thesis specifies.
