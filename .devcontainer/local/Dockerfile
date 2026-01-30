@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     libssl-dev \
+    libclang-dev \
     python3 \
     python3-venv \
     python3-pip \
