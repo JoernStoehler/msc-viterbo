@@ -10,14 +10,6 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 - **Priority:** Code correctness first, then experiments
 - **Thesis as source of truth:** Code implements what thesis specifies. Correctness chain: thesis (math) → SPEC.md (design) → code (impl) → tests (verify) → comments (link to thesis)
 
-## Audience
-
-- **Thesis readers:** MSc math students who took a symplectic geometry lecture
-- **Code developers:** Claude agents with broad knowledge of symplectic geometry, optimization, algorithms
-- **Project owner:** Jörn, up to speed with thesis references
-
-This is a closed project (no external contributors). Papers in `docs/papers/` should be read as needed for specific tasks, not all at once.
-
 ## File Index
 
 A compressed file index is printed at session startup (via `.claude/hooks/session-start.sh`).
@@ -66,8 +58,13 @@ scripts/build.sh                    # Build PDF + HTML
 scripts/lint.sh                     # Lint
 scripts/serve.sh                    # Watch mode
 
-# Exploration
+# CI (mirrors remote)
 cd /workspaces/worktrees/<task>/
+scripts/ci.sh                       # Run all CI checks locally
+scripts/ci.sh --rust                # Rust only
+scripts/ci.sh --python              # Python + FFI only
+
+# Exploration
 scripts/repo-map.py                 # Detailed file tree
 ```
 
