@@ -1,0 +1,26 @@
+\begin{tabular}{llll}
+\toprule
+Proposition & Fixture & Status & Notes \\
+\midrule
+P1: Scaling & unit\_cross\_polytope & PASS & Tube: λ=2.0, c(K)=1.000000, c(λK)=4.0... \\
+ & unit\_tesseract & PASS & HK2017: λ=2.0, c(K)=4.000000, c(λK)=1... \\
+\addlinespace
+P2: Mahler bound & tesseract × cross-polytope & PASS & c(tess)=4.000000, c(cross)=1.000000, ... \\
+ & 24-cell (self-dual) & PASS & c(24-cell)=2.000000, c²=4.000000 \\
+\addlinespace
+P3: Constraint satisfaction & unit\_cross\_polytope & SKIP & HK2017 infeasible for 16 facets \\
+ & unit\_tesseract & PASS & All constraints satisfied \\
+ & four\_simplex & PASS & All constraints satisfied \\
+ & unit\_24\_cell & SKIP & HK2017 infeasible for 24 facets \\
+\addlinespace
+P4: Algorithm agreement & unit\_cross\_polytope & SKIP & HK2017 infeasible for 16 facets; Tube... \\
+ & unit\_tesseract & N/A & Not Tube-compatible (has Lagrangian 2... \\
+ & four\_simplex & N/A & Not Tube-compatible (has Lagrangian 2... \\
+ & unit\_24\_cell & SKIP & HK2017 infeasible for 24 facets; Tube... \\
+\addlinespace
+P5: Orbit closure & unit\_cross\_polytope & SKIP & Covered by Rust tests: tube/tests/orb... \\
+ & unit\_tesseract & N/A & Not Tube-compatible \\
+ & four\_simplex & N/A & Not Tube-compatible \\
+ & unit\_24\_cell & SKIP & Covered by Rust tests: tube/tests/orb... \\
+\bottomrule
+\end{tabular}

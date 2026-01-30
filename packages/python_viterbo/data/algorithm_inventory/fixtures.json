@@ -1,0 +1,58 @@
+{
+  "fixtures_4d": [
+    {
+      "name": "unit_cross_polytope",
+      "facets": 16,
+      "has_lagrangian_2faces": false,
+      "tube_compatible": true,
+      "known_capacity": 1.0,
+      "capacity_source": "empirical",
+      "source_file": "tube/src/fixtures.rs"
+    },
+    {
+      "name": "unit_tesseract",
+      "facets": 8,
+      "has_lagrangian_2faces": true,
+      "tube_compatible": false,
+      "known_capacity": 4.0,
+      "capacity_source": "known",
+      "source_file": "tube/src/fixtures.rs"
+    },
+    {
+      "name": "four_simplex",
+      "facets": 5,
+      "has_lagrangian_2faces": true,
+      "tube_compatible": false,
+      "known_capacity": null,
+      "capacity_source": null,
+      "source_file": "tube/src/fixtures.rs"
+    },
+    {
+      "name": "unit_24_cell",
+      "facets": 24,
+      "has_lagrangian_2faces": false,
+      "tube_compatible": true,
+      "known_capacity": null,
+      "capacity_source": null,
+      "source_file": "tube/src/fixtures.rs"
+    }
+  ],
+  "primitives_2d": [
+    {
+      "name": "regular(n, r, \u03b8)",
+      "vertices": "n",
+      "source_file": "geom/src/polygon2d.rs"
+    },
+    {
+      "name": "square(s)",
+      "vertices": "4",
+      "source_file": "geom/src/polygon2d.rs"
+    },
+    {
+      "name": "regular_pentagon()",
+      "vertices": "5",
+      "source_file": "geom/src/polygon2d.rs"
+    }
+  ],
+  "generated_at": "2026-01-30T19:05:31.874148+00:00"
+}
