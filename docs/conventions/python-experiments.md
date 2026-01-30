@@ -96,7 +96,4 @@ What outcome means "we are satisfied"?
 
 ## Code Style
 
-- **KISS**: Avoid clever tricks and premature abstractions
-- **Pure functions**: Preferred when possible
-- **Type annotations**: Use where helpful; `# type: ignore` for pyright false positives
-- **Fast dev cycle**: Break interfaces and refactor freely; no external users
+KISS, pure functions, fast dev cycle (no external users).
