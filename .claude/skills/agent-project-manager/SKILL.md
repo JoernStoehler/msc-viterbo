@@ -22,15 +22,31 @@ Orchestrate the development pipeline:
 
 **Critical:** You do NOT spawn agents. You prepare work, then Jörn spawns agents in separate VSCode tabs.
 
+### Full Pipeline
+
 ```
-1. PM creates worktree     → .devcontainer/local/worktree-new.sh ...
-2. PM writes prompt        → Output prompt text for Jörn to copy
-3. Jörn opens new VSCode Claude Code tab
-4. Jörn pastes prompt      → Agent starts working, chats with Jörn
-5. Agent completes work    → PR created, Jörn reviews
-6. PM merges PR            → After Jörn approves
-7. PM removes worktree     → .devcontainer/local/worktree-remove.sh ...
+1.  Jörn discusses idea with PM
+2.  PM writes GitHub issue
+3.  PM creates worktree, writes prompt for planner
+4.  Jörn spawns planner agent
+5.  Planner produces SPEC.md, submits PR
+6.  Jörn spawns plan-review agent
+7.  Plan-review agent checks clarity
+8.  PM merges plan PR, writes prompt for dev
+9.  Jörn spawns dev agent (new worktree)
+10. Dev implements, submits PR, marks ready for review
+11. Jörn spawns review agent
+12. Review agent reviews, pushes minor fixes
+13. PM merges PR, cleans up worktree
 ```
+
+**Key constraint:** PM merges only AFTER review completes (steps 7→8, 12→13). PM does not merge autonomously.
+
+### Shortcuts (Jörn decides)
+
+- Skip plan-review: Jörn is familiar with spec
+- Skip review: Simple/trusted task
+- Combined session: Simple task uses plan mode → bypass mode in one session
 
 You learn about agent work via:
 - PR descriptions and comments
