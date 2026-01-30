@@ -8,7 +8,7 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 
 - **Deadline:** End of March 2026
 - **Priority:** Code correctness first, then experiments
-- **Thesis as source of truth:** Code implements what thesis specifies
+- **Thesis as source of truth:** Code implements what thesis specifies. Correctness chain: thesis (math) → SPEC.md (design) → code (impl) → tests (verify) → comments (link to thesis)
 
 ## Audience
 
