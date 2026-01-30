@@ -29,4 +29,6 @@ Quick reference for algorithms in `packages/rust_viterbo/`.
 
 Algorithms should use geom when it fits, but **copy and customize** when algorithm-specific needs diverge (e.g., different tolerances, extra fields).
 
+Why: algorithms have different numerical requirements; forcing shared abstractions adds complexity without benefit. geom exists to orient against, making deviations explicit.
+
 **Duplication is acceptable when purposeful.** Value of geom: clean code to orient against, making deviations obvious and intentional.
