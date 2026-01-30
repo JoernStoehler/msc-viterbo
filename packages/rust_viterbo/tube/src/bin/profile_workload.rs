@@ -21,7 +21,10 @@ use tube::tube_capacity;
 const ITERATIONS: usize = 100;
 
 fn profile_tube_cross_polytope() {
-    println!("Profiling: Tube on cross-polytope ({} iterations)", ITERATIONS);
+    println!(
+        "Profiling: Tube on cross-polytope ({} iterations)",
+        ITERATIONS
+    );
     let polytope = unit_cross_polytope();
 
     for i in 0..ITERATIONS {

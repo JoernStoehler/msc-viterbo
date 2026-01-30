@@ -399,6 +399,9 @@ def run_benchmarks(cfg: dict[str, Any]) -> list[BenchmarkResult]:
 
     # Random polytopes for Tube (FFI generation - filters for non-Lagrangian)
     print("\nGenerating random polytopes for Tube (via FFI)...")
+    if ffi is None:
+        raise RuntimeError("rust_viterbo_ffi not installed")
+
     tube_facet_counts = cfg.get("tube_facet_counts", [8, 10, 12, 14, 16])
     min_omega = cfg.get("min_omega", 0.01)
 

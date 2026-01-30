@@ -185,3 +185,30 @@ def systolic_ratio(capacity: float, volume: float) -> float:
         0.5
     """
     ...
+
+def random_hrep(
+    n_facets: int,
+    min_omega: float,
+    seed: int,
+) -> tuple[list[list[float]], list[float]] | None:
+    """Generate a random polytope H-representation suitable for the tube algorithm.
+
+    Uses Gaussian normalization for uniform random normals on S³, then validates
+    that the resulting polytope is bounded and has no near-Lagrangian 2-faces.
+
+    Args:
+        n_facets: Number of facets (minimum 5).
+        min_omega: Minimum |ω(n_i, n_j)| for actual 2-faces (e.g., 0.01).
+        seed: Random seed for reproducibility.
+
+    Returns:
+        A tuple (normals, heights) if successful, or None if the generated H-rep
+        fails validation (unbounded, degenerate, or has near-Lagrangian 2-faces).
+
+    Example:
+        >>> result = random_hrep(8, 0.01, 42)
+        >>> if result is not None:
+        ...     normals, heights = result
+        ...     tube_result = tube_capacity_hrep(normals, heights)
+    """
+    ...

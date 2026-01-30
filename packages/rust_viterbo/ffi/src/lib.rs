@@ -277,11 +277,7 @@ fn convert_tube_error(e: TubeError) -> PyErr {
 ///     tube_result = ffi.tube_capacity_hrep(normals, heights)
 /// ```
 #[pyfunction]
-fn random_hrep(
-    n_facets: usize,
-    min_omega: f64,
-    seed: u64,
-) -> Option<(Vec<[f64; 4]>, Vec<f64>)> {
+fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<(Vec<[f64; 4]>, Vec<f64>)> {
     tube::fixtures::random_hrep(n_facets, min_omega, seed).map(|hrep| {
         let normals: Vec<[f64; 4]> = hrep
             .normals
