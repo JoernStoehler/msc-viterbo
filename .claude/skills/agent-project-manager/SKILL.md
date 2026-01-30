@@ -61,14 +61,14 @@ Worktree: `/workspaces/worktrees/algorithm-inventory` (created)
 Issue: #124
 
 Prompt for Jörn to paste in new Claude Code tab:
----
+````
 /agent-planner
 
 Work in /workspaces/worktrees/algorithm-inventory
 Issue: #124
 
 <task description here>
----
+````
 ```
 
 ## Writing Issues
