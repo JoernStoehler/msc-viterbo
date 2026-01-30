@@ -47,15 +47,54 @@ For polytopes suitable for both algorithms:
 
 ## Profiling
 
-The `profile_workload` binary enables flamegraph profiling:
+### Methodology
+
+Profiled using `valgrind --tool=callgrind` (instruction-level profiling).
+
+Note: `cargo flamegraph` requires `perf` with kernel support. In containerized environments
+where the kernel version doesn't match available `linux-tools-*` packages, use callgrind instead:
 
 ```bash
 cd packages/rust_viterbo
 cargo build --release -p tube --bin profile_workload
-cargo flamegraph --bin profile_workload -o flamegraph.svg
+valgrind --tool=callgrind --callgrind-out-file=callgrind.out ./target/release/profile_workload tube_cross
+callgrind_annotate callgrind.out --auto=yes
 ```
 
-Profiling results should be documented here after manual analysis.
+### Top-5 Hotspots (Tube Algorithm)
+
+**Cross-polytope workload** (16 facets, 15840 tubes/iteration):
+
+| Rank | Function | % Instructions | Notes |
+|------|----------|----------------|-------|
+| 1 | `tube::algorithm::tube_capacity` | 23.8% | Core algorithm loop |
+| 2 | `tube::geometry::intersect_polygons` | 16.2% | Polygon clipping |
+| 3 | `_int_free` (glibc) | 8.8% | Memory deallocation |
+| 4 | `__memcpy_avx_unaligned_erms` | 7.3% | Memory copying |
+| 5 | `Vec::from_iter` | 7.3% | Vector allocations |
+
+**24-cell workload** (24 facets, 1152 tubes/iteration):
+
+| Rank | Function | % Instructions | Notes |
+|------|----------|----------------|-------|
+| 1 | `tube::algorithm::tube_capacity` | 32.7% | Core algorithm loop |
+| 2 | `nalgebra::linalg::inverse::do_inverse4` | 13.3% | 4×4 matrix inversion |
+| 3 | `tube::geometry::intersect_polygons` | 12.5% | Polygon clipping |
+| 4 | `Vec::from_iter` | 7.4% | Vector allocations |
+| 5 | `tube::preprocess::preprocess` | 6.3% | Vertex enumeration |
+
+### Observations
+
+1. **Core algorithm dominates**: `tube_capacity` + `intersect_polygons` account for 40-45% of runtime
+2. **Memory allocation overhead**: malloc/free/realloc combined ~20% — potential optimization target
+3. **Matrix operations**: `do_inverse4` more prominent with complex polytopes (24-cell)
+4. **Preprocessing cost**: Vertex enumeration is ~6% for 24-cell, amortized over iterations
+
+### Optimization Opportunities
+
+- **High impact**: Reduce allocations in inner loops (reuse buffers)
+- **Medium impact**: Optimize polygon intersection (hot path)
+- **Low impact**: Precompute matrix inverses where possible
 
 ## Escalation Procedures
 
@@ -65,4 +104,5 @@ Profiling results should be documented here after manual analysis.
 
 ## Changelog
 
+- 2026-01-30: Added profiling results with top-5 hotspots (callgrind)
 - 2026-01-30: Initial implementation and findings
