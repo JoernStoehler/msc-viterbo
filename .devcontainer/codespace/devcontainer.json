@@ -23,7 +23,7 @@
   "dockerFile": "Dockerfile",
   "workspaceFolder": "/workspaces/msc-viterbo",
   "updateRemoteUserUID": true,
-  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  "postCreateCommand": "bash .devcontainer/codespace/post-create.sh",
   "containerEnv": {
     "DEVCONTAINER_ENV": "codespace"
   }
