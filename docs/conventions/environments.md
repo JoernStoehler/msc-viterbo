@@ -97,10 +97,11 @@ Plugins installed at project scope are stored in `.claude/settings.json` and ava
 - `ENABLE_LSP_TOOL=true` must be set (added to `.claude/settings.json` env section)
 - Without this, LSP plugins won't work at all
 
-**Known bug (closed 2026-01-07): LSP plugins race condition**
-- [Issue #13952](https://github.com/anthropics/claude-code/issues/13952): LSP Manager completed with 0 servers before plugins loaded
-- Should be fixed in versions after 2026-01-07 (no explicit version confirmed)
-- If diagnostics don't appear, check debug logs at `~/.claude/debug/latest`
+**Status: LSP diagnostics not working (tested 2026-01-31)**
+- Plugins load correctly (visible in `--output-format stream-json` init)
+- But Edit tool responses contain no diagnostics (tested both CLI and IDE extension)
+- [Issue #13952](https://github.com/anthropics/claude-code/issues/13952) closed 2026-01-07, but diagnostics still don't appear
+- Debug logs: `~/.claude/debug/latest`
 
 **References:**
 - Official plugins: https://github.com/anthropics/claude-plugins-official
