@@ -93,10 +93,14 @@ claude plugin install pyright-lsp@claude-plugins-official --scope project
 
 Plugins installed at project scope are stored in `.claude/settings.json` and available to future sessions.
 
-**Known bug: LSP plugins don't provide diagnostics**
-- [Issue #13952](https://github.com/anthropics/claude-code/issues/13952): LSP Manager `initialize()` is empty
-- Plugins install correctly but diagnostics never appear in Edit responses
-- Status: Waiting for Anthropic fix
+**Required environment variable:**
+- `ENABLE_LSP_TOOL=true` must be set (added to `.claude/settings.json` env section)
+- Without this, LSP plugins won't work at all
+
+**Known bug (closed 2026-01-07): LSP plugins race condition**
+- [Issue #13952](https://github.com/anthropics/claude-code/issues/13952): LSP Manager completed with 0 servers before plugins loaded
+- Should be fixed in versions after 2026-01-07 (no explicit version confirmed)
+- If diagnostics don't appear, check debug logs at `~/.claude/debug/latest`
 
 **References:**
 - Official plugins: https://github.com/anthropics/claude-plugins-official

@@ -270,13 +270,13 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 ### High Value (consider implementing)
 
-1. **LSP plugins for code intelligence** ⚠️ Installed but blocked by upstream bug
+1. **LSP plugins for code intelligence** ⚠️ Needs verification in new session
    - `rust-analyzer-lsp` and `pyright-lsp` installed at project scope via CLI
    - Binaries (`rust-analyzer`, `pyright-langserver`) pre-installed in devcontainer
-   - **Blocker:** [Issue #13952](https://github.com/anthropics/claude-code/issues/13952) - LSP Manager `initialize()` is empty, never loads plugin configs
-   - Diagnostics do not appear in Edit tool responses despite correct configuration
-   - **Status:** Waiting for Anthropic fix
-   - **Trial period:** Postmortem asks agents to report if LSP diagnostics ever appear
+   - `ENABLE_LSP_TOOL=true` added to `.claude/settings.json` (required for LSP to work)
+   - [Issue #13952](https://github.com/anthropics/claude-code/issues/13952) closed 2026-01-07 (race condition fixed)
+   - **Status:** Test in new session to verify diagnostics appear
+   - **Trial period:** Postmortem asks agents to report if LSP diagnostics appear
 
 2. **Predefined subagents from actual usage**
    - Don't speculatively create subagents (YAGNI)
