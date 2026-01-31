@@ -3,17 +3,16 @@
 # 1. Print compressed file index (all environments, startup only)
 # 2. Install gh CLI in Claude Code web environments (silent)
 
-set -e
-
 # Read hook input from stdin
 hook_input=$(cat)
-source=$(echo "$hook_input" | jq -r '.source // "startup"')
+source=$(echo "$hook_input" | jq -r '.source // "startup"' 2>/dev/null || echo "startup")
 
 # Only run on startup (not resume/compact/clear)
 [ "$source" != "startup" ] && exit 0
 
 # --- File Index (all environments) ---
 # Print compressed repo structure so agent has file awareness in context
+CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 echo "=== Session Startup: Repository File Index ==="
 echo "(This index is auto-generated to help you navigate the codebase)"
 echo ""
@@ -44,7 +43,7 @@ command -v gh &>/dev/null && exit 0
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
-    wget -q "https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz" -O "$tmpdir/gh.tar.gz" || exit 1
+    wget --timeout=30 -q "https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz" -O "$tmpdir/gh.tar.gz" || exit 1
     tar -xzf "$tmpdir/gh.tar.gz" -C "$tmpdir" || exit 1
 
     mkdir -p "$HOME/.local/bin"
