@@ -213,34 +213,47 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ---
 
-## 9. Full Experiment List
+## 9. Experiment Prioritization
+
+**Discussion point for Kai:** Jörn can estimate implementation effort, but Kai may have better intuition for mathematical interestingness. The table below shows Jörn's effort/utility estimates — Kai's input on "expected mathematical value" could adjust priorities.
+
+### Priority Assessment
+
+| Issue | Experiment | Utility | Effort | Notes |
+|-------|------------|---------|--------|-------|
+| #96 | algorithm-comparison | High | Mid | Cross-validates HK2017 vs Tube |
+| #100 | billiard-hko-orbit | High | Mid | Validates HK-O counterexample + non-Lagrangian perturbation for Tube |
+| #101 | random-polytope-sys-distribution | **High** | Mid | **Critical:** "How rare are counterexamples?" — informs all downstream experiments |
+| #102 | lagrangian-product-polygons | Mid | Low | Systematic study of counterexample family |
+| #105 | dataset-dimension-reduction | Low | Low | PCA/UMAP exploration |
+| #106 | sys-ratio-optimization | Low | Mid | Gradient flow to max sys |
+| #110 | lagrangian-product-random-polygons | Mid | Low | Same as #102 but random polygons (code reuse) |
+| #111 | fixed-facet-vertex-count | High | Mid | Verify HK's simplex claim (sys ≤ 3/4 for 5-facet) |
+| #112 | algorithm-performance-comparison | High | Mid | Blocked on billiard impl |
+| #113 | algorithm-optimization-ablation | Low | High | Performance tuning |
+| #114/#115 | ML capacity prediction | Low | High | Similar experiments (merge?); blocked on dataset |
+
+### Recommended Order
+
+1. **#101** (critical path: informs ML experiments, gives "fraction of counterexamples" result)
+2. **#100** (validates the key counterexample)
+3. **#96** (cross-validation builds confidence)
+4. **#102** → **#110** (code reuse, systematic exploration)
+5. **#111** (verify HK simplex claim)
+6. Rest as time permits
+
+---
+
+## 10. Full Experiment Inventory
 
 **Completed (with FINDINGS.md):**
 | Experiment | Description |
 |------------|-------------|
 | benchmark_hk2017 | Runtime scaling analysis |
-| algorithm_inventory | Survey existing approaches |
-| runtime_performance_analysis | Profile Tube hotspots |
+| algorithm_inventory | Survey existing approaches (not yet reviewed by Jörn) |
+| runtime_performance_analysis | Profile Tube hotspots (not yet reviewed by Jörn) |
 
-**Open (unblocked):**
-| Issue | Experiment | Description |
-|-------|------------|-------------|
-| #96 | algorithm-comparison | HK2017 vs Tube on non-Lagrangian polytopes |
-| #100 | billiard-hko-orbit | Validate HK-O pentagon counterexample |
-| #101 | random-polytope-sys-distribution | How rare are counterexamples? |
-| #102 | lagrangian-product-polygons | Regular polygon products study |
-| #105 | dataset-dimension-reduction | PCA/UMAP on polytope features |
-| #106 | sys-ratio-optimization | Gradient flow toward max sys |
-| #110 | lagrangian-product-random-polygons | Extend to random polygon products |
-| #111 | fixed-facet-vertex-count | Filter dataset by combinatorial complexity |
-
-**Blocked (waiting on algorithm comparison):**
-| Issue | Experiment | Description |
-|-------|------------|-------------|
-| #112 | algorithm-performance-comparison | Benchmark all algorithms |
-| #113 | algorithm-optimization-ablation | Performance impact of components |
-| #114 | nn-regression-mutual-info | Neural network capacity prediction |
-| #115 | ml-capacity-prediction | Learn scalable capacity approximator |
+**Open experiments:** See prioritization table above (§9).
 
 **Note:** This list is not exhaustive. More experiments will be designed after initial results reveal the Viterbo landscape.
 
