@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Download arXiv paper TeX sources for agent reading
 #
-# Usage: .claude/skills/download-arxiv-papers/download-arxiv.sh <arxiv-id> <folder-name>
-# Example: .claude/skills/download-arxiv-papers/download-arxiv.sh 2203.02043 Rudolf2022-worm-problem
+# Usage: scripts/download-arxiv.sh <arxiv-id> <folder-name>
+# Example: scripts/download-arxiv.sh 2203.02043 Rudolf2022-worm-problem
 #
 # Folder naming convention:
 #   Single author:  Surname + Year + description  (e.g., Rudolf2022-worm-problem)

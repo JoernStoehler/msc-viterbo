@@ -17,13 +17,22 @@ source=$(echo "$hook_input" | jq -r '.source // "startup"')
 echo "=== Session Startup: Repository File Index ==="
 echo "(This index is auto-generated to help you navigate the codebase)"
 echo ""
-python3 "$CLAUDE_PROJECT_DIR/scripts/file-index.py" 2>/dev/null || echo "(file-index.py not available)"
+python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/file-index.py" 2>/dev/null || echo "(file-index.py not available)"
 echo ""
 echo "=== End File Index ==="
 echo ""
 
 # --- gh CLI installation (web environment only) ---
-[ "$CLAUDE_CODE_REMOTE" != "true" ] && exit 0
+# Detect web environment via multiple signals:
+# - CLAUDE_CODE_REMOTE=true (CC Web)
+# - CLAUDE_ENVIRONMENT=ccweb (CC Web alternative)
+# - CODESPACES=true (GitHub Codespaces)
+is_web_env=false
+[ "$CLAUDE_CODE_REMOTE" = "true" ] && is_web_env=true
+[ "${CLAUDE_ENVIRONMENT:-}" = "ccweb" ] && is_web_env=true
+[ -n "${CODESPACES:-}" ] && is_web_env=true
+
+[ "$is_web_env" = "false" ] && exit 0
 
 # Skip if gh already installed
 command -v gh &>/dev/null && exit 0

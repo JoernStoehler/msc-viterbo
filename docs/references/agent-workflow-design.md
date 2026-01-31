@@ -64,7 +64,7 @@ Agents appear to have a limited "focus budget" X that measures how diverse their
 
 ## Agent Pipeline
 
-Five agent types with distinct roles. Agent prompts are commands in `.claude/commands/agent-*.md` (invoke with `/agent-developer <args>`, `/agent-planner <args>`, etc.).
+Five agent types with distinct roles. Agent prompts are commands in `.claude/commands/` (invoke with `/implement <args>`, `/investigate <args>`, etc.).
 
 | Agent | Purpose | Mode | Key Actions |
 |-------|---------|------|-------------|
@@ -128,18 +128,18 @@ Five agent types with distinct roles. Agent prompts are commands in `.claude/com
 | Project context | CLAUDE.md | All agents | Minimal: topic, deadline, priority, layout |
 | Agent protocol | CLAUDE.md | All agents | Simplified: work in directory, do work, commit, escalate |
 | Quick commands | CLAUDE.md | All agents | Essential 6-8 commands |
-| Agent prompts | `.claude/commands/agent-*.md` | Agents (via invocation) | Loaded when Jörn invokes `/agent-*` with args |
-| PM knowledge | `.claude/commands/agent-project-manager.md` | PM only | Worktree management, issue triage, prompt writing |
+| Agent prompts | `.claude/commands/*.md` | Agents (via invocation) | Loaded when Jörn invokes command with args |
+| PM knowledge | `.claude/commands/orchestrate.md` | PM only | Worktree management, issue triage, prompt writing |
 | Jörn workflows | `docs/project-owner/` (to be created if needed) | Jörn only | Filename signals agents shouldn't read |
 
 ### Commands Load Agent Prompts
 
-Agent prompts live in `.claude/commands/agent-*.md`. Each contains:
+Agent prompts live in `.claude/commands/`. Each contains:
 - Role description
 - `$ARGUMENTS` placeholder for task-specific context
 - Guidelines and escalation rules
 
-Jörn invokes with `/agent-developer <args>` and `$ARGUMENTS` is substituted.
+Jörn invokes with `/implement <args>` and `$ARGUMENTS` is substituted.
 
 **Why commands, not skills:** Skills auto-load based on description matching, but this fails for multi-line invocations. Commands with `$ARGUMENTS` reliably load the full prompt with task context in one message.
 
@@ -216,5 +216,5 @@ A brief interruption to answer a question beats agent running into a dead end.
 | Keep separate Dockerfiles | Maintenance is easier without cross-environment thinking |
 | Delete `/create-worktree` command | Wrong pattern; PM agent has procedural knowledge |
 | Simplify CLAUDE.md protocol | Remove worktree/cleanup instructions, add escalation |
-| Agent prompts as commands | `.claude/commands/agent-*.md` with `$ARGUMENTS`; skills auto-loading broken for multi-line |
+| Agent prompts as commands | `.claude/commands/*.md` with `$ARGUMENTS`; skills auto-loading broken for multi-line |
 | YAGNI on workflow docs | Write them once workflows are established |

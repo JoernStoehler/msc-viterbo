@@ -61,6 +61,7 @@
 		"claudeCode.respectGitIgnore": false,
 		"chat.useAgentSkills": true,
 		"github.copilot.chat.anthropic.tools.websearch.enabled": true,
+		"claudeCode.hideOnboarding": true,
 	},
 	"extensions": {
 		"recommendations": [

@@ -59,7 +59,7 @@ The project adheres to most Anthropic best practices, often implementing them mo
 | Implement | Developer | Same |
 | Commit | Reviewer + PM | Explicit code review; PM handles merge |
 
-**Documented in:** `docs/notes/agent-workflow-design.md` explains the focus budget model and why stages are separated. Quote:
+**Documented in:** `docs/references/agent-workflow-design.md` explains the focus budget model and why stages are separated. Quote:
 
 > **Why 5 stages work:** The stages are sufficiently different cognitive tasks. Not splitting them means adding up their focus costs, likely exceeding budget.
 
@@ -83,7 +83,7 @@ The project adheres to most Anthropic best practices, often implementing them mo
 - "Out of scope" notes defer work to fresh sessions
 - PM agent, not dev agent, creates follow-up issues
 
-**Documented in:** `agent-workflow-design.md` has extensive "Focus Budget Model" section describing observed failure modes and mitigations.
+**Documented in:** `docs/references/agent-workflow-design.md` has extensive "Focus Budget Model" section describing observed failure modes and mitigations.
 
 **Assessment:** Strong adherence. The focus budget model is a more explicit formulation of Anthropic's "context is the fundamental constraint" principle.
 
@@ -138,7 +138,7 @@ The project adheres to most Anthropic best practices, often implementing them mo
 - ⚠️ No `.claude/agents/` directory (empty)
 - Uses `.claude/commands/agent-*.md` instead
 
-**Deviation documented in:** `docs/notes/agent-workflow-design.md`:
+**Deviation documented in:** `docs/references/agent-workflow-design.md`:
 
 > **Why commands, not skills:** Skills auto-load based on description matching, but this fails for multi-line invocations. Commands with `$ARGUMENTS` reliably load the full prompt with task context in one message.
 
@@ -257,10 +257,10 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 | Deviation | Documented? | Rationale Provided? | Location |
 |-----------|-------------|---------------------|----------|
-| Commands instead of skills | ✅ Yes | ✅ Yes | `agent-workflow-design.md` |
-| 5 stages instead of 4 | ✅ Yes | ✅ Yes | `agent-workflow-design.md` |
-| Frozen specs | ✅ Yes | ✅ Yes | `agent-workflow-design.md` |
-| External orchestration (Jörn spawns) | ✅ Yes | ✅ Yes | `agent-workflow-design.md` |
+| Commands instead of skills | ✅ Yes | ✅ Yes | `docs/references/agent-workflow-design.md` |
+| 5 stages instead of 4 | ✅ Yes | ✅ Yes | `docs/references/agent-workflow-design.md` |
+| Frozen specs | ✅ Yes | ✅ Yes | `docs/references/agent-workflow-design.md` |
+| External orchestration (Jörn spawns) | ✅ Yes | ✅ Yes | `docs/references/agent-workflow-design.md` |
 | No MCP servers | ❌ No | N/A | N/A |
 | No predefined subagents | ❌ No | N/A | N/A |
 
@@ -305,4 +305,4 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 The project demonstrates strong adherence to Anthropic's best practices, with several extensions addressing academic/mathematical correctness requirements not covered in the general guidance. The documented deviations (commands over skills, frozen specs, 5-stage pipeline) are well-reasoned adaptations to the thesis project's unique constraints.
 
-The focus budget model documented in `agent-workflow-design.md` is a notable contribution that formalizes observations about agent context degradation. This could be valuable feedback for Anthropic's best practices documentation.
+The focus budget model documented in `docs/references/agent-workflow-design.md` is a notable contribution that formalizes observations about agent context degradation. This could be valuable feedback for Anthropic's best practices documentation.

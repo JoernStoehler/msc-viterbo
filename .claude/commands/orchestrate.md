@@ -35,7 +35,7 @@ $ARGUMENTS
 Format as a single-line command Jörn can paste:
 
 ```
-/agent-planner Work in /workspaces/worktrees/<task>. Issue #<N>. <brief task description>
+/investigate Work in /workspaces/worktrees/<task>. Issue #<N>. <brief task description>
 ```
 
 ### Merge PR (after review approval)
@@ -69,4 +69,4 @@ You do NOT use Task() subagents to spawn other agents.
 
 ## Reference
 
-See `docs/notes/agent-workflow-design.md` for pipeline rationale.
+See `docs/references/agent-workflow-design.md` for pipeline rationale.

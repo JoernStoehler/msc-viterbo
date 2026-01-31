@@ -37,6 +37,14 @@ Quick reference for notation used in this thesis and correspondence with key pap
 | `Q` | `Q` | — | Same |
 | `σ` | `σ` | — | Permutation |
 
+## Within-Thesis Coordinate Conventions
+
+| Context | Convention | Notes |
+|---------|------------|-------|
+| 4D phase space | (q,p) = (q₁,q₂,p₁,p₂) | Preferred thesis convention |
+| 2D | (q,p) | Single coordinate pair |
+| Code (Rust) | Match thesis | Rust uses same ordering |
+
 ## Open Issues
 
 1. **Missing theorems**: `\todoref{thm:simple-min-action-reeb-orbit}`, `\todoref{thm:cz-index}` in algorithms.tex need theorems written in math chapters.

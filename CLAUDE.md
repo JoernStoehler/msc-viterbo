@@ -8,12 +8,16 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 
 - **Deadline:** End of March 2026
 - **Priority:** Code correctness first, then experiments
-- **Thesis as source of truth:** Code implements what thesis specifies. Correctness chain: thesis (math) → SPEC.md (design) → code (impl) → tests (verify) → comments (link to thesis)
+- **Thesis as source of truth:** Code implements what thesis specifies. Correctness chain: thesis (math) → SPEC.md (design) → tests (verify spec) → code (must pass tests). When a test fails:
+  1. Check: does test match spec?
+  2. Check: does spec encode math correctly?
+  3. If both yes → code is wrong
+  4. If spec/test wrong → escalate to Jörn
 
 ## File Index
 
-A compressed file index is printed at session startup (via `.claude/hooks/session-start.sh`).
-Use it to orient yourself. For detailed exploration, run `scripts/repo-map.py`.
+A file index is printed at session startup (via `.claude/hooks/session-start.sh`).
+Use it to orient yourself.
 
 Filenames are verbose to aid discoverability (e.g., `rust-algorithms.md` not `algorithms.md`).
 
@@ -34,6 +38,8 @@ Filenames are verbose to aid discoverability (e.g., `rust-algorithms.md` not `al
 /workspaces/msc-viterbo/        Main worktree
 /workspaces/worktrees/<task>/   Task-specific worktree
 ```
+
+SPEC.md files define frozen requirements; found in experiment dirs and some crates.
 
 ## Quick Commands
 
@@ -64,9 +70,6 @@ scripts/ci.sh                       # Run all CI checks locally
 scripts/ci.sh --rust                # Rust only
 scripts/ci.sh --python              # Python + FFI only
 
-# Exploration
-scripts/repo-map.py                 # Detailed file tree
-
 # GitHub CLI (note: plain `gh issue view` is broken due to GraphQL deprecation)
 gh issue view <N> --json title,body,labels --jq '.title, .body'  # Read issue
 gh pr view <N>                      # Read PR
@@ -93,6 +96,7 @@ Long-running project with sequential/parallel agents. Leave the repo clean for t
 ### Working Directory
 
 - **CRITICAL:** Always use `cd /workspaces/worktrees/<task> && command`
+- IDE always uses main repo cwd; commands need explicit `cd /workspaces/worktrees/<task> &&`
 - See `docs/conventions/environments.md` for troubleshooting
 
 ### Escalation
@@ -103,7 +107,7 @@ Escalate to Jörn when:
 - Required context is unavailable (issue, spec, PR won't load)
 - You are not confident enough in some step you executed to proceed further
 
-A brief interruption beats running into a dead end.
+A brief interruption beats running into a dead end. State blockers clearly in your final message.
 
 ### Task Management
 
