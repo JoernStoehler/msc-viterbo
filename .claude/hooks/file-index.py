@@ -2,15 +2,35 @@
 """
 Generates a compact file index for agent context at session startup.
 
-Uses bash-style brace expansion for compactness:
+WHY THIS EXISTS:
+Agents benefit from knowing what files exist in a repo at session start.
+Without this, they waste tokens searching/guessing file locations.
+But listing ALL files wastes tokens on generated/cached content.
+
+APPROACH:
+1. Start with ALL files in the repo
+2. Remove files/folders matching blacklist patterns
+3. Compress remaining tree using bash-style brace expansion
+
+WHY BLACKLIST (not whitelist):
+- Whitelisting requires knowing all source file patterns in advance
+- Blacklisting is safer: new source files are shown by default
+- Only predictable generated/cached content is hidden
+
+OUTPUT FORMAT (bash-style brace expansion):
   dir/{a,b,c}.rs        # same extension
   dir/{a.rs,b.md}       # mixed extensions
-  dir/                  # empty or dirs-only
+  dir/ (empty)          # folder exists but contents hidden/empty
 
-Blacklist approach: shows everything except explicitly excluded patterns.
+COST-BENEFIT FRAMEWORK:
+- Cost of showing a file: tokens + cognitive load
+- Benefit of showing a file: certainty of existence + location
+- Blacklist when: existence is 100% predictable from other files
+  (e.g., __pycache__/ exists if .py files exist)
 """
 from __future__ import annotations
 
+import fnmatch
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -24,93 +44,175 @@ Edit CONFIG in this script to adjust blacklist and display rules.
 """
 
 CONFIG = SimpleNamespace(
-    # Directories to completely skip (never show)
-    # Criterion: Benefit < Cost
-    # - Cost: tokens + cognitive load of processing
-    # - Benefit: certainty of existence + exact location (vs searching/predicting)
-    blacklist_dirs={
-        ".git",
-        ".venv",
-        "target",
-        "build",
-        "dist",
-        "node_modules",
-        "__pycache__",  # predictable from .py files
-        ".pytest_cache",  # predictable from pytest usage
-        ".mypy_cache",  # predictable from mypy usage
-        ".ruff_cache",  # predictable from ruff usage
-        ".ipynb_checkpoints",  # predictable from .ipynb files
-        ".latexmk",  # predictable from LaTeX build
-        "site",  # predictable from Python
-        "site-packages",  # predictable from Python
-        "images",  # downloaded paper figures (paper .tex already shown)
-    },
-    # Prefixes for directories to skip
-    blacklist_prefixes={"_minted"},  # LaTeX minted cache, predictable
-    # File extensions to skip
-    # Criterion: existence is redundant with other visible files
-    blacklist_extensions={".pyc", ".pyo"},  # bytecode, inside already-hidden __pycache__
-    # Safety limit for pathological repos only (this repo's max depth is ~10)
+    # === BLACKLIST (gitignore-style patterns) ===
+    #
+    # Goal: Hide files/folders whose existence provides no useful information.
+    # Criterion: "existence is predictable from other visible files"
+    #
+    # Pattern syntax (matches gitignore semantics):
+    # - Pattern WITHOUT '/': matches NAME anywhere in tree
+    #   e.g., "__pycache__" matches "foo/bar/__pycache__"
+    # - Pattern WITH '/': matches against RELATIVE PATH from root
+    #   e.g., "docs/papers/*/images" matches "docs/papers/foo/images"
+    #
+    # Broad vs specific patterns:
+    # - Broad patterns (no '/') are DANGEROUS - they match anywhere
+    #   Only use when the name is TOOL-ENFORCED (no false positives possible)
+    # - Specific patterns (with '/') are SAFE - explicit paths
+    #   Use for generic names like "target", "venv", "build"
+    #
+    # Folder existence vs contents:
+    # - "foo" hides the folder entirely (existence hidden)
+    # - "foo/*" hides contents but shows folder exists as "foo/ (empty)"
+    #   Use when folder existence has information value (e.g., "build ran")
+    #
+    blacklist_patterns=[
+        # === Broad patterns (justified: tool-enforced naming, no false positives) ===
+        ".git",              # Only Git creates .git/
+        "__pycache__",       # Only Python creates __pycache__/
+        "*.pyc",             # Only Python creates .pyc files
+        "*.pyo",             # Only Python creates .pyo files
+        ".pytest_cache",     # Only pytest creates .pytest_cache/
+        ".mypy_cache",       # Only mypy creates .mypy_cache/
+        ".ruff_cache",       # Only ruff creates .ruff_cache/
+        ".tox",              # Only tox creates .tox/
+        ".ipynb_checkpoints",  # Only Jupyter creates .ipynb_checkpoints/
+        "node_modules",      # Only npm/yarn creates node_modules/
+        # LaTeX intermediate files (tool-enforced extensions, only LaTeX creates these)
+        "*.aux",
+        "*.fls",
+        "*.fdb_latexmk",
+        "*.blg",
+        "*.bbl",
+        "*.toc",
+        "*.synctex.gz",
+        "LaTeXML.cache",
+
+        # === Specific paths (cautious: generic names could have false positives) ===
+        # Pattern ends with /* to show folder existence but hide contents
+        "packages/python_viterbo/.venv/*",
+        "packages/rust_viterbo/target/*",
+        # LaTeX caches (existence not valuable)
+        "packages/latex_viterbo/.latexmk",
+        "packages/latex_talk_clarke_duality/.latexmk",
+        "packages/latex_viterbo/_minted-*",
+        "packages/latex_talk_clarke_duality/_minted-*",
+        # LaTeX build intermediates (generic extensions in specific paths)
+        "packages/latex_viterbo/build/*.log",
+        "packages/latex_viterbo/build/*.out",
+        "packages/latex_viterbo/build/lint/*.log",
+        "packages/latex_viterbo/build/lint/*.out",
+        # Build assets are copies of source assets (predictable)
+        "packages/latex_viterbo/build/html/*.css",
+        "packages/latex_viterbo/build/html/assets/*",
+        "packages/latex_viterbo/build/lint/html/*.css",
+        "packages/latex_viterbo/build/lint/html/assets/*",
+        # Paper figures
+        "docs/papers/*/images",
+        # LaTeXML bindings (dir existence valuable, individual files predictable from packages used)
+        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/bindings/*",
+        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/originals/*",
+        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/supported_originals/*",
+        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/deprecated/*",
+    ],
+
+    # Safety fallback for pathological repos with extreme nesting.
+    # This repo's max depth is ~10, so 50 is just defensive.
     depth_limit=50,
-    # Directories with more than this many files get summarized
-    file_summary_threshold=15,
+
+    # === TREE PREFIXES (for long repeated prefixes) ===
+    #
+    # When multiple entries share a long prefix, use tree format:
+    #   packages/python_viterbo/src/viterbo/experiments/
+    #   | algorithm_comparison/{...}
+    #   | benchmark_hk2017/{...}
+    #
+    # Cost-benefit:
+    # - Fixed cost: cognitive complexity of understanding tree syntax
+    # - Per-child cost: "| " prefix on each line (2 chars)
+    # - Savings: not repeating prefix on each child
+    #
+    # Only worthwhile for LONG prefixes with MANY children.
+    # Short prefixes or few children: fixed complexity cost dominates.
+    #
+    # These are hardcoded because they rarely change.
+    tree_prefixes=[
+        # Nested prefixes work because we use "longest match" logic
+        "packages/python_viterbo/",
+        "packages/python_viterbo/src/viterbo/experiments/",  # deeply nested, many children
+        "packages/rust_viterbo/",
+        "packages/latex_viterbo/",
+        "packages/latex_talk_clarke_duality/",
+        "docs/papers/",
+    ],
 )
 
 
-def should_skip(path: Path, name: str) -> bool:
-    """Check if a path should be skipped based on blacklist rules."""
-    if name in CONFIG.blacklist_dirs:
-        return True
-    if any(name.startswith(pfx) for pfx in CONFIG.blacklist_prefixes):
-        return True
-    if path.is_file() and path.suffix in CONFIG.blacklist_extensions:
-        return True
+def should_skip(rel_path: Path) -> bool:
+    """Check if a path should be hidden based on blacklist patterns.
+
+    WHY GITIGNORE-STYLE:
+    - Well-known syntax, agents understand it
+    - Distinguishes "match anywhere" vs "match specific path"
+
+    PATTERN RULES:
+    - No '/': matches NAME anywhere (e.g., "__pycache__" matches "a/b/__pycache__")
+    - Has '/': matches full RELATIVE PATH (e.g., "a/*/c" matches "a/foo/c")
+
+    WHY THIS MATTERS:
+    - Broad patterns (no '/') are dangerous - could hide unintended files
+    - Only use broad patterns for tool-enforced names (no false positives)
+    - Use specific patterns (with '/') for generic names like "target", "build"
+    """
+    name = rel_path.name
+    rel_str = str(rel_path)
+
+    for pattern in CONFIG.blacklist_patterns:
+        if "/" not in pattern:
+            # No slash: match name anywhere
+            if fnmatch.fnmatch(name, pattern):
+                return True
+        else:
+            # Has slash: match full path
+            if fnmatch.fnmatch(rel_str, pattern):
+                return True
     return False
 
 
 def compress_filenames(names: list[str]) -> str:
-    """Compress a list of filenames using brace expansion.
+    """Compress a list of filenames using bash-style brace expansion.
 
-    Examples:
-        ['foo.rs', 'bar.rs', 'baz.rs'] -> '{bar,baz,foo}.rs'
-        ['foo.rs', 'bar.md'] -> '{bar.md,foo.rs}'
-        ['README.md'] -> 'README.md'
+    EXAMPLES:
+        ['foo.rs', 'bar.rs'] -> '{bar.rs,foo.rs}'
+        ['README.md'] -> '{README.md}'
+        ['a.rs', 'b/', 'c.md'] -> '{a.rs,b/,c.md}'
 
-    All files in a directory are wrapped in braces when multiple, ensuring
-    the path prefix applies to all: dir/{a.x,b.y} not dir/a.x b.y
+    Always uses braces for clarity (distinguishes contents from path).
     """
     if not names:
         return ""
-    if len(names) == 1:
-        return names[0]
-
-    # Group by extension
-    by_ext: dict[str, list[str]] = defaultdict(list)
-    for name in names:
-        if "." in name and not name.startswith("."):
-            ext = name[name.rfind("."):]
-            stem = name[:name.rfind(".")]
-        else:
-            ext = ""
-            stem = name
-        by_ext[ext].append(stem)
-
-    # If all files share one extension, use {a,b,c}.ext
-    if len(by_ext) == 1:
-        ext, stems = next(iter(by_ext.items()))
-        return f"{{{','.join(sorted(stems))}}}{ext}"
-
-    # Mixed extensions: {a.x,b.y,c.z}
-    all_files = sorted(names)
-    return "{" + ",".join(all_files) + "}"
+    return "{" + ",".join(sorted(names)) + "}"
 
 
-def collect_tree(root: Path, rel: Path, depth: int) -> list[tuple[str, list[str], int]]:
-    """Collect directory entries recursively.
+def collect_tree(root: Path, rel: Path, depth: int) -> list[tuple[str, list[str]]]:
+    """Recursively collect non-blacklisted files grouped by directory.
 
-    Returns list of (dir_path, [filenames], omitted_count) tuples.
+    WHY THIS STRUCTURE:
+    - Groups files by directory for efficient brace expansion
+    - Returns flat list (not nested tree) for simple rendering
+    - Each tuple: (directory_path, [filenames_in_that_dir])
+
+    WHY DEPTH LIMIT:
+    - Safety fallback for pathological repos with extreme nesting
+    - At limit: stop recursing, show remaining subdirs as "name/"
+    - This repo's max depth is ~10, limit of 50 is defensive
+
+    WHY "(empty)" FOR EMPTY DIRS:
+    - Shows folder EXISTS even when contents are hidden/empty
+    - Important for folders like ".venv/" and "target/" where
+      existence confirms "env set up" or "build ran"
     """
-    results: list[tuple[str, list[str], int]] = []
+    results: list[tuple[str, list[str]]] = []
     abs_path = root / rel
 
     if not abs_path.is_dir():
@@ -127,7 +229,9 @@ def collect_tree(root: Path, rel: Path, depth: int) -> list[tuple[str, list[str]
     for child in children:
         if child.is_symlink():
             continue
-        if should_skip(child, child.name):
+
+        child_rel = rel / child.name
+        if should_skip(child_rel):
             continue
 
         if child.is_file():
@@ -135,81 +239,128 @@ def collect_tree(root: Path, rel: Path, depth: int) -> list[tuple[str, list[str]
         elif child.is_dir():
             subdirs.append(child)
 
-    # Handle files in current directory
-    dir_str = str(rel) if str(rel) != "." else "."
-    omitted = 0
-
+    # Handle depth limit (safety fallback for pathological repos)
     if depth >= CONFIG.depth_limit:
-        # At depth limit: count all files recursively and summarize
-        total_files = len(files)
-        for subdir in subdirs:
-            try:
-                total_files += sum(1 for p in subdir.rglob("*")
-                                   if p.is_file() and not p.is_symlink()
-                                   and not should_skip(p, p.name))
-            except PermissionError:
-                pass
-        if total_files > 0:
-            results.append((dir_str + "/", [], total_files))
+        if files or subdirs:
+            all_entries = files + [s.name + "/" for s in subdirs]
+            results.append((str(rel) + "/", all_entries))
         return results
 
-    if files:
-        if len(files) > CONFIG.file_summary_threshold:
-            # Too many files: summarize ALL files (including subdirs) and don't recurse
-            by_ext: dict[str, int] = defaultdict(int)
-            for f in files:
-                ext = Path(f).suffix or "(no ext)"
-                by_ext[ext] += 1
-            # Also count files in subdirs recursively
-            for subdir in subdirs:
-                try:
-                    for p in subdir.rglob("*"):
-                        if p.is_file() and not p.is_symlink() and not should_skip(p, p.name):
-                            ext = p.suffix or "(no ext)"
-                            by_ext[ext] += 1
-                except PermissionError:
-                    pass
-            total = sum(by_ext.values())
-            summary = ", ".join(f"{c}{e}" for e, c in sorted(by_ext.items(), key=lambda x: -x[1]))
-            results.append((dir_str + "/", [f"<{total} files: {summary}>"], 0))
-            return results  # Don't recurse into subdirs
-        else:
-            results.append((dir_str + "/", files, 0))
-    elif not subdirs:
-        # Empty directory
-        results.append((dir_str + "/", ["(empty)"], 0))
+    dir_str = str(rel) if str(rel) != "." else "."
 
-    # Recurse into subdirectories
+    # Check if folder has ANY children on disk (before blacklist filtering).
+    # This distinguishes truly empty folders from folders with hidden contents.
+    try:
+        has_any_children = any(True for c in abs_path.iterdir() if not c.is_symlink())
+    except PermissionError:
+        has_any_children = False
+
+    # Recurse into subdirectories first to know which have visible content
+    subdir_results: dict[str, list[tuple[str, list[str]]]] = {}
     for subdir in subdirs:
         child_rel = rel / subdir.name
-        results.extend(collect_tree(root, child_rel, depth + 1))
+        child_results = collect_tree(root, child_rel, depth + 1)
+        subdir_results[subdir.name] = child_results
+
+    # Combine files and LEAF subdirs (those with no visible content)
+    # Subdirs with content will get their own lines, so don't list them here
+    leaf_subdirs = [s.name + "/" for s in subdirs if not subdir_results[s.name]]
+    items = files + leaf_subdirs
+
+    if items:
+        results.append((dir_str + "/", items))
+    elif depth == 0:
+        # Root level: show even if empty
+        if has_any_children:
+            results.append((dir_str + "/", []))
+        else:
+            results.append((dir_str + "/", ["(empty)"]))
+    # For depth > 0: don't emit anything if no items - parent already shows this subdir exists
+
+    # Add subdir results
+    for subdir in subdirs:
+        results.extend(subdir_results[subdir.name])
 
     return results
 
 
 def render_index(root: Path) -> list[str]:
-    """Render the file index as compact lines."""
+    """Render the file index as compact lines.
+
+    Uses tree format for long prefixes to avoid repetition:
+        packages/python_viterbo/src/viterbo/experiments/
+        | algorithm_comparison/{...}
+        | benchmark_hk2017/{...}
+    """
     entries = collect_tree(root, Path("."), 0)
+
+    # Group entries by tree prefix
+    # Key: prefix (or "" for non-grouped), Value: list of (full_path, items)
+    grouped: dict[str, list[tuple[str, list[str]]]] = defaultdict(list)
+
+    for dir_path, items in entries:
+        # Clean up the path display
+        if dir_path.startswith("./"):
+            clean_dir = dir_path[2:]
+        else:
+            clean_dir = dir_path
+
+        # Check if this entry belongs under a tree prefix (use longest match)
+        matched_prefix = ""
+        for prefix in CONFIG.tree_prefixes:
+            if clean_dir.startswith(prefix) and len(prefix) > len(matched_prefix):
+                matched_prefix = prefix
+
+        grouped[matched_prefix].append((clean_dir, items))
+
+    # Render output
     lines: list[str] = []
 
-    for dir_path, files, omitted in entries:
-        if omitted > 0:
-            lines.append(f"{dir_path} ({omitted} files)")
-        elif files:
-            if files[0].startswith("<"):
-                # Summary line
-                lines.append(f"{dir_path} {files[0]}")
-            elif files[0] == "(empty)":
-                lines.append(f"{dir_path} (empty)")
-            else:
-                compressed = compress_filenames(files)
-                # Clean up the path display
-                if dir_path == "./":
-                    lines.append(compressed)
+    # First, render non-grouped entries in order they appear
+    # But we need to interleave with grouped sections at the right position
+    prefix_emitted: set[str] = set()
+
+    for dir_path, items in entries:
+        if dir_path.startswith("./"):
+            clean_dir = dir_path[2:]
+        else:
+            clean_dir = dir_path
+
+        # Find which prefix this belongs to (use longest match)
+        matched_prefix = ""
+        for prefix in CONFIG.tree_prefixes:
+            if clean_dir.startswith(prefix) and len(prefix) > len(matched_prefix):
+                matched_prefix = prefix
+
+        if matched_prefix and matched_prefix not in prefix_emitted:
+            # Emit the entire grouped section
+            prefix_emitted.add(matched_prefix)
+            lines.append(matched_prefix)
+
+            # Render each tree entry
+            for entry_path, entry_items in grouped[matched_prefix]:
+                suffix = entry_path[len(matched_prefix):]
+                if not suffix:
+                    # Files directly in the prefix directory
+                    compressed = compress_filenames(entry_items)
+                    lines.append(f"| {compressed}")
+                elif entry_items == ["(empty)"]:
+                    lines.append(f"| {suffix} (empty)")
+                elif not entry_items:
+                    # Folder with hidden contents
+                    lines.append(f"| {suffix}")
                 else:
-                    # Remove leading ./ for cleaner output
-                    clean_dir = dir_path[2:] if dir_path.startswith("./") else dir_path
-                    lines.append(f"{clean_dir}{compressed}")
+                    compressed = compress_filenames(entry_items)
+                    lines.append(f"| {suffix}{compressed}")
+        elif not matched_prefix:
+            # Regular non-grouped entry
+            if items == ["(empty)"]:
+                lines.append(f"{clean_dir} (empty)")
+            elif dir_path == "./":
+                lines.append(compress_filenames(items))
+            else:
+                compressed = compress_filenames(items)
+                lines.append(f"{clean_dir}{compressed}")
 
     return lines
 
