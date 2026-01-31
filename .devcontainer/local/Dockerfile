@@ -104,6 +104,6 @@ ENV PATH="$HOME/.cargo/bin:$HOME/.local/bin:/usr/local:$PATH"
 # Install Rust (rustup + basic components) in this devcontainer image.
 # We install rustfmt/clippy here so they're available without additional setup.
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable \
-    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy || true
+    && "$HOME/.cargo/bin/rustup" component add rustfmt clippy rust-analyzer || true
 
 WORKDIR /workspaces/msc-viterbo

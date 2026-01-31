@@ -14,11 +14,13 @@ sudo chown -R "${USER}:${USER}" \
   "${HOME}/.local" \
   "${HOME}/.cache"
 
-# Configure npm paths
+# Configure npm paths and install global packages
 if command -v npm >/dev/null 2>&1; then
   mkdir -p "${HOME}/.local/bin" "${HOME}/.cache/npm"
   npm config set prefix "${HOME}/.local"
   npm config set cache "${HOME}/.cache/npm"
+  # pyright LSP for Claude Code code intelligence plugin
+  npm install -g pyright
 fi
 
 # Configure git credentials via GitHub CLI

@@ -67,6 +67,6 @@ ENV PATH="$HOME/.cargo/bin:$PATH"
 # https://rustup.rs/
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
     && . "$HOME/.cargo/env" \
-    && rustup component add rustfmt clippy
+    && rustup component add rustfmt clippy rust-analyzer
 
 WORKDIR /workspaces/msc-viterbo
