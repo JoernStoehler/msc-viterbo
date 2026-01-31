@@ -270,13 +270,14 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 ### High Value (consider implementing)
 
-1. **LSP plugins for code intelligence** ⚠️ Needs verification in new session
+1. **LSP plugins for code intelligence** ⚠️ Partially working
    - `rust-analyzer-lsp` and `pyright-lsp` installed at project scope via CLI
    - Binaries (`rust-analyzer`, `pyright-langserver`) pre-installed in devcontainer
-   - `ENABLE_LSP_TOOL=true` added to `.claude/settings.json` (required for LSP to work)
-   - [Issue #13952](https://github.com/anthropics/claude-code/issues/13952) closed 2026-01-07 (race condition fixed)
-   - **Status:** Test in new session to verify diagnostics appear
-   - **Trial period:** Postmortem asks agents to report if LSP diagnostics appear
+   - `ENABLE_LSP_TOOL=true` set in `.claude/settings.json`
+   - **Works:** `documentSymbol` (in-file symbol enumeration)
+   - **Broken:** `hover`, `findReferences`, `goToDefinition` (cross-file features)
+   - **Not implemented:** Edit tool diagnostics (no diagnostics operation exposed)
+   - Root cause: [#22028](https://github.com/anthropics/claude-code/issues/22028) - missing `textDocument/didOpen`
 
 2. **Predefined subagents from actual usage**
    - Don't speculatively create subagents (YAGNI)

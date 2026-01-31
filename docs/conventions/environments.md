@@ -97,10 +97,11 @@ Plugins installed at project scope are stored in `.claude/settings.json` and ava
 - `ENABLE_LSP_TOOL=true` must be set (added to `.claude/settings.json` env section)
 - Without this, LSP plugins won't work at all
 
-**Status: LSP diagnostics not working (tested 2026-01-31)**
-- Plugins load correctly (visible in `--output-format stream-json` init)
-- But Edit tool responses contain no diagnostics (tested both CLI and IDE extension)
-- [Issue #13952](https://github.com/anthropics/claude-code/issues/13952) closed 2026-01-07, but diagnostics still don't appear
+**Status: LSP partially working (tested 2026-01-31)**
+- `documentSymbol` ✅ works (in-file symbol enumeration)
+- `hover`/`findReferences`/`goToDefinition` ❌ broken ("No X found")
+- Edit tool diagnostics ❌ not implemented (no diagnostics operation exposed)
+- Cross-file failures likely due to [#22028](https://github.com/anthropics/claude-code/issues/22028): missing `textDocument/didOpen`
 - Debug logs: `~/.claude/debug/latest`
 
 **References:**
