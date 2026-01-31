@@ -16,17 +16,6 @@
       "Read(**/secrets/**)"
     ]
   },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash -c \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/session-start.sh\""
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": {},
   "enabledPlugins": {}
 }
