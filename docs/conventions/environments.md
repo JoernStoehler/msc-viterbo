@@ -76,37 +76,9 @@ This repo uses **rebase+merge** (not squash, not merge commits):
 
 The VSCode IDE extension and Claude Code CLI are different products with different capabilities.
 
-**Key difference: Plugins**
-- Official Claude Code docs (https://code.claude.com/docs) describe CLI features
-- IDE extension has partial/buggy plugin support:
-  - `/plugin install` and `/plugin marketplace add` produce no output (unclear if success/failure)
-  - `/plugin` GUI opens but may show empty state
-  - GUI breaks when using search
-- **Use CLI for plugin management** - it works reliably
+**LSP plugins: broken, do not use (tested 2026-01-31)**
 
-**Plugin installation (one-time setup via CLI):**
-```bash
-claude plugin marketplace add anthropics/claude-plugins-official
-claude plugin install rust-analyzer-lsp@claude-plugins-official --scope project
-claude plugin install pyright-lsp@claude-plugins-official --scope project
-```
-
-Plugins installed at project scope are stored in `.claude/settings.json` and available to future sessions.
-
-**Required environment variable:**
-- `ENABLE_LSP_TOOL=true` must be set (added to `.claude/settings.json` env section)
-- Without this, LSP plugins won't work at all
-
-**Status: LSP partially working (tested 2026-01-31)**
-- `documentSymbol` ✅ works (in-file symbol enumeration)
-- `hover`/`findReferences`/`goToDefinition` ❌ broken ("No X found")
-- Edit tool diagnostics ❌ not implemented (no diagnostics operation exposed)
-- Root cause unknown (symptoms don't match [#22028](https://github.com/anthropics/claude-code/issues/22028))
-- Debug logs: `~/.claude/debug/latest`
-
-**References:**
-- Official plugins: https://github.com/anthropics/claude-plugins-official
-- Demo plugins: https://github.com/anthropics/claude-code/tree/main/plugins
+Most LSP operations return empty/useless results. Use Grep and Glob for code navigation instead. See `docs/notes/lsp-investigation.md` for details.
 
 ## Claude Code Configuration
 
