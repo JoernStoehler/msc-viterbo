@@ -277,7 +277,7 @@ The project adheres to most Anthropic best practices, often implementing them mo
    - **Works:** `documentSymbol` (in-file symbol enumeration)
    - **Broken:** `hover`, `findReferences`, `goToDefinition` (cross-file features)
    - **Not implemented:** Edit tool diagnostics (no diagnostics operation exposed)
-   - Root cause: [#22028](https://github.com/anthropics/claude-code/issues/22028) - missing `textDocument/didOpen`
+   - Root cause unknown (symptoms don't match known issues)
 
 2. **Predefined subagents from actual usage**
    - Don't speculatively create subagents (YAGNI)

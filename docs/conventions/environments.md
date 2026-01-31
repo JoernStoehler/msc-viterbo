@@ -101,7 +101,7 @@ Plugins installed at project scope are stored in `.claude/settings.json` and ava
 - `documentSymbol` ✅ works (in-file symbol enumeration)
 - `hover`/`findReferences`/`goToDefinition` ❌ broken ("No X found")
 - Edit tool diagnostics ❌ not implemented (no diagnostics operation exposed)
-- Cross-file failures likely due to [#22028](https://github.com/anthropics/claude-code/issues/22028): missing `textDocument/didOpen`
+- Root cause unknown (symptoms don't match [#22028](https://github.com/anthropics/claude-code/issues/22028))
 - Debug logs: `~/.claude/debug/latest`
 
 **References:**
