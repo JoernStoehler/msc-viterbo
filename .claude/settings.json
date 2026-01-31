@@ -5,8 +5,7 @@
     "GIT_ASKPASS": "/bin/true",
     "GCM_INTERACTIVE": "Never",
     "GIT_PAGER": "cat",
-    "GIT_EDITOR": "true",
-    "ENABLE_LSP_TOOL": "true"
+    "GIT_EDITOR": "true"
   },
   "permissions": {
     "defaultMode": "bypassPermissions",
