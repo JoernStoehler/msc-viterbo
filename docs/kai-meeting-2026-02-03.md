@@ -63,12 +63,13 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 | Chapter | Lines | Status |
 |---------|-------|--------|
 | math.tex | 483 | Core definitions complete |
-| algorithms.tex | 652 | HK2017 + Tube complete, Billiard design notes only |
+| algorithms.tex | 652 | Tube needs polish; HK2017 + Billiard simpler but missing; Clarke proof not yet migrated; figures need digital redraw |
 | counterexample.tex | 67 | Stub |
 | experiments.tex | 29 | Stub |
 | conjectures.tex | 9 | Stub |
+| intro.tex | 14 | Stub (can draft early) |
 
-**Also completed:** Clarke duality talk (given and migrated to thesis).
+**Also completed:** Clarke duality talk (given, proof to be migrated).
 
 ---
 
@@ -132,14 +133,31 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ### 4.3 Velocity
 
-<!-- [JÖRN: Fill in actual time spent. Below is placeholder.] -->
+**Week 1 (Jan 28-31):** 130 commits over 3.6 days.
 
-**Week 1 (Jan 28-31):** 129 commits, ~4 days.
-- Algorithm implementation: ~X pts completed
-- Infrastructure/debugging overhead: ~Y%
-- Experiments completed: 3
+*Effective time estimated via Gaussian KDE on commit timestamps (1-hour bandwidth):*
 
-**Projected capacity:** At ~Z pts/week, ~37 pts remaining = ~W weeks needed.
+| Day | Commits | Effective Hours |
+|-----|---------|-----------------|
+| Wed Jan 28 | 52 | ~30 |
+| Thu Jan 29 | 17 | ~19 |
+| Fri Jan 30 | 31 | ~20 |
+| Sat Jan 31 | 30 | ~18 |
+| **Total** | **130** | **~87 hours** |
+
+**Completed this week:**
+- HK2017 algorithm: complete + tested
+- Tube algorithm: complete + tested
+- 3 experiments with FINDINGS.md
+- Thesis chapter scaffolding
+- CI/tooling infrastructure
+
+<!-- [JÖRN: Estimate what % was infrastructure overhead vs core work] -->
+
+**Projection:**
+- ~87 effective hours / 3.6 days ≈ 24 hours/day (agents running in parallel)
+- This is not sustainable Jörn attention — bottleneck is review/direction
+- Better metric: ~X pts completed Week 1, ~37 pts remaining
 
 ---
 
@@ -192,6 +210,39 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 1. Is the experiment roadmap appropriately scoped for March deadline?
 2. Should billiard algorithm be prioritized, or focus on HK2017/Tube experiments only?
 3. Are there specific polytope families Kai recommends investigating?
+
+---
+
+## 9. Full Experiment List
+
+**Completed (with FINDINGS.md):**
+| Experiment | Description |
+|------------|-------------|
+| benchmark_hk2017 | Runtime scaling analysis |
+| algorithm_inventory | Survey existing approaches |
+| runtime_performance_analysis | Profile Tube hotspots |
+
+**Open (unblocked):**
+| Issue | Experiment | Description |
+|-------|------------|-------------|
+| #96 | algorithm-comparison | HK2017 vs Tube on non-Lagrangian polytopes |
+| #100 | billiard-hko-orbit | Validate HK-O pentagon counterexample |
+| #101 | random-polytope-sys-distribution | How rare are counterexamples? |
+| #102 | lagrangian-product-polygons | Regular polygon products study |
+| #105 | dataset-dimension-reduction | PCA/UMAP on polytope features |
+| #106 | sys-ratio-optimization | Gradient flow toward max sys |
+| #110 | lagrangian-product-random-polygons | Extend to random polygon products |
+| #111 | fixed-facet-vertex-count | Filter dataset by combinatorial complexity |
+
+**Blocked (waiting on algorithm comparison):**
+| Issue | Experiment | Description |
+|-------|------------|-------------|
+| #112 | algorithm-performance-comparison | Benchmark all algorithms |
+| #113 | algorithm-optimization-ablation | Performance impact of components |
+| #114 | nn-regression-mutual-info | Neural network capacity prediction |
+| #115 | ml-capacity-prediction | Learn scalable capacity approximator |
+
+**Note:** This list is not exhaustive. More experiments will be designed after initial results reveal the Viterbo landscape.
 
 ---
 
