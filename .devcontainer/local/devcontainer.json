@@ -35,7 +35,10 @@
   "containerEnv": {
     "DEVCONTAINER_ENV": "local",
     "HISTFILE": "/home/vscode/.bash_history_dir/.bash_history",
-    "CARGO_BUILD_JOBS": "4"
+    "CARGO_BUILD_JOBS": "4",
+    // Claude Code stores .claude.json at $CLAUDE_CONFIG_DIR (default: $HOME).
+    // Must point inside ~/.claude/ so it's included in the bind mount.
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
   },
   // Bind mounts: Jörn's specific host paths for cache persistence.
   "mounts": [

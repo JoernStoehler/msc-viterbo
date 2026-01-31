@@ -108,6 +108,34 @@ Plugins installed at project scope are stored in `.claude/settings.json` and ava
 - Official plugins: https://github.com/anthropics/claude-plugins-official
 - Demo plugins: https://github.com/anthropics/claude-code/tree/main/plugins
 
+## Claude Code Configuration
+
+**Config file locations:**
+- `$CLAUDE_CONFIG_DIR/.claude.json` - User-level settings (install method, theme, account info)
+- `.claude/settings.json` - Project-level settings (permissions, hooks, plugins)
+- `.claude/settings.local.json` - Personal project settings (gitignored)
+
+**CLAUDE_CONFIG_DIR environment variable:**
+- Default: `$HOME` (so `.claude.json` lands at `~/.claude.json`)
+- This project sets it to `/home/vscode/.claude` in devcontainer.json
+- Why: The bind mount only covers `~/.claude/` directory. Without this envvar, `.claude.json` would be at home root (outside the mount) and lost on rebuild.
+
+**Permission modes:**
+```json
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  }
+}
+```
+
+Valid modes: `"default"`, `"acceptEdits"`, `"bypassPermissions"`, `"plan"`
+
+This project uses `bypassPermissions` since we run in a sandboxed container.
+
+**Known /doctor false positive:**
+The `/doctor` command may show "Warning: Leftover npm global installation" even when no npm install exists. This happens when npm's prefix is `~/.local` (same as native install location). The detection logic incorrectly assumes `~/.local/bin/claude` came from npm. Safe to ignore if `~/.claude.json` shows `"installMethod": "native"`.
+
 ## CC Web Limitations
 
 Emergency backup only:

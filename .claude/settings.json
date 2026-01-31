@@ -9,6 +9,7 @@
     "ENABLE_LSP_TOOL": "true"
   },
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
@@ -28,7 +29,7 @@
     ]
   },
   "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   }
 }
