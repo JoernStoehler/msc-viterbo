@@ -1,20 +1,4 @@
 {
-  "env": {
-    "GIT_TERMINAL_PROMPT": "0",
-    "GIT_SSH_COMMAND": "ssh -oBatchMode=yes",
-    "GIT_ASKPASS": "/bin/true",
-    "GCM_INTERACTIVE": "Never",
-    "GIT_PAGER": "cat",
-    "GIT_EDITOR": "true"
-  },
-  "permissions": {
-    "defaultMode": "bypassPermissions",
-    "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(**/secrets/**)"
-    ]
-  },
   "hooks": {
     "SessionStart": [
       {
