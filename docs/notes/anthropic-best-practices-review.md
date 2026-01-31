@@ -270,12 +270,12 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 ### High Value (consider implementing)
 
-1. **LSP plugins for code intelligence**
+1. **LSP plugins for code intelligence** ✅ Implemented
    - `rust-analyzer-lsp` and `pyright-lsp` provide automatic diagnostics after edits
    - Claude sees type errors, missing imports immediately without running compiler/linter
-   - Requires interactive installation: `/plugin install rust-analyzer-lsp@claude-plugins-official`
-   - Binaries already available in devcontainer (`rust-analyzer`, `pyright-langserver`)
-   - **Trial period:** Postmortem now asks agents to report friction/noise from LSP plugins
+   - Requires one-time interactive installation: `/plugin install rust-analyzer-lsp@claude-plugins-official --scope project`
+   - Binaries (`rust-analyzer`, `pyright-langserver`) installed in devcontainer
+   - **Trial period:** Postmortem asks agents to report friction/noise from LSP plugins
 
 2. **Predefined subagents from actual usage**
    - Don't speculatively create subagents (YAGNI)
