@@ -4,7 +4,21 @@
 
 ## What Was Disabled
 
-### 1. SessionStart Hook (settings.json)
+### 1. Environment Variables (settings.json)
+**Disabled**: ALL environment variables including ENABLE_LSP_TOOL
+- **Original**: 
+  - `ENABLE_LSP_TOOL: "true"` - **CAN BE FATAL!**
+  - `GIT_TERMINAL_PROMPT: "0"`
+  - `GIT_SSH_COMMAND: "ssh -oBatchMode=yes"`
+  - `GIT_ASKPASS: "/bin/true"`
+  - `GCM_INTERACTIVE: "Never"`
+  - `GIT_PAGER: "cat"`
+  - `GIT_EDITOR: "true"`
+- **Now**: Empty env object `{}`
+- **Impact**: LSP tools disabled, git may prompt for passwords
+- **To re-enable**: Add back one at a time to identify culprit
+
+### 2. SessionStart Hook (settings.json)
 **Disabled**: Entire hook removed from configuration
 - **Original**: Hook executed `.claude/hooks/session-start.sh` on startup
 - **Now**: Empty hooks object `{}`
@@ -41,25 +55,34 @@
 
 Test CC startup after each step:
 
-1. **Test with completely disabled hooks** (current state)
-   - If CC works: crash was in hooks system
-   - If CC crashes: crash is elsewhere (not hooks)
+1. **Test with everything disabled** (current state)
+   - If CC works: crash was in hooks or env vars
+   - If CC crashes: crash is elsewhere (permissions, plugins, or CC itself)
 
-2. **Re-enable hook but keep script minimal** 
+2. **Re-enable safe environment variables only**
+   - Add back git-related vars (GIT_PAGER, GIT_EDITOR, etc.)
+   - Keep ENABLE_LSP_TOOL disabled
+   - If crashes: git env vars cause crash
+
+3. **Test ENABLE_LSP_TOOL separately**
+   - Add ONLY `"ENABLE_LSP_TOOL": "true"`
+   - If crashes: LSP is the culprit (likely!)
+
+4. **Re-enable hook but keep script minimal** 
    - Add hook back to settings.json
    - Keep session-start.sh as no-op
    - If crashes: hook invocation itself causes crash
 
-3. **Add file index only**
-   - Re-enable file-index.py call
+5. **Add file index only**
+   - Re-enable file-index.py call in session-start.sh
    - If crashes: file-index.py is the culprit
 
-4. **Add environment detection**
-   - Re-enable environment variable checks
+6. **Add environment detection**
+   - Re-enable environment variable checks in session-start.sh
    - If crashes: environment logic causes crash
 
-5. **Add gh CLI installation**
-   - Re-enable wget/tar operations
+7. **Add gh CLI installation**
+   - Re-enable wget/tar operations in session-start.sh
    - If crashes: gh installation causes crash
 
 ## How to Restore Original Functionality
