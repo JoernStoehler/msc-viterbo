@@ -270,14 +270,17 @@ The project adheres to most Anthropic best practices, often implementing them mo
 
 ### High Value (consider implementing)
 
-1. **Predefined subagents in `.claude/agents/`**
-   - Security reviewer for FFI code
-   - Math verification specialist for algorithm implementations
-   - Would make subagent invocation consistent rather than ad-hoc
+1. **LSP plugins for code intelligence**
+   - `rust-analyzer-lsp` and `pyright-lsp` provide automatic diagnostics after edits
+   - Claude sees type errors, missing imports immediately without running compiler/linter
+   - Requires interactive installation: `/plugin install rust-analyzer-lsp@claude-plugins-official`
+   - Binaries already available in devcontainer (`rust-analyzer`, `pyright-langserver`)
+   - **Trial period:** Postmortem now asks agents to report friction/noise from LSP plugins
 
-2. **Post-edit hooks**
-   - Run `cargo fmt` / `ruff format` after edits
-   - Reduces manual cleanup in review stage
+2. **Predefined subagents from actual usage**
+   - Don't speculatively create subagents (YAGNI)
+   - Postmortem now asks agents to report successful Task() prompts
+   - Create `.claude/agents/` entries only for patterns that emerge from real usage
 
 ### Medium Value (consider documenting)
 
