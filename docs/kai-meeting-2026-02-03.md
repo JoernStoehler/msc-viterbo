@@ -133,31 +133,33 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ### 4.3 Velocity
 
-**Week 1 (Jan 28-31):** 130 commits over 3.6 days.
+**Project timeline:** Thesis started ~Oct 14, 2025. Repo created Nov 17, 2025.
 
-*Effective time estimated via Gaussian KDE on commit timestamps (1-hour bandwidth):*
+| Week | Dates | Commits | Phase |
+|------|-------|---------|-------|
+| W46-W48 | Nov 10 - Dec 1 | 63 | Initial setup, early experiments |
+| W49-W52 | Dec 1 - Dec 28 | 73 | Algorithm development |
+| W02-W04 | Jan 5 - Jan 25 | 60 | Steady progress |
+| **W05** | **Jan 26 - Jan 31** | **264** | **Agent-driven sprint** |
+| **Total** | | **460** | |
 
-| Day | Commits | Effective Hours |
-|-----|---------|-----------------|
-| Wed Jan 28 | 52 | ~30 |
-| Thu Jan 29 | 17 | ~19 |
-| Fri Jan 30 | 31 | ~20 |
-| Sat Jan 31 | 30 | ~18 |
-| **Total** | **130** | **~87 hours** |
+**W05 breakdown (agent sprint):**
 
-**Completed this week:**
-- HK2017 algorithm: complete + tested
-- Tube algorithm: complete + tested
-- 3 experiments with FINDINGS.md
-- Thesis chapter scaffolding
-- CI/tooling infrastructure
+| Day | Commits |
+|-----|---------|
+| Sun Jan 26 | 60 |
+| Mon Jan 27 | 63 |
+| Tue Jan 28 | 62 |
+| Wed Jan 29 | 16 |
+| Thu Jan 30 | 32 |
+| Fri Jan 31 | 31 |
 
-<!-- [JÖRN: Estimate what % was infrastructure overhead vs core work] -->
+**Observations:**
+- W05 had more commits than all previous weeks combined (264 vs 196)
+- Agent parallelism dramatically increased throughput
+- Bottleneck shifted from coding to Jörn's review/direction capacity
 
-**Projection:**
-- ~87 effective hours / 3.6 days ≈ 24 hours/day (agents running in parallel)
-- This is not sustainable Jörn attention — bottleneck is review/direction
-- Better metric: ~X pts completed Week 1, ~37 pts remaining
+<!-- [JÖRN: Estimate points completed in W05 vs earlier weeks] -->
 
 ---
 
@@ -175,17 +177,22 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ### 6.1 Sources of Trust
 
-1. **Cross-validation:** HK2017 and Tube agree on overlapping polytopes
-2. **Known values:** Tesseract, cross-polytope, 24-cell match literature
-3. **Mathematical properties verified:**
+1. **Known values:** Tesseract, cross-polytope, 24-cell match literature (mathematically derived, not empirical)
+2. **Mathematical properties verified:**
    - Scaling: $c(\lambda K) = \lambda^2 c(K)$ ✓
-   - Mahler bound: $c(K) \cdot c(K^\circ) \leq 4$ ✓
+   - Mahler bound: $c(K) \cdot c(K^\circ) \leq 4$ ✓ (exactly saturated by tesseract/cross-polytope pair)
    - Constraint satisfaction: $\sum \beta_i h_i = 1$, $\sum \beta_i n_i = 0$ ✓
 
-4. **Test coverage:** 191 unit tests, including regression tests for fixed bugs
+3. **Test coverage:** 191 unit tests, including regression tests for fixed bugs
 
-### 6.2 Known Gaps
+### 6.2 Known Gaps (Critical)
 
+**⚠️ Tube lacks effective cross-validation (#144):**
+- The HK2017 vs Tube comparison test can pass with **0 successful comparisons**
+- Capacity axioms alone don't prove we compute $c_{EHZ}$ vs some other capacity-like function
+- This is the biggest correctness gap — needs fixing before experiments
+
+**Other gaps:**
 - Billiard algorithm: design only, not yet implemented/tested
 - HK thesis simplices claim: not yet verified (blocked on document access)
 - Large polytopes ($F > 10$): only Tube applicable, no cross-check
