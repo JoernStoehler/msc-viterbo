@@ -1,0 +1,6 @@
+{
+  "name": "code-intelligence",
+  "version": "1.0.0",
+  "description": "LSP integration for Rust and Python code intelligence",
+  "lspServers": "../.lsp.json"
+}
