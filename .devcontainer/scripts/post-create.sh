@@ -19,6 +19,7 @@ Sets up:
   - User directories (~/.config, ~/.local, ~/.cache, etc.)
   - npm prefix/cache configuration
   - GitHub CLI git credential helper
+  - Claude Code CLI
   - [local only] TeX format pre-warming
   - [local only] Worktrees mount verification
   - [codespace only] Background cache warming (optional)
@@ -56,6 +57,9 @@ fi
 if command -v gh >/dev/null 2>&1; then
   gh auth setup-git || true
 fi
+
+# Install Claude Code CLI
+curl -fsSL https://claude.ai/install.sh | bash
 
 # -----------------------------------------------------------------------------
 # Local-only setup
