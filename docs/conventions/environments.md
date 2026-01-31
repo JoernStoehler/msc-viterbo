@@ -12,6 +12,7 @@ Environment configuration and git worktrees for parallel agent work.
 | Rust/Python | Yes | Yes | Yes |
 | Git worktrees | Scripts | Manual | No |
 | Skills | Work | Work | Broken |
+| Plugins | CLI only | CLI only | Unknown |
 | Cache persistence | Bind mounts | No | No |
 
 ## Environment Detection
@@ -70,6 +71,31 @@ This repo uses **rebase+merge** (not squash, not merge commits):
 - OAuth may not persist across rebuilds
 - Caches don't persist across rebuilds
 - `/workspaces/` persists across rebuilds
+
+## VSCode IDE Extension vs CLI
+
+The VSCode IDE extension and Claude Code CLI are different products with different capabilities.
+
+**Key difference: Plugins**
+- Official Claude Code docs (https://code.claude.com/docs) describe CLI features
+- IDE extension has partial/buggy plugin support:
+  - `/plugin install` and `/plugin marketplace add` produce no output (unclear if success/failure)
+  - `/plugin` GUI opens but may show empty state
+  - GUI breaks when using search
+- **Use CLI for plugin management** - it works reliably
+
+**Plugin installation (one-time setup via CLI):**
+```bash
+claude plugin marketplace add anthropics/claude-plugins-official
+claude plugin install rust-analyzer-lsp@claude-plugins-official --scope project
+claude plugin install pyright-lsp@claude-plugins-official --scope project
+```
+
+Plugins installed at project scope are stored in `.claude/settings.json` and available to future sessions.
+
+**References:**
+- Official plugins: https://github.com/anthropics/claude-plugins-official
+- Demo plugins: https://github.com/anthropics/claude-code/tree/main/plugins
 
 ## CC Web Limitations
 
