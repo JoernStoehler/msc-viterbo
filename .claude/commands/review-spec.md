@@ -69,3 +69,14 @@ Significant issues: list them and request changes.
 - Missing context: references code that doesn't exist
 - Overspecified: prescribes implementation details that should be dev's choice
 - Incomplete: dev will discover missing requirements mid-implementation
+
+## Out of Scope Findings
+
+If you discover issues not in the spec's scope:
+- Add them to the PR description under "Out of scope"
+- Don't create GitHub issues (PM agent owns issue creation)
+- Don't ignore them — they must be tracked somewhere
+
+## Notes
+
+- GitHub blocks self-approval. If you can't approve via `gh pr review --approve`, use `gh pr comment` with your verdict instead.

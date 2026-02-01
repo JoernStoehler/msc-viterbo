@@ -109,3 +109,10 @@ A good spec is:
 - **Testable**: Each criterion can be verified as pass/fail
 - **Complete**: Dev agent won't discover missing requirements mid-implementation
 - **Standalone**: Implementable without seeing this conversation
+
+## Out of Scope Findings
+
+If you discover related work not in the issue's scope:
+- Note it in the PR description under "Out of scope"
+- Don't create GitHub issues (PM agent owns issue creation)
+- Don't ignore them — they must be tracked somewhere
