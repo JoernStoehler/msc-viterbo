@@ -32,7 +32,6 @@ use reconstruct::reconstruct_orbit;
 /// For a polytope with n facets, tubes have length O(n), and the branching factor
 /// is bounded by the number of adjacent facets (~6 for regular polytopes).
 /// With good pruning, the heap should stay much smaller than this.
-#[cfg(debug_assertions)]
 const MAX_EXPECTED_HEAP_SIZE: usize = 100_000;
 
 /// Main entry point: compute the EHZ capacity using the tube algorithm.
@@ -275,8 +274,7 @@ fn extend_tube_with_transition(
         intersect_polygons(&tube.p_start, &pullback)
     } else {
         // Flow map not invertible (shouldn't happen for symplectic maps)
-        assert!(false, "Flow map not invertible");
-        tube.p_start.clone()
+        panic!("Flow map not invertible");
     };
 
     // Check p_start is non-empty (otherwise no valid orbits can start here)
