@@ -212,7 +212,7 @@ fn validate_polytope(hrep: &PolytopeHRep, vrep: &PolytopeVRep) -> Result<(), Val
         let count = vrep.vertices.iter()
             .filter(|v| (hrep.normals[i].dot(v) - hrep.heights[i]).abs() < EPS)
             .count();
-        assert!(count >= 4, "facet {} is redundant or degenerate", i);
+        assert!(count >= 4, "halfspace {} is redundant (H-rep is not irredundant)", i);
     }
 
     Ok(())
