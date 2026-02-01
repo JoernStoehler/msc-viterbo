@@ -71,14 +71,11 @@ scripts/ci.sh --rust                # Rust only
 scripts/ci.sh --python              # Python + FFI only
 
 # GitHub CLI
-# Reading (use --json to avoid GraphQL deprecation issues):
 gh issue view <N> --json title,body,labels --jq '.title, .body'  # Read issue
-gh pr view <N> --json title,body,state                           # Read PR
+gh pr view <N>                      # Read PR
+gh pr edit <N> --body "..."         # Update PR
 gh pr diff <N>                      # PR diff
 gh pr checks <N> --watch            # Wait for CI
-# Writing (gh pr edit uses broken GraphQL; use REST API instead):
-gh api repos/OWNER/REPO/pulls/N --method PATCH -f body="..."     # Update PR body
-gh api repos/OWNER/REPO/pulls/N --method PATCH -f title="..."    # Update PR title
 ```
 
 ## Agent Protocol
