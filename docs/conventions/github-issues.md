@@ -1,11 +1,10 @@
 # GitHub Issues & Task Management
 
-Work tracking conventions using GitHub Issues, Milestones, and Discussions.
+Work tracking conventions using GitHub Issues and Milestones.
 
 ## Overview
 
 - Code work → GitHub Issues
-- Experiment ideas → GitHub Discussions → Issue when ready
 - Experiments have tracking issue + SPEC.md/FINDINGS.md in repo
 
 ## Creating Issues

@@ -111,7 +111,7 @@ A brief interruption beats running into a dead end. State blockers clearly in yo
 
 ### Task Management
 
-Work tracked in GitHub Issues, Milestones, and Discussions. GH CLI is available.
+Work tracked in GitHub Issues and Milestones. GH CLI is available.
 Don't bother with task management unless explicitly assigned.
 
 ### Cleanup & Standards
