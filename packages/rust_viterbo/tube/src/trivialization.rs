@@ -322,7 +322,11 @@ mod tests {
         // Nearly parallel: ρ → 0
         let m_parallel = Vector4::new(1.0, 1e-6, 0.0, 0.0).normalize();
         let rho_parallel = rotation_number_direct(&n, &m_parallel);
-        assert!(rho_parallel < 0.01, "ρ_parallel = {} should be near 0", rho_parallel);
+        assert!(
+            rho_parallel < 0.01,
+            "ρ_parallel = {} should be near 0",
+            rho_parallel
+        );
 
         // Perpendicular: ρ = 0.25
         let m_perp = Vector4::new(0.0, 1.0, 0.0, 0.0);

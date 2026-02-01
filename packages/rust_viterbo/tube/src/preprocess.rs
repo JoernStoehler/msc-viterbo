@@ -566,7 +566,8 @@ mod tests {
             assert!(
                 incident_facets >= 4,
                 "cross_polytope: vertex {} lies on {} facets (need >= 4)",
-                v_idx, incident_facets
+                v_idx,
+                incident_facets
             );
             // Cross-polytope specifically has 8 facets per vertex
             assert_eq!(
@@ -792,8 +793,7 @@ mod tests {
         for (k, tf) in data.two_face_data.iter().enumerate() {
             for (v_idx, v_2d) in tf.polygon.vertices.iter().enumerate() {
                 // Reconstruct 4D: p_4d = centroid + v_2d[0] * b1 + v_2d[1] * b2
-                let p_4d =
-                    tf.centroid_4d + v_2d[0] * tf.basis_exit[0] + v_2d[1] * tf.basis_exit[1];
+                let p_4d = tf.centroid_4d + v_2d[0] * tf.basis_exit[0] + v_2d[1] * tf.basis_exit[1];
 
                 // Check entry facet constraint: n_entry · p = h_entry
                 let entry_val = tf.entry_normal.dot(&p_4d);

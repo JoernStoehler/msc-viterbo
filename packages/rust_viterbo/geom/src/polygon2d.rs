@@ -463,12 +463,7 @@ mod tests {
         for polygon in &[square, pentagon] {
             for (i, normal) in polygon.normals.iter().enumerate() {
                 let h = support_function(normal, polygon);
-                assert_relative_eq!(
-                    h,
-                    polygon.heights[i],
-                    epsilon = 1e-10,
-                    max_relative = 1e-10
-                );
+                assert_relative_eq!(h, polygon.heights[i], epsilon = 1e-10, max_relative = 1e-10);
             }
         }
     }
