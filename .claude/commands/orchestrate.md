@@ -86,19 +86,41 @@ gh pr view <number> --comments
 gh pr merge <number> --squash --delete-branch
 ```
 
-### Clean up worktree
+### Post-Merge Checklist
+
+**CRITICAL:** Run this checklist immediately after any PR merge. Missing follow-ups can cause work to be lost or issues to go untracked.
 
 ```bash
+# 1. Read FULL PR body for follow-ups
+gh pr view <number> --json body --jq '.body'
+# Look for: "Follow-ups for PM Agent", "Out of scope", action items
+
+# 2. Check PR comments (review verdicts, discussion threads)
+gh pr view <number> --comments
+
+# 3. Check inline review comments (unresolved discussions)
+gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {path, body, line}'
+
+# 4. Check if PR auto-closed any issues
+gh pr view <number> --json closingIssuesReferences --jq '.closingIssuesReferences[]'
+
+# 5. Verify remote branch was deleted
+git branch -r | grep <branch-name> && git push origin --delete <branch-name>
+
+# 6. Remove worktree if one existed
+git worktree list  # Check for task worktree
 .devcontainer/local/worktree-remove.sh /workspaces/worktrees/<task>
 ```
 
-### Create follow-up issues
+**For each follow-up item found:**
+- Check if already tracked by existing issue
+- Create new issue if not tracked
+- Note items that are conditional ("if X happens, then Y")
 
-After merge, read PR description for "Out of scope" notes and create issues:
-
-```bash
-gh issue create --title "<title>" --body "<description>"
-```
+**Present summary to Jörn** showing:
+- Items checked
+- Actions taken (issues created, branches deleted, worktrees removed)
+- Items deferred and why
 
 ## What You Learn From
 
