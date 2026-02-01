@@ -15,7 +15,8 @@ use crate::trivialization::{
     rotation_number_from_trace, trivialize,
 };
 use crate::types::{
-    validate_for_tube, FlowDirection, Polygon2D, PolytopeHRep, TubeError, TwoFace, TwoFaceEnriched,
+    validate_for_tube, FlowDirection, Polygon2D, PolytopeHRep, ThreeFacetData, TubeError, TwoFace,
+    TwoFaceData, TwoFaceEnriched, TwoFaceLookup,
 };
 
 /// Preprocessed polytope data for the tube algorithm.
@@ -31,6 +32,16 @@ pub struct PolytopeData {
     pub reeb_vectors: Vec<Vector4<f64>>,
     /// 4D vertices of the polytope.
     pub vertices: Vec<Vector4<f64>>,
+
+    // --- New structures (clean API) ---
+    /// 2-face data indexed by 2-face index.
+    pub two_face_data: Vec<TwoFaceData>,
+    /// Transition data indexed by transition index.
+    pub transitions: Vec<ThreeFacetData>,
+    /// Lookup tables for index conversion and adjacency.
+    pub lookup: TwoFaceLookup,
+
+    // --- Legacy structures (to be removed after migration) ---
     /// Basic 2-face data (all adjacent facet pairs).
     pub two_faces: Vec<TwoFace>,
     /// Enriched 2-faces (non-Lagrangian only, with trivialization data).
@@ -95,6 +106,32 @@ impl PolytopeData {
             })
             .collect()
     }
+
+    // --- New API methods ---
+
+    /// Get 2-face data by index.
+    #[inline]
+    pub fn get_two_face(&self, k: usize) -> &TwoFaceData {
+        &self.two_face_data[k]
+    }
+
+    /// Get transition data by index.
+    #[inline]
+    pub fn get_transition(&self, m: usize) -> &ThreeFacetData {
+        &self.transitions[m]
+    }
+
+    /// Get 2-face index for facet pair (i, j).
+    #[inline]
+    pub fn two_face_index(&self, i: usize, j: usize) -> Option<usize> {
+        self.lookup.get_two_face(i, j)
+    }
+
+    /// Get transitions starting from 2-face k.
+    #[inline]
+    pub fn transitions_from(&self, k: usize) -> &[usize] {
+        self.lookup.transitions_from(k)
+    }
 }
 
 /// Preprocess a polytope for the tube algorithm.
@@ -123,12 +160,19 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
     // Enrich non-Lagrangian 2-faces
     let two_faces_enriched = enrich_two_faces(&two_faces, &normals, &vertices)?;
 
+    // Build new clean structures
+    let (two_face_data, mut lookup) = build_two_face_data(&two_faces_enriched, num_facets);
+    let transitions = build_transitions(&two_face_data, &mut lookup);
+
     Ok(PolytopeData {
         num_facets,
         normals,
         heights,
         reeb_vectors,
         vertices,
+        two_face_data,
+        transitions,
+        lookup,
         two_faces,
         two_faces_enriched,
     })
@@ -302,6 +346,74 @@ fn enrich_two_faces(
     Ok(enriched)
 }
 
+/// Build TwoFaceData list and lookup from enriched 2-faces.
+fn build_two_face_data(
+    enriched: &[TwoFaceEnriched],
+    num_facets: usize,
+) -> (Vec<TwoFaceData>, TwoFaceLookup) {
+    let mut data = Vec::with_capacity(enriched.len());
+    let mut lookup = TwoFaceLookup::new(num_facets);
+
+    for (k, tfe) in enriched.iter().enumerate() {
+        let flow_dir = tfe.flow_direction.expect("Non-Lagrangian must have flow direction");
+
+        data.push(TwoFaceData {
+            facet_i: tfe.i,
+            facet_j: tfe.j,
+            omega: tfe.omega_ij,
+            flow_direction: flow_dir,
+            rotation: tfe.rotation,
+            polygon: tfe.polygon_2d.clone(),
+            centroid_4d: tfe.centroid_4d,
+            basis_exit: tfe.basis_exit,
+            entry_normal: tfe.entry_normal,
+            exit_normal: tfe.exit_normal,
+        });
+
+        lookup.register_two_face(tfe.i, tfe.j, k);
+    }
+
+    // Initialize transitions_from with empty vecs
+    lookup.transitions_from = vec![Vec::new(); enriched.len()];
+
+    (data, lookup)
+}
+
+/// Build ThreeFacetData list for all valid transitions.
+///
+/// A transition (i, j, k) is valid if:
+/// - (i, j) and (j, k) are both non-Lagrangian 2-faces
+/// - Flow goes from i → j on (i, j) and from j → k on (j, k)
+fn build_transitions(
+    two_faces: &[TwoFaceData],
+    lookup: &mut TwoFaceLookup,
+) -> Vec<ThreeFacetData> {
+    let mut transitions = Vec::new();
+
+    for (k_entry, tf_entry) in two_faces.iter().enumerate() {
+        let exit_facet = tf_entry.exit_facet();
+
+        // Find all 2-faces that have exit_facet as their entry facet
+        for (k_exit, tf_exit) in two_faces.iter().enumerate() {
+            if tf_exit.entry_facet() == exit_facet {
+                // Valid transition found
+                let facet_mid = exit_facet;
+
+                let trans_idx = transitions.len();
+                transitions.push(ThreeFacetData {
+                    two_face_entry: k_entry,
+                    two_face_exit: k_exit,
+                    facet_mid,
+                });
+
+                lookup.transitions_from[k_entry].push(trans_idx);
+            }
+        }
+    }
+
+    transitions
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -368,6 +480,62 @@ mod tests {
 
             // Polygon should be non-empty
             assert!(!tfe.polygon_2d.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_new_structures_consistency() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        // Number of 2-faces should match
+        assert_eq!(data.two_face_data.len(), data.two_faces_enriched.len());
+
+        // Lookup should find all 2-faces
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let found = data.lookup.get_two_face(tf.facet_i, tf.facet_j);
+            assert_eq!(found, Some(k), "Lookup should find 2-face {}", k);
+
+            // Reverse lookup should also work
+            let found_rev = data.lookup.get_two_face(tf.facet_j, tf.facet_i);
+            assert_eq!(found_rev, Some(k));
+        }
+
+        // Check transitions
+        for trans in &data.transitions {
+            // Entry and exit 2-faces should be valid indices
+            assert!(trans.two_face_entry < data.two_face_data.len());
+            assert!(trans.two_face_exit < data.two_face_data.len());
+
+            // Exit facet of entry 2-face should equal entry facet of exit 2-face
+            let tf_entry = &data.two_face_data[trans.two_face_entry];
+            let tf_exit = &data.two_face_data[trans.two_face_exit];
+            assert_eq!(
+                tf_entry.exit_facet(),
+                tf_exit.entry_facet(),
+                "Transition should connect at shared facet"
+            );
+            assert_eq!(tf_entry.exit_facet(), trans.facet_mid);
+        }
+
+        // Check adjacency structure
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let trans_indices = data.lookup.transitions_from(k);
+
+            // Each transition should have this 2-face as entry
+            for &trans_idx in trans_indices {
+                assert_eq!(data.transitions[trans_idx].two_face_entry, k);
+            }
+
+            // Forward facets from old API should match
+            let old_forward = data.adjacent_facets_forward(tf.exit_facet());
+            assert_eq!(
+                trans_indices.len(),
+                old_forward.len(),
+                "Adjacency count should match for 2-face {} (exit facet {})",
+                k,
+                tf.exit_facet()
+            );
         }
     }
 }

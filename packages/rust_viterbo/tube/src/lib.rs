@@ -39,5 +39,6 @@ pub use algorithm::tube_capacity;
 pub use preprocess::{preprocess, PolytopeData};
 pub use types::{
     validate_for_tube, AffineFunc, AffineMap2D, ClosedReebOrbit, FlowDirection, Polygon2D,
-    PolytopeHRep, Tube, TubeError, TubeResult, TwoFace, TwoFaceEnriched,
+    PolytopeHRep, ThreeFacetData, Tube, TubeError, TubeResult, TwoFace, TwoFaceData,
+    TwoFaceEnriched, TwoFaceLookup,
 };
