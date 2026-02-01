@@ -121,6 +121,7 @@ Don't bother with task management unless explicitly assigned.
 - Preserve context where useful for future agents (explain the "why" in code comments, but delete legacy commentary since it is not useful)
 - Prefer standard patterns — agents know them well
 - Mark uncertainties clearly so that unverified false claims don't propagate
+- When you discover a process gap through error, immediately update the relevant command/documentation to prevent recurrence — don't wait to be asked
 
 ### Approval Markers
 
@@ -138,7 +139,7 @@ See `docs/conventions/environments.md` for troubleshooting.
 - Jörn is available for questions, especially questions about ambiguous phrasings and missing context.
 - Jörn appreciates pushback when he writes something unclear, makes mistakes or suggests something suboptimal or against best practices.
 - Be direct, literal, and optimize for Jörn's time when you write a turn's final message. Structure your message to allow skimming. Use numbered lists to make referencing easier.
-- Omit superfluous politeness and focus on information transfer and object-level progress.
+- Omit superfluous politeness and focus on information transfer and object-level progress. Avoid filler phrases like "You're right" that don't fit the context (e.g., in response to a question).
 - Make direct, explicit requests for permissions, clarifications, reviews, feedback and decisions when needed.
 - Use Jörn's time wisely. Don't delegate work to him that you can do yourself.
 - Leave long-term thesis project management to Jörn, you can help but he has more experience with long-running academic projects.
