@@ -2,11 +2,6 @@
 //!
 //! These tests compare HK2017 and Tube on non-Lagrangian polytopes
 //! where both algorithms can run.
-//!
-//! Note: All tests in this file are `#[ignore]` because:
-//! - Random polytope generation has platform-dependent rejection rates
-//! - HK2017 is O(n!) so tests are slow for polytopes with many facets
-//! - Cross-algorithm comparison is research verification, not CI-critical
 
 use hk2017::{hk2017_capacity, Hk2017Config, PolytopeHRep as Hk2017Hrep};
 use tube::{fixtures, tube_capacity, PolytopeHRep as TubeHrep};
@@ -19,16 +14,7 @@ fn tube_to_hk2017(hrep: &TubeHrep) -> Hk2017Hrep {
 /// Compare HK2017 and Tube on random 8-facet non-Lagrangian polytopes.
 ///
 /// 8 facets = 8! = 40,320 permutations, which is tractable for HK2017.
-///
-/// # Note
-/// This test is ignored by default because:
-/// - Random polytope generation has high rejection rates
-/// - Platform-dependent floating-point behavior affects which seeds succeed
-/// - Can take 100+ seconds on some platforms
-///
-/// Run manually with: `cargo test --test hk2017_comparison random_8_facet -- --ignored --nocapture`
 #[test]
-#[ignore]
 fn test_hk2017_vs_tube_random_8_facet() {
     let min_omega = 0.05; // Ensure 2-faces are clearly non-Lagrangian
 

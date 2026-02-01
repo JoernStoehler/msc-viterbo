@@ -121,14 +121,11 @@ Evaluated but not implemented. Reasons:
 - Would complicate debugging (multi-process, interleaved output)
 - Limited parallelism benefit: the pipeline fixture is module-scoped, so integration tests run sequentially anyway
 
-### 3. Platform variance in `test_hk2017_vs_tube_random_8_facet` ✅ FIXED
+### 3. Platform variance in `test_hk2017_vs_tube_random_8_facet` — NO ACTION
 
-The test took 115s locally vs 4s in CI due to platform-dependent floating-point behavior affecting random polytope rejection rates.
+The test takes 115s locally vs 4s in CI due to platform-dependent floating-point behavior affecting random polytope rejection rates.
 
-**Fix**: Marked all tests in `tube/tests/hk2017_comparison.rs` as `#[ignore]`. These are cross-algorithm verification tests, not CI-critical. Run manually when needed:
-```bash
-cargo test --test hk2017_comparison -- --ignored --nocapture
-```
+**Decision**: Leave as-is. The test works correctly in CI (4s). The 115s local time is a developer experience issue, not a correctness issue. Never trade correctness for speed.
 
 ## Conclusion
 
