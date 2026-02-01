@@ -135,19 +135,21 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 **Project timeline:** Thesis started ~Oct 14, 2025. Repo created Nov 17, 2025.
 
-*Effective hours estimated via Gaussian KDE (bandwidth=2h, calibrated so 1 isolated commit ≈ 2h). This underestimates offline work (reading, paper notes, thinking).*
+*Commit-hours estimated via interval model: each commit claims time since previous, capped at 2h. Underestimates offline work (reading, thinking, paper notes).*
 
 | Phase | Dates | Commits | Est. Hours | Hrs/Commit |
 |-------|-------|---------|------------|------------|
-| Setup | Nov 10 - Dec 1 | 63 | ~458 | 7.3 |
-| Algorithm dev | Dec 1 - Dec 28 | 73 | ~590 | 8.1 |
-| Steady progress | Jan 5 - Jan 25 | 60 | ~341 | 5.7 |
-| **Agent sprint** | **Jan 26 - Jan 31** | **264** | **~461** | **1.75** |
-| **Total** | | **460** | **~1850** | |
+| Setup | Nov 10 - Dec 1 | 63 | ~54 | 0.86 |
+| Algorithm dev | Dec 1 - Dec 28 | 73 | ~69 | 0.94 |
+| Steady progress | Jan 5 - Jan 25 | 60 | ~41 | 0.69 |
+| **Agent sprint** | **Jan 26 - Jan 31** | **264** | **~82** | **0.31** |
+| **Total** | | **460** | **~246** | |
 
-**Key observation:** Agent parallelism changed the hrs/commit ratio from ~7h to ~1.75h. The sprint produced as many commits as all prior work combined, but in similar effective hours (~460h each half).
+**Key observation:** Agent parallelism changed hrs/commit from ~0.8h to ~0.3h (agents produce many small commits). The sprint had 3× more commits but only 2× more commit-hours.
 
 **Bottleneck shift:** Before agents, coding time dominated. Now, Jörn's review/direction capacity is the bottleneck.
+
+**Caveat:** These numbers exclude offline work. Actual time invested is higher, especially for phases with literature review.
 
 ---
 
