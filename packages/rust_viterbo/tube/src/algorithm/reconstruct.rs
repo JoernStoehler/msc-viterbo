@@ -7,7 +7,7 @@ use nalgebra::{Vector2, Vector4};
 
 use crate::constants::{EPS, EPS_CLOSURE};
 use crate::preprocess::PolytopeData;
-use crate::types::{ClosedReebOrbit, Tube, TubeError, TwoFaceEnriched};
+use crate::types::{ClosedReebOrbit, Tube, TubeError, TwoFaceData};
 
 /// Reconstruct the 4D orbit from 2D fixed point and tube.
 ///
@@ -30,9 +30,10 @@ pub(super) fn reconstruct_orbit(
     }
 
     // Get start 2-face
-    let start_2face = data
-        .get_two_face_enriched(seq[0], seq[1])
+    let start_2face_idx = data
+        .two_face_index(seq[0], seq[1])
         .ok_or_else(|| TubeError::InvalidPolytope("Start 2-face not found".to_string()))?;
+    let start_2face = data.get_two_face(start_2face_idx);
 
     // Convert starting point to 4D
     let start_4d = untrivialize_point(fixed_point_2d, start_2face);
@@ -111,6 +112,6 @@ pub(super) fn reconstruct_orbit(
 ///
 /// The trivialization maps the 2-face tangent space to ℝ² using basis vectors
 /// (jn, kn) where n is the facet normal. This inverts that map.
-fn untrivialize_point(point_2d: &Vector2<f64>, tfe: &TwoFaceEnriched) -> Vector4<f64> {
-    tfe.centroid_4d + point_2d[0] * tfe.basis_exit[0] + point_2d[1] * tfe.basis_exit[1]
+fn untrivialize_point(point_2d: &Vector2<f64>, tf: &TwoFaceData) -> Vector4<f64> {
+    tf.centroid_4d + point_2d[0] * tf.basis_exit[0] + point_2d[1] * tf.basis_exit[1]
 }

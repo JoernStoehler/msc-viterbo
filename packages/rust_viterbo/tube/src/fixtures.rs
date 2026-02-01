@@ -274,9 +274,14 @@ pub fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<Polytop
         Err(_) => return None, // Unbounded, degenerate, etc.
     };
 
-    // Check actual 2-faces for near-Lagrangian (not all pairs!)
-    for tf in &data.two_faces {
-        if tf.omega_ij.abs() < min_omega {
+    // Check for Lagrangian 2-faces (omega ≈ 0)
+    if data.has_lagrangian_two_faces() {
+        return None;
+    }
+
+    // Check all 2-faces for near-Lagrangian (omega < min_omega)
+    for tf in &data.two_face_data {
+        if tf.omega < min_omega {
             return None; // Near-Lagrangian 2-face
         }
     }
@@ -362,9 +367,14 @@ pub fn random_hrep_diagnostic(
         }
     };
 
-    // Check actual 2-faces for near-Lagrangian
-    for tf in &data.two_faces {
-        if tf.omega_ij.abs() < min_omega {
+    // Check for Lagrangian 2-faces (omega ≈ 0)
+    if data.has_lagrangian_two_faces() {
+        return Err(RejectionReason::NearLagrangian);
+    }
+
+    // Check all 2-faces for near-Lagrangian (omega < min_omega)
+    for tf in &data.two_face_data {
+        if tf.omega < min_omega {
             return Err(RejectionReason::NearLagrangian);
         }
     }
@@ -700,15 +710,22 @@ mod tests {
                 // Get actual 2-faces from preprocess
                 let data = preprocess(&hrep).expect("Should preprocess");
 
+                // Verify no Lagrangian 2-faces
+                assert!(
+                    !data.has_lagrangian_two_faces(),
+                    "Seed {} produced Lagrangian 2-face",
+                    seed
+                );
+
                 // Verify actual 2-faces satisfy the min_omega constraint
-                for tf in &data.two_faces {
+                for tf in &data.two_face_data {
                     assert!(
-                        tf.omega_ij.abs() >= min_omega,
-                        "Seed {} produced 2-face ({}, {}) with |ω| = {} < {}",
+                        tf.omega >= min_omega,
+                        "Seed {} produced 2-face ({} -> {}) with ω = {} < {}",
                         seed,
-                        tf.i,
-                        tf.j,
-                        tf.omega_ij.abs(),
+                        tf.entry_facet,
+                        tf.exit_facet,
+                        tf.omega,
                         min_omega
                     );
                 }

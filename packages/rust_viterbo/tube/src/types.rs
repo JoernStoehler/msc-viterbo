@@ -5,9 +5,9 @@
 //! - Polygon2D: 2D convex polygon (trivialized 2-face)
 //! - AffineMap2D: Affine transformation in 2D
 //! - AffineFunc: Affine function ℝ² → ℝ
-//! - FlowDirection: Direction of Reeb flow across a 2-face
-//! - TwoFace: Basic 2-face data
-//! - TwoFaceEnriched: 2-face with trivialization data
+//! - TwoFaceData: Per-2-face trivialization data
+//! - ThreeFacetData: Per-transition precomputed flow data
+//! - TwoFaceLookup: Index conversion and adjacency tables
 //! - Tube: Partial Reeb trajectory with fixed combinatorial class
 //! - ClosedReebOrbit: Complete closed Reeb orbit
 
@@ -176,15 +176,6 @@ impl AffineFunc {
     }
 }
 
-/// Direction of Reeb flow across a non-Lagrangian 2-face.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FlowDirection {
-    /// Flow crosses from facet i to facet j (when ω(n_i, n_j) > 0).
-    ItoJ,
-    /// Flow crosses from facet j to facet i (when ω(n_i, n_j) < 0).
-    JtoI,
-}
-
 // ============================================================================
 // 2-Face and Transition Data
 // ============================================================================
@@ -291,78 +282,8 @@ impl TwoFaceLookup {
 }
 
 // ============================================================================
-// Legacy Types (to be removed after migration)
+// Tube and Orbit Types
 // ============================================================================
-
-/// Basic 2-face data (intersection of two facets).
-#[derive(Debug, Clone)]
-pub struct TwoFace {
-    /// First facet index (i < j by convention).
-    pub i: usize,
-    /// Second facet index.
-    pub j: usize,
-    /// Indices of vertices on this 2-face.
-    pub vertex_indices: Vec<usize>,
-    /// Symplectic form of normals: ω(n_i, n_j).
-    pub omega_ij: f64,
-}
-
-impl TwoFace {
-    /// Check if this is a Lagrangian 2-face (ω ≈ 0).
-    pub fn is_lagrangian(&self, eps: f64) -> bool {
-        self.omega_ij.abs() < eps
-    }
-
-    /// Get the flow direction (None for Lagrangian faces).
-    pub fn flow_direction(&self, eps: f64) -> Option<FlowDirection> {
-        if self.is_lagrangian(eps) {
-            None
-        } else if self.omega_ij > 0.0 {
-            Some(FlowDirection::ItoJ)
-        } else {
-            Some(FlowDirection::JtoI)
-        }
-    }
-}
-
-/// Enriched 2-face with trivialization data for the tube algorithm.
-///
-/// Fields are computed based on actual flow direction (not i < j convention).
-#[derive(Debug, Clone)]
-pub struct TwoFaceEnriched {
-    /// First facet index (i < j by convention).
-    pub i: usize,
-    /// Second facet index.
-    pub j: usize,
-    /// Symplectic form: ω(n_i, n_j).
-    pub omega_ij: f64,
-    /// Whether this is a Lagrangian 2-face.
-    pub is_lagrangian: bool,
-    /// Flow direction (None for Lagrangian).
-    pub flow_direction: Option<FlowDirection>,
-
-    // --- Flow-direction-aware fields ---
-    /// Entry facet normal (facet we came from).
-    pub entry_normal: Vector4<f64>,
-    /// Exit facet normal (facet we go into).
-    pub exit_normal: Vector4<f64>,
-    /// Transition matrix: τ_exit ∘ τ_entry^{-1} ∈ Sp(2).
-    pub transition_matrix: Matrix2<f64>,
-    /// Rotation number ρ ∈ (0, 0.5).
-    pub rotation: f64,
-
-    // --- Trivialization data ---
-    /// 2-face polygon in exit-trivialized coordinates (CCW).
-    pub polygon_2d: Polygon2D,
-    /// Original 4D vertex positions.
-    pub vertices_4d: Vec<Vector4<f64>>,
-    /// Centroid in 4D for reconstruction.
-    pub centroid_4d: Vector4<f64>,
-    /// Basis vectors for exit trivialization: {b₁, b₂} ∈ TF.
-    pub basis_exit: [Vector4<f64>; 2],
-    /// Basis vectors for entry trivialization: {b₁, b₂} ∈ TF.
-    pub basis_entry: [Vector4<f64>; 2],
-}
 
 /// A tube represents all Reeb trajectories with a fixed combinatorial class.
 #[derive(Debug, Clone)]
