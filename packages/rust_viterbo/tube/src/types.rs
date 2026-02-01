@@ -242,7 +242,7 @@ impl TwoFaceData {
 /// Data for a 3-facet transition (i, j, k).
 ///
 /// Represents a tube step: flow on F_j from 2-face (F_i, F_j) to (F_j, F_k).
-/// This captures the adjacency in the search tree.
+/// Precomputes the affine flow map and time function for this transition.
 #[derive(Debug, Clone)]
 pub struct ThreeFacetData {
     /// Index of entry 2-face (F_i, F_j) in the TwoFaceData list.
@@ -251,6 +251,16 @@ pub struct ThreeFacetData {
     pub two_face_exit: usize,
     /// Middle facet index (the facet we flow along).
     pub facet_mid: usize,
+
+    /// Flow map matrix: A = ψ + r_triv ⊗ t_grad.
+    /// Maps trivialized coordinates from entry 2-face to exit 2-face.
+    pub flow_matrix: Matrix2<f64>,
+    /// Flow map offset: b = τ_exit(c_entry - c_exit + t_const * r_mid).
+    pub flow_offset: Vector2<f64>,
+    /// Time gradient: ∇t where t(p) = ⟨t_grad, p⟩ + t_const.
+    pub time_gradient: Vector2<f64>,
+    /// Time constant.
+    pub time_constant: f64,
 }
 
 /// Lookup tables for index conversion and adjacency.
