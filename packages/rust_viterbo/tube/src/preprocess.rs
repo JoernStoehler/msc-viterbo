@@ -162,7 +162,7 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
 
     // Build new clean structures
     let (two_face_data, mut lookup) = build_two_face_data(&two_faces_enriched, num_facets);
-    let transitions = build_transitions(&two_face_data, &mut lookup);
+    let transitions = build_transitions(&two_face_data, &mut lookup, &reeb_vectors, &heights);
 
     Ok(PolytopeData {
         num_facets,
@@ -387,7 +387,12 @@ fn build_two_face_data(
 fn build_transitions(
     two_faces: &[TwoFaceData],
     lookup: &mut TwoFaceLookup,
+    reeb_vectors: &[Vector4<f64>],
+    heights: &[f64],
 ) -> Vec<ThreeFacetData> {
+    use crate::quaternion::{apply_quat_j, apply_quat_k};
+    use nalgebra::{Matrix2, Vector2};
+
     let mut transitions = Vec::new();
 
     for (k_entry, tf_entry) in two_faces.iter().enumerate() {
@@ -399,11 +404,56 @@ fn build_transitions(
                 // Valid transition found
                 let facet_mid = exit_facet;
 
+                // Compute the affine flow map for this transition
+                let r_mid = &reeb_vectors[facet_mid];
+                let n_next = &tf_exit.exit_normal;
+                let h_next = heights[tf_exit.exit_facet()];
+
+                let b_entry = &tf_entry.basis_exit;
+                let c_entry = tf_entry.centroid_4d;
+                let c_exit = tf_exit.centroid_4d;
+
+                // Trivialization vectors for exit 2-face
+                let jn_exit = apply_quat_j(n_next);
+                let kn_exit = apply_quat_k(n_next);
+
+                // Denominator: ⟨R_mid, n_next⟩
+                let r_dot_n = r_mid.dot(n_next);
+
+                // Time function: t(p) = t_const + ⟨t_grad, p⟩
+                let t_const = (h_next - c_entry.dot(n_next)) / r_dot_n;
+                let t_grad = Vector2::new(
+                    -b_entry[0].dot(n_next) / r_dot_n,
+                    -b_entry[1].dot(n_next) / r_dot_n,
+                );
+
+                // Transition matrix ψ: trivialize entry basis in exit coordinates
+                let psi = Matrix2::new(
+                    b_entry[0].dot(&jn_exit),
+                    b_entry[1].dot(&jn_exit),
+                    b_entry[0].dot(&kn_exit),
+                    b_entry[1].dot(&kn_exit),
+                );
+
+                // Reeb vector in exit-trivialized coordinates
+                let r_triv = Vector2::new(r_mid.dot(&jn_exit), r_mid.dot(&kn_exit));
+
+                // Full flow matrix: A = ψ + r_triv ⊗ t_grad
+                let flow_matrix = psi + r_triv * t_grad.transpose();
+
+                // Flow offset: b = τ_exit(c_entry - c_exit + t_const * R_mid)
+                let delta_c = c_entry - c_exit + r_mid * t_const;
+                let flow_offset = Vector2::new(delta_c.dot(&jn_exit), delta_c.dot(&kn_exit));
+
                 let trans_idx = transitions.len();
                 transitions.push(ThreeFacetData {
                     two_face_entry: k_entry,
                     two_face_exit: k_exit,
                     facet_mid,
+                    flow_matrix,
+                    flow_offset,
+                    time_gradient: t_grad,
+                    time_constant: t_const,
                 });
 
                 lookup.transitions_from[k_entry].push(trans_idx);
@@ -536,6 +586,12 @@ mod tests {
                 k,
                 tf.exit_facet()
             );
+        }
+
+        // Check precomputed flow maps are symplectic (det = 1)
+        for trans in &data.transitions {
+            let det = trans.flow_matrix.determinant();
+            assert_relative_eq!(det, 1.0, epsilon = 0.01);
         }
     }
 }
