@@ -8,7 +8,6 @@ Jörn Stöhler's MSc Thesis at University of Augsburg.
 
 - **Deadline:** End of March 2026
 - **Priority:** Code correctness first, then experiments
-- **Test categories:** Correctness tests go in main. Diagnostic/research tests (collecting statistics, investigating behavior) stay in feature branches or are run manually—never merged.
 - **Thesis as source of truth:** Code implements what thesis specifies. Correctness chain: thesis (math) → SPEC.md (design) → tests (verify spec) → code (must pass tests). When a test fails:
   1. Check: does test match spec?
   2. Check: does spec encode math correctly?
