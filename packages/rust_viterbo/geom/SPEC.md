@@ -8,6 +8,7 @@ Shared geometric primitives for EHZ capacity algorithms. This crate provides:
 - Polytope representation (H-rep)
 - Volume computation via Qhull
 - Systolic ratio calculation
+- 2D geometry utilities (polygon operations, affine maps)
 - Numerical tolerances
 
 All capacity algorithms (HK2017, Tube, Billiard) depend on this crate.
@@ -252,6 +253,40 @@ impl TwoFace {
 
 ---
 
+## Support Function and Polar Body
+
+### Support Function
+
+The **support function** of a convex body K:
+```
+h_K(d) = max_{x ∈ K} ⟨d, x⟩
+```
+
+For a polytope with known vertices:
+```rust
+fn support_function(vertices: &[Vector4<f64>], direction: &Vector4<f64>) -> f64 {
+    vertices.iter().map(|v| direction.dot(v)).fold(f64::NEG_INFINITY, f64::max)
+}
+```
+
+### Polar Body
+
+The **polar body** (dual) of K:
+```
+K° = { y ∈ ℝ⁴ : ⟨x, y⟩ ≤ 1 for all x ∈ K }
+```
+
+For a 2D polygon in H-rep {x : ⟨nᵢ, x⟩ ≤ hᵢ}, the polar has vertices at nᵢ/hᵢ:
+```rust
+fn polar_vertices_2d(normals: &[Vector2<f64>], heights: &[f64]) -> Vec<Vector2<f64>> {
+    normals.iter().zip(heights).map(|(n, &h)| n / h).collect()
+}
+```
+
+**Use in Billiard algorithm:** The "T-length" of a Minkowski billiard trajectory is measured using K₂° as the unit ball.
+
+---
+
 ## Lagrangian Product Structure
 
 A polytope K is a **Lagrangian product** iff K = K₁ × K₂ where:
@@ -378,6 +413,32 @@ A **simple Reeb orbit** visits each facet at most once.
 
 **Consequence:** All algorithms only need to search over simple orbits.
 
+### Orbit Validity Checks
+
+Comprehensive validation for computed orbits:
+
+```rust
+impl ClosedReebOrbit {
+    fn validate(&self, hrep: &PolytopeHRep) -> Result<(), ValidationError> {
+        // 1. Closure: last breakpoint = first breakpoint
+        // 2. Breakpoints on boundary: each pₖ satisfies ⟨nᵢ, pₖ⟩ = hᵢ for some i
+        // 3. Segments on facets: both endpoints of segment k satisfy facet equation
+        // 4. Velocities match Reeb: (pₖ₊₁ - pₖ)/τₖ = Rᵢ = (2/hᵢ)Jnᵢ
+        // 5. Period consistency: period = Σ τₖ = action(orbit)
+    }
+}
+```
+
+**Validation conditions:**
+
+| # | Check | Formula |
+|---|-------|---------|
+| 1 | Closure | ‖pₘ - p₀‖ < ε |
+| 2 | On boundary | ∃i: ⟨nᵢ, pₖ⟩ = hᵢ |
+| 3 | On facet | ⟨nᵢ, pₖ⟩ = hᵢ and ⟨nᵢ, pₖ₊₁⟩ = hᵢ |
+| 4 | Velocity | ‖(pₖ₊₁ - pₖ)/τₖ - Rᵢ‖ < ε‖Rᵢ‖ |
+| 5 | Period | \|T - Σₖ τₖ\| < ε and \|T - A(γ)\| < εT |
+
 ---
 
 ## Facet Sequences
@@ -393,6 +454,107 @@ For orbits not involving Lagrangian 2-faces:
 A closed orbit requires at least 3 distinct facets, giving minimum sequence [i₀, i₁, i₂, i₀, i₁].
 
 *Proof:* Length 4 [i, j, i, j] would require flow i→j then j→i at the same 2-face. But flow direction is fixed by ω(nᵢ, nⱼ). By antisymmetry, flow cannot reverse. □
+
+---
+
+## 2D Geometry Utilities
+
+These utilities operate on 2D polygons and affine maps, used when working with trivialized 2-face tangent spaces.
+
+### Polygon2D
+
+```rust
+struct Polygon2D {
+    vertices: Vec<Vector2<f64>>,  // CCW-ordered vertices
+}
+```
+
+### CCW Sorting
+
+Sort 2D points in counter-clockwise order around their centroid:
+
+```rust
+fn sort_ccw(points: Vec<Vector2<f64>>) -> Vec<Vector2<f64>> {
+    // Compute centroid, sort by angle from centroid
+}
+```
+
+**Precondition:** Points form a convex polygon.
+
+### Polygon Intersection (Sutherland-Hodgman)
+
+Compute intersection of two convex polygons:
+
+```rust
+fn intersect_polygons(p1: &Polygon2D, p2: &Polygon2D) -> Polygon2D {
+    // Clip p1 against each edge of p2
+}
+```
+
+**Reference:** O'Rourke, "Computational Geometry in C", Chapter 7.
+
+**Subroutines:**
+- `clip_polygon_by_halfplane`: Keep points on the left side of a directed edge
+- `is_left_of_edge`: Cross product sign test
+- `line_intersection`: Standard line-line intersection
+
+### Point-in-Polygon
+
+Test if a point is inside a convex polygon (CCW vertices):
+
+```rust
+fn point_in_polygon(p: &Vector2<f64>, polygon: &Polygon2D) -> bool {
+    // For convex polygons: inside iff left of all edges
+}
+```
+
+### Polygon Area
+
+Shoelace formula for polygon area:
+
+```rust
+fn polygon_area(p: &Polygon2D) -> f64 {
+    // ½ |Σᵢ (xᵢyᵢ₊₁ - xᵢ₊₁yᵢ)|
+}
+```
+
+### Affine Maps
+
+2D affine transformations x ↦ Ax + b:
+
+```rust
+struct AffineMap2D {
+    matrix: Matrix2<f64>,
+    offset: Vector2<f64>,
+}
+
+impl AffineMap2D {
+    fn identity() -> Self;
+    fn apply(&self, x: &Vector2<f64>) -> Vector2<f64>;
+}
+
+/// Compose f ∘ g: (Ax + b) ∘ (Cx + d) = (AC)x + (Ad + b)
+fn compose_affine(f: &AffineMap2D, g: &AffineMap2D) -> AffineMap2D;
+```
+
+### Affine Functions
+
+Scalar-valued affine functions f(x) = g·x + c:
+
+```rust
+struct AffineFunc {
+    gradient: Vector2<f64>,
+    constant: f64,
+}
+
+impl AffineFunc {
+    fn eval(&self, x: &Vector2<f64>) -> f64;
+}
+
+/// Compose affine function with affine map: f(Ax + b)
+/// Result: (Aᵀg)·x + (g·b + c)
+fn compose_with_map(f: &AffineFunc, map: &AffineMap2D) -> AffineFunc;
+```
 
 ---
 
@@ -423,6 +585,54 @@ let volume = polytope_volume_hrep(&hrep)?;
 // After computing capacity with HK2017/Tube:
 let sys = systolic_ratio(capacity, volume);
 ```
+
+---
+
+## Test Fixtures
+
+Standard polytopes for testing. These are used across all algorithm crates.
+
+### Naming Conventions
+
+**2D Polygons:**
+- `regular_ngon(n, r)` — Regular n-gon with circumradius r, first vertex at angle 0
+- `rotated(polygon, θ)` — Rotate polygon CCW by θ radians
+
+**4D Polytopes:**
+- `lagrangian_product(Kq, Kp)` — Product K_q × K_p where K_q ⊂ ℝ²_q and K_p ⊂ ℝ²_p
+- `unit_tesseract()` — The cube [-1,1]⁴
+- `unit_cross_polytope()` — conv{±e₁, ±e₂, ±e₃, ±e₄}
+
+**Parameterization:** Use circumradius (not inradius or edge length). Unit circumradius as default.
+
+### Fixture Definitions
+
+```rust
+/// Regular n-gon with circumradius r
+fn regular_ngon(n: usize, circumradius: f64) -> Polygon2D;
+
+/// Rotate polygon CCW by angle (radians)
+fn rotated(polygon: &Polygon2D, angle: f64) -> Polygon2D;
+
+/// Lagrangian product K_q × K_p ⊂ ℝ⁴
+fn lagrangian_product(Kq: &Polygon2D, Kp: &Polygon2D) -> PolytopeHRep;
+```
+
+### Standard Polytopes
+
+| Fixture | Description | EHZ Capacity | Systolic Ratio |
+|---------|-------------|--------------|----------------|
+| `unit_tesseract()` | [-1,1]⁴ | 4.0 | < 1 |
+| `unit_cross_polytope()` | 16 facets, (±1,±1,±1,±1)/2 | (tube computes) | < 1 |
+| `equilateral_triangle_product()` | triangle × triangle | 1.5 | < 1 |
+| `hko2024_counterexample()` | pentagon × rotated_pentagon | ≈ 3.441 | ≈ 1.047 |
+
+**HK-O 2024 counterexample formula:**
+```
+c_EHZ = 2·cos(π/10)·(1 + cos(π/5)) ≈ 3.4409548
+```
+
+This is the counterexample to Viterbo's conjecture (systolic ratio > 1).
 
 ---
 
