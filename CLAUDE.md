@@ -115,6 +115,8 @@ A brief interruption beats running into a dead end. State blockers clearly in yo
 Work tracked in GitHub Issues and Milestones. GH CLI is available.
 Don't bother with task management unless explicitly assigned.
 
+**Issue ownership**: PM agent (`/orchestrate`) creates and manages issues. Other agents document follow-up work in PR descriptions for PM to pick up.
+
 ### Cleanup & Standards
 
 - Remove any misleading content you find (outdated docs, stale comments, done TODOs)
