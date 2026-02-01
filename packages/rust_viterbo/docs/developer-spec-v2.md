@@ -2315,8 +2315,6 @@ A complete implementation requires a global QCQP solver. Checking only vertices 
 > - Tube invariants: `p_start` refinement via pullback, rotation accumulation formula
 > - Shear case handling in fixed-point detection (det(A-I) ≈ 0)
 > - Reference mapping to thesis theorems and code locations
->
-> See GitHub issue for tracking.
 
 **Source:** This thesis (Stöhler 2026), Section \ref{sec:algo-ours}. The algorithm extends CH2021's mathematical framework (Reeb dynamics on polytopes, linear flows, symplectic flow graphs) with a branch-and-bound search over "tubes" — sets of trajectories sharing a combinatorial class. The "tube" terminology and the specific algorithmic structure are original to this thesis.
 
