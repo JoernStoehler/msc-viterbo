@@ -2,7 +2,26 @@
 
 > **Audience:** Claude Code agents implementing the algorithms
 > **Prerequisite:** Read thesis chapter ([algorithms.tex](../../latex_viterbo/chapters/algorithms.tex)) for mathematical background
-> **Status:** This document consolidates all algorithm specifications. Implementation archived at tag `v0.1.0-archive`.
+> **Status:** Comprehensive reference document with detailed derivations
+
+## Per-Crate Specifications
+
+Each crate has a focused SPEC.md for quick reference:
+
+| Crate | SPEC.md | Purpose |
+|-------|---------|---------|
+| **geom** | [geom/SPEC.md](../geom/SPEC.md) | Polytope primitives, volume, systolic ratio |
+| **hk2017** | [hk2017/SPEC.md](../hk2017/SPEC.md) | HK2017 QP algorithm |
+| **tube** | [tube/SPEC.md](../tube/SPEC.md) | Tube algorithm for non-Lagrangian polytopes |
+| **billiard** | [billiard/SPEC.md](../billiard/SPEC.md) | Billiard algorithm for Lagrangian products |
+
+**This document** provides:
+- Comprehensive mathematical derivations
+- Cross-referenced definitions shared between algorithms
+- Detailed assertions and validation code
+- Historical context and design rationale
+
+For quick implementation reference, start with the crate SPEC.md files.
 
 ---
 
