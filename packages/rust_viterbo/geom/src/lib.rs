@@ -34,5 +34,8 @@ pub mod tolerances;
 pub mod volume;
 
 pub use polygon2d::{support_function, t_dual_length, Polygon2D, Polygon2DError};
-pub use polytope::PolytopeHRep;
+pub use polytope::{
+    flow_direction, is_lagrangian_pair, symplectic_form, PolytopeError, PolytopeHRep,
+    EPS_LAGRANGIAN,
+};
 pub use tolerances::{EPS, EPS_UNIT};
