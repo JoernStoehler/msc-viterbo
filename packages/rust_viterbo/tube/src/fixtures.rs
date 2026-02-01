@@ -10,6 +10,9 @@
 
 use nalgebra::Vector4;
 
+#[cfg(test)]
+use proptest::prelude::*;
+
 use crate::types::PolytopeHRep;
 
 /// Unit cross-polytope (16-cell): conv{±e₁, ±e₂, ±e₃, ±e₄}.
@@ -425,6 +428,83 @@ pub fn random_hrep_diagnostic(
     }
 
     Ok(hrep)
+}
+
+/// Returns all standard test polytopes including random polytopes from seeds 0-99.
+///
+/// This function provides a comprehensive set of test cases:
+/// - Standard polytopes: cross-polytope, 24-cell, tesseract, simplex
+/// - Scaled variants: 2x and 0.5x cross-polytope
+/// - Random polytopes: seeds 0-99 with 8 facets and min_omega = 0.001
+///
+/// Each polytope is returned with a descriptive name for test output.
+/// Random polytopes that fail generation (rejected by `random_hrep`) are skipped.
+pub fn all_test_polytopes() -> Vec<(&'static str, PolytopeHRep)> {
+    let mut polytopes = Vec::new();
+
+    // Standard polytopes
+    polytopes.push(("cross-polytope", unit_cross_polytope()));
+    polytopes.push(("24-cell", unit_24_cell()));
+    polytopes.push(("tesseract", unit_tesseract()));
+    polytopes.push(("4-simplex", four_simplex()));
+    polytopes.push(("scaled-cross-2x", scaled_cross_polytope(2.0)));
+    polytopes.push(("scaled-cross-0.5x", scaled_cross_polytope(0.5)));
+
+    // Random polytopes from seeds 0-99
+    // Use Box::leak to get 'static str for the names
+    for seed in 0..100u64 {
+        if let Some(hrep) = random_hrep(8, 0.001, seed) {
+            // Leak a string to get a 'static reference
+            let name: &'static str = Box::leak(format!("random-seed-{}", seed).into_boxed_str());
+            polytopes.push((name, hrep));
+        }
+    }
+
+    polytopes
+}
+
+/// Proptest strategy for generating random polytopes.
+///
+/// Generates polytopes by:
+/// 1. Picking a random seed
+/// 2. Picking a random number of facets (6-12)
+/// 3. Using `random_hrep` with min_omega = 0.001
+///
+/// Uses `prop_filter_map` to reject seeds that don't produce valid polytopes.
+/// The rejection rate is high (~90%), but proptest handles this gracefully.
+#[cfg(test)]
+pub fn polytope_strategy() -> impl Strategy<Value = PolytopeHRep> {
+    // Use a range of seeds and facet counts
+    (0u64..10000, 6usize..=12).prop_filter_map("valid random polytope", |(seed, n_facets)| {
+        random_hrep(n_facets, 0.001, seed)
+    })
+}
+
+/// Check if a polytope has any Lagrangian 2-faces.
+///
+/// A 2-face is Lagrangian if the symplectic form ω(n_i, n_j) ≈ 0 for adjacent facets.
+/// Such polytopes are unsuitable for the tube algorithm.
+///
+/// This is useful with proptest's `prop_assume!` macro:
+/// ```ignore
+/// proptest! {
+///     fn test_tube_algorithm(hrep in polytope_strategy()) {
+///         prop_assume!(!has_lagrangian_two_faces(&hrep));
+///         // ... test tube algorithm
+///     }
+/// }
+/// ```
+pub fn has_lagrangian_two_faces(hrep: &PolytopeHRep) -> bool {
+    use crate::preprocess::preprocess;
+
+    match preprocess(hrep) {
+        Ok(data) => data.has_lagrangian_two_faces(),
+        Err(_) => {
+            // If preprocessing fails, we can't determine Lagrangian status
+            // Conservatively return true to indicate potential issues
+            true
+        }
+    }
 }
 
 #[cfg(test)]
@@ -906,6 +986,108 @@ mod tests {
                 // Some other rejection is also acceptable
                 println!("Seed 0 rejected for other reason: {:?}", other);
             }
+        }
+    }
+
+    // === Tests for new fixture functions ===
+
+    #[test]
+    fn test_all_test_polytopes_contains_standard_fixtures() {
+        let polytopes = all_test_polytopes();
+
+        // Should have at least the standard fixtures
+        assert!(polytopes.len() >= 6, "Should have at least 6 standard fixtures");
+
+        // Check that standard fixtures are present
+        let names: Vec<&str> = polytopes.iter().map(|(name, _)| *name).collect();
+        assert!(names.contains(&"cross-polytope"), "Missing cross-polytope");
+        assert!(names.contains(&"24-cell"), "Missing 24-cell");
+        assert!(names.contains(&"tesseract"), "Missing tesseract");
+        assert!(names.contains(&"4-simplex"), "Missing 4-simplex");
+        assert!(names.contains(&"scaled-cross-2x"), "Missing scaled-cross-2x");
+        assert!(names.contains(&"scaled-cross-0.5x"), "Missing scaled-cross-0.5x");
+    }
+
+    #[test]
+    fn test_all_test_polytopes_contains_random() {
+        let polytopes = all_test_polytopes();
+
+        // Should have some random polytopes
+        let random_count = polytopes
+            .iter()
+            .filter(|(name, _)| name.starts_with("random-seed-"))
+            .count();
+
+        // We expect at least a few random polytopes to succeed
+        assert!(
+            random_count >= 1,
+            "Should have at least 1 random polytope, got {}",
+            random_count
+        );
+    }
+
+    #[test]
+    fn test_all_test_polytopes_all_valid() {
+        let polytopes = all_test_polytopes();
+
+        for (name, hrep) in &polytopes {
+            assert!(
+                hrep.validate().is_ok(),
+                "Polytope '{}' should be valid",
+                name
+            );
+            assert!(
+                hrep.num_facets() >= 5,
+                "Polytope '{}' should have >= 5 facets, got {}",
+                name,
+                hrep.num_facets()
+            );
+        }
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_cross_polytope() {
+        // Cross-polytope has no Lagrangian 2-faces
+        let hrep = unit_cross_polytope();
+        assert!(
+            !has_lagrangian_two_faces(&hrep),
+            "Cross-polytope should not have Lagrangian 2-faces"
+        );
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_tesseract() {
+        // Tesseract (Lagrangian product) has Lagrangian 2-faces
+        let hrep = unit_tesseract();
+        assert!(
+            has_lagrangian_two_faces(&hrep),
+            "Tesseract should have Lagrangian 2-faces"
+        );
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_simplex() {
+        // 4-simplex has Lagrangian 2-faces
+        let hrep = four_simplex();
+        assert!(
+            has_lagrangian_two_faces(&hrep),
+            "4-simplex should have Lagrangian 2-faces"
+        );
+    }
+
+    proptest! {
+        #[test]
+        fn test_polytope_strategy_generates_valid(hrep in polytope_strategy()) {
+            // All generated polytopes should be valid
+            prop_assert!(hrep.validate().is_ok());
+            prop_assert!(hrep.num_facets() >= 6);
+            prop_assert!(hrep.num_facets() <= 12);
+        }
+
+        #[test]
+        fn test_polytope_strategy_no_lagrangian(hrep in polytope_strategy()) {
+            // random_hrep rejects Lagrangian polytopes, so this should always pass
+            prop_assert!(!has_lagrangian_two_faces(&hrep));
         }
     }
 }
