@@ -30,13 +30,13 @@ pub(super) fn reconstruct_orbit(
     }
 
     // Get start 2-face
-    let start_2face_idx = data
+    let start_two_face_idx = data
         .two_face_index(seq[0], seq[1])
         .ok_or_else(|| TubeError::InvalidPolytope("Start 2-face not found".to_string()))?;
-    let start_2face = data.get_two_face(start_2face_idx);
+    let start_two_face = data.get_two_face(start_two_face_idx);
 
     // Convert starting point to 4D
-    let start_4d = untrivialize_point(fixed_point_2d, start_2face);
+    let start_4d = untrivialize_point(fixed_point_2d, start_two_face);
 
     // Trace through to get all breakpoints
     let mut breakpoints = vec![start_4d];
@@ -73,7 +73,11 @@ pub(super) fn reconstruct_orbit(
     }
 
     // Verify closure (use lenient tolerance for accumulated error along trajectory)
-    let closure_error = (breakpoints.last().unwrap() - start_4d).norm();
+    let closure_error = (breakpoints
+        .last()
+        .expect("breakpoints initialized with start_4d")
+        - start_4d)
+        .norm();
     if closure_error > EPS_CLOSURE {
         return Err(TubeError::NumericalInstability(format!(
             "Orbit failed to close: error = {:.2e}",
@@ -82,7 +86,9 @@ pub(super) fn reconstruct_orbit(
     }
 
     // Set last point exactly equal to first
-    *breakpoints.last_mut().unwrap() = start_4d;
+    *breakpoints
+        .last_mut()
+        .expect("breakpoints initialized with start_4d") = start_4d;
 
     // Compute segment data
     let mut segment_facets = Vec::new();

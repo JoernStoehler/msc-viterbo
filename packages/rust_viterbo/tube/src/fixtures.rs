@@ -21,7 +21,7 @@ use crate::types::PolytopeHRep;
 /// - 8 vertices at ±e_i (distance 1 from origin)
 /// - All 2-faces are non-Lagrangian (suitable for tube algorithm)
 /// - Heights h = 1/2 (facets pass through vertices like e₁, with n·e₁ = 1/2)
-/// - Capacity: c_EHZ = 1.0 (empirically determined; was unknown prior to this implementation)
+/// - Capacity: c_EHZ = 1.0 (verified via HK2017 comparison tests in hk2017_comparison.rs)
 pub fn unit_cross_polytope() -> PolytopeHRep {
     let mut normals = Vec::new();
 
@@ -534,7 +534,7 @@ mod tests {
     }
 
     #[test]
-    fn test_24_cell_no_lagrangian_2faces() {
+    fn test_24_cell_no_lagrangian_two_faces() {
         let hrep = unit_24_cell();
         // Check all pairs of normals have non-zero symplectic form
         // Note: not all pairs form actual 2-faces, but Lagrangian pairs would be problematic

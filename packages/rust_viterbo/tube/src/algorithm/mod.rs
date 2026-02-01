@@ -202,19 +202,19 @@ fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<Extension> {
 
     // Get current end 2-face index
     let (prev_facet, curr_facet) = tube.end_two_face();
-    let end_2face_idx = match data.two_face_index(prev_facet, curr_facet) {
+    let end_two_face_idx = match data.two_face_index(prev_facet, curr_facet) {
         Some(idx) => idx,
         None => return extensions, // No valid 2-face, shouldn't happen
     };
 
     // Find all transitions from this 2-face
-    let transition_indices = data.transitions_from(end_2face_idx);
+    let transition_indices = data.transitions_from(end_two_face_idx);
 
     for &trans_idx in transition_indices {
         let trans = data.get_transition(trans_idx);
-        let exit_2face = data.get_two_face(trans.two_face_exit);
+        let exit_two_face = data.get_two_face(trans.two_face_exit);
 
-        if let Some(extended) = extend_tube_with_transition(tube, trans, exit_2face) {
+        if let Some(extended) = extend_tube_with_transition(tube, trans, exit_two_face) {
             // Check if this closes the tube
             if extended.is_closed() {
                 // Try to find fixed points
@@ -237,7 +237,7 @@ fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<Extension> {
 fn extend_tube_with_transition(
     tube: &Tube,
     trans: &ThreeFacetData,
-    exit_2face: &TwoFaceData,
+    exit_two_face: &TwoFaceData,
 ) -> Option<Tube> {
     // Build the flow step from precomputed transition data
     let flow_step = AffineMap2D {
@@ -259,7 +259,7 @@ fn extend_tube_with_transition(
 
     // Apply flow to end polygon and intersect with exit 2-face
     let flowed_end = apply_affine_to_polygon(&flow_step, &tube.p_end);
-    let new_p_end = intersect_polygons(&flowed_end, &exit_2face.polygon);
+    let new_p_end = intersect_polygons(&flowed_end, &exit_two_face.polygon);
 
     // Check if result is non-empty
     if new_p_end.is_empty() || new_p_end.area() < MIN_POLYGON_AREA {
@@ -283,7 +283,7 @@ fn extend_tube_with_transition(
     }
 
     // Next facet is the exit facet of the exit 2-face
-    let next_facet = exit_2face.exit_facet;
+    let next_facet = exit_two_face.exit_facet;
 
     Some(Tube {
         facet_sequence: [&tube.facet_sequence[..], &[next_facet]].concat(),
@@ -291,7 +291,7 @@ fn extend_tube_with_transition(
         p_end: new_p_end,
         flow_map: new_flow_map,
         action_func: new_action_func,
-        rotation: tube.rotation + exit_2face.rotation,
+        rotation: tube.rotation + exit_two_face.rotation,
     })
 }
 
@@ -346,12 +346,12 @@ mod tests {
 
         for &trans_idx in trans_indices {
             let trans = data.get_transition(trans_idx);
-            let exit_2face = data.get_two_face(trans.two_face_exit);
+            let exit_two_face = data.get_two_face(trans.two_face_exit);
             println!(
                 "  Trying transition {} to 2-face {}",
                 trans_idx, trans.two_face_exit
             );
-            match extend_tube_with_transition(&root, trans, exit_2face) {
+            match extend_tube_with_transition(&root, trans, exit_two_face) {
                 Some(extended) => {
                     println!(
                         "    Extended! seq={:?}, p_end area={}",
@@ -417,8 +417,8 @@ mod tests {
 
         for &trans_idx in trans_indices {
             let trans = data.get_transition(trans_idx);
-            let exit_2face = data.get_two_face(trans.two_face_exit);
-            if let Some(extended) = extend_tube_with_transition(&root, trans, exit_2face) {
+            let exit_two_face = data.get_two_face(trans.two_face_exit);
+            if let Some(extended) = extend_tube_with_transition(&root, trans, exit_two_face) {
                 let det = extended.flow_map.matrix.determinant();
                 assert_relative_eq!(det, 1.0, epsilon = 1e-6);
             }

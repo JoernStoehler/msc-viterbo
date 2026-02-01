@@ -149,10 +149,18 @@ pub fn compute_transition_matrix_ch2021(
 ///
 /// ρ(F) = (1/2π) * arccos(tr(ψ)/2)
 ///
-/// Since tr(ψ) = 2⟨n_entry, n_exit⟩ for polytope 2-faces,
-/// this is just the angle between normals divided by 2π.
+/// **Derivation:** For a 2×2 symplectic matrix ψ (det = 1), the trace satisfies
+/// tr(ψ) = 2cos(2πρ) where ρ is the rotation number. For polytope 2-faces,
+/// tr(ψ) = 2⟨n_entry, n_exit⟩ (see developer-spec-v2.md §1.12 and thesis §4.5).
+/// Inverting: ρ = arccos(tr(ψ)/2) / 2π.
 pub fn rotation_number_from_trace(trace: f64) -> f64 {
-    // Clamp for numerical robustness (trace should be in (-2, 2))
+    // Trace should be in (-2, 2) for non-Lagrangian 2-faces
+    debug_assert!(
+        trace.abs() <= 2.0 + EPS,
+        "trace out of valid range: {}",
+        trace
+    );
+    // Clamp for numerical robustness
     let half_trace = (0.5 * trace).clamp(-1.0 + EPS, 1.0 - EPS);
     half_trace.acos() / (2.0 * std::f64::consts::PI)
 }

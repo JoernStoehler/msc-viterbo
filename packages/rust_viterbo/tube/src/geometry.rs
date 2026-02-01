@@ -26,7 +26,9 @@ pub fn sort_ccw(mut points: Vec<Vector2<f64>>) -> Vec<Vector2<f64>> {
     points.sort_by(|a, b| {
         let angle_a = (a[1] - centroid[1]).atan2(a[0] - centroid[0]);
         let angle_b = (b[1] - centroid[1]).atan2(b[0] - centroid[0]);
-        angle_a.partial_cmp(&angle_b).unwrap()
+        angle_a
+            .partial_cmp(&angle_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
 
     points

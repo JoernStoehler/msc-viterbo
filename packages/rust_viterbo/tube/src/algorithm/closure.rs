@@ -180,10 +180,7 @@ fn find_fixed_point_on_line(
 /// Find the fixed point with minimum action when all points are fixed (A = I, b = 0).
 fn find_min_action_in_polygon(tube: &Tube) -> Option<(f64, Vector2<f64>)> {
     // Action is affine: action(s) = g · s + c
-    // Minimum is at a vertex of the polygon or where gradient points outside
-    // Use p_end as the valid region
-    let _grad = &tube.action_func.gradient; // For affine functions, min is at a vertex
-
+    // For affine functions over a convex polygon, the minimum is at a vertex.
     let mut best_action = f64::INFINITY;
     let mut best_point = None;
 
