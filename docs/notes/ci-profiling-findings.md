@@ -129,9 +129,58 @@ The test takes 115s locally vs 4s in CI due to platform-dependent floating-point
 
 **Decision**: Leave as-is. Seeds should not be expected to transfer between platforms — they only guarantee reproducibility on the *same* machine. The test correctly finds valid polytopes on each platform (just different ones) and verifies HK2017/Tube agreement. The 115s local time is a developer experience issue, not a correctness issue.
 
+## 4. Algorithm Failure Diagnostics (Follow-up Needed)
+
+A diagnostic test (`tube/tests/failure_diagnostic.rs`) was created to investigate why both algorithms fail on random polytopes.
+
+### Results (min_omega=0.05, 200 seeds)
+
+| Metric | Value |
+|--------|-------|
+| Seeds tried | 200 |
+| Generation failed | 128 |
+| Polytopes generated | 72 |
+
+**Tube Results:**
+| Outcome | Count | % of generated |
+|---------|-------|----------------|
+| OK | 2 | 2.8% |
+| NoClosedOrbits | 70 | 97.2% |
+| Other errors | 0 | 0% |
+
+**HK2017 Results:**
+| Outcome | Count | % of generated |
+|---------|-------|----------------|
+| OK | 0 | 0% |
+| NoFeasibleInteriorPoint | 72 | 100% |
+
+**HK2017 Rejection Histogram (summed across all 72 polytopes):**
+| Reason | Count |
+|--------|-------|
+| negative_beta | 7,741,150 |
+| singular_kkt | 47,927 |
+| constraint_violation | 101,547 |
+| non_positive_q | 0 |
+
+### Interpretation
+
+The `negative_beta` count (7.7M) dominates. For 8-facet polytopes with all subset sizes 2-8:
+- Each polytope has ~millions of permutations across all subsets
+- Every single permutation is rejected because some β_i < 0 in the KKT solution
+
+**Open question**: The HK2017 algorithm is mathematically complete (proven in `hk2017/src/lib.rs:77-100`). If the algorithm correctly searches all subset interiors, why does it fail on 100% of valid polytopes? Possibilities:
+1. **Numerical precision**: KKT solver may miss valid solutions due to conditioning
+2. **Random generator bias**: H-rep generator may produce polytopes with unusual geometric properties
+3. **Bug**: There may be an implementation error in the KKT solver or permutation handling
+
+### Follow-up Issue Needed
+
+This needs dedicated investigation. See PR description for handoff notes.
+
 ## Conclusion
 
 - **QHull**: Not the bottleneck. No action needed.
 - **CI time**: Should drop from ~2min to ~1.5min with test restructuring.
 - **Test restructuring**: ✅ Implemented in `fbdb17a`.
 - **pytest-xdist**: Deferred.
+- **Algorithm failures**: Diagnostic created; needs follow-up investigation (see §4).
