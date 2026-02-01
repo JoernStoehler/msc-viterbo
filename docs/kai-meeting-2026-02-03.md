@@ -147,9 +147,12 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 **Key observation:** Agent parallelism changed hrs/commit from ~0.8h to ~0.3h (agents produce many small commits). The sprint had 3× more commits but only 2× more commit-hours.
 
-**Bottleneck shift:** Before agents, coding time dominated. Now, Jörn's review/direction capacity is the bottleneck.
+**Context:**
+- Agents available since late 2025, but **parallelization** enabled ~Jan 26 → commit explosion
+- Before ~Jan 14: blocked on difficult proof (Clarke duality) → led to the talk
+- Commit-hours undercount proof work, literature review, thinking
 
-**Caveat:** These numbers exclude offline work. Actual time invested is higher, especially for phases with literature review.
+**Bottleneck shift:** Before parallelization, coding time dominated. Now, Jörn's review/direction capacity is the bottleneck.
 
 ---
 
