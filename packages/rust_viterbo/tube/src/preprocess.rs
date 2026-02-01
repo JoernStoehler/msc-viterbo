@@ -355,7 +355,9 @@ fn build_two_face_data(
     let mut lookup = TwoFaceLookup::new(num_facets);
 
     for (k, tfe) in enriched.iter().enumerate() {
-        let flow_dir = tfe.flow_direction.expect("Non-Lagrangian must have flow direction");
+        let flow_dir = tfe
+            .flow_direction
+            .expect("Non-Lagrangian must have flow direction");
 
         data.push(TwoFaceData {
             facet_i: tfe.i,

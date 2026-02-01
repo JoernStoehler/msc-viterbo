@@ -298,7 +298,10 @@ impl TwoFaceLookup {
     #[inline]
     pub fn get_two_face(&self, i: usize, j: usize) -> Option<usize> {
         let (a, b) = if i < j { (i, j) } else { (j, i) };
-        self.two_face.get(a * self.num_facets + b).copied().flatten()
+        self.two_face
+            .get(a * self.num_facets + b)
+            .copied()
+            .flatten()
     }
 
     /// Get transitions from 2-face k (indices into ThreeFacetData list).
