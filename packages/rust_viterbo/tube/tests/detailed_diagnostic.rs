@@ -719,3 +719,524 @@ fn analyze_adjacency_detail() {
         println!("  Facet {}: entry={}, exit={}", facet, as_entry, as_exit);
     }
 }
+
+/// Investigate whether Lagrangian 2-faces being filtered causes the sink pattern.
+///
+/// This test checks the user's hypothesis from issue #155:
+/// 1. Does every 2-face have entry & exit facet? (YES by construction)
+/// 2. Are some 2-faces Lagrangian and filtered, creating "holes"?
+/// 3. Does every facet appear both as entry and exit (balanced)?
+#[test]
+#[ignore]
+fn investigate_lagrangian_filtering() {
+    use tube::constants::EPS_LAGRANGIAN;
+
+    println!("\n=== Lagrangian Filtering Investigation ===\n");
+
+    // Use seed=0 which we know fails
+    let random = fixtures::random_hrep(8, 0.001, 0).unwrap();
+    let n = random.num_facets();
+
+    println!("Analyzing all facet pairs for {} facets:\n", n);
+
+    // Compute omega for ALL pairs and check Lagrangian status
+    let mut all_2faces: Vec<(usize, usize, f64, bool, Option<(usize, usize)>)> = Vec::new();
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let ni = &random.normals[i];
+            let nj = &random.normals[j];
+            // omega(a, b) = a1*b3 - a3*b1 + a2*b4 - a4*b2 = <J*a, b>
+            let omega_ij = ni[0] * nj[2] - ni[2] * nj[0] + ni[1] * nj[3] - ni[3] * nj[1];
+            let is_lagrangian = omega_ij.abs() < EPS_LAGRANGIAN;
+
+            // Determine flow direction (entry, exit)
+            let flow_dir = if is_lagrangian {
+                None
+            } else if omega_ij > 0.0 {
+                Some((i, j)) // flow i -> j
+            } else {
+                Some((j, i)) // flow j -> i
+            };
+
+            all_2faces.push((i, j, omega_ij, is_lagrangian, flow_dir));
+        }
+    }
+
+    // Note: Not all pairs (i,j) are actual 2-faces - need to check adjacency
+    // For now, let's count omega signs per facet to understand the pattern
+
+    println!("Omega sign analysis per facet:");
+    println!("(For facet k: count pairs where omega > 0 vs < 0 vs ≈0)");
+    println!();
+
+    for facet in 0..n {
+        let mut pos = 0;
+        let mut neg = 0;
+        let mut lagr = 0;
+
+        for &(i, j, omega, is_lagr, _) in &all_2faces {
+            if i == facet || j == facet {
+                if is_lagr {
+                    lagr += 1;
+                } else if (i == facet && omega > 0.0) || (j == facet && omega < 0.0) {
+                    // Facet is entry (flow goes OUT of facet)
+                    pos += 1;
+                } else {
+                    // Facet is exit (flow goes INTO facet)
+                    neg += 1;
+                }
+            }
+        }
+        println!(
+            "  Facet {}: out={}, in={}, lagrangian={}",
+            facet, pos, neg, lagr
+        );
+    }
+
+    println!("\n--- Checking actual 2-faces (share ≥3 vertices) ---\n");
+
+    // Now check which pairs are actual 2-faces by using preprocess
+    use tube::preprocess::preprocess;
+    let data = preprocess(&random).unwrap();
+
+    println!("Total 2-faces found: {}", data.two_face_data.len());
+    println!(
+        "Has Lagrangian 2-faces: {}",
+        data.has_lagrangian_two_faces()
+    );
+
+    // Count entry/exit usage
+    let mut entry_count = vec![0usize; n];
+    let mut exit_count = vec![0usize; n];
+
+    for tf in &data.two_face_data {
+        entry_count[tf.entry_facet] += 1;
+        exit_count[tf.exit_facet] += 1;
+    }
+
+    println!("\nFacet entry/exit balance (non-Lagrangian 2-faces only):");
+    for facet in 0..n {
+        let status = if entry_count[facet] == 0 && exit_count[facet] > 0 {
+            "← SINK (in but no out)"
+        } else if entry_count[facet] > 0 && exit_count[facet] == 0 {
+            "← SOURCE (out but no in)"
+        } else if entry_count[facet] == 0 && exit_count[facet] == 0 {
+            "← ISOLATED"
+        } else {
+            ""
+        };
+        println!(
+            "  Facet {}: entry={}, exit={} {}",
+            facet, entry_count[facet], exit_count[facet], status
+        );
+    }
+
+    // Key question: for facets that are sinks, are there Lagrangian 2-faces
+    // that would provide the missing "exit" paths?
+    println!("\n--- Checking if Lagrangian 2-faces explain sinks ---\n");
+
+    for facet in 0..n {
+        if entry_count[facet] == 0 && exit_count[facet] > 0 {
+            println!("Facet {} is a SINK. Checking for Lagrangian exits:", facet);
+
+            // Find all potential 2-faces involving this facet
+            for other in 0..n {
+                if other == facet {
+                    continue;
+                }
+                let (i, j) = if facet < other {
+                    (facet, other)
+                } else {
+                    (other, facet)
+                };
+
+                // Find this pair in our list
+                for &(pi, pj, omega, is_lagr, flow_dir) in &all_2faces {
+                    if pi == i && pj == j {
+                        let would_be_entry = match flow_dir {
+                            Some((entry, _)) => entry == facet,
+                            None => false,
+                        };
+
+                        if is_lagr {
+                            println!("  ({}, {}): LAGRANGIAN (ω={:.2e}) - filtered!", i, j, omega);
+                        } else if would_be_entry {
+                            println!(
+                                "  ({}, {}): ω={:.4} -> flow {}->{} (facet {} is entry)",
+                                i,
+                                j,
+                                omega,
+                                flow_dir.unwrap().0,
+                                flow_dir.unwrap().1,
+                                facet
+                            );
+                        }
+                    }
+                }
+            }
+            println!();
+        }
+    }
+}
+
+/// Investigate why facets 0 and 6 are isolated in the random polytope.
+/// Check vertex sharing between facets.
+#[test]
+#[ignore]
+fn investigate_isolated_facets() {
+    use tube::constants::EPS;
+
+    println!("\n=== Investigating Isolated Facets ===\n");
+
+    let random = fixtures::random_hrep(8, 0.001, 0).unwrap();
+    let n = random.num_facets();
+
+    // First, enumerate all vertices
+    use nalgebra::{Matrix4, Vector4};
+    let mut vertices: Vec<Vector4<f64>> = Vec::new();
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            for k in (j + 1)..n {
+                for l in (k + 1)..n {
+                    let m = Matrix4::from_rows(&[
+                        random.normals[i].transpose(),
+                        random.normals[j].transpose(),
+                        random.normals[k].transpose(),
+                        random.normals[l].transpose(),
+                    ]);
+
+                    if let Some(m_inv) = m.try_inverse() {
+                        let h = Vector4::new(
+                            random.heights[i],
+                            random.heights[j],
+                            random.heights[k],
+                            random.heights[l],
+                        );
+                        let candidate = m_inv * h;
+
+                        // Check if candidate satisfies all constraints
+                        let is_valid = random
+                            .normals
+                            .iter()
+                            .zip(&random.heights)
+                            .all(|(n, &h)| n.dot(&candidate) <= h + EPS);
+
+                        if is_valid {
+                            let is_dup = vertices
+                                .iter()
+                                .any(|v: &Vector4<f64>| (v - candidate).norm() < EPS);
+                            if !is_dup {
+                                vertices.push(candidate);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    println!("Total vertices found: {}", vertices.len());
+
+    // For each vertex, determine which facets it belongs to
+    let mut vertex_facets: Vec<Vec<usize>> = Vec::new();
+    for v in &vertices {
+        let mut facets = Vec::new();
+        for (i, (n, h)) in random.normals.iter().zip(&random.heights).enumerate() {
+            if (n.dot(v) - h).abs() < EPS {
+                facets.push(i);
+            }
+        }
+        vertex_facets.push(facets);
+    }
+
+    println!("\nVertices and their facets:");
+    for (idx, facets) in vertex_facets.iter().enumerate() {
+        println!("  Vertex {}: on facets {:?}", idx, facets);
+    }
+
+    // Now count shared vertices between facet pairs
+    println!("\nFacet pair adjacency (# shared vertices):");
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let shared: Vec<usize> = vertex_facets
+                .iter()
+                .enumerate()
+                .filter(|(_, facets)| facets.contains(&i) && facets.contains(&j))
+                .map(|(idx, _)| idx)
+                .collect();
+
+            let indicator = if shared.len() >= 3 {
+                "← 2-FACE"
+            } else if shared.len() > 0 {
+                ""
+            } else {
+                "← NO ADJACENCY"
+            };
+
+            if shared.len() > 0 || i == 0 || i == 6 || j == 0 || j == 6 {
+                println!(
+                    "  ({}, {}): {} shared vertices {:?} {}",
+                    i,
+                    j,
+                    shared.len(),
+                    shared,
+                    indicator
+                );
+            }
+        }
+    }
+
+    // Check facets 0 and 6 specifically
+    println!("\n--- Facet 0 analysis ---");
+    let facet0_vertices: Vec<usize> = vertex_facets
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| f.contains(&0))
+        .map(|(i, _)| i)
+        .collect();
+    println!("Vertices on facet 0: {:?}", facet0_vertices);
+
+    println!("\n--- Facet 6 analysis ---");
+    let facet6_vertices: Vec<usize> = vertex_facets
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| f.contains(&6))
+        .map(|(i, _)| i)
+        .collect();
+    println!("Vertices on facet 6: {:?}", facet6_vertices);
+}
+
+/// Test that for the cross-polytope, every facet appears as both entry and exit.
+/// This is the "balanced" property that random polytopes seem to violate.
+#[test]
+#[ignore]
+fn test_cross_polytope_entry_exit_balance() {
+    use tube::preprocess::preprocess;
+
+    println!("\n=== Cross-polytope Entry/Exit Balance ===\n");
+
+    let cross = fixtures::unit_cross_polytope();
+    let data = preprocess(&cross).unwrap();
+
+    let n = data.num_facets;
+    let mut entry_count = vec![0usize; n];
+    let mut exit_count = vec![0usize; n];
+
+    for tf in &data.two_face_data {
+        entry_count[tf.entry_facet] += 1;
+        exit_count[tf.exit_facet] += 1;
+    }
+
+    println!(
+        "Cross-polytope ({} facets, {} 2-faces):",
+        n,
+        data.two_face_data.len()
+    );
+    println!();
+
+    let mut balanced = true;
+    for facet in 0..n {
+        let is_balanced = entry_count[facet] > 0 && exit_count[facet] > 0;
+        if !is_balanced {
+            balanced = false;
+        }
+        println!(
+            "  Facet {:2}: entry={:2}, exit={:2} {}",
+            facet,
+            entry_count[facet],
+            exit_count[facet],
+            if is_balanced { "✓" } else { "✗ UNBALANCED" }
+        );
+    }
+
+    println!();
+    if balanced {
+        println!("All facets are balanced (appear as both entry and exit)");
+    } else {
+        println!("WARNING: Some facets are unbalanced!");
+    }
+
+    // For symmetric polytopes, we expect equal counts
+    let entry_sum: usize = entry_count.iter().sum();
+    let exit_sum: usize = exit_count.iter().sum();
+    println!("\nTotal: entry_sum={}, exit_sum={}", entry_sum, exit_sum);
+
+    assert!(balanced, "Cross-polytope should have balanced facets");
+}
+
+/// Test the user's proposition about transition structure:
+///
+/// For all non-Lagrangian polytopes K, for all facets F:
+/// - Let A = 2-faces where F is entry (trajectories EXIT F through these)
+/// - Let B = 2-faces where F is exit (trajectories ENTER F through these)
+/// Then:
+/// - Any a ∈ A has transitions only to elements of B (not to other 2-faces)
+/// - Any b ∈ B has transitions only from elements of A (not from other 2-faces)
+///
+/// This tests whether the transition structure is consistent with the Reeb flow.
+#[test]
+#[ignore]
+fn test_transition_structure_proposition() {
+    use tube::preprocess::preprocess;
+
+    println!("\n=== Transition Structure Proposition Test ===\n");
+
+    // Test on cross-polytope (known to work)
+    println!("--- Cross-polytope ---\n");
+    let cross = fixtures::unit_cross_polytope();
+    test_proposition_on_polytope(&cross, "cross-polytope");
+
+    // Test on random polytope (known to fail)
+    println!("\n--- Random polytope (seed=0) ---\n");
+    if let Some(random) = fixtures::random_hrep(8, 0.001, 0) {
+        test_proposition_on_polytope(&random, "random-seed0");
+    }
+}
+
+fn test_proposition_on_polytope(hrep: &TubeHrep, name: &str) {
+    use tube::preprocess::preprocess;
+
+    let data = match preprocess(hrep) {
+        Ok(d) => d,
+        Err(e) => {
+            println!("{}: preprocessing failed: {}", name, e);
+            return;
+        }
+    };
+
+    let n = data.num_facets;
+    let num_2faces = data.two_face_data.len();
+
+    println!(
+        "{}: {} facets, {} 2-faces, {} transitions",
+        name,
+        n,
+        num_2faces,
+        data.transitions.len()
+    );
+
+    // For each facet, compute A (entry 2-faces) and B (exit 2-faces)
+    for facet in 0..n {
+        let a: Vec<usize> = data
+            .two_face_data
+            .iter()
+            .enumerate()
+            .filter(|(_, tf)| tf.entry_facet == facet)
+            .map(|(k, _)| k)
+            .collect();
+
+        let b: Vec<usize> = data
+            .two_face_data
+            .iter()
+            .enumerate()
+            .filter(|(_, tf)| tf.exit_facet == facet)
+            .map(|(k, _)| k)
+            .collect();
+
+        if a.is_empty() && b.is_empty() {
+            println!("  Facet {}: ISOLATED (no 2-faces)", facet);
+            continue;
+        }
+
+        // Check: transitions from A should go to B
+        let mut a_to_b_ok = true;
+        let mut violations_a_to_b: Vec<String> = Vec::new();
+
+        for &a_idx in &a {
+            let trans_from_a = data.lookup.transitions_from(a_idx);
+            for &trans_idx in trans_from_a {
+                let trans = &data.transitions[trans_idx];
+                let target_2face = trans.two_face_exit;
+
+                // The target 2-face should have entry_facet = our facet
+                // (since we're transitioning through facet, the next 2-face
+                // should have this facet as entry)
+                let target_tf = &data.two_face_data[target_2face];
+
+                // Actually, the proposition says: transitions from a ∈ A go to B
+                // B = 2-faces where F is exit
+                // After flowing along F, we exit F through some 2-face
+                // That 2-face should have F as entry (because we're leaving F)
+
+                // Wait, let me re-read the code...
+                // A transition from 2-face k_entry to k_exit means:
+                // - We're on 2-face k_entry, which has (entry_facet, exit_facet)
+                // - We flow along exit_facet (the "facet_mid")
+                // - We end up on 2-face k_exit
+
+                // So if 2-face a has entry_facet = F:
+                // - Trajectories are on F, approaching 2-face a
+                // - They cross into exit_facet of a
+                // - Transitions from a go to 2-faces where the target has
+                //   entry_facet = a.exit_facet
+
+                // The proposition seems to be about the structure:
+                // If F is entry_facet of a, then transitions from a
+                // involve flowing along a.exit_facet, not F.
+                // So transitions from A don't directly go to B for the same F.
+
+                // Let me re-interpret: the proposition might be saying
+                // that the transition graph through facet F is well-structured.
+
+                // Actually, let me check: for 2-face a with entry=F, exit=G:
+                // - Transitions from a involve flowing along G
+                // - After flowing along G, we reach some 2-face b
+                // - b has entry_facet = G (since we just flowed along G)
+
+                // So transitions from A (where entry=F) go to 2-faces where
+                // entry_facet = exit_facet of a = the "other" facet of a.
+
+                // I think the proposition needs clarification.
+                // Let me just check what the transitions look like.
+            }
+        }
+
+        // Actually, let me just print the transition structure for each facet
+        if !a.is_empty() || !b.is_empty() {
+            println!("  Facet {}: A(entry)={:?}, B(exit)={:?}", facet, a, b);
+
+            // For each a in A, show where transitions go
+            for &a_idx in &a {
+                let tf_a = &data.two_face_data[a_idx];
+                let trans_from_a: Vec<_> = data
+                    .lookup
+                    .transitions_from(a_idx)
+                    .iter()
+                    .map(|&t_idx| {
+                        let t = &data.transitions[t_idx];
+                        let target = &data.two_face_data[t.two_face_exit];
+                        (t.two_face_exit, target.entry_facet, target.exit_facet)
+                    })
+                    .collect();
+
+                println!(
+                    "    From 2-face {} ({}->{}) via {}: goes to {:?}",
+                    a_idx, tf_a.entry_facet, tf_a.exit_facet, tf_a.exit_facet, trans_from_a
+                );
+            }
+
+            // For each b in B, show where transitions come from
+            for &b_idx in &b {
+                let tf_b = &data.two_face_data[b_idx];
+                let trans_to_b: Vec<_> = data
+                    .transitions
+                    .iter()
+                    .filter(|t| t.two_face_exit == b_idx)
+                    .map(|t| {
+                        let source = &data.two_face_data[t.two_face_entry];
+                        (t.two_face_entry, source.entry_facet, source.exit_facet)
+                    })
+                    .collect();
+
+                if trans_to_b.is_empty() {
+                    println!(
+                        "    To 2-face {} ({}->{}) via {}: NO INCOMING TRANSITIONS",
+                        b_idx, tf_b.entry_facet, tf_b.exit_facet, tf_b.entry_facet
+                    );
+                }
+            }
+        }
+    }
+}

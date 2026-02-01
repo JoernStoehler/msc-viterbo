@@ -1,11 +1,13 @@
 # Issue #155 Investigation: Random Polytope Failures
 
 **Investigation Date**: 2026-02-01
-**Status**: Root causes identified, escalation needed
+**Status**: Root causes identified, partial fix implemented
 
 ## Summary
 
 Both the Tube and HK2017 algorithms fail on nearly all random 8-facet polytopes, while fixtures (cross-polytope, tesseract, etc.) work correctly.
+
+**Update**: Added rejection of polytopes with degenerate facets (< 4 vertices in 4D). This catches 68-86% of the previously "valid" polytopes that were actually geometrically malformed.
 
 ## Symptoms
 
@@ -35,16 +37,46 @@ Random H-rep polytopes create **sink facets** where the Reeb flow terminates:
 
 This creates a **nearly acyclic transition graph** where tubes cannot close.
 
-### Why Random Polytopes Have Sink Facets
+### Root Cause 1: Degenerate Facets (FIXED)
+
+The random H-rep generator was producing polytopes where some "facets" have fewer than 4 vertices. In 4D, a proper 3-face (facet) requires at least 4 vertices (tetrahedron). Facets with only 2-3 vertices are geometrically degenerate:
+
+**Example (seed=0):**
+```
+Facet 0: 2 vertices only → ISOLATED (edge, not a face)
+Facet 6: 2 vertices only → ISOLATED (edge, not a face)
+```
+
+These degenerate facets can't form proper 2-faces, leading to disconnected transition graphs.
+
+**Fix implemented**: `random_hrep` now rejects polytopes where any facet has fewer than 4 vertices. Rejection statistics:
+- n=6 facets: 86% rejected for degenerate facets
+- n=8 facets: 68% rejected for degenerate facets
+- n=10 facets: 64% rejected for degenerate facets
+
+### Root Cause 2: Omega-Direction Sinks (remaining issue)
+
+Even with non-degenerate facets, the symplectic form ω(n_i, n_j) can create "sink facets" where:
+- All 2-faces involving the facet have flow directed INTO it
+- No 2-faces have flow directed OUT of it
+
+**Example (facet 1 in remaining failing polytopes):**
+```
+Facet 1: entry=0, exit=4 → SINK (trajectories enter but can't exit)
+```
+
+This is a geometric property of random normals, not a bug in enumeration.
+
+### Why Random Polytopes Have These Issues
 
 The random H-rep generator samples:
 1. Normals uniformly from S³ (via Gaussian normalization)
 2. Heights uniformly from [0.3, 3.0]
 
-This produces valid bounded polytopes (~80% success rate), but the **combinatorial structure is unconstrained**:
+This produces valid bounded polytopes, but the **combinatorial structure is unconstrained**:
+- No guarantee facets have enough vertices (now fixed by rejection)
 - No guarantee of symmetric facet adjacency
-- Some facets may dominate (many 2-faces exit to them)
-- Other facets become sinks or don't participate at all
+- Omega signs can be completely asymmetric → sink facets
 
 The cross-polytope's high symmetry (hyperoctahedral group) ensures balanced adjacency.
 
@@ -76,11 +108,12 @@ if compared < 5 {
 
 | # | Hypothesis | Result | Evidence |
 |---|-----------|--------|----------|
-| 1 | Random polytopes are invalid | **FALSIFIED** | ~80% pass generator validation |
+| 1 | Random polytopes are invalid | **PARTIALLY CONFIRMED** | Many have degenerate facets (< 4 vertices) |
 | 2 | Near-Lagrangian 2-faces cause issues | Partial | Random ω ∈ [0.001, 0.817] vs cross ω ∈ [0.5, 1.0] |
 | 3 | Tolerance too strict | **FALSIFIED** | Tested 1e-10 to 1e-2, same failure |
 | 4 | Transition graph disconnected | **CONFIRMED** | Random: 1/14 reachable; Cross: 32/32 |
 | 5 | Sink facets prevent closure | **CONFIRMED** | Facet 1 has 4 incoming, 0 outgoing |
+| 6 | Degenerate facets (< 4 vertices) | **CONFIRMED & FIXED** | Facets 0, 6 had only 2 vertices |
 
 ## Recommendations
 
@@ -110,13 +143,29 @@ Add documentation that random_hrep produces polytopes that may fail capacity alg
 
 ## Files Modified During Investigation
 
-- `tube/tests/detailed_diagnostic.rs` - Added diagnostic tests (should be removed or `#[ignore]`d before merge)
+- `tube/tests/detailed_diagnostic.rs` - Added diagnostic tests (all `#[ignore]`d)
+- `tube/tests/hk2017_comparison.rs` - Added assertion, marked `#[ignore]` with issue reference
+- `tube/src/fixtures.rs` - **Added degenerate facet rejection** + tests
+
+## Fixes Implemented
+
+1. **Degenerate facet rejection**: `random_hrep` now rejects polytopes where any facet has < 4 vertices
+2. **Comparison test assertion**: Test now fails explicitly when no comparisons succeed
+3. **New RejectionReason variant**: `DegenerateFacet` for diagnostics
+
+## Remaining Issues
+
+The sink facet issue (omega-direction asymmetry) is NOT fixed. Even with non-degenerate facets, random normals can create sink facets. Options:
+
+a) **Filter by entry/exit balance**: Reject polytopes where any facet has zero entry or exit 2-faces
+b) **Perturb fixtures**: Generate test polytopes by perturbing known-good polytopes
+c) **Accept limitation**: Document that random_hrep is unsuitable for algorithm testing
 
 ## Next Steps
 
-1. **Escalate to Jörn**: The random polytope generator design is a thesis-level decision
-2. **Quick fix**: Add assertion to comparison test to make it fail explicitly
-3. **Research**: Is there a known class of polytopes guaranteed to have connected transition graphs?
+1. **Escalate to Jörn**: The remaining omega-direction sink issue is a thesis-level design decision
+2. **Consider option (a)**: Could add entry/exit balance check to random_hrep
+3. **Research**: Is there a class of polytopes guaranteed to have balanced omega signs?
 
 ## Related Issues
 

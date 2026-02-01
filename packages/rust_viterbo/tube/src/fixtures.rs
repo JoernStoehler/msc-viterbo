@@ -289,7 +289,42 @@ pub fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<Polytop
         }
     }
 
+    // Check for degenerate facets (fewer than 4 vertices in 4D)
+    // A proper 3-face in 4D must have at least 4 vertices (tetrahedron)
+    if has_degenerate_facets(&hrep, &data.vertices) {
+        return None;
+    }
+
     Some(hrep)
+}
+
+/// Check if any facet has fewer than 4 vertices (degenerate in 4D).
+///
+/// In 4D, a proper 3-face (facet) must have at least 4 vertices.
+/// Facets with fewer vertices are geometrically degenerate:
+/// - 0-2 vertices: not even a 2D face
+/// - 3 vertices: a triangle (2D), not a 3D face
+fn has_degenerate_facets(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
+    use crate::constants::EPS;
+
+    let n_facets = hrep.num_facets();
+
+    for facet in 0..n_facets {
+        let mut vertex_count = 0;
+        for v in vertices {
+            let n = &hrep.normals[facet];
+            let h = hrep.heights[facet];
+            if (n.dot(v) - h).abs() < EPS {
+                vertex_count += 1;
+            }
+        }
+        // A 3-face in 4D needs at least 4 vertices
+        if vertex_count < 4 {
+            return true;
+        }
+    }
+
+    false
 }
 
 /// Rejection reason for random_hrep diagnostics.
@@ -301,6 +336,8 @@ pub enum RejectionReason {
     NearLagrangian,
     /// Polytope is unbounded (normals don't positively span ℝ⁴)
     Unbounded,
+    /// A facet has fewer than 4 vertices (degenerate in 4D)
+    DegenerateFacet,
     /// Preprocess failed for another reason (degenerate, etc.)
     PreprocessFailed,
 }
@@ -380,6 +417,11 @@ pub fn random_hrep_diagnostic(
         if tf.omega < min_omega {
             return Err(RejectionReason::NearLagrangian);
         }
+    }
+
+    // Check for degenerate facets (fewer than 4 vertices in 4D)
+    if has_degenerate_facets(&hrep, &data.vertices) {
+        return Err(RejectionReason::DegenerateFacet);
     }
 
     Ok(hrep)
@@ -781,21 +823,25 @@ mod tests {
         for n_facets in [6, 8, 10] {
             let mut counts: HashMap<&str, usize> = HashMap::new();
             counts.insert("success", 0);
-            counts.insert("degenerate", 0);
+            counts.insert("degenerate_normal", 0);
             counts.insert("lagrangian", 0);
             counts.insert("unbounded", 0);
+            counts.insert("degenerate_facet", 0);
             counts.insert("preprocess_failed", 0);
 
             for seed in 0..n_seeds {
                 match random_hrep_diagnostic(n_facets, min_omega, seed as u64) {
                     Ok(_) => *counts.get_mut("success").unwrap() += 1,
                     Err(RejectionReason::DegenerateNormal) => {
-                        *counts.get_mut("degenerate").unwrap() += 1
+                        *counts.get_mut("degenerate_normal").unwrap() += 1
                     }
                     Err(RejectionReason::NearLagrangian) => {
                         *counts.get_mut("lagrangian").unwrap() += 1
                     }
                     Err(RejectionReason::Unbounded) => *counts.get_mut("unbounded").unwrap() += 1,
+                    Err(RejectionReason::DegenerateFacet) => {
+                        *counts.get_mut("degenerate_facet").unwrap() += 1
+                    }
                     Err(RejectionReason::PreprocessFailed) => {
                         *counts.get_mut("preprocess_failed").unwrap() += 1
                     }
@@ -803,14 +849,63 @@ mod tests {
             }
 
             println!(
-                "n={}: success={}, degenerate={}, lagrangian={}, unbounded={}, preprocess_failed={}",
+                "n={}: success={}, degenerate_normal={}, lagrangian={}, unbounded={}, degenerate_facet={}, preprocess_failed={}",
                 n_facets,
                 counts["success"],
-                counts["degenerate"],
+                counts["degenerate_normal"],
                 counts["lagrangian"],
                 counts["unbounded"],
+                counts["degenerate_facet"],
                 counts["preprocess_failed"],
             );
+        }
+    }
+
+    /// Test that polytopes with degenerate facets are rejected.
+    ///
+    /// This tests the error path for issue #155: random polytopes can have
+    /// facets with fewer than 4 vertices (degenerate in 4D).
+    #[test]
+    fn test_rejects_degenerate_facets() {
+        use crate::preprocess::preprocess;
+
+        // Seed 0 is known to produce a polytope with degenerate facets
+        // (facets 0 and 6 have only 2 vertices each)
+        let min_omega = 0.001;
+
+        // The original seed=0 should now be rejected
+        let result = random_hrep_diagnostic(8, min_omega, 0);
+
+        // It should either succeed with no degenerate facets, or fail with DegenerateFacet
+        // After our fix, seed=0 should fail with DegenerateFacet
+        match result {
+            Ok(hrep) => {
+                // If it succeeds, verify no degenerate facets
+                let data = preprocess(&hrep).expect("Should preprocess");
+                for facet in 0..hrep.num_facets() {
+                    let mut vertex_count = 0;
+                    for v in &data.vertices {
+                        let n = &hrep.normals[facet];
+                        let h = hrep.heights[facet];
+                        if (n.dot(v) - h).abs() < EPS {
+                            vertex_count += 1;
+                        }
+                    }
+                    assert!(
+                        vertex_count >= 4,
+                        "Facet {} has only {} vertices (need 4+ for 4D)",
+                        facet,
+                        vertex_count
+                    );
+                }
+            }
+            Err(RejectionReason::DegenerateFacet) => {
+                // Expected for seed=0 - this is the fix working
+            }
+            Err(other) => {
+                // Some other rejection is also acceptable
+                println!("Seed 0 rejected for other reason: {:?}", other);
+            }
         }
     }
 }
