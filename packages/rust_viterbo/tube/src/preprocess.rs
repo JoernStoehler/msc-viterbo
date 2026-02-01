@@ -438,7 +438,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cross_polytope_no_lagrangian_2faces() {
+    fn test_cross_polytope_no_lagrangian_two_faces() {
         let hrep = unit_cross_polytope();
         let data = preprocess(&hrep).unwrap();
 

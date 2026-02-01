@@ -2,7 +2,26 @@
 
 > **Audience:** Claude Code agents implementing the algorithms
 > **Prerequisite:** Read thesis chapter ([algorithms.tex](../../latex_viterbo/chapters/algorithms.tex)) for mathematical background
-> **Status:** This document consolidates all algorithm specifications. Implementation archived at tag `v0.1.0-archive`.
+> **Status:** Comprehensive reference document with detailed derivations
+
+## Per-Crate Specifications
+
+Each crate has a focused SPEC.md for quick reference:
+
+| Crate | SPEC.md | Purpose |
+|-------|---------|---------|
+| **geom** | [geom/SPEC.md](../geom/SPEC.md) | Polytope primitives, volume, systolic ratio |
+| **hk2017** | [hk2017/SPEC.md](../hk2017/SPEC.md) | HK2017 QP algorithm |
+| **tube** | [tube/SPEC.md](../tube/SPEC.md) | Tube algorithm for non-Lagrangian polytopes |
+| **billiard** | [billiard/SPEC.md](../billiard/SPEC.md) | Billiard algorithm for Lagrangian products |
+
+**This document** provides:
+- Comprehensive mathematical derivations
+- Cross-referenced definitions shared between algorithms
+- Detailed assertions and validation code
+- Historical context and design rationale
+
+For quick implementation reference, start with the crate SPEC.md files.
 
 ---
 
@@ -2290,6 +2309,14 @@ A complete implementation requires a global QCQP solver. Checking only vertices 
 ---
 
 ### 3.4 Tube Algorithm (Branch and Bound)
+
+> **TODO:** This section provides only a high-level overview. It needs expansion to include:
+> - Correctness proof: argument that the search tree covers all minimum-action orbits
+> - Tube invariants: `p_start` refinement via pullback, rotation accumulation formula
+> - Shear case handling in fixed-point detection (det(A-I) ≈ 0)
+> - Reference mapping to thesis theorems and code locations
+>
+> See GitHub issue for tracking.
 
 **Source:** This thesis (Stöhler 2026), Section \ref{sec:algo-ours}. The algorithm extends CH2021's mathematical framework (Reeb dynamics on polytopes, linear flows, symplectic flow graphs) with a branch-and-bound search over "tubes" — sets of trajectories sharing a combinatorial class. The "tube" terminology and the specific algorithmic structure are original to this thesis.
 
