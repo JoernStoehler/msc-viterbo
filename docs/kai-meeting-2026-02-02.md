@@ -5,6 +5,11 @@ Jörn Stöhler, University of Augsburg
 
 ---
 
+<!-- PENDING BEFORE PRINT (Feb 2):
+1. Update §3.1 and §6.2 status lines after #155+#144 troubleshoot agent finishes
+2. Remove this comment block when ready to print
+-->
+
 ## Executive Summary
 
 **Topic:** Computational investigation of Viterbo's Conjecture boundary cases after HK-O 2024 counterexample.
@@ -77,18 +82,24 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ### 3.1 Critical Path
 
+**Correctness validation (highest priority):**
+```
+#155 Random polytope test failures (Tube 97%, HK2017 100%)
+#144 Tube lacks effective cross-validation with HK2017
+  ↓ blocks confidence in
+All experiments using Tube algorithm
+```
+
+**Billiard algorithm path:**
 ```
 #92 Billiard thesis section (has design notes, needs formal writeup)
   ↓ blocks
-#93 Billiard test suite
-#94 Triangle×triangle discrepancy debug (billiard=3.0 vs hk2017=1.5)
+#93 Billiard test suite (includes triangle×triangle validation)
   ↓ blocks
 #112 Algorithm performance comparison
-  ↓ blocks
-#113-115 ML capacity prediction experiments
 ```
 
-**Unblocking #92** is the single highest-leverage task.
+**Status:** Active troubleshooting on #155+#144 (found low-level bugs, e.g., degenerate facets not filtered). Fix may land Feb 1.
 
 ### 3.2 Unblocked Experiments (ready to run)
 
@@ -109,27 +120,31 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 | Milestone | Target | Status |
 |-----------|--------|--------|
-| **M4: Algorithm Toolbox** | — | 5/11 issues closed |
+| **M4: Algorithm Toolbox** | — | 5/12 issues closed |
 | **M6: Dataset Characterized** | — | 1/5 issues closed |
 | **M8: Thesis Submission** | End of March | 3/5 issues closed |
 
-### 4.2 Remaining Work (Point Estimates)
+### 4.2 Remaining Work (Effort Estimates)
 
-<!-- [JÖRN: Please review/adjust point estimates. Scale: 1pt ≈ 1 focused hour of your attention] -->
+<!-- [JÖRN: Please review/adjust estimates] -->
 
-| Task | Points | Blocked By |
-|------|--------|------------|
-| #92 Billiard section writeup | 3 | — |
-| #93 Billiard test suite | 2 | #92 |
-| #94 Triangle×triangle debug | 2 | #92, #93 |
-| #96 Algorithm comparison | 3 | — |
-| #100 HKO orbit validation | 2 | — |
-| #101 Random polytope sys distribution | 5 | — |
-| #102 Lagrangian product polygons | 4 | — |
-| #126 Appendix detailed experiments | 3 | experiments done |
-| Thesis chapters (counter, exp, conj) | 8 | experiments done |
-| Final editing + submission | 5 | all above |
-| **Total remaining** | **~37 pts** | |
+**Legend:**
+- **Agent hrs** — parallelizable, results in wait time (can run multiple agents)
+- **Jörn hrs** — not parallelizable, the actual bottleneck
+
+| Task | Agent | Jörn | Blocked By |
+|------|-------|------|------------|
+| #155+#144 Random polytope + cross-validation fix | 8 | 2 | — (in progress) |
+| #92 Billiard section writeup | 2 | 6 | — |
+| #93 Billiard test suite | 12 | 3 | #92 |
+| #96 Algorithm comparison | 2 | 0.5 | — |
+| #100 HKO orbit validation | 2 | 0.5 | — |
+| #101 Random polytope sys distribution | 2 | 0.5 | — |
+| #102 Lagrangian product polygons | 8 | 0.5 | — |
+| Thesis writing + editing | 16 | 96 | experiments done |
+| **Total** | **~52** | **~109** | |
+
+**Critical path:** ~109 Jörn-hours cannot be parallelized. With ~8 weeks remaining and part-time availability, this is the binding constraint.
 
 ### 4.3 Velocity
 
@@ -183,7 +198,7 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 **⚠️ Tube lacks effective cross-validation (#144):**
 - The HK2017 vs Tube comparison test can pass with **0 successful comparisons**
 - Capacity axioms alone don't prove we compute $c_{EHZ}$ vs some other capacity-like function
-- This is the biggest correctness gap — needs fixing before experiments
+- **Status:** Active troubleshooting (#155+#144) found low-level bugs (degenerate facet filtering). Fix in progress — may resolve by end of day.
 
 **Other gaps:**
 - Billiard algorithm: design only, not yet implemented/tested
@@ -194,14 +209,14 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 ## 7. Wasteful Efforts Summary
 
-<!-- [JÖRN: Adjust percentages based on actual experience] -->
+**Infrastructure overhead (not quantified):**
+- Claude Code web environment instability (crashes, state loss)
+- CI/environment setup iterations
+- Agent workflow refinement (commands, conventions)
 
-**Infrastructure overhead (Week 1):**
-- Claude Code web crash debugging: ~X hours
-- CI/environment setup: ~Y hours
-- Total: ~Z% of available time
+**Lesson learned:** Local development environment (CC CLI) is more stable than CC web. Agent parallelization requires upfront investment in conventions but pays off quickly.
 
-**Lesson:** Local development environment is more stable than CC web.
+**Net assessment:** Infrastructure overhead was real but acceptable for a research project exploring new tooling. The agent-assisted workflow now runs smoothly.
 
 ---
 
