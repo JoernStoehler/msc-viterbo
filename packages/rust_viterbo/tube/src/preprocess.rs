@@ -359,11 +359,16 @@ fn build_two_face_data(
             .flow_direction
             .expect("Non-Lagrangian must have flow direction");
 
+        // Determine entry/exit based on flow direction
+        let (entry_facet, exit_facet) = match flow_dir {
+            FlowDirection::ItoJ => (tfe.i, tfe.j),
+            FlowDirection::JtoI => (tfe.j, tfe.i),
+        };
+
         data.push(TwoFaceData {
-            facet_i: tfe.i,
-            facet_j: tfe.j,
-            omega: tfe.omega_ij,
-            flow_direction: flow_dir,
+            entry_facet,
+            exit_facet,
+            omega: tfe.omega_ij.abs(), // Store positive omega
             rotation: tfe.rotation,
             polygon: tfe.polygon_2d.clone(),
             centroid_4d: tfe.centroid_4d,
@@ -398,18 +403,16 @@ fn build_transitions(
     let mut transitions = Vec::new();
 
     for (k_entry, tf_entry) in two_faces.iter().enumerate() {
-        let exit_facet = tf_entry.exit_facet();
-
-        // Find all 2-faces that have exit_facet as their entry facet
+        // Find all 2-faces that have tf_entry.exit_facet as their entry facet
         for (k_exit, tf_exit) in two_faces.iter().enumerate() {
-            if tf_exit.entry_facet() == exit_facet {
+            if tf_exit.entry_facet == tf_entry.exit_facet {
                 // Valid transition found
-                let facet_mid = exit_facet;
+                let facet_mid = tf_entry.exit_facet;
 
                 // Compute the affine flow map for this transition
                 let r_mid = &reeb_vectors[facet_mid];
                 let n_next = &tf_exit.exit_normal;
-                let h_next = heights[tf_exit.exit_facet()];
+                let h_next = heights[tf_exit.exit_facet];
 
                 let b_entry = &tf_entry.basis_exit;
                 let c_entry = tf_entry.centroid_4d;
@@ -545,11 +548,11 @@ mod tests {
 
         // Lookup should find all 2-faces
         for (k, tf) in data.two_face_data.iter().enumerate() {
-            let found = data.lookup.get_two_face(tf.facet_i, tf.facet_j);
+            let found = data.lookup.get_two_face(tf.entry_facet, tf.exit_facet);
             assert_eq!(found, Some(k), "Lookup should find 2-face {}", k);
 
             // Reverse lookup should also work
-            let found_rev = data.lookup.get_two_face(tf.facet_j, tf.facet_i);
+            let found_rev = data.lookup.get_two_face(tf.exit_facet, tf.entry_facet);
             assert_eq!(found_rev, Some(k));
         }
 
@@ -563,11 +566,10 @@ mod tests {
             let tf_entry = &data.two_face_data[trans.two_face_entry];
             let tf_exit = &data.two_face_data[trans.two_face_exit];
             assert_eq!(
-                tf_entry.exit_facet(),
-                tf_exit.entry_facet(),
+                tf_entry.exit_facet, tf_exit.entry_facet,
                 "Transition should connect at shared facet"
             );
-            assert_eq!(tf_entry.exit_facet(), trans.facet_mid);
+            assert_eq!(tf_entry.exit_facet, trans.facet_mid);
         }
 
         // Check adjacency structure
@@ -580,13 +582,13 @@ mod tests {
             }
 
             // Forward facets from old API should match
-            let old_forward = data.adjacent_facets_forward(tf.exit_facet());
+            let old_forward = data.adjacent_facets_forward(tf.exit_facet);
             assert_eq!(
                 trans_indices.len(),
                 old_forward.len(),
                 "Adjacency count should match for 2-face {} (exit facet {})",
                 k,
-                tf.exit_facet()
+                tf.exit_facet
             );
         }
 
