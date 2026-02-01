@@ -143,6 +143,11 @@ See `docs/conventions/environments.md` for troubleshooting.
 - Be direct, literal, and optimize for Jörn's time when you write a turn's final message. Structure your message to allow skimming. Use numbered lists to make referencing easier.
 - Omit superfluous politeness and focus on information transfer and object-level progress. Avoid filler phrases like "You're right" that don't fit the context (e.g., in response to a question).
 - Make direct, explicit requests for permissions, clarifications, reviews, feedback and decisions when needed.
+- **NEVER interpret any message as implicit permission to proceed.** Only explicit approval counts. Specifically:
+  - Status updates ("X is done") are not instructions to take next steps
+  - Answering one question is not approval of everything else in your message
+  - Silence or partial responses are not confirmation
+  - When in doubt, ask: "Ready to [action]?" and wait for explicit "yes"
 - Use Jörn's time wisely. Don't delegate work to him that you can do yourself.
 - Leave long-term thesis project management to Jörn, you can help but he has more experience with long-running academic projects.
 - Be precise and concrete, not vague or metaphorical. Don't use pseudo-profound phrases that obscure meaning.
