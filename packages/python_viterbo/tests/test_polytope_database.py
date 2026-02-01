@@ -1,18 +1,19 @@
 """Tests for polytope-database experiment.
 
 Tests the staged pipeline: stage_polytopes, stage_volume, stage_capacity.
+
+Unit tests run without FFI. Integration tests require FFI and run the actual
+stage main() functions, testing the real pipeline path.
 """
 
 import json
 import math
+from pathlib import Path
 from typing import Any
 
 import pytest
 
-from viterbo.experiments.polytope_database.stage_capacity import (
-    add_capacities,
-    generate_stub_orbit,
-)
+from viterbo.experiments.polytope_database.stage_capacity import generate_stub_orbit
 from viterbo.experiments.polytope_database.stage_polytopes import (
     cell_24_hrep,
     cross_polytope_hrep,
@@ -22,7 +23,6 @@ from viterbo.experiments.polytope_database.stage_polytopes import (
     simplex_hrep,
     tesseract_hrep,
 )
-from viterbo.experiments.polytope_database.stage_volume import add_volumes
 
 try:
     import rust_viterbo_ffi as ffi
@@ -113,14 +113,11 @@ class TestLagrangianDetection:
     def test_cross_polytope_has_some_lagrangian_2faces(self) -> None:
         """Cross-polytope has some Lagrangian 2-faces (despite being non-Lagrangian product)."""
         normals, _ = cross_polytope_hrep()
-        # Has Lagrangian 2-faces, but still suitable for tube algorithm
-        # (tube algorithm filters/handles these internally)
         assert has_lagrangian_2face(normals)
 
     def test_24_cell_has_some_lagrangian_2faces(self) -> None:
         """24-cell has some Lagrangian 2-faces (despite being non-Lagrangian product)."""
         normals, _ = cell_24_hrep()
-        # Has Lagrangian 2-faces, but still suitable for tube algorithm
         assert has_lagrangian_2face(normals)
 
 
@@ -156,7 +153,7 @@ class TestOrbitGeneration:
 
 
 class TestStagePolytopes:
-    """Test stage 1: polytope generation."""
+    """Test stage 1: polytope generation (no FFI required)."""
 
     def test_generates_all_families(self) -> None:
         polytopes = generate_polytopes()
@@ -202,130 +199,114 @@ class TestStagePolytopes:
         cross = next(p for p in polytopes if p["id"] == "cross-polytope")
         assert cross["facet_count"] == 16
         assert not cross["is_lagrangian_product"]
-        assert cross["has_lagrangian_2face"]  # Has some Lagrangian 2-faces
+        assert cross["has_lagrangian_2face"]
 
     def test_24_cell_properties(self) -> None:
         polytopes = generate_polytopes()
         cell = next(p for p in polytopes if p["id"] == "24-cell")
         assert cell["facet_count"] == 24
         assert not cell["is_lagrangian_product"]
-        assert cell["has_lagrangian_2face"]  # Has some Lagrangian 2-faces
+        assert cell["has_lagrangian_2face"]
 
 
-@pytest.fixture(autouse=True)
-def require_ffi_for_volume_tests() -> None:
-    """Skip volume tests if FFI is not installed."""
+@pytest.fixture(scope="module")
+def pipeline_output(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, list[dict]]:
+    """Run the full pipeline once and return (data_dir, complete_polytopes).
+
+    This fixture is module-scoped: runs once, shared across all integration tests.
+    Skips if FFI is not installed.
+    """
     if ffi is None:
         pytest.skip(
             "rust_viterbo_ffi is not installed. Build it with: "
             "cd packages/python_viterbo && uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml"
         )
 
+    from viterbo.experiments.polytope_database import (
+        stage_capacity,
+        stage_polytopes,
+        stage_volume,
+    )
 
-class TestStageVolume:
-    """Test stage 2: volume addition."""
+    data_dir = tmp_path_factory.mktemp("polytope-database")
 
-    @pytest.fixture(autouse=True)
-    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
-        """Use the FFI requirement fixture for all tests in this class."""
-        pass
+    # Run stages in sequence
+    stage_polytopes.main(data_dir)
+    stage_volume.main(data_dir)
+    stage_capacity.main(data_dir)
 
-    def test_adds_volume_to_all(self) -> None:
-        polytopes = generate_polytopes()
-        polytopes_with_vol = add_volumes(polytopes)
-        assert all("volume" in p for p in polytopes_with_vol)
+    # Load final output
+    with (data_dir / "complete.json").open() as f:
+        polytopes = json.load(f)
 
-    def test_preserves_existing_keys(self) -> None:
-        polytopes = generate_polytopes()
-        original_keys = set(polytopes[0].keys())
-        polytopes_with_vol = add_volumes(polytopes)
-        new_keys = set(polytopes_with_vol[0].keys())
-        assert original_keys.issubset(new_keys)
-        assert "volume" in new_keys
-
-    def test_tesseract_volume(self) -> None:
-        """Test that tesseract volume is computed correctly via FFI."""
-        polytopes = generate_polytopes()
-        tess = next(p for p in polytopes if p["id"] == "tesseract")
-        polytopes_with_vol = add_volumes([tess])
-        assert abs(polytopes_with_vol[0]["volume"] - 16.0) < 1e-6
+    return data_dir, polytopes
 
 
-class TestStageCapacity:
-    """Test stage 3: capacity addition."""
+class TestPipelineIntegration:
+    """Integration tests for the full staged pipeline.
 
-    @pytest.fixture(autouse=True)
-    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
-        """Use the FFI requirement fixture for all tests in this class."""
-        pass
+    All tests share a single pipeline run via the module-scoped fixture.
+    """
 
-    def test_adds_capacity_fields(self) -> None:
-        polytopes = generate_polytopes()
-        polytopes = add_volumes(polytopes)
-        polytopes = add_capacities(polytopes)
+    def test_stage1_output_exists(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        data_dir, _ = pipeline_output
+        assert (data_dir / "polytopes.json").exists()
 
+    def test_stage2_output_exists(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        data_dir, _ = pipeline_output
+        assert (data_dir / "polytopes_with_volume.json").exists()
+
+    def test_stage3_output_exists(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        data_dir, _ = pipeline_output
+        assert (data_dir / "complete.json").exists()
+
+    def test_pipeline_produces_12_polytopes(
+        self, pipeline_output: tuple[Path, list[dict]]
+    ) -> None:
+        _, polytopes = pipeline_output
+        assert len(polytopes) == 12
+
+    def test_all_have_volume(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        _, polytopes = pipeline_output
+        assert all("volume" in p for p in polytopes)
+
+    def test_all_have_capacity(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        _, polytopes = pipeline_output
+        assert all("capacity" in p for p in polytopes)
+
+    def test_all_have_systolic_ratio(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        _, polytopes = pipeline_output
+        assert all("systolic_ratio" in p for p in polytopes)
+
+    def test_all_have_orbit_data(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        _, polytopes = pipeline_output
         for p in polytopes:
-            assert "capacity" in p
-            assert "systolic_ratio" in p
             assert "orbit_breakpoints" in p
             assert "orbit_breaktimes" in p
             assert "orbit_facet_sequence" in p
 
-    def test_systolic_ratio_formula(self) -> None:
-        polytopes = generate_polytopes()
-        polytopes = add_volumes(polytopes)
-        polytopes = add_capacities(polytopes)
+    def test_tesseract_volume(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        """Tesseract [-1,1]^4 has volume 16."""
+        _, polytopes = pipeline_output
+        tess = next(p for p in polytopes if p["id"] == "tesseract")
+        assert abs(tess["volume"] - 16.0) < 1e-6
 
+    def test_tesseract_capacity(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        """Tesseract has known capacity 4.0."""
+        _, polytopes = pipeline_output
+        tess = next(p for p in polytopes if p["id"] == "tesseract")
+        assert tess["capacity"] == 4.0
+
+    def test_systolic_ratio_formula(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        """systolic_ratio = capacity^2 / (2 * volume)."""
+        _, polytopes = pipeline_output
         for p in polytopes:
             expected_ratio = p["capacity"] ** 2 / (2 * p["volume"])
             assert abs(p["systolic_ratio"] - expected_ratio) < 1e-10
 
-    def test_tesseract_capacity(self) -> None:
-        polytopes = generate_polytopes()
-        polytopes = add_volumes(polytopes)
-        polytopes = add_capacities(polytopes)
-        tess = next(p for p in polytopes if p["id"] == "tesseract")
-        assert tess["capacity"] == 4.0
-
-
-class TestFullPipeline:
-    """Test the complete staged pipeline."""
-
-    @pytest.fixture(autouse=True)
-    def _require_ffi(self, require_ffi_for_volume_tests: None) -> None:
-        """Use the FFI requirement fixture for all tests in this class."""
-        pass
-
-    def test_pipeline_produces_complete_data(self) -> None:
-        # Stage 1: polytopes
-        polytopes = generate_polytopes()
-        assert len(polytopes) == 12
-
-        # Stage 2: volumes
-        polytopes = add_volumes(polytopes)
-        assert all("volume" in p for p in polytopes)
-
-        # Stage 3: capacities
-        polytopes = add_capacities(polytopes)
-        assert all("capacity" in p for p in polytopes)
-        assert all("systolic_ratio" in p for p in polytopes)
-
-    def test_json_serializable(self) -> None:
-        """Ensure all output is JSON-serializable."""
-        polytopes = generate_polytopes()
-        polytopes = add_volumes(polytopes)
-        polytopes = add_capacities(polytopes)
-
-        # Should not raise
-        json_str = json.dumps(polytopes)
-        assert isinstance(json_str, str)
-
-    def test_orbit_invariants(self) -> None:
+    def test_orbit_invariants(self, pipeline_output: tuple[Path, list[dict]]) -> None:
         """Verify orbit data satisfies invariants."""
-        polytopes = generate_polytopes()
-        polytopes = add_volumes(polytopes)
-        polytopes = add_capacities(polytopes)
-
+        _, polytopes = pipeline_output
         for p in polytopes:
             # Orbit closed
             assert p["orbit_breakpoints"][0] == p["orbit_breakpoints"][-1]
@@ -344,3 +325,10 @@ class TestFullPipeline:
             # No duplicate facets
             fs = p["orbit_facet_sequence"]
             assert len(fs) == len(set(fs))
+
+    def test_json_serializable(self, pipeline_output: tuple[Path, list[dict]]) -> None:
+        """Ensure output is JSON-serializable (already loaded from file)."""
+        _, polytopes = pipeline_output
+        # Re-serialize to verify
+        json_str = json.dumps(polytopes)
+        assert isinstance(json_str, str)

@@ -210,8 +210,11 @@ pub fn asymmetric_cross_polytope(seed: u64) -> PolytopeHRep {
 ///
 /// # Arguments
 /// * `n_facets` - Number of facets (minimum 5; use 6+ for reasonable success rate)
-/// * `min_omega` - Minimum |ω(n_i, n_j)| for actual 2-faces (e.g., 0.01)
-/// * `seed` - Random seed for reproducibility
+/// * `min_omega` - Minimum |ω(n_i, n_j)| for actual 2-faces. Safety margin to avoid
+///   numerical instability in the tube algorithm's trivialization near Lagrangian 2-faces.
+///   Typical value: 0.001 (0.05 has low acceptance rate, 1e-6 risks instability).
+/// * `seed` - Random seed for reproducibility **on the same platform only**. Seeds are
+///   not portable across platforms due to floating-point differences in vertex enumeration.
 ///
 /// # Sampling method
 /// Uses Gaussian normalization for uniform S³: sample g ~ N(0,I₄), then n = g/||g||.
@@ -703,7 +706,8 @@ mod tests {
     fn test_random_hrep_respects_min_omega() {
         use crate::preprocess::preprocess;
 
-        let min_omega = 0.05;
+        // See random_hrep docstring for min_omega rationale
+        let min_omega = 0.001;
         let mut found = 0;
         for seed in 0..500 {
             if let Some(hrep) = random_hrep(10, min_omega, seed) {

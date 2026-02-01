@@ -142,10 +142,16 @@ def add_capacities(polytopes: list[dict]) -> list[dict]:
     return polytopes
 
 
-def main() -> None:
-    """Add capacities to polytopes and save to JSON."""
-    from viterbo.paths import get_data_dir
-    data_dir = get_data_dir("polytope-database")
+def main(data_dir: Path | None = None) -> None:
+    """Add capacities to polytopes and save to JSON.
+
+    Args:
+        data_dir: Directory containing polytopes_with_volume.json. If None, uses default.
+    """
+    if data_dir is None:
+        from viterbo.paths import get_data_dir
+        data_dir = get_data_dir("polytope-database")
+
     in_path = data_dir / "polytopes_with_volume.json"
     out_path = data_dir / "complete.json"
 

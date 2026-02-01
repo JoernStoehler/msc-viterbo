@@ -222,16 +222,22 @@ def generate_polytopes() -> list[dict]:
     return polytopes
 
 
-def main() -> None:
-    """Generate polytopes and save to JSON."""
-    from viterbo.paths import get_data_dir
+def main(data_dir: Path | None = None) -> None:
+    """Generate polytopes and save to JSON.
+
+    Args:
+        data_dir: Output directory. If None, uses default data directory.
+    """
+    if data_dir is None:
+        from viterbo.paths import get_data_dir
+        data_dir = get_data_dir("polytope-database")
+
     polytopes = generate_polytopes()
 
     # Ensure output directory exists
-    out_dir = get_data_dir("polytope-database")
-    out_dir.mkdir(parents=True, exist_ok=True)
+    data_dir.mkdir(parents=True, exist_ok=True)
 
-    out_path = out_dir / "polytopes.json"
+    out_path = data_dir / "polytopes.json"
     with open(out_path, "w") as f:
         json.dump(polytopes, f, indent=2)
 
