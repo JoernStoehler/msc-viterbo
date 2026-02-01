@@ -68,8 +68,7 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> Result<TubeResult, TubeError> {
         tubes_explored += 1;
 
         // Sanity check: heap shouldn't grow unboundedly
-        #[cfg(debug_assertions)]
-        debug_assert!(
+        assert!(
             worklist.len() < MAX_EXPECTED_HEAP_SIZE,
             "Heap size {} exceeds expected maximum {} - possible infinite loop or bad pruning",
             worklist.len(),
@@ -276,7 +275,7 @@ fn extend_tube_with_transition(
         intersect_polygons(&tube.p_start, &pullback)
     } else {
         // Flow map not invertible (shouldn't happen for symplectic maps)
-        debug_assert!(false, "Flow map not invertible");
+        assert!(false, "Flow map not invertible");
         tube.p_start.clone()
     };
 
@@ -426,5 +425,99 @@ mod tests {
                 assert_relative_eq!(det, 1.0, epsilon = 1e-6);
             }
         }
+    }
+
+    // ========================================================================
+    // Rejection path tests
+    // ========================================================================
+
+    #[test]
+    fn test_rejects_too_few_facets() {
+        use nalgebra::Vector4;
+
+        // 4 facets is too few for a 4D polytope
+        let normals = vec![
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ];
+        let heights = vec![1.0, 1.0, 1.0, 1.0];
+        let hrep = PolytopeHRep::new(normals, heights);
+
+        let result = tube_capacity(&hrep);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, TubeError::InvalidPolytope(_)),
+            "Expected InvalidPolytope, got {:?}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_rejects_non_unit_normals() {
+        use nalgebra::Vector4;
+
+        // Non-unit normal (magnitude 2)
+        let normals = vec![
+            Vector4::new(2.0, 0.0, 0.0, 0.0), // Not unit!
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+            Vector4::new(-1.0, 0.0, 0.0, 0.0),
+        ];
+        let heights = vec![1.0, 1.0, 1.0, 1.0, 1.0];
+        let hrep = PolytopeHRep::new(normals, heights);
+
+        let result = tube_capacity(&hrep);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, TubeError::InvalidPolytope(_)),
+            "Expected InvalidPolytope for non-unit normal, got {:?}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_rejects_non_positive_height() {
+        use nalgebra::Vector4;
+
+        // Zero height
+        let normals = vec![
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+            Vector4::new(-1.0, 0.0, 0.0, 0.0),
+        ];
+        let heights = vec![0.0, 1.0, 1.0, 1.0, 1.0]; // First height is 0!
+        let hrep = PolytopeHRep::new(normals, heights);
+
+        let result = tube_capacity(&hrep);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, TubeError::InvalidPolytope(_)),
+            "Expected InvalidPolytope for non-positive height, got {:?}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_rejects_lagrangian_polytope() {
+        use crate::fixtures::unit_tesseract;
+
+        // Tesseract has Lagrangian 2-faces
+        let hrep = unit_tesseract();
+        let result = tube_capacity(&hrep);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(
+            matches!(err, TubeError::HasLagrangianTwoFaces),
+            "Expected HasLagrangianTwoFaces, got {:?}",
+            err
+        );
     }
 }
