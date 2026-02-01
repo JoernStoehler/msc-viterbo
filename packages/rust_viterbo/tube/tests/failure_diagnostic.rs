@@ -1,6 +1,6 @@
 //! Diagnostic: categorize tube/HK2017 failures for random polytopes.
 //!
-//! Run with: cargo test --package tube --test failure_diagnostic -- --nocapture
+//! Run with: cargo test --package tube --test failure_diagnostic -- --ignored --nocapture
 
 use hk2017::{
     hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep as Hk2017Hrep, RejectionHistogram,
@@ -12,6 +12,7 @@ fn tube_to_hk2017(hrep: &TubeHrep) -> Hk2017Hrep {
 }
 
 #[test]
+#[ignore] // Diagnostic test: run manually, not in CI
 fn diagnose_failures() {
     let min_omega = 0.05;
 
