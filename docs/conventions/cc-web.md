@@ -1,6 +1,6 @@
 # Claude Code Web Environment
 
-This document covers CC Web-specific limitations and workarounds.
+CC Web has limitations compared to local CLI. This document covers known issues and workarounds.
 
 ## Environment Detection
 
@@ -12,17 +12,23 @@ Environment: CC Web (limited) — see docs/conventions/cc-web.md
 ## Known Limitations
 
 ### Git Proxy
-
-CC Web uses a git proxy (`http://local_proxy@127.0.0.1:PORT/git/...`). This means:
+CC Web uses a git proxy (`http://local_proxy@127.0.0.1:PORT/git/...`):
 - `gh pr checks`, `gh issue list` fail (can't detect GitHub host)
-- Use `gh api` instead: `gh api repos/OWNER/REPO/issues`
-- Local git history may be shallow — use `gh api` for full history
+- **Use `gh api` instead:** `gh api repos/OWNER/REPO/issues`
+- Local git history may be shallow — use `gh api` for full commit history
 
 ### `claude -p` Not Working
+As of Feb 2026, `claude -p --model haiku` produces no output. Workaround: defer tasks requiring subprocess Claude calls.
 
-As of Feb 2026, `claude -p --model haiku` produces no output in CC Web. Workaround: defer tasks requiring subprocess Claude calls.
+### Skills Not Auto-Loading
+See #103. Skills may not load due to known Claude Code bugs. Workaround: manual skill references in prompts.
 
-### gh CLI Installation
+### Other Limitations
+- **apt-get blocked** — DNS proxy architecture blocks package management
+- **Playwright cannot install browsers** — Browser automation fails
+- **No persistent storage** — Git worktrees cannot be used
+
+## gh CLI Installation
 
 The startup hook auto-installs gh CLI. If it fails:
 ```bash
@@ -33,9 +39,30 @@ cp /tmp/gh_2.63.2_linux_amd64/bin/gh ~/.local/bin/
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### Skills Not Auto-Loading
+## Startup Hook Crash Fixes
 
-See #103. Skills may not load in CC Web due to known Claude Code bugs. Workaround: manual skill references in prompts.
+If CC Web won't start, the hook may be crashing. Common causes:
+
+| Issue | Risk | Fix |
+|-------|------|-----|
+| `bash -lc` flag | HIGH | Use `bash -c` (no login shell) |
+| `$CLAUDE_PROJECT_DIR` unset | HIGH | Use `${CLAUDE_PROJECT_DIR:-.}` fallback |
+| `set -e` in hook | MEDIUM | Remove or add `|| true` to commands |
+| `wget` timeout | MEDIUM | Add `--timeout=30` flag |
+
+### Emergency: Minimal Settings
+If CC Web won't start at all, use minimal settings with no hooks:
+```json
+{
+  "env": { "GIT_PAGER": "cat" },
+  "permissions": { "defaultMode": "bypassPermissions" }
+}
+```
+
+### Testing Hook Manually
+```bash
+echo '{"source":"startup"}' | bash .claude/hooks/session-start.sh
+```
 
 ## User Context
 
@@ -44,7 +71,7 @@ CC Web users are typically:
 - Using GitHub.com GUI only
 - Limited to what CC Web can do in-browser
 
-## What's Different from Local
+## Feature Comparison
 
 | Feature | Local | CC Web |
 |---------|-------|--------|
@@ -53,3 +80,4 @@ CC Web users are typically:
 | `claude -p` | Works | Broken |
 | Skills | Auto-load | Manual |
 | File system | Full | Sandboxed |
+| apt-get | Works | Blocked |
