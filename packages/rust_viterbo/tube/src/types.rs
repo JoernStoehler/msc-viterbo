@@ -185,6 +185,123 @@ pub enum FlowDirection {
     JtoI,
 }
 
+// ============================================================================
+// 2-Face and Transition Data
+// ============================================================================
+
+/// Data for a single non-Lagrangian 2-face.
+///
+/// A 2-face is the intersection of two adjacent facets F_i ∩ F_j.
+/// Non-Lagrangian means ω(n_i, n_j) ≠ 0, so Reeb flow crosses it.
+#[derive(Debug, Clone)]
+pub struct TwoFaceData {
+    /// First facet index (i < j by convention).
+    pub facet_i: usize,
+    /// Second facet index.
+    pub facet_j: usize,
+
+    /// Symplectic form: ω(n_i, n_j).
+    pub omega: f64,
+    /// Flow direction across this 2-face.
+    pub flow_direction: FlowDirection,
+    /// Rotation number ρ ∈ (0, 0.5).
+    pub rotation: f64,
+
+    /// 2-face polygon in exit-trivialized coordinates (CCW).
+    pub polygon: Polygon2D,
+    /// Centroid in 4D (for orbit reconstruction).
+    pub centroid_4d: Vector4<f64>,
+    /// Basis vectors for exit trivialization: {b₁, b₂} ∈ TF.
+    pub basis_exit: [Vector4<f64>; 2],
+    /// Entry facet normal (facet we came from).
+    pub entry_normal: Vector4<f64>,
+    /// Exit facet normal (facet we flow into).
+    pub exit_normal: Vector4<f64>,
+}
+
+impl TwoFaceData {
+    /// Get the exit facet (the facet we flow into).
+    #[inline]
+    pub fn exit_facet(&self) -> usize {
+        match self.flow_direction {
+            FlowDirection::ItoJ => self.facet_j,
+            FlowDirection::JtoI => self.facet_i,
+        }
+    }
+
+    /// Get the entry facet (the facet we came from).
+    #[inline]
+    pub fn entry_facet(&self) -> usize {
+        match self.flow_direction {
+            FlowDirection::ItoJ => self.facet_i,
+            FlowDirection::JtoI => self.facet_j,
+        }
+    }
+}
+
+/// Data for a 3-facet transition (i, j, k).
+///
+/// Represents a tube step: flow on F_j from 2-face (F_i, F_j) to (F_j, F_k).
+/// This captures the adjacency in the search tree.
+#[derive(Debug, Clone)]
+pub struct ThreeFacetData {
+    /// Index of entry 2-face (F_i, F_j) in the TwoFaceData list.
+    pub two_face_entry: usize,
+    /// Index of exit 2-face (F_j, F_k) in the TwoFaceData list.
+    pub two_face_exit: usize,
+    /// Middle facet index (the facet we flow along).
+    pub facet_mid: usize,
+}
+
+/// Lookup tables for index conversion and adjacency.
+///
+/// Provides O(1) access from facet pairs to 2-face indices,
+/// and adjacency information for the search tree.
+#[derive(Debug, Clone)]
+pub struct TwoFaceLookup {
+    /// Dense matrix for (i, j) → 2-face index lookup.
+    /// Access: two_face[i * num_facets + j] for i < j.
+    two_face: Vec<Option<usize>>,
+    /// For each 2-face k, list of transition indices that start from k.
+    pub transitions_from: Vec<Vec<usize>>,
+    /// Number of facets.
+    num_facets: usize,
+}
+
+impl TwoFaceLookup {
+    /// Create empty lookup with given number of facets.
+    pub fn new(num_facets: usize) -> Self {
+        Self {
+            two_face: vec![None; num_facets * num_facets],
+            transitions_from: Vec::new(),
+            num_facets,
+        }
+    }
+
+    /// Register a 2-face at given index.
+    pub fn register_two_face(&mut self, i: usize, j: usize, index: usize) {
+        let (a, b) = if i < j { (i, j) } else { (j, i) };
+        self.two_face[a * self.num_facets + b] = Some(index);
+    }
+
+    /// Get 2-face index for facet pair (i, j), or None if not a 2-face.
+    #[inline]
+    pub fn get_two_face(&self, i: usize, j: usize) -> Option<usize> {
+        let (a, b) = if i < j { (i, j) } else { (j, i) };
+        self.two_face.get(a * self.num_facets + b).copied().flatten()
+    }
+
+    /// Get transitions from 2-face k (indices into ThreeFacetData list).
+    #[inline]
+    pub fn transitions_from(&self, k: usize) -> &[usize] {
+        &self.transitions_from[k]
+    }
+}
+
+// ============================================================================
+// Legacy Types (to be removed after migration)
+// ============================================================================
+
 /// Basic 2-face data (intersection of two facets).
 #[derive(Debug, Clone)]
 pub struct TwoFace {
