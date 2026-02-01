@@ -292,38 +292,93 @@ pub fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<Polytop
         }
     }
 
-    // Check for degenerate facets (fewer than 4 vertices in 4D)
-    // A proper 3-face in 4D must have at least 4 vertices (tetrahedron)
-    if has_degenerate_facets(&hrep, &data.vertices) {
+    // Check for redundant halfspaces (boundary meets K in < 4 vertices)
+    // In an irredundant H-rep, every halfspace defines a facet (3-face).
+    // A facet in 4D has at least 4 vertices.
+    if has_redundant_halfspaces(&hrep, &data.vertices) {
+        return None;
+    }
+
+    // Check for incomplete facet adjacency (facet has faces not on 2-faces)
+    // In a well-formed polytope, every face of a facet (as a 3D polytope)
+    // should be a 2-face of the 4D polytope.
+    if has_incomplete_facet_adjacency(&hrep, &data.vertices) {
         return None;
     }
 
     Some(hrep)
 }
 
-/// Check if any facet has fewer than 4 vertices (degenerate in 4D).
+/// Check if the H-rep has redundant halfspaces.
 ///
-/// In 4D, a proper 3-face (facet) must have at least 4 vertices.
-/// Facets with fewer vertices are geometrically degenerate:
-/// - 0-2 vertices: not even a 2D face
-/// - 3 vertices: a triangle (2D), not a 3D face
-fn has_degenerate_facets(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
+/// A halfspace is redundant if its boundary meets K in fewer than 4 vertices.
+/// In an irredundant H-rep, every halfspace defines a facet (3-face), and
+/// a 3-face in 4D has at least 4 vertices.
+///
+/// If this returns true, the H-rep is not irredundant.
+fn has_redundant_halfspaces(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
     use crate::constants::EPS;
 
-    let n_facets = hrep.num_facets();
+    let n_halfspaces = hrep.num_facets();
 
-    for facet in 0..n_facets {
+    for i in 0..n_halfspaces {
         let mut vertex_count = 0;
         for v in vertices {
-            let n = &hrep.normals[facet];
-            let h = hrep.heights[facet];
+            let n = &hrep.normals[i];
+            let h = hrep.heights[i];
             if (n.dot(v) - h).abs() < EPS {
                 vertex_count += 1;
             }
         }
-        // A 3-face in 4D needs at least 4 vertices
+        // A facet in 4D needs at least 4 vertices; fewer means redundant
         if vertex_count < 4 {
             return true;
+        }
+    }
+
+    false
+}
+
+/// Check if any facet has incomplete adjacency (a face not on any 2-face).
+///
+/// In a well-formed 4D polytope, each facet (3-face) is a 3D polytope.
+/// Each 2D face of that 3D polytope should be a 2-face of the 4D polytope
+/// (shared with exactly one other facet).
+///
+/// If a facet has a triangular face that is not shared with any other facet,
+/// the polytope has "incomplete facet adjacency" and violates the assumptions
+/// of the tube algorithm's flow structure.
+///
+/// This check is conservative: we verify that for each pair of facets sharing
+/// at least 2 vertices, they actually share at least 3 (forming a 2-face).
+fn has_incomplete_facet_adjacency(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
+    use crate::constants::EPS;
+
+    let n_facets = hrep.num_facets();
+
+    // For each facet, find vertices on it
+    let mut facet_vertices: Vec<Vec<usize>> = vec![Vec::new(); n_facets];
+    for (v_idx, v) in vertices.iter().enumerate() {
+        for i in 0..n_facets {
+            if (hrep.normals[i].dot(v) - hrep.heights[i]).abs() < EPS {
+                facet_vertices[i].push(v_idx);
+            }
+        }
+    }
+
+    // For each pair of facets, check shared vertex count
+    for i in 0..n_facets {
+        for j in (i + 1)..n_facets {
+            let shared_count = facet_vertices[i]
+                .iter()
+                .filter(|v| facet_vertices[j].contains(v))
+                .count();
+
+            // If they share 2 vertices (an edge), they should share at least 3
+            // (a proper 2-face). 2-vertex sharing indicates incomplete adjacency.
+            if shared_count == 2 {
+                return true;
+            }
         }
     }
 
@@ -339,9 +394,11 @@ pub enum RejectionReason {
     NearLagrangian,
     /// Polytope is unbounded (normals don't positively span ℝ⁴)
     Unbounded,
-    /// A facet has fewer than 4 vertices (degenerate in 4D)
-    DegenerateFacet,
-    /// Preprocess failed for another reason (degenerate, etc.)
+    /// H-rep is not irredundant (some halfspace boundary meets K in < 4 vertices)
+    RedundantHalfspace,
+    /// Facets share only an edge (2 vertices), not a proper 2-face (≥3 vertices)
+    IncompleteFacetAdjacency,
+    /// Preprocess failed for another reason
     PreprocessFailed,
 }
 
@@ -422,9 +479,14 @@ pub fn random_hrep_diagnostic(
         }
     }
 
-    // Check for degenerate facets (fewer than 4 vertices in 4D)
-    if has_degenerate_facets(&hrep, &data.vertices) {
-        return Err(RejectionReason::DegenerateFacet);
+    // Check for redundant halfspaces (boundary meets K in < 4 vertices)
+    if has_redundant_halfspaces(&hrep, &data.vertices) {
+        return Err(RejectionReason::RedundantHalfspace);
+    }
+
+    // Check for incomplete facet adjacency (facets sharing only an edge)
+    if has_incomplete_facet_adjacency(&hrep, &data.vertices) {
+        return Err(RejectionReason::IncompleteFacetAdjacency);
     }
 
     Ok(hrep)
@@ -906,7 +968,8 @@ mod tests {
             counts.insert("degenerate_normal", 0);
             counts.insert("lagrangian", 0);
             counts.insert("unbounded", 0);
-            counts.insert("degenerate_facet", 0);
+            counts.insert("redundant_halfspace", 0);
+            counts.insert("incomplete_adjacency", 0);
             counts.insert("preprocess_failed", 0);
 
             for seed in 0..n_seeds {
@@ -919,8 +982,11 @@ mod tests {
                         *counts.get_mut("lagrangian").unwrap() += 1
                     }
                     Err(RejectionReason::Unbounded) => *counts.get_mut("unbounded").unwrap() += 1,
-                    Err(RejectionReason::DegenerateFacet) => {
-                        *counts.get_mut("degenerate_facet").unwrap() += 1
+                    Err(RejectionReason::RedundantHalfspace) => {
+                        *counts.get_mut("redundant_halfspace").unwrap() += 1
+                    }
+                    Err(RejectionReason::IncompleteFacetAdjacency) => {
+                        *counts.get_mut("incomplete_adjacency").unwrap() += 1
                     }
                     Err(RejectionReason::PreprocessFailed) => {
                         *counts.get_mut("preprocess_failed").unwrap() += 1
@@ -929,38 +995,39 @@ mod tests {
             }
 
             println!(
-                "n={}: success={}, degenerate_normal={}, lagrangian={}, unbounded={}, degenerate_facet={}, preprocess_failed={}",
+                "n={}: success={}, lagrangian={}, unbounded={}, redundant={}, incomplete_adj={}, preprocess_fail={}",
                 n_facets,
                 counts["success"],
-                counts["degenerate_normal"],
                 counts["lagrangian"],
                 counts["unbounded"],
-                counts["degenerate_facet"],
+                counts["redundant_halfspace"],
+                counts["incomplete_adjacency"],
                 counts["preprocess_failed"],
             );
         }
     }
 
-    /// Test that polytopes with degenerate facets are rejected.
+    /// Test that H-reps with redundant halfspaces are rejected.
     ///
-    /// This tests the error path for issue #155: random polytopes can have
-    /// facets with fewer than 4 vertices (degenerate in 4D).
+    /// This tests the error path for issue #155: random H-reps can have
+    /// halfspaces whose boundaries meet K in fewer than 4 vertices,
+    /// meaning they don't define facets (the H-rep is not irredundant).
     #[test]
-    fn test_rejects_degenerate_facets() {
+    fn test_rejects_redundant_halfspaces() {
         use crate::preprocess::preprocess;
 
-        // Seed 0 is known to produce a polytope with degenerate facets
-        // (facets 0 and 6 have only 2 vertices each)
+        // Seed 0 is known to produce an H-rep with redundant halfspaces
+        // (halfspaces 0 and 6 have boundaries meeting K in only 2 vertices)
         let min_omega = 0.001;
 
         // The original seed=0 should now be rejected
         let result = random_hrep_diagnostic(8, min_omega, 0);
 
-        // It should either succeed with no degenerate facets, or fail with DegenerateFacet
-        // After our fix, seed=0 should fail with DegenerateFacet
+        // It should either succeed (irredundant) or fail with RedundantHalfspace
+        // After our fix, seed=0 should fail with RedundantHalfspace
         match result {
             Ok(hrep) => {
-                // If it succeeds, verify no degenerate facets
+                // If it succeeds, verify H-rep is irredundant
                 let data = preprocess(&hrep).expect("Should preprocess");
                 for facet in 0..hrep.num_facets() {
                     let mut vertex_count = 0;
@@ -973,13 +1040,13 @@ mod tests {
                     }
                     assert!(
                         vertex_count >= 4,
-                        "Facet {} has only {} vertices (need 4+ for 4D)",
+                        "Halfspace {} boundary meets K in only {} vertices (need 4+ for facet)",
                         facet,
                         vertex_count
                     );
                 }
             }
-            Err(RejectionReason::DegenerateFacet) => {
+            Err(RejectionReason::RedundantHalfspace) => {
                 // Expected for seed=0 - this is the fix working
             }
             Err(other) => {

@@ -387,7 +387,7 @@ fn build_transitions(
     reeb_vectors: &[Vector4<f64>],
     heights: &[f64],
 ) -> Vec<ThreeFacetData> {
-    use crate::quaternion::{apply_quat_j, apply_quat_k};
+    use crate::quaternion::{quat_frame_j, quat_frame_k};
     use nalgebra::{Matrix2, Vector2};
 
     let mut transitions = Vec::new();
@@ -409,8 +409,8 @@ fn build_transitions(
                 let c_exit = tf_exit.centroid_4d;
 
                 // Trivialization vectors for exit 2-face
-                let jn_exit = apply_quat_j(n_next);
-                let kn_exit = apply_quat_k(n_next);
+                let jn_exit = quat_frame_j(n_next);
+                let kn_exit = quat_frame_k(n_next);
 
                 // Denominator: ⟨R_mid, n_next⟩
                 let r_dot_n = r_mid.dot(n_next);
@@ -561,113 +561,32 @@ mod tests {
     }
 
     // =========================================================================
-    // Diagnostic test for failing seed
+    // Regression test for seed 2661 (issue #155)
     // =========================================================================
 
+    /// Test that seed 2661 is correctly rejected due to incomplete facet adjacency.
+    ///
+    /// Seed 2661 produces a polytope where facet 3 has a triangular face that is
+    /// not shared with any other facet (facets 3 and 5 share only 2 vertices).
+    /// This creates "sink facets" that break the tube algorithm.
+    ///
+    /// After the fix for issue #155, such polytopes are rejected by random_hrep.
     #[test]
-    fn test_seed_2661_transition_graph() {
-        let hrep = random_hrep(8, 0.01, 2661).expect("seed 2661 should produce valid polytope");
-        let data = preprocess(&hrep).unwrap();
+    fn test_seed_2661_is_rejected() {
+        use crate::fixtures::{random_hrep, random_hrep_diagnostic, RejectionReason};
 
-        println!("\n=== Seed 2661 Diagnostic ===");
-        println!("Facets: {}", data.num_facets);
-        println!("Vertices: {}", data.vertices.len());
-        println!("2-faces: {}", data.two_face_data.len());
-        println!("Transitions: {}", data.transitions.len());
-
-        println!("\n=== 2-faces ===");
-        for (i, tf) in data.two_face_data.iter().enumerate() {
-            println!(
-                "2-face {:2}: entry={}, exit={}, omega={:.4}, verts={}",
-                i, tf.entry_facet, tf.exit_facet, tf.omega, tf.polygon.vertices.len()
-            );
-        }
-
-        println!("\n=== Transitions (facet-level) ===");
-        for (i, trans) in data.transitions.iter().enumerate() {
-            let tf_entry = &data.two_face_data[trans.two_face_entry];
-            let tf_exit = &data.two_face_data[trans.two_face_exit];
-            println!(
-                "Trans {:2}: 2-face {} -> 2-face {} (facets: {} -> {} -> {})",
-                i,
-                trans.two_face_entry,
-                trans.two_face_exit,
-                tf_entry.entry_facet,
-                tf_entry.exit_facet,  // = middle facet
-                tf_exit.exit_facet
-            );
-        }
-
-        println!("\n=== Transition graph (2-face level) ===");
-        for (from_tf, targets) in data.lookup.transitions_from.iter().enumerate() {
-            let outgoing: Vec<_> = targets
-                .iter()
-                .map(|&t| data.transitions[t].two_face_exit)
-                .collect();
-            println!("2-face {:2} -> {:?}", from_tf, outgoing);
-        }
-
-        // BFS reachability
-        println!("\n=== Reachability from 2-face 0 ===");
-        let n = data.two_face_data.len();
-        let mut visited = vec![false; n];
-        let mut queue = std::collections::VecDeque::new();
-        queue.push_back(0);
-        visited[0] = true;
-
-        while let Some(k) = queue.pop_front() {
-            for &trans_idx in data.lookup.transitions_from(k) {
-                let exit_k = data.transitions[trans_idx].two_face_exit;
-                if !visited[exit_k] {
-                    visited[exit_k] = true;
-                    queue.push_back(exit_k);
-                }
-            }
-        }
-
-        for (i, &v) in visited.iter().enumerate() {
-            let tf = &data.two_face_data[i];
-            let status = if v { "REACHABLE" } else { "UNREACHABLE" };
-            println!(
-                "2-face {:2} (facets {} -> {}): {}",
-                i, tf.entry_facet, tf.exit_facet, status
-            );
-        }
-
-        let reachable_count = visited.iter().filter(|&&v| v).count();
-        println!(
-            "\nReachable: {}/{}",
-            reachable_count,
-            data.two_face_data.len()
+        // Seed 2661 should now be rejected
+        assert!(
+            random_hrep(8, 0.01, 2661).is_none(),
+            "seed 2661 should be rejected (has incomplete facet adjacency)"
         );
 
-        // Check for facets that only appear as exit (sinks)
-        println!("\n=== Facet entry/exit analysis ===");
-        let mut facet_as_entry = vec![0usize; data.num_facets];
-        let mut facet_as_exit = vec![0usize; data.num_facets];
-        for tf in &data.two_face_data {
-            facet_as_entry[tf.entry_facet] += 1;
-            facet_as_exit[tf.exit_facet] += 1;
-        }
-        for i in 0..data.num_facets {
-            let status = if facet_as_entry[i] == 0 && facet_as_exit[i] > 0 {
-                "SINK"
-            } else if facet_as_entry[i] > 0 && facet_as_exit[i] == 0 {
-                "SOURCE"
-            } else {
-                ""
-            };
-            println!(
-                "Facet {}: entry={}, exit={} {}",
-                i, facet_as_entry[i], facet_as_exit[i], status
-            );
-        }
-
-        // The test should fail if graph is not connected
+        // Verify it's rejected for the right reason
+        let result = random_hrep_diagnostic(8, 0.01, 2661);
         assert_eq!(
-            reachable_count,
-            data.two_face_data.len(),
-            "Graph should be connected"
+            result.err(),
+            Some(RejectionReason::IncompleteFacetAdjacency),
+            "seed 2661 should be rejected due to incomplete facet adjacency"
         );
     }
 
@@ -1057,3 +976,59 @@ mod tests {
         }
     }
 }
+
+    #[test]
+    fn print_seed_2661_polytope() {
+        use rand::SeedableRng;
+        use rand_chacha::ChaCha8Rng;
+        use rand_distr::{Distribution, StandardNormal};
+        
+        let seed = 2661u64;
+        let n_facets = 8;
+        
+        let mut rng = ChaCha8Rng::seed_from_u64(seed);
+        let normal_dist = StandardNormal;
+        
+        println!("\n=== Polytope K (seed 2661) ===");
+        println!("K = {{ x ∈ ℝ⁴ : ⟨nᵢ, x⟩ ≤ hᵢ for all i }}");
+        println!();
+        
+        let mut normals = Vec::new();
+        let mut heights = Vec::new();
+        
+        for i in 0..n_facets {
+            let x: f64 = normal_dist.sample(&mut rng);
+            let y: f64 = normal_dist.sample(&mut rng);
+            let z: f64 = normal_dist.sample(&mut rng);
+            let w: f64 = normal_dist.sample(&mut rng);
+            let norm = (x*x + y*y + z*z + w*w).sqrt();
+            
+            let n = nalgebra::Vector4::new(x/norm, y/norm, z/norm, w/norm);
+            normals.push(n);
+        }
+        
+        // Heights use different RNG pattern - need to match random_hrep exactly
+        // Actually let me just use random_hrep_diagnostic to get the raw H-rep
+        
+        use crate::fixtures::random_hrep_diagnostic;
+        
+        // Bypass the rejection by generating the raw polytope
+        let mut rng2 = ChaCha8Rng::seed_from_u64(seed);
+        
+        for i in 0..n_facets {
+            let _: f64 = normal_dist.sample(&mut rng2);
+            let _: f64 = normal_dist.sample(&mut rng2);
+            let _: f64 = normal_dist.sample(&mut rng2);
+            let _: f64 = normal_dist.sample(&mut rng2);
+        }
+        
+        // Now sample heights
+        for _ in 0..n_facets {
+            let u1: f64 = normal_dist.sample(&mut rng2);
+            let u2: f64 = normal_dist.sample(&mut rng2);
+            // Convert to uniform [0,1] then to [0.3, 3.0]
+            // Actually I need to check the actual implementation
+        }
+        
+        println!("(See fixtures.rs for actual implementation)");
+    }

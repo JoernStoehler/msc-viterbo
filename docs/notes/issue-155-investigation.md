@@ -7,7 +7,7 @@
 
 Both the Tube and HK2017 algorithms fail on nearly all random 8-facet polytopes, while fixtures (cross-polytope, tesseract, etc.) work correctly.
 
-**Update**: Added rejection of polytopes with degenerate facets (< 4 vertices in 4D). This catches 68-86% of the previously "valid" polytopes that were actually geometrically malformed.
+**Update**: Added rejection of polytopes with redundant halfspaces (H-rep constraints that don't define actual facets). This catches 68-86% of the previously "valid" polytopes that were actually geometrically malformed.
 
 ## Symptoms
 
@@ -37,26 +37,26 @@ Random H-rep polytopes create **sink facets** where the Reeb flow terminates:
 
 This creates a **nearly acyclic transition graph** where tubes cannot close.
 
-### Root Cause 1: Degenerate Facets (FIXED)
+### Root Cause 1: Redundant Halfspaces (FIXED)
 
-The random H-rep generator was producing polytopes where some "facets" have fewer than 4 vertices. In 4D, a proper 3-face (facet) requires at least 4 vertices (tetrahedron). Facets with only 2-3 vertices are geometrically degenerate:
+The random H-rep generator was producing polytopes with redundant halfspaces—constraints whose boundaries intersect the polytope K in fewer than 4 vertices (in 4D). A proper facet is by definition a 3-face requiring at least 4 vertices (tetrahedron). When a halfspace boundary meets K in only 2-3 vertices, it's not a facet at all; it's a redundant halfspace, meaning the H-rep is not irredundant:
 
 **Example (seed=0):**
 ```
-Facet 0: 2 vertices only → ISOLATED (edge, not a face)
-Facet 6: 2 vertices only → ISOLATED (edge, not a face)
+Halfspace 0: boundary meets K at 2 vertices only → REDUNDANT (not a facet)
+Halfspace 6: boundary meets K at 2 vertices only → REDUNDANT (not a facet)
 ```
 
-These degenerate facets can't form proper 2-faces, leading to disconnected transition graphs.
+These redundant halfspaces cause disconnected transition graphs because the H-rep doesn't truly describe the polytope's actual facet structure.
 
-**Fix implemented**: `random_hrep` now rejects polytopes where any facet has fewer than 4 vertices. Rejection statistics:
-- n=6 facets: 86% rejected for degenerate facets
-- n=8 facets: 68% rejected for degenerate facets
-- n=10 facets: 64% rejected for degenerate facets
+**Fix implemented**: `random_hrep` now rejects polytopes where the H-rep contains redundant halfspaces (where any constraint's boundary meets K in fewer than 4 vertices). Rejection statistics:
+- n=6 facets: 86% rejected for redundant halfspaces
+- n=8 facets: 68% rejected for redundant halfspaces
+- n=10 facets: 64% rejected for redundant halfspaces
 
 ### Root Cause 2: Omega-Direction Sinks (remaining issue)
 
-Even with non-degenerate facets, the symplectic form ω(n_i, n_j) can create "sink facets" where:
+Even with an irredundant H-rep (all halfspaces defining actual facets), the symplectic form ω(n_i, n_j) can create "sink facets" where:
 - All 2-faces involving the facet have flow directed INTO it
 - No 2-faces have flow directed OUT of it
 
@@ -108,12 +108,12 @@ if compared < 5 {
 
 | # | Hypothesis | Result | Evidence |
 |---|-----------|--------|----------|
-| 1 | Random polytopes are invalid | **PARTIALLY CONFIRMED** | Many have degenerate facets (< 4 vertices) |
+| 1 | Random polytopes are invalid | **PARTIALLY CONFIRMED** | Many have redundant halfspaces (H-rep constraints not defining actual facets) |
 | 2 | Near-Lagrangian 2-faces cause issues | Partial | Random ω ∈ [0.001, 0.817] vs cross ω ∈ [0.5, 1.0] |
 | 3 | Tolerance too strict | **FALSIFIED** | Tested 1e-10 to 1e-2, same failure |
 | 4 | Transition graph disconnected | **CONFIRMED** | Random: 1/14 reachable; Cross: 32/32 |
 | 5 | Sink facets prevent closure | **CONFIRMED** | Facet 1 has 4 incoming, 0 outgoing |
-| 6 | Degenerate facets (< 4 vertices) | **CONFIRMED & FIXED** | Facets 0, 6 had only 2 vertices |
+| 6 | Redundant halfspaces in H-rep | **CONFIRMED & FIXED** | Halfspaces 0, 6 had boundaries meeting K at only 2 vertices |
 
 ## Recommendations
 
@@ -145,17 +145,17 @@ Add documentation that random_hrep produces polytopes that may fail capacity alg
 
 - `tube/tests/detailed_diagnostic.rs` - Added diagnostic tests (all `#[ignore]`d)
 - `tube/tests/hk2017_comparison.rs` - Added assertion, marked `#[ignore]` with issue reference
-- `tube/src/fixtures.rs` - **Added degenerate facet rejection** + tests
+- `tube/src/fixtures.rs` - **Added redundant halfspace rejection** + tests
 
 ## Fixes Implemented
 
-1. **Degenerate facet rejection**: `random_hrep` now rejects polytopes where any facet has < 4 vertices
+1. **Redundant halfspace rejection**: `random_hrep` now rejects H-reps with redundant halfspaces (where any halfspace's boundary meets the polytope in < 4 vertices)
 2. **Comparison test assertion**: Test now fails explicitly when no comparisons succeed
-3. **New RejectionReason variant**: `DegenerateFacet` for diagnostics
+3. **New RejectionReason variant**: `RedundantHalfspace` for diagnostics
 
 ## Remaining Issues
 
-The sink facet issue (omega-direction asymmetry) is NOT fixed. Even with non-degenerate facets, random normals can create sink facets. Options:
+The sink facet issue (omega-direction asymmetry) is NOT fixed. Even with irredundant H-reps, random normals can create sink facets. Options:
 
 a) **Filter by entry/exit balance**: Reject polytopes where any facet has zero entry or exit 2-faces
 b) **Perturb fixtures**: Generate test polytopes by perturbing known-good polytopes

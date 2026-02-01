@@ -7,8 +7,12 @@
 //! - ij = k, jk = i, ki = j
 //!
 //! In coordinates (x₁, x₂, y₁, y₂) = (q₁, q₂, p₁, p₂):
-//! - QUAT_I is the standard almost complex structure (symplectic J)
-//! - QUAT_J and QUAT_K complete the quaternion structure
+//! - QUAT_I is the standard almost complex structure (= symplectic J)
+//! - QUAT_J and QUAT_K complete the quaternion structure (used ONLY for frame construction)
+//!
+//! **WARNING**: Do NOT confuse quaternion j/k with symplectic J!
+//! - `symplectic_j` = quaternion i = almost complex structure (for symplectic form)
+//! - `quat_frame_j`, `quat_frame_k` = quaternion j, k (ONLY for building orthonormal frames on 2-faces)
 
 #[cfg(test)]
 use nalgebra::Matrix4;
@@ -74,15 +78,21 @@ pub fn apply_quat_i(v: &Vector4<f64>) -> Vector4<f64> {
     Vector4::new(-v[2], -v[3], v[0], v[1])
 }
 
-/// Apply QUAT_J to a vector (optimized direct computation).
+/// Apply quaternion j to a vector for orthonormal frame construction.
+///
+/// **WARNING**: This is NOT symplectic J! Use `symplectic_j` for symplectic calculations.
+/// This function is ONLY for building the orthonormal frame {n, in, jn, kn} on 2-faces.
 #[inline]
-pub fn apply_quat_j(v: &Vector4<f64>) -> Vector4<f64> {
+pub fn quat_frame_j(v: &Vector4<f64>) -> Vector4<f64> {
     Vector4::new(-v[1], v[0], v[3], -v[2])
 }
 
-/// Apply QUAT_K to a vector (optimized direct computation).
+/// Apply quaternion k to a vector for orthonormal frame construction.
+///
+/// **WARNING**: This is NOT symplectic J! Use `symplectic_j` for symplectic calculations.
+/// This function is ONLY for building the orthonormal frame {n, in, jn, kn} on 2-faces.
 #[inline]
-pub fn apply_quat_k(v: &Vector4<f64>) -> Vector4<f64> {
+pub fn quat_frame_k(v: &Vector4<f64>) -> Vector4<f64> {
     Vector4::new(-v[3], v[2], -v[1], v[0])
 }
 
@@ -193,17 +203,17 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_quat_j_matches_matrix() {
+    fn test_quat_frame_j_matches_matrix() {
         let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
-        let direct = apply_quat_j(&v);
+        let direct = quat_frame_j(&v);
         let matrix = quat_j() * v;
         assert_relative_eq!(direct, matrix, epsilon = EPS);
     }
 
     #[test]
-    fn test_apply_quat_k_matches_matrix() {
+    fn test_quat_frame_k_matches_matrix() {
         let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
-        let direct = apply_quat_k(&v);
+        let direct = quat_frame_k(&v);
         let matrix = quat_k() * v;
         assert_relative_eq!(direct, matrix, epsilon = EPS);
     }
@@ -213,8 +223,8 @@ mod tests {
         // For any unit normal n, {in, jn, kn} should be orthonormal
         let n = Vector4::new(1.0, 2.0, 3.0, 4.0).normalize();
         let in_ = apply_quat_i(&n);
-        let jn = apply_quat_j(&n);
-        let kn = apply_quat_k(&n);
+        let jn = quat_frame_j(&n);
+        let kn = quat_frame_k(&n);
 
         // Orthogonality
         assert_relative_eq!(in_.dot(&jn), 0.0, epsilon = EPS);
@@ -231,8 +241,8 @@ mod tests {
     fn test_symplectic_property_omega_jn_kn_equals_1() {
         // ω(jn, kn) = 1 for any unit normal n (CH2021 property)
         let n = Vector4::new(1.0, 2.0, 3.0, 4.0).normalize();
-        let jn = apply_quat_j(&n);
-        let kn = apply_quat_k(&n);
+        let jn = quat_frame_j(&n);
+        let kn = quat_frame_k(&n);
         let omega = symplectic_form(&jn, &kn);
         assert_relative_eq!(omega, 1.0, epsilon = EPS);
     }
@@ -281,7 +291,7 @@ mod tests {
     fn test_composition_ij_matches_matrix() {
         let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
         // Apply j then i via functions
-        let composed = apply_quat_i(&apply_quat_j(&v));
+        let composed = apply_quat_i(&quat_frame_j(&v));
         // Apply ij = k via matrix
         let matrix_result = quat_k() * v;
         assert_relative_eq!(composed, matrix_result, epsilon = EPS);
@@ -291,7 +301,7 @@ mod tests {
     #[test]
     fn test_triple_ijk_negative_identity() {
         let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
-        let result = apply_quat_i(&apply_quat_j(&apply_quat_k(&v)));
+        let result = apply_quat_i(&quat_frame_j(&quat_frame_k(&v)));
         assert_relative_eq!(result, -v, epsilon = EPS);
     }
 
@@ -328,8 +338,8 @@ mod tests {
         let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
 
         let iv = apply_quat_i(&v);
-        let jv = apply_quat_j(&v);
-        let kv = apply_quat_k(&v);
+        let jv = quat_frame_j(&v);
+        let kv = quat_frame_k(&v);
 
         assert_relative_eq!(iv.dot(&v), 0.0, epsilon = EPS);
         assert_relative_eq!(jv.dot(&v), 0.0, epsilon = EPS);

@@ -18,7 +18,7 @@ use nalgebra::{Matrix2, Matrix4, Vector2, Vector4};
 use crate::constants::EPS;
 #[cfg(test)]
 use crate::quaternion::apply_quat_i;
-use crate::quaternion::{apply_quat_j, apply_quat_k};
+use crate::quaternion::{quat_frame_j, quat_frame_k};
 
 /// Trivialize a 4D vector using normal n.
 ///
@@ -29,8 +29,8 @@ use crate::quaternion::{apply_quat_j, apply_quat_k};
 /// inverse formula. Use explicit basis vectors for reconstruction.
 #[inline]
 pub fn trivialize(n: &Vector4<f64>, v: &Vector4<f64>) -> Vector2<f64> {
-    let jn = apply_quat_j(n);
-    let kn = apply_quat_k(n);
+    let jn = quat_frame_j(n);
+    let kn = quat_frame_k(n);
     Vector2::new(v.dot(&jn), v.dot(&kn))
 }
 
@@ -48,8 +48,8 @@ pub fn compute_exit_basis(
     n_entry: &Vector4<f64>,
     n_exit: &Vector4<f64>,
 ) -> Result<[Vector4<f64>; 2], &'static str> {
-    let jn_exit = apply_quat_j(n_exit);
-    let kn_exit = apply_quat_k(n_exit);
+    let jn_exit = quat_frame_j(n_exit);
+    let kn_exit = quat_frame_k(n_exit);
 
     // Build matrix M with rows: n_entry, n_exit, jn_exit, kn_exit
     let m = Matrix4::from_rows(&[
@@ -74,8 +74,8 @@ pub fn compute_entry_basis(
     n_entry: &Vector4<f64>,
     n_exit: &Vector4<f64>,
 ) -> Result<[Vector4<f64>; 2], &'static str> {
-    let jn_entry = apply_quat_j(n_entry);
-    let kn_entry = apply_quat_k(n_entry);
+    let jn_entry = quat_frame_j(n_entry);
+    let kn_entry = quat_frame_k(n_entry);
 
     let m = Matrix4::from_rows(&[
         n_entry.transpose(),
@@ -100,8 +100,8 @@ pub fn compute_transition_matrix_basis(
     b_entry: &[Vector4<f64>; 2],
     n_exit: &Vector4<f64>,
 ) -> Matrix2<f64> {
-    let jn_exit = apply_quat_j(n_exit);
-    let kn_exit = apply_quat_k(n_exit);
+    let jn_exit = quat_frame_j(n_exit);
+    let kn_exit = quat_frame_k(n_exit);
 
     // Column k of ψ is τ_{n_exit}(b_k^entry)
     Matrix2::new(
@@ -129,8 +129,8 @@ pub fn compute_transition_matrix_ch2021(
 ) -> Result<Matrix2<f64>, &'static str> {
     let a1 = n_entry.dot(n_exit);
     let a2 = apply_quat_i(n_entry).dot(n_exit);
-    let a3 = apply_quat_j(n_entry).dot(n_exit);
-    let a4 = apply_quat_k(n_entry).dot(n_exit);
+    let a3 = quat_frame_j(n_entry).dot(n_exit);
+    let a4 = quat_frame_k(n_entry).dot(n_exit);
 
     if a2.abs() < EPS {
         return Err("a2 ≈ 0 indicates Lagrangian 2-face or wrong flow direction");
@@ -534,8 +534,8 @@ mod tests {
         assert!(validate_basis_in_tf(&b_entry, &n_entry, &n_exit));
 
         // Verify exit basis gives correct coordinates
-        let jn_exit = apply_quat_j(&n_exit);
-        let kn_exit = apply_quat_k(&n_exit);
+        let jn_exit = quat_frame_j(&n_exit);
+        let kn_exit = quat_frame_k(&n_exit);
         assert_relative_eq!(b_exit[0].dot(&jn_exit), 1.0, epsilon = EPS);
         assert_relative_eq!(b_exit[0].dot(&kn_exit), 0.0, epsilon = EPS);
         assert_relative_eq!(b_exit[1].dot(&jn_exit), 0.0, epsilon = EPS);
