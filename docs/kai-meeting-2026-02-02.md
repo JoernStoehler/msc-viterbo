@@ -1,5 +1,5 @@
 # MSc Thesis Progress Report
-**Meeting with Kai Zehmisch — February 3, 2026**
+**Meeting with Kai Zehmisch — February 2, 2026**
 
 Jörn Stöhler, University of Augsburg
 
