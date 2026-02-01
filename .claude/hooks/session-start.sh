@@ -10,11 +10,34 @@ source=$(echo "$hook_input" | jq -r '.source // "startup"' 2>/dev/null || echo "
 # Only run on startup (not resume/compact/clear)
 [ "$source" != "startup" ] && exit 0
 
+# --- Environment Detection ---
+is_web_env=false
+[ "$CLAUDE_CODE_REMOTE" = "true" ] && is_web_env=true
+[ "${CLAUDE_ENVIRONMENT:-}" = "ccweb" ] && is_web_env=true
+[ -n "${CODESPACES:-}" ] && is_web_env=true
+
+if [ "$is_web_env" = "true" ]; then
+    echo "Environment: CC Web (limited) — see docs/conventions/cc-web.md"
+else
+    echo "Environment: Local CLI"
+fi
+echo ""
+
+# --- Shallow Clone Warning ---
+if command -v git &>/dev/null && [ -d .git ]; then
+    local_commits=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+    if [ "$local_commits" -lt 50 ]; then
+        echo "WARNING: Shallow clone detected ($local_commits commits locally)."
+        echo "         Use 'gh api' for full history, not local git log."
+        echo ""
+    fi
+fi
+
 # --- File Index (all environments) ---
 # Print compressed repo structure so agent has file awareness in context
 CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-echo "=== Session Startup: Repository File Index ==="
-echo "(This index is auto-generated to help you navigate the codebase)"
+echo "=== Repository File Index ==="
+echo "(Auto-generated to help navigate the codebase)"
 echo ""
 python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/file-index.py" 2>/dev/null || echo "(file-index.py not available)"
 echo ""
@@ -22,15 +45,6 @@ echo "=== End File Index ==="
 echo ""
 
 # --- gh CLI installation (web environment only) ---
-# Detect web environment via multiple signals:
-# - CLAUDE_CODE_REMOTE=true (CC Web)
-# - CLAUDE_ENVIRONMENT=ccweb (CC Web alternative)
-# - CODESPACES=true (GitHub Codespaces)
-is_web_env=false
-[ "$CLAUDE_CODE_REMOTE" = "true" ] && is_web_env=true
-[ "${CLAUDE_ENVIRONMENT:-}" = "ccweb" ] && is_web_env=true
-[ -n "${CODESPACES:-}" ] && is_web_env=true
-
 [ "$is_web_env" = "false" ] && exit 0
 
 # Skip if gh already installed
