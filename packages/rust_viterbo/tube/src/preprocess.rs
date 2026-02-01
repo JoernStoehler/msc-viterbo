@@ -15,8 +15,8 @@ use crate::trivialization::{
     rotation_number_from_trace, trivialize,
 };
 use crate::types::{
-    validate_for_tube, FlowDirection, Polygon2D, PolytopeHRep, ThreeFacetData, TubeError, TwoFace,
-    TwoFaceData, TwoFaceEnriched, TwoFaceLookup,
+    validate_for_tube, Polygon2D, PolytopeHRep, ThreeFacetData, TubeError, TwoFaceData,
+    TwoFaceLookup,
 };
 
 /// Preprocessed polytope data for the tube algorithm.
@@ -33,19 +33,15 @@ pub struct PolytopeData {
     /// 4D vertices of the polytope.
     pub vertices: Vec<Vector4<f64>>,
 
-    // --- New structures (clean API) ---
+    /// Whether the polytope has any Lagrangian 2-faces.
+    has_lagrangian: bool,
+
     /// 2-face data indexed by 2-face index.
     pub two_face_data: Vec<TwoFaceData>,
     /// Transition data indexed by transition index.
     pub transitions: Vec<ThreeFacetData>,
     /// Lookup tables for index conversion and adjacency.
     pub lookup: TwoFaceLookup,
-
-    // --- Legacy structures (to be removed after migration) ---
-    /// Basic 2-face data (all adjacent facet pairs).
-    pub two_faces: Vec<TwoFace>,
-    /// Enriched 2-faces (non-Lagrangian only, with trivialization data).
-    pub two_faces_enriched: Vec<TwoFaceEnriched>,
 }
 
 impl PolytopeData {
@@ -68,46 +64,10 @@ impl PolytopeData {
     }
 
     /// Check if the polytope has any Lagrangian 2-faces.
+    #[inline]
     pub fn has_lagrangian_two_faces(&self) -> bool {
-        self.two_faces
-            .iter()
-            .any(|f| f.is_lagrangian(EPS_LAGRANGIAN))
+        self.has_lagrangian
     }
-
-    /// Get the enriched TwoFaceEnriched for facets i and j.
-    /// Returns the one where the flow direction matches (entry=i, exit=j or vice versa).
-    pub fn get_two_face_enriched(&self, entry: usize, exit: usize) -> Option<&TwoFaceEnriched> {
-        self.two_faces_enriched.iter().find(|f| {
-            let (a, b) = if f.i < f.j { (f.i, f.j) } else { (f.j, f.i) };
-            let (e, x) = if entry < exit {
-                (entry, exit)
-            } else {
-                (exit, entry)
-            };
-            a == e && b == x
-        })
-    }
-
-    /// Get facets that are adjacent to the given facet.
-    /// A facet j is adjacent to i if they share a non-Lagrangian 2-face
-    /// AND the flow goes from i to j.
-    pub fn adjacent_facets_forward(&self, i: usize) -> Vec<usize> {
-        self.two_faces_enriched
-            .iter()
-            .filter_map(|f| {
-                // Check if facet i is the entry facet for this 2-face
-                if f.flow_direction == Some(FlowDirection::ItoJ) && f.i == i {
-                    Some(f.j)
-                } else if f.flow_direction == Some(FlowDirection::JtoI) && f.j == i {
-                    Some(f.i)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    // --- New API methods ---
 
     /// Get 2-face data by index.
     #[inline]
@@ -154,14 +114,14 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
     // Vertex enumeration (simplified: find vertices as intersections of 4 facets)
     let vertices = enumerate_vertices_4d(hrep)?;
 
-    // Find all 2-faces
-    let two_faces = enumerate_two_faces(hrep, &vertices);
+    // Find all 2-faces and check for Lagrangian ones
+    let (raw_two_faces, has_lagrangian) = enumerate_two_faces_raw(hrep, &vertices);
 
-    // Enrich non-Lagrangian 2-faces
-    let two_faces_enriched = enrich_two_faces(&two_faces, &normals, &vertices)?;
+    // Build TwoFaceData for non-Lagrangian 2-faces
+    let (two_face_data, mut lookup) =
+        build_two_face_data_direct(&raw_two_faces, &normals, &vertices, num_facets)?;
 
-    // Build new clean structures
-    let (two_face_data, mut lookup) = build_two_face_data(&two_faces_enriched, num_facets);
+    // Build transitions
     let transitions = build_transitions(&two_face_data, &mut lookup, &reeb_vectors, &heights);
 
     Ok(PolytopeData {
@@ -170,11 +130,10 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
         heights,
         reeb_vectors,
         vertices,
+        has_lagrangian,
         two_face_data,
         transitions,
         lookup,
-        two_faces,
-        two_faces_enriched,
     })
 }
 
@@ -241,10 +200,23 @@ fn enumerate_vertices_4d(hrep: &PolytopeHRep) -> Result<Vec<Vector4<f64>>, TubeE
     Ok(vertices)
 }
 
+/// Raw 2-face data before trivialization.
+struct RawTwoFace {
+    i: usize,
+    j: usize,
+    vertex_indices: Vec<usize>,
+    omega_ij: f64,
+}
+
 /// Enumerate all 2-faces (intersections of adjacent facet pairs).
-fn enumerate_two_faces(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> Vec<TwoFace> {
+/// Returns (raw 2-faces, has_lagrangian).
+fn enumerate_two_faces_raw(
+    hrep: &PolytopeHRep,
+    vertices: &[Vector4<f64>],
+) -> (Vec<RawTwoFace>, bool) {
     let n = hrep.num_facets();
     let mut two_faces = Vec::new();
+    let mut has_lagrangian = false;
 
     for i in 0..n {
         for j in (i + 1)..n {
@@ -263,7 +235,12 @@ fn enumerate_two_faces(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> Vec<Tw
             // A 2-face needs at least 3 vertices
             if vertex_indices.len() >= 3 {
                 let omega_ij = symplectic_form(&hrep.normals[i], &hrep.normals[j]);
-                two_faces.push(TwoFace {
+
+                if omega_ij.abs() < EPS_LAGRANGIAN {
+                    has_lagrangian = true;
+                }
+
+                two_faces.push(RawTwoFace {
                     i,
                     j,
                     vertex_indices,
@@ -273,29 +250,32 @@ fn enumerate_two_faces(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> Vec<Tw
         }
     }
 
-    two_faces
+    (two_faces, has_lagrangian)
 }
 
-/// Enrich 2-faces with trivialization data.
-fn enrich_two_faces(
-    two_faces: &[TwoFace],
+/// Build TwoFaceData list directly from raw 2-faces.
+fn build_two_face_data_direct(
+    raw_two_faces: &[RawTwoFace],
     normals: &[Vector4<f64>],
     vertices: &[Vector4<f64>],
-) -> Result<Vec<TwoFaceEnriched>, TubeError> {
-    let mut enriched = Vec::new();
+    num_facets: usize,
+) -> Result<(Vec<TwoFaceData>, TwoFaceLookup), TubeError> {
+    let mut data = Vec::new();
+    let mut lookup = TwoFaceLookup::new(num_facets);
 
-    for tf in two_faces {
-        // Skip Lagrangian 2-faces (trivialization doesn't work)
-        if tf.is_lagrangian(EPS_LAGRANGIAN) {
+    for tf in raw_two_faces {
+        // Skip Lagrangian 2-faces
+        if tf.omega_ij.abs() < EPS_LAGRANGIAN {
             continue;
         }
 
-        let flow_dir = tf.flow_direction(EPS_LAGRANGIAN).unwrap();
-
-        // Determine entry and exit normals based on flow direction
-        let (entry_normal, exit_normal) = match flow_dir {
-            FlowDirection::ItoJ => (normals[tf.i], normals[tf.j]),
-            FlowDirection::JtoI => (normals[tf.j], normals[tf.i]),
+        // Determine entry and exit facets based on flow direction (sign of omega)
+        let (entry_facet, exit_facet, entry_normal, exit_normal) = if tf.omega_ij > 0.0 {
+            // ItoJ: flow from i to j
+            (tf.i, tf.j, normals[tf.i], normals[tf.j])
+        } else {
+            // JtoI: flow from j to i
+            (tf.j, tf.i, normals[tf.j], normals[tf.i])
         };
 
         // Compute basis vectors
@@ -304,10 +284,8 @@ fn enrich_two_faces(
         let basis_entry = compute_entry_basis(&entry_normal, &exit_normal)
             .map_err(|e| TubeError::NumericalInstability(e.to_string()))?;
 
-        // Compute transition matrix
+        // Compute rotation number from transition matrix trace
         let transition_matrix = compute_transition_matrix_basis(&basis_entry, &exit_normal);
-
-        // Compute rotation number
         let rotation = rotation_number_from_trace(transition_matrix.trace());
 
         // Get 4D vertices and compute centroid
@@ -323,67 +301,28 @@ fn enrich_two_faces(
             .collect();
 
         // Sort CCW
-        let polygon_2d = Polygon2D::new(sort_ccw(polygon_2d_verts));
+        let polygon = Polygon2D::new(sort_ccw(polygon_2d_verts));
 
-        enriched.push(TwoFaceEnriched {
-            i: tf.i,
-            j: tf.j,
-            omega_ij: tf.omega_ij,
-            is_lagrangian: false,
-            flow_direction: Some(flow_dir),
-            entry_normal,
-            exit_normal,
-            transition_matrix,
-            rotation,
-            polygon_2d,
-            vertices_4d,
-            centroid_4d,
-            basis_exit,
-            basis_entry,
-        });
-    }
-
-    Ok(enriched)
-}
-
-/// Build TwoFaceData list and lookup from enriched 2-faces.
-fn build_two_face_data(
-    enriched: &[TwoFaceEnriched],
-    num_facets: usize,
-) -> (Vec<TwoFaceData>, TwoFaceLookup) {
-    let mut data = Vec::with_capacity(enriched.len());
-    let mut lookup = TwoFaceLookup::new(num_facets);
-
-    for (k, tfe) in enriched.iter().enumerate() {
-        let flow_dir = tfe
-            .flow_direction
-            .expect("Non-Lagrangian must have flow direction");
-
-        // Determine entry/exit based on flow direction
-        let (entry_facet, exit_facet) = match flow_dir {
-            FlowDirection::ItoJ => (tfe.i, tfe.j),
-            FlowDirection::JtoI => (tfe.j, tfe.i),
-        };
-
+        let k = data.len();
         data.push(TwoFaceData {
             entry_facet,
             exit_facet,
-            omega: tfe.omega_ij.abs(), // Store positive omega
-            rotation: tfe.rotation,
-            polygon: tfe.polygon_2d.clone(),
-            centroid_4d: tfe.centroid_4d,
-            basis_exit: tfe.basis_exit,
-            entry_normal: tfe.entry_normal,
-            exit_normal: tfe.exit_normal,
+            omega: tf.omega_ij.abs(),
+            rotation,
+            polygon,
+            centroid_4d,
+            basis_exit,
+            entry_normal,
+            exit_normal,
         });
 
-        lookup.register_two_face(tfe.i, tfe.j, k);
+        lookup.register_two_face(tf.i, tf.j, k);
     }
 
     // Initialize transitions_from with empty vecs
-    lookup.transitions_from = vec![Vec::new(); enriched.len()];
+    lookup.transitions_from = vec![Vec::new(); data.len()];
 
-    (data, lookup)
+    Ok((data, lookup))
 }
 
 /// Build ThreeFacetData list for all valid transitions.
@@ -504,47 +443,42 @@ mod tests {
         let data = preprocess(&hrep).unwrap();
 
         // Cross-polytope should have no Lagrangian 2-faces
-        for tf in &data.two_faces {
+        assert!(!data.has_lagrangian_two_faces());
+
+        // All 2-faces should have positive omega
+        for tf in &data.two_face_data {
             assert!(
-                tf.omega_ij.abs() > EPS_LAGRANGIAN,
-                "2-face F_{},{} has ω = {:.2e} (Lagrangian)",
-                tf.i,
-                tf.j,
-                tf.omega_ij
+                tf.omega > EPS_LAGRANGIAN,
+                "2-face ({} -> {}) has ω = {:.2e} (should be positive)",
+                tf.entry_facet,
+                tf.exit_facet,
+                tf.omega
             );
         }
-
-        assert!(!data.has_lagrangian_two_faces());
     }
 
     #[test]
-    fn test_enriched_2face_properties() {
+    fn test_two_face_properties() {
         let hrep = unit_cross_polytope();
         let data = preprocess(&hrep).unwrap();
 
-        for tfe in &data.two_faces_enriched {
-            // Transition matrix should be symplectic
-            assert_relative_eq!(tfe.transition_matrix.determinant(), 1.0, epsilon = EPS);
-
+        for tf in &data.two_face_data {
             // Rotation should be in (0, 0.5)
             assert!(
-                tfe.rotation > 0.0 && tfe.rotation < 0.5,
+                tf.rotation > 0.0 && tf.rotation < 0.5,
                 "Rotation {} not in (0, 0.5)",
-                tfe.rotation
+                tf.rotation
             );
 
             // Polygon should be non-empty
-            assert!(!tfe.polygon_2d.is_empty());
+            assert!(!tf.polygon.is_empty());
         }
     }
 
     #[test]
-    fn test_new_structures_consistency() {
+    fn test_structures_consistency() {
         let hrep = unit_cross_polytope();
         let data = preprocess(&hrep).unwrap();
-
-        // Number of 2-faces should match
-        assert_eq!(data.two_face_data.len(), data.two_faces_enriched.len());
 
         // Lookup should find all 2-faces
         for (k, tf) in data.two_face_data.iter().enumerate() {
@@ -573,23 +507,13 @@ mod tests {
         }
 
         // Check adjacency structure
-        for (k, tf) in data.two_face_data.iter().enumerate() {
+        for k in 0..data.two_face_data.len() {
             let trans_indices = data.lookup.transitions_from(k);
 
             // Each transition should have this 2-face as entry
             for &trans_idx in trans_indices {
                 assert_eq!(data.transitions[trans_idx].two_face_entry, k);
             }
-
-            // Forward facets from old API should match
-            let old_forward = data.adjacent_facets_forward(tf.exit_facet);
-            assert_eq!(
-                trans_indices.len(),
-                old_forward.len(),
-                "Adjacency count should match for 2-face {} (exit facet {})",
-                k,
-                tf.exit_facet
-            );
         }
 
         // Check precomputed flow maps are symplectic (det = 1)

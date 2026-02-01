@@ -15,16 +15,14 @@
 mod closure;
 mod reconstruct;
 
-use nalgebra::{Matrix2, Vector2};
 use std::collections::BinaryHeap;
 
-use crate::constants::{EPS, EPS_ROTATION, MAX_ROTATION, MIN_POLYGON_AREA};
+use crate::constants::{EPS_ROTATION, MAX_ROTATION, MIN_POLYGON_AREA};
 use crate::geometry::{apply_affine_to_polygon, intersect_polygons};
 use crate::preprocess::{preprocess, PolytopeData};
-use crate::quaternion::{apply_quat_j, apply_quat_k};
 use crate::types::{
-    AffineFunc, AffineMap2D, ClosedReebOrbit, FlowDirection, PolytopeHRep, Tube, TubeError,
-    TubeResult, TwoFaceEnriched,
+    AffineFunc, AffineMap2D, ClosedReebOrbit, PolytopeHRep, ThreeFacetData, Tube, TubeError,
+    TubeResult, TwoFaceData,
 };
 
 use closure::find_closed_orbit;
@@ -59,8 +57,8 @@ pub fn tube_capacity(hrep: &PolytopeHRep) -> Result<TubeResult, TubeError> {
     let mut tubes_pruned = 0;
 
     // Initialize: one root tube per 2-face
-    for tfe in &data.two_faces_enriched {
-        let root = create_root_tube(tfe);
+    for tf in &data.two_face_data {
+        let root = create_root_tube(tf);
         worklist.push(TubePriority::new(root));
     }
 
@@ -189,17 +187,11 @@ enum Extension {
 /// The root tube has trivial data: identity flow map (no flow yet), zero action,
 /// and zero rotation. As the search extends the tube through additional facets,
 /// these values accumulate.
-fn create_root_tube(tfe: &TwoFaceEnriched) -> Tube {
-    let (entry_facet, exit_facet) = match tfe.flow_direction {
-        Some(FlowDirection::ItoJ) => (tfe.i, tfe.j),
-        Some(FlowDirection::JtoI) => (tfe.j, tfe.i),
-        None => panic!("Cannot create root tube for Lagrangian 2-face"),
-    };
-
+fn create_root_tube(tf: &TwoFaceData) -> Tube {
     Tube {
-        facet_sequence: vec![entry_facet, exit_facet],
-        p_start: tfe.polygon_2d.clone(),
-        p_end: tfe.polygon_2d.clone(),
+        facet_sequence: vec![tf.entry_facet, tf.exit_facet],
+        p_start: tf.polygon.clone(),
+        p_end: tf.polygon.clone(),
         flow_map: AffineMap2D::identity(),
         action_func: AffineFunc::zero(),
         rotation: 0.0,
@@ -210,14 +202,21 @@ fn create_root_tube(tfe: &TwoFaceEnriched) -> Tube {
 fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<Extension> {
     let mut extensions = Vec::new();
 
-    // Current end facet
-    let curr_facet = *tube.facet_sequence.last().unwrap();
+    // Get current end 2-face index
+    let (prev_facet, curr_facet) = tube.end_two_face();
+    let end_2face_idx = match data.two_face_index(prev_facet, curr_facet) {
+        Some(idx) => idx,
+        None => return extensions, // No valid 2-face, shouldn't happen
+    };
 
-    // Find all facets we can flow to from the current facet
-    let next_facets = data.adjacent_facets_forward(curr_facet);
+    // Find all transitions from this 2-face
+    let transition_indices = data.transitions_from(end_2face_idx);
 
-    for next_facet in next_facets {
-        if let Some(extended) = extend_tube(tube, next_facet, data) {
+    for &trans_idx in transition_indices {
+        let trans = data.get_transition(trans_idx);
+        let exit_2face = data.get_two_face(trans.two_face_exit);
+
+        if let Some(extended) = extend_tube_with_transition(tube, trans, exit_2face) {
             // Check if this closes the tube
             if extended.is_closed() {
                 // Try to find fixed points
@@ -236,18 +235,21 @@ fn get_extensions(tube: &Tube, data: &PolytopeData) -> Vec<Extension> {
     extensions
 }
 
-/// Extend a tube by flowing to the next facet.
-fn extend_tube(tube: &Tube, next_facet: usize, data: &PolytopeData) -> Option<Tube> {
-    let seq = &tube.facet_sequence;
-    let prev_facet = seq[seq.len() - 2];
-    let curr_facet = seq[seq.len() - 1];
-
-    // Get the 2-faces
-    let entry_2face = data.get_two_face_enriched(prev_facet, curr_facet)?;
-    let exit_2face = data.get_two_face_enriched(curr_facet, next_facet)?;
-
-    // Compute flow across the current facet
-    let (flow_step, time_step) = compute_facet_flow(entry_2face, exit_2face, data, curr_facet);
+/// Extend a tube using precomputed transition data.
+fn extend_tube_with_transition(
+    tube: &Tube,
+    trans: &ThreeFacetData,
+    exit_2face: &TwoFaceData,
+) -> Option<Tube> {
+    // Build the flow step from precomputed transition data
+    let flow_step = AffineMap2D {
+        matrix: trans.flow_matrix,
+        offset: trans.flow_offset,
+    };
+    let time_step = AffineFunc {
+        gradient: trans.time_gradient,
+        constant: trans.time_constant,
+    };
 
     // Compose with existing flow map
     let new_flow_map = flow_step.compose(&tube.flow_map);
@@ -259,7 +261,7 @@ fn extend_tube(tube: &Tube, next_facet: usize, data: &PolytopeData) -> Option<Tu
 
     // Apply flow to end polygon and intersect with exit 2-face
     let flowed_end = apply_affine_to_polygon(&flow_step, &tube.p_end);
-    let new_p_end = intersect_polygons(&flowed_end, &exit_2face.polygon_2d);
+    let new_p_end = intersect_polygons(&flowed_end, &exit_2face.polygon);
 
     // Check if result is non-empty
     if new_p_end.is_empty() || new_p_end.area() < MIN_POLYGON_AREA {
@@ -283,6 +285,9 @@ fn extend_tube(tube: &Tube, next_facet: usize, data: &PolytopeData) -> Option<Tu
         return None;
     }
 
+    // Next facet is the exit facet of the exit 2-face
+    let next_facet = exit_2face.exit_facet;
+
     Some(Tube {
         facet_sequence: [&tube.facet_sequence[..], &[next_facet]].concat(),
         p_start: new_p_start,
@@ -291,83 +296,6 @@ fn extend_tube(tube: &Tube, next_facet: usize, data: &PolytopeData) -> Option<Tu
         action_func: new_action_func,
         rotation: tube.rotation + exit_2face.rotation,
     })
-}
-
-// ============================================================================
-// Flow Map Computation
-// ============================================================================
-
-/// Compute the affine flow map and time function for flowing across a facet.
-///
-/// Given entry and exit 2-faces on a facet, computes:
-/// - The affine map φ: ℝ² → ℝ² that transforms trivialized entry coordinates to exit coordinates
-/// - The affine time function t: ℝ² → ℝ giving the flow time as a function of starting position
-fn compute_facet_flow(
-    entry_2face: &TwoFaceEnriched,
-    exit_2face: &TwoFaceEnriched,
-    data: &PolytopeData,
-    curr_facet: usize,
-) -> (AffineMap2D, AffineFunc) {
-    // Get Reeb vector on current facet
-    let r_curr = data.reeb_vector(curr_facet);
-    let n_next = &exit_2face.exit_normal;
-    let h_next = data.height(if exit_2face.i == curr_facet {
-        exit_2face.j
-    } else {
-        exit_2face.i
-    });
-
-    // Denominator of time formula: ⟨R_curr, n_next⟩
-    let r_dot_n = r_curr.dot(n_next);
-    debug_assert!(
-        r_dot_n.abs() > EPS,
-        "r_dot_n ≈ 0 indicates Lagrangian 2-face"
-    );
-
-    // Basis vectors
-    let b_entry = &entry_2face.basis_exit;
-    let c_entry = entry_2face.centroid_4d;
-    let c_exit = exit_2face.centroid_4d;
-
-    // Trivialization vectors for exit
-    let jn_exit = apply_quat_j(&exit_2face.exit_normal);
-    let kn_exit = apply_quat_k(&exit_2face.exit_normal);
-
-    // Time function: t(p_2d) = t_const + ⟨t_grad, p_2d⟩
-    let t_const = (h_next - c_entry.dot(n_next)) / r_dot_n;
-    let t_grad = Vector2::new(
-        -b_entry[0].dot(n_next) / r_dot_n,
-        -b_entry[1].dot(n_next) / r_dot_n,
-    );
-    let time_func = AffineFunc {
-        gradient: t_grad,
-        constant: t_const,
-    };
-
-    // Transition matrix: trivialize entry basis in exit coordinates
-    let psi = Matrix2::new(
-        b_entry[0].dot(&jn_exit),
-        b_entry[1].dot(&jn_exit),
-        b_entry[0].dot(&kn_exit),
-        b_entry[1].dot(&kn_exit),
-    );
-
-    // Reeb vector trivialized in exit coordinates
-    let r_triv = Vector2::new(r_curr.dot(&jn_exit), r_curr.dot(&kn_exit));
-
-    // Full flow matrix: A = ψ + r_triv ⊗ t_grad
-    let a_matrix = psi + r_triv * t_grad.transpose();
-
-    // Offset: b = τ_exit(c_entry - c_exit + t_const * R_curr)
-    let delta_c = c_entry - c_exit + r_curr * t_const;
-    let b_offset = Vector2::new(delta_c.dot(&jn_exit), delta_c.dot(&kn_exit));
-
-    let flow_map = AffineMap2D {
-        matrix: a_matrix,
-        offset: b_offset,
-    };
-
-    (flow_map, time_func)
 }
 
 // ============================================================================
@@ -386,36 +314,47 @@ mod tests {
         let data = preprocess(&hrep).unwrap();
 
         println!("Num facets: {}", data.num_facets);
-        println!("Num enriched 2-faces: {}", data.two_faces_enriched.len());
+        println!("Num 2-faces: {}", data.two_face_data.len());
+        println!("Num transitions: {}", data.transitions.len());
 
-        // Check adjacency
-        for i in 0..data.num_facets {
-            let adj = data.adjacent_facets_forward(i);
-            if !adj.is_empty() {
-                println!("Facet {} -> {:?}", i, adj);
+        // Check adjacency via transitions
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let trans = data.transitions_from(k);
+            if !trans.is_empty() {
+                println!(
+                    "2-face {} ({} -> {}) has {} outgoing transitions",
+                    k,
+                    tf.entry_facet,
+                    tf.exit_facet,
+                    trans.len()
+                );
             }
         }
 
         // Try extending one root tube
-        let tfe = &data.two_faces_enriched[0];
+        let tf = &data.two_face_data[0];
         println!(
-            "\nRoot tube on 2-face ({}, {}), flow: {:?}",
-            tfe.i, tfe.j, tfe.flow_direction
+            "\nRoot tube on 2-face ({} -> {})",
+            tf.entry_facet, tf.exit_facet
         );
-        let root = create_root_tube(tfe);
+        let root = create_root_tube(tf);
         println!(
             "Root facet_sequence: {:?}, p_start area: {}",
             root.facet_sequence,
             root.p_start.area()
         );
 
-        let curr_facet = *root.facet_sequence.last().unwrap();
-        let next_facets = data.adjacent_facets_forward(curr_facet);
-        println!("Next facets from {}: {:?}", curr_facet, next_facets);
+        let trans_indices = data.transitions_from(0);
+        println!("Transitions from 2-face 0: {:?}", trans_indices);
 
-        for &next_facet in &next_facets {
-            println!("  Trying to extend to facet {}", next_facet);
-            match extend_tube(&root, next_facet, &data) {
+        for &trans_idx in trans_indices {
+            let trans = data.get_transition(trans_idx);
+            let exit_2face = data.get_two_face(trans.two_face_exit);
+            println!(
+                "  Trying transition {} to 2-face {}",
+                trans_idx, trans.two_face_exit
+            );
+            match extend_tube_with_transition(&root, trans, exit_2face) {
                 Some(extended) => {
                     println!(
                         "    Extended! seq={:?}, p_end area={}",
@@ -424,7 +363,7 @@ mod tests {
                     );
                 }
                 None => {
-                    println!("    Could not extend (empty intersection or no 2-face)");
+                    println!("    Could not extend (empty intersection)");
                 }
             }
         }
@@ -448,8 +387,8 @@ mod tests {
         let hrep = unit_cross_polytope();
         let data = preprocess(&hrep).unwrap();
 
-        for tfe in &data.two_faces_enriched {
-            let root = create_root_tube(tfe);
+        for tf in &data.two_face_data {
+            let root = create_root_tube(tf);
 
             // p_start should equal p_end for root tube
             assert_eq!(root.p_start.vertices.len(), root.p_end.vertices.len());
@@ -474,14 +413,15 @@ mod tests {
         let data = preprocess(&hrep).unwrap();
 
         // Extend a root tube and check that flow maps are symplectic (det = 1)
-        let tfe = &data.two_faces_enriched[0];
-        let root = create_root_tube(tfe);
+        let tf = &data.two_face_data[0];
+        let root = create_root_tube(tf);
 
-        let curr_facet = *root.facet_sequence.last().unwrap();
-        let next_facets = data.adjacent_facets_forward(curr_facet);
+        let trans_indices = data.transitions_from(0);
 
-        for &next_facet in &next_facets {
-            if let Some(extended) = extend_tube(&root, next_facet, &data) {
+        for &trans_idx in trans_indices {
+            let trans = data.get_transition(trans_idx);
+            let exit_2face = data.get_two_face(trans.two_face_exit);
+            if let Some(extended) = extend_tube_with_transition(&root, trans, exit_2face) {
                 let det = extended.flow_map.matrix.determinant();
                 assert_relative_eq!(det, 1.0, epsilon = 1e-6);
             }
