@@ -8,6 +8,20 @@ Compute EHZ capacity for **any** 4D convex polytope using the quadratic programm
 
 This is the most general algorithm — it works on all polytopes regardless of 2-face character. However, it has factorial complexity O(F!) in the number of facets, limiting practical use to ~10 facets.
 
+## Spec Dependencies
+
+> **Prerequisite reading:** [geom/SPEC.md](../geom/SPEC.md) defines foundational concepts used here:
+> - Polytope H-representation
+> - Symplectic form ω(·,·)
+> - 2-faces and Lagrangian classification
+> - Closed Reeb orbits and simple orbits
+> - Action = period for Reeb flow
+>
+> This spec extends those foundations with HK2017-specific concepts:
+> - Q-function and its maximization
+> - KKT constraints and solver
+> - Permutation enumeration strategies
+
 ## Theoretical Foundation
 
 **Source:** Haim-Kislev, P. "On the Symplectic Size of Convex Polytopes." *Geometric and Functional Analysis* 29 (2019): 440-463. arXiv:1712.03494 (December 2017).

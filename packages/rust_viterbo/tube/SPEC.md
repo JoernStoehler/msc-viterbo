@@ -8,6 +8,19 @@ Compute EHZ capacity for 4D convex polytopes with **no Lagrangian 2-faces**.
 
 This algorithm organizes Reeb trajectories into "tubes" (sets of trajectories sharing a combinatorial class) and uses branch-and-bound to find the minimum-action closed orbit.
 
+## Spec Dependencies
+
+> **Prerequisite reading:** [geom/SPEC.md](../geom/SPEC.md) defines foundational concepts used here:
+> - 2-faces and adjacency
+> - Lagrangian vs non-Lagrangian classification
+> - Flow direction on 2-faces
+> - Reeb trajectories and closed orbits
+> - Action = period for Reeb flow
+>
+> This spec extends those foundations with tube-specific concepts:
+> - Quaternion trivialization (§1.9-1.12 of developer-spec)
+> - Tube data structure and branch-and-bound algorithm
+
 ## Applicability
 
 | Polytope Type | 2-Face Character | Tube Algorithm |

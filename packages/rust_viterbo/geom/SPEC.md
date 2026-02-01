@@ -12,6 +12,37 @@ Shared geometric primitives for EHZ capacity algorithms. This crate provides:
 
 All capacity algorithms (HK2017, Tube, Billiard) depend on this crate.
 
+---
+
+## Spec Dependencies
+
+> **IMPORTANT FOR AGENTS:** This spec defines shared mathematical concepts that are:
+> - **Used by tube/SPEC.md and hk2017/SPEC.md** as foundational definitions
+> - **Not necessarily implemented in geom code** — some are conceptual foundations
+> - **Must not be pruned** even if not referenced in geom source files
+>
+> The dependency graph is:
+> ```
+> geom/SPEC.md (shared foundations)
+>    ├── hk2017/SPEC.md (depends on: 2-faces, Lagrangian, orbits)
+>    ├── tube/SPEC.md (depends on: 2-faces, flow direction, orbits)
+>    └── billiard/SPEC.md (depends on: Lagrangian products)
+> ```
+
+**Shared concepts defined here:**
+- 2-faces and adjacency (used by tube, hk2017)
+- Lagrangian classification (used by all)
+- Flow direction (used by tube)
+- Reeb trajectories and orbits (used by all)
+- Action formulas (used by all)
+
+**Algorithm-specific concepts defined in crate specs:**
+- Trivialization, transition matrices, rotation numbers → tube/SPEC.md
+- Q-function, KKT constraints → hk2017/SPEC.md
+- Minkowski billiards → billiard/SPEC.md
+
+---
+
 ## Problem Statement
 
 **Input:** A polytope K ⊂ ℝ⁴ with 0 ∈ int(K).
@@ -54,19 +85,21 @@ pub struct PolytopeHRep {
 impl PolytopeHRep {
     pub fn validate(&self) -> Result<(), ValidationError> {
         // 1. Lengths match
-        assert_eq!(normals.len(), heights.len());
-
         // 2. Normals are unit vectors
-        assert!(normals.iter().all(|n| (n.norm() - 1.0).abs() < EPS_UNIT));
-
         // 3. Heights are positive (0 in interior)
-        assert!(heights.iter().all(|&h| h > 0.0));
-
         // 4. At least 5 facets (minimum for 4D polytope)
-        assert!(normals.len() >= 5);
     }
 }
 ```
+
+### Facets (3-faces)
+
+A **facet** Fᵢ is the intersection of K with the i-th bounding hyperplane:
+```
+Fᵢ = K ∩ { x : ⟨nᵢ, x⟩ = hᵢ }
+```
+
+Facets are 3-dimensional convex polytopes. Each facet has ≥4 vertices.
 
 ### Scaling
 
@@ -74,12 +107,7 @@ impl PolytopeHRep {
 impl PolytopeHRep {
     /// Scale polytope by factor λ: K → λK
     /// Heights scale linearly: h'ᵢ = λ · hᵢ
-    pub fn scale(&self, lambda: f64) -> Self {
-        PolytopeHRep {
-            normals: self.normals.clone(),
-            heights: self.heights.iter().map(|h| h * lambda).collect(),
-        }
-    }
+    pub fn scale(&self, lambda: f64) -> Self;
 }
 ```
 
@@ -90,10 +118,6 @@ impl PolytopeHRep {
 Compute 4D polytope volume using Qhull's Delaunay triangulation.
 
 ```rust
-/// Compute volume of 4D polytope from H-representation.
-///
-/// Uses Qhull to convert H-rep → V-rep, then computes volume
-/// via triangulation into 4-simplices.
 pub fn polytope_volume_hrep(hrep: &PolytopeHRep) -> Result<f64, VolumeError>;
 ```
 
@@ -101,8 +125,6 @@ pub fn polytope_volume_hrep(hrep: &PolytopeHRep) -> Result<f64, VolumeError>;
 ```
 Volume = (1/24) · |det([v₁-v₀, v₂-v₀, v₃-v₀, v₄-v₀])|
 ```
-
-Total volume = sum over all simplices in triangulation.
 
 **Code:** `volume.rs`
 
@@ -116,45 +138,17 @@ sys(K) = c_EHZ(K)² / (2 · Vol(K))
 ```
 
 Viterbo's conjecture (disproven 2024): sys(K) ≤ 1 for all convex K.
+The HK-O 2024 counterexample has sys ≈ 1.047.
 
 ```rust
-/// Compute systolic ratio from capacity and volume.
-///
-/// # Panics
-/// Panics if capacity or volume is non-positive.
-pub fn systolic_ratio(capacity: f64, volume: f64) -> f64 {
-    assert!(capacity > 0.0, "Capacity must be positive");
-    assert!(volume > 0.0, "Volume must be positive");
-    capacity * capacity / (2.0 * volume)
-}
+pub fn systolic_ratio(capacity: f64, volume: f64) -> f64;
 ```
 
 **Code:** `systolic.rs`
 
 ---
 
-## Tolerances
-
-```rust
-/// General numerical tolerance for floating-point comparisons.
-pub const EPS: f64 = 1e-10;
-
-/// Tolerance for unit normal validation.
-pub const EPS_UNIT: f64 = 1e-9;
-```
-
-**Code:** `tolerances.rs`
-
-**Tolerance philosophy:**
-- Tight tolerances for input validation (catch errors early)
-- All tolerances are well above machine epsilon (~2.2e-16)
-- Relative tolerance where possible: `|a - b| < EPS · max(|a|, |b|, 1.0)`
-
----
-
-## Reeb Flow Fundamentals
-
-These concepts are used by all capacity algorithms.
+## Symplectic Structure
 
 ### Symplectic Form
 
@@ -172,6 +166,10 @@ J(q₁, q₂, p₁, p₂) = (-p₁, -p₂, q₁, q₂)
 - Antisymmetric: ω(x, y) = -ω(y, x)
 - Non-degenerate: ω(x, y) = 0 for all y implies x = 0
 
+**Standard basis pairings:**
+- ω(e₁, e₃) = 1, ω(e₂, e₄) = 1
+- ω(e₁, e₂) = 0, ω(e₃, e₄) = 0 (Lagrangian pairs)
+
 ### Reeb Vectors
 
 The Reeb vector on facet Fᵢ with normal nᵢ and height hᵢ:
@@ -179,44 +177,234 @@ The Reeb vector on facet Fᵢ with normal nᵢ and height hᵢ:
 Rᵢ = (2/hᵢ) · J · nᵢ
 ```
 
+**Derivation:** For the contact form α = λ|_{∂K} where λ = ½(p dq - q dp), the Reeb vector R satisfies α(R) = 1 and ι_R dα = 0. At a point x on facet Fᵢ, this gives R(x) = (2/⟨x,nᵢ⟩) J nᵢ. Since ⟨x, nᵢ⟩ = hᵢ on the facet, we get Rᵢ = (2/hᵢ) J nᵢ.
+
 **Properties:**
 - Perpendicular to facet: ⟨Rᵢ, nᵢ⟩ = 0
 - Magnitude: ‖Rᵢ‖ = 2/hᵢ
 
-### Two-Faces and Adjacency
+---
 
-A **2-face** F_ij is the intersection of two facets:
+## Two-Faces and Adjacency
+
+### Definition
+
+A **2-face** F_{ij} is the intersection of two facets:
 ```
-F_ij = Fᵢ ∩ Fⱼ = K ∩ { x : ⟨nᵢ, x⟩ = hᵢ } ∩ { x : ⟨nⱼ, x⟩ = hⱼ }
+F_{ij} = Fᵢ ∩ Fⱼ = K ∩ { x : ⟨nᵢ, x⟩ = hᵢ } ∩ { x : ⟨nⱼ, x⟩ = hⱼ }
 ```
 
-Two facets are **adjacent** iff their 2-face is nonempty and 2-dimensional.
+Two facets are **adjacent** iff their 2-face is nonempty and 2-dimensional (has ≥3 vertices).
+
+```rust
+struct TwoFace {
+    i: usize,              // first facet index (i < j by convention)
+    j: usize,              // second facet index
+    vertices: Vec<usize>,  // indices of vertices on this 2-face
+    omega_ij: f64,         // symplectic form: ω(nᵢ, nⱼ)
+}
+```
 
 ### Lagrangian vs Non-Lagrangian 2-Faces
 
-A 2-face F_ij is **Lagrangian** iff ω(nᵢ, nⱼ) = 0.
+A 2-face F_{ij} is **Lagrangian** iff ω(nᵢ, nⱼ) = 0.
 
-**Significance:**
-- Tube algorithm requires ALL 2-faces non-Lagrangian
-- HK2017 works on all polytopes
-- Billiard algorithm requires Lagrangian product structure
+```rust
+impl TwoFace {
+    fn is_lagrangian(&self) -> bool {
+        self.omega_ij.abs() < EPS_LAGRANGIAN
+    }
+}
+```
 
-### Flow Direction
+**Significance for algorithms:**
+- **Tube algorithm:** Requires ALL 2-faces non-Lagrangian
+- **HK2017:** Works on all polytopes
+- **Billiard:** Requires Lagrangian product structure (all 2-faces Lagrangian)
 
-For a non-Lagrangian 2-face F_ij:
-- If ω(nᵢ, nⱼ) > 0: Reeb flow crosses from Fᵢ to Fⱼ
-- If ω(nᵢ, nⱼ) < 0: Reeb flow crosses from Fⱼ to Fᵢ
+### Flow Direction on Non-Lagrangian 2-Faces
+
+For a non-Lagrangian 2-face F_{ij}, the Reeb flow crosses from one facet to the other:
+
+- If ω(nᵢ, nⱼ) > 0: flow crosses from Fᵢ to Fⱼ
+- If ω(nᵢ, nⱼ) < 0: flow crosses from Fⱼ to Fᵢ
+
+**Proof:** The Reeb vector on Fᵢ is Rᵢ ∝ J nᵢ. Its inner product with nⱼ is ⟨J nᵢ, nⱼ⟩ = ω(nᵢ, nⱼ). When ω > 0, Rᵢ points outward from Fᵢ toward Fⱼ.
+
+```rust
+enum FlowDirection {
+    ItoJ,  // ω(nᵢ, nⱼ) > 0
+    JtoI,  // ω(nᵢ, nⱼ) < 0
+}
+
+impl TwoFace {
+    fn flow_direction(&self) -> Option<FlowDirection> {
+        if self.is_lagrangian() {
+            None  // no crossing
+        } else if self.omega_ij > 0.0 {
+            Some(FlowDirection::ItoJ)
+        } else {
+            Some(FlowDirection::JtoI)
+        }
+    }
+}
+```
 
 ---
 
-## Action Formula
+## Lagrangian Product Structure
 
-For a closed piecewise-linear curve with vertices v₀, v₁, ..., vₙ = v₀:
-```
-A = (1/2) · Σₖ ω(vₖ, vₖ₊₁)
+A polytope K is a **Lagrangian product** iff K = K₁ × K₂ where:
+- K₁ ⊂ ℝ²_q (configuration space, coordinates q₁, q₂)
+- K₂ ⊂ ℝ²_p (momentum space, coordinates p₁, p₂)
+
+**Detection:** Every facet normal has either only q-coordinates or only p-coordinates nonzero:
+
+```rust
+fn is_lagrangian_product(hrep: &PolytopeHRep) -> bool {
+    hrep.normals.iter().all(|n| {
+        let q_part = n[0].abs() + n[1].abs();
+        let p_part = n[2].abs() + n[3].abs();
+        (q_part < EPS) || (p_part < EPS)
+    })
+}
 ```
 
-**For Reeb orbits:** Action equals period (T = Στₖ where τₖ are segment times).
+**Significance:** Lagrangian products have ALL 2-faces Lagrangian, enabling the specialized Billiard algorithm.
+
+---
+
+## Closed Curves and Action
+
+### Action of Closed Curves
+
+A closed curve γ: [0,T] → ℝ⁴ with γ(0) = γ(T) has action:
+```
+A(γ) = ½ ∫₀ᵀ ⟨Jγ(t), γ̇(t)⟩ dt = ∮_γ λ
+```
+
+where λ = ½(p dq - q dp) is the Liouville 1-form.
+
+### Action of Piecewise Linear Curves
+
+For a closed polygonal curve with vertices v₀, v₁, ..., v_{n-1}, v_n = v₀:
+```
+A = ½ Σₖ ω(vₖ, vₖ₊₁)
+```
+
+```rust
+fn action_of_closed_polygon(vertices: &[Vector4<f64>]) -> f64 {
+    let n = vertices.len();
+    let mut sum = 0.0;
+    for k in 0..n {
+        sum += symplectic_form(&vertices[k], &vertices[(k + 1) % n]);
+    }
+    0.5 * sum
+}
+```
+
+**Properties:**
+- Cyclic invariant: rotating the starting vertex doesn't change action
+- Orientation: reversing orientation negates action
+
+---
+
+## Reeb Trajectories
+
+### Definition
+
+A **Reeb trajectory** is a curve γ: [0,T] → ∂K satisfying the Reeb flow differential inclusion:
+```
+γ̇(t) ∈ cone{ Rᵢ : γ(t) ∈ Fᵢ }
+```
+
+At a point on a single facet, velocity = Reeb vector. At a point on multiple facets (2-face, edge, vertex), velocity is a non-negative combination of the active Reeb vectors.
+
+### Piecewise Linear Reeb Trajectories
+
+On polytopes, Reeb trajectories are piecewise linear:
+
+```rust
+struct PiecewiseLinearReebTrajectory {
+    breakpoints: Vec<Vector4<f64>>,  // p₀, p₁, ..., pₘ
+    segment_facets: Vec<usize>,      // which facet for each segment
+    segment_times: Vec<f64>,         // duration of each segment
+}
+```
+
+**Conditions:**
+1. Each breakpoint lies on ∂K
+2. Each segment lies on its claimed facet
+3. Velocity = Reeb vector: (pₖ₊₁ - pₖ) / τₖ = Rᵢ
+4. Times positive: τₖ > 0
+
+### Action = Period for Reeb Flow
+
+For Reeb dynamics, **action equals period**:
+```
+A(γ) = T = Σₖ τₖ
+```
+
+**Proof:** The Reeb vector R is defined by α(R) = 1. For a Reeb orbit parametrized by t ∈ [0,T]:
+```
+A(γ) = ∫_γ α = ∫₀ᵀ α(γ̇(t)) dt = ∫₀ᵀ α(R) dt = ∫₀ᵀ 1 dt = T
+```
+
+---
+
+## Closed Reeb Orbits
+
+A **closed Reeb orbit** is a Reeb trajectory with γ(T) = γ(0).
+
+```rust
+struct ClosedReebOrbit {
+    period: f64,                     // T = action
+    breakpoints: Vec<Vector4<f64>>,  // p₀, ..., pₘ with pₘ = p₀
+    segment_facets: Vec<usize>,      // i₀, ..., i_{m-1}
+    segment_times: Vec<f64>,         // τ₀, ..., τ_{m-1}
+}
+```
+
+**Conditions:**
+- Closure: breakpoints[m] = breakpoints[0]
+- Period = Σ segment_times
+- Period = action (from general formula)
+
+### Simple Reeb Orbits
+
+A **simple Reeb orbit** visits each facet at most once.
+
+**Source:** HK2017 Theorem 2 proves that minimum-action orbits are simple.
+
+**Consequence:** All algorithms only need to search over simple orbits.
+
+---
+
+## Facet Sequences
+
+A **facet sequence** σ = (i₀, i₁, ..., iₘ) describes the order of facets visited by an orbit.
+
+For orbits not involving Lagrangian 2-faces:
+1. Each consecutive pair (iₖ, iₖ₊₁) must share a non-Lagrangian 2-face
+2. Flow direction must be consistent with ω(nᵢ, nⱼ)
+
+**Minimum closed sequence length is 5:**
+
+A closed orbit requires at least 3 distinct facets, giving minimum sequence [i₀, i₁, i₂, i₀, i₁].
+
+*Proof:* Length 4 [i, j, i, j] would require flow i→j then j→i at the same 2-face. But flow direction is fixed by ω(nᵢ, nⱼ). By antisymmetry, flow cannot reverse. □
+
+---
+
+## Tolerances
+
+```rust
+pub const EPS: f64 = 1e-10;           // General tolerance
+pub const EPS_UNIT: f64 = 1e-9;       // Unit normal validation
+pub const EPS_LAGRANGIAN: f64 = 1e-9; // Lagrangian detection
+```
+
+**Code:** `tolerances.rs`
 
 ---
 
@@ -258,6 +446,7 @@ let sys = systolic_ratio(capacity, volume);
 
 ## Related
 
-- **HK2017 algorithm:** `packages/rust_viterbo/hk2017/`
-- **Tube algorithm:** `packages/rust_viterbo/tube/`
-- **Billiard algorithm:** `packages/rust_viterbo/billiard/`
+- **HK2017 algorithm:** [hk2017/SPEC.md](../hk2017/SPEC.md)
+- **Tube algorithm:** [tube/SPEC.md](../tube/SPEC.md)
+- **Billiard algorithm:** [billiard/SPEC.md](../billiard/SPEC.md)
+- **Comprehensive reference:** [developer-spec-v2.md](../docs/developer-spec-v2.md)
