@@ -20,10 +20,10 @@ Your goal is to produce an explanation that is:
    - Check git history for provenance of key decisions
    - Look for specs, docs, comments that explain "why"
 
-2. **Draft to a temp file**
-   - Write to `/tmp/explain-draft.md`
-   - You cannot fix mistakes in chat output, so draft first
-   - Revise until the explanation is complete
+2. **Draft internally first**
+   - Use `/tmp/explain-draft.md` as a scratchpad (optional)
+   - You cannot fix mistakes in chat output, so think before writing
+   - Revise your draft until the explanation is complete
 
 3. **Structure your explanation**
    ```
@@ -52,9 +52,9 @@ Your goal is to produce an explanation that is:
    - Design decision: commit hash + author, or "no documented justification"
    - Hypothesis: explicitly mark as "hypothesis" or "unverified"
 
-5. **Present the draft**
-   - Show the user the key findings in chat
-   - Reference the full document at `/tmp/explain-draft.md`
+5. **Present the explanation**
+   - Output the full explanation directly in chat
+   - The temp file is for your drafting process only — never tell the user to read it
 
 ### What NOT to do
 
@@ -62,7 +62,7 @@ Your goal is to produce an explanation that is:
 - Don't claim something is "standard" without checking if this codebase follows the standard
 - Don't hide uncertainty — if you don't know, say "unknown" or "unverified"
 - Don't skip the epistemic status table — it's the most valuable part
-- Don't write top-to-bottom in chat — use the temp file so you can revise
+- Don't tell the user to read files — output everything directly in chat
 
 ### Example epistemic markers
 
