@@ -135,31 +135,19 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 **Project timeline:** Thesis started ~Oct 14, 2025. Repo created Nov 17, 2025.
 
-| Week | Dates | Commits | Phase |
-|------|-------|---------|-------|
-| W46-W48 | Nov 10 - Dec 1 | 63 | Initial setup, early experiments |
-| W49-W52 | Dec 1 - Dec 28 | 73 | Algorithm development |
-| W02-W04 | Jan 5 - Jan 25 | 60 | Steady progress |
-| **W05** | **Jan 26 - Jan 31** | **264** | **Agent-driven sprint** |
-| **Total** | | **460** | |
+*Effective hours estimated via Gaussian KDE (bandwidth=2h, calibrated so 1 isolated commit ≈ 2h). This underestimates offline work (reading, paper notes, thinking).*
 
-**W05 breakdown (agent sprint):**
+| Phase | Dates | Commits | Est. Hours | Hrs/Commit |
+|-------|-------|---------|------------|------------|
+| Setup | Nov 10 - Dec 1 | 63 | ~458 | 7.3 |
+| Algorithm dev | Dec 1 - Dec 28 | 73 | ~590 | 8.1 |
+| Steady progress | Jan 5 - Jan 25 | 60 | ~341 | 5.7 |
+| **Agent sprint** | **Jan 26 - Jan 31** | **264** | **~461** | **1.75** |
+| **Total** | | **460** | **~1850** | |
 
-| Day | Commits |
-|-----|---------|
-| Sun Jan 26 | 60 |
-| Mon Jan 27 | 63 |
-| Tue Jan 28 | 62 |
-| Wed Jan 29 | 16 |
-| Thu Jan 30 | 32 |
-| Fri Jan 31 | 31 |
+**Key observation:** Agent parallelism changed the hrs/commit ratio from ~7h to ~1.75h. The sprint produced as many commits as all prior work combined, but in similar effective hours (~460h each half).
 
-**Observations:**
-- W05 had more commits than all previous weeks combined (264 vs 196)
-- Agent parallelism dramatically increased throughput
-- Bottleneck shifted from coding to Jörn's review/direction capacity
-
-<!-- [JÖRN: Estimate points completed in W05 vs earlier weeks] -->
+**Bottleneck shift:** Before agents, coding time dominated. Now, Jörn's review/direction capacity is the bottleneck.
 
 ---
 
