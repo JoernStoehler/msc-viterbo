@@ -131,9 +131,9 @@ The test takes 115s locally vs 4s in CI due to platform-dependent floating-point
 
 ## 4. Algorithm Failure Diagnostics (Follow-up Needed)
 
-A diagnostic test (`tube/tests/failure_diagnostic.rs`) was created to investigate why both algorithms fail on random polytopes.
+A diagnostic test (`tube/tests/failure_diagnostic.rs`) exists to investigate why both algorithms fail on random polytopes. The CI test runs 2 seeds as a smoke test; run manually with more seeds for detailed statistics.
 
-### Results (min_omega=0.05, 200 seeds)
+### Results (one-time 200-seed run, min_omega=0.05)
 
 | Metric | Value |
 |--------|-------|
