@@ -2,6 +2,17 @@
 //!
 //! These tests compare HK2017 and Tube on non-Lagrangian polytopes
 //! where both algorithms can run.
+//!
+//! # Platform variance
+//!
+//! Random polytope generation uses deterministic seeds, but which seeds produce
+//! valid polytopes varies by platform due to floating-point differences in:
+//! - Matrix inversion (vertex enumeration)
+//! - Epsilon comparisons (2-face detection)
+//!
+//! Seeds are NOT portable across platforms — they only guarantee reproducibility
+//! on the same machine. The tests find *some* valid polytopes on each platform
+//! (just different ones), which is sufficient for cross-algorithm comparison.
 
 use hk2017::{hk2017_capacity, Hk2017Config, PolytopeHRep as Hk2017Hrep};
 use tube::{fixtures, tube_capacity, PolytopeHRep as TubeHrep};
@@ -16,7 +27,12 @@ fn tube_to_hk2017(hrep: &TubeHrep) -> Hk2017Hrep {
 /// 8 facets = 8! = 40,320 permutations, which is tractable for HK2017.
 #[test]
 fn test_hk2017_vs_tube_random_8_facet() {
-    let min_omega = 0.05; // Ensure 2-faces are clearly non-Lagrangian
+    // Safety margin to avoid near-Lagrangian 2-faces where the tube algorithm's
+    // trivialization becomes numerically unstable. Choice of 0.001:
+    // - 0.05 had too low acceptance rate on some platforms
+    // - 1e-6 expected to cause numerical instability
+    // - 1e-3 is a pragmatic middle ground (no rigorous derivation)
+    let min_omega = 0.001;
 
     let mut compared = 0;
     let mut mismatches = Vec::new();
@@ -156,7 +172,8 @@ fn diagnostic_hk2017_vs_tube() {
     println!("\n=== HK2017 vs Tube Diagnostic ===\n");
 
     // Random 8-facet polytopes
-    let min_omega = 0.05;
+    // See test_hk2017_vs_tube_random_8_facet for min_omega rationale
+    let min_omega = 0.001;
     let mut agree_count = 0;
     let mut total = 0;
 

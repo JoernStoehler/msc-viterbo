@@ -125,7 +125,9 @@ Evaluated but not implemented. Reasons:
 
 The test takes 115s locally vs 4s in CI due to platform-dependent floating-point behavior affecting random polytope rejection rates.
 
-**Decision**: Leave as-is. The test works correctly in CI (4s). The 115s local time is a developer experience issue, not a correctness issue. Never trade correctness for speed.
+**Root cause**: The random polytope generator uses deterministic seeds, but the acceptance/rejection of each seed depends on floating-point operations (matrix inversion for vertex enumeration, epsilon comparisons for 2-face detection). These operations produce slightly different results on different platforms, causing different seeds to pass or fail.
+
+**Decision**: Leave as-is. Seeds should not be expected to transfer between platforms — they only guarantee reproducibility on the *same* machine. The test correctly finds valid polytopes on each platform (just different ones) and verifies HK2017/Tube agreement. The 115s local time is a developer experience issue, not a correctness issue.
 
 ## Conclusion
 
