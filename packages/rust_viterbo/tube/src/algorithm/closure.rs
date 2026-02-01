@@ -389,7 +389,10 @@ mod tests {
         );
 
         let result = find_closed_orbit(&tube);
-        assert!(result.is_none(), "Should find no fixed points when A=I, b≠0");
+        assert!(
+            result.is_none(),
+            "Should find no fixed points when A=I, b≠0"
+        );
     }
 
     #[test]

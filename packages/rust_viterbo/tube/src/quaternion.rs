@@ -10,9 +10,9 @@
 //! - QUAT_I is the standard almost complex structure (symplectic J)
 //! - QUAT_J and QUAT_K complete the quaternion structure
 
-use nalgebra::Vector4;
 #[cfg(test)]
 use nalgebra::Matrix4;
+use nalgebra::Vector4;
 
 /// QUAT_I = standard almost complex structure (symplectic J).
 ///

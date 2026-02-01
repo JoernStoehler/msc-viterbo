@@ -16,9 +16,9 @@
 use nalgebra::{Matrix2, Matrix4, Vector2, Vector4};
 
 use crate::constants::EPS;
-use crate::quaternion::{apply_quat_j, apply_quat_k};
 #[cfg(test)]
 use crate::quaternion::apply_quat_i;
+use crate::quaternion::{apply_quat_j, apply_quat_k};
 
 /// Trivialize a 4D vector using normal n.
 ///
