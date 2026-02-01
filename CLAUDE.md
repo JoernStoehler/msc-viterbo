@@ -70,11 +70,15 @@ scripts/ci.sh                       # Run all CI checks locally
 scripts/ci.sh --rust                # Rust only
 scripts/ci.sh --python              # Python + FFI only
 
-# GitHub CLI (note: plain `gh issue view` is broken due to GraphQL deprecation)
+# GitHub CLI (some commands broken due to GraphQL "Projects classic" deprecation)
+# Reading works with --json flag:
 gh issue view <N> --json title,body,labels --jq '.title, .body'  # Read issue
-gh pr view <N>                      # Read PR
+gh pr view <N> --json title,body,state                           # Read PR
 gh pr diff <N>                      # PR diff
 gh pr checks <N> --watch            # Wait for CI
+# Writing PRs is broken - use web UI instead:
+# gh pr edit <N> --body "..."       # BROKEN: GraphQL Projects deprecation error
+# gh pr create ...                  # May fail similarly
 ```
 
 ## Agent Protocol
