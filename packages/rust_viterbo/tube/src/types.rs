@@ -191,19 +191,18 @@ pub enum FlowDirection {
 
 /// Data for a single non-Lagrangian 2-face.
 ///
-/// A 2-face is the intersection of two adjacent facets F_i ∩ F_j.
-/// Non-Lagrangian means ω(n_i, n_j) ≠ 0, so Reeb flow crosses it.
+/// A 2-face is the intersection of two adjacent facets F_entry ∩ F_exit.
+/// Non-Lagrangian means ω(n_entry, n_exit) ≠ 0, so Reeb flow crosses it.
+/// The flow direction is entry → exit (determined by the sign of ω).
 #[derive(Debug, Clone)]
 pub struct TwoFaceData {
-    /// First facet index (i < j by convention).
-    pub facet_i: usize,
-    /// Second facet index.
-    pub facet_j: usize,
+    /// Entry facet index (the facet we came from).
+    pub entry_facet: usize,
+    /// Exit facet index (the facet we flow into).
+    pub exit_facet: usize,
 
-    /// Symplectic form: ω(n_i, n_j).
+    /// Symplectic form: ω(n_entry, n_exit) > 0.
     pub omega: f64,
-    /// Flow direction across this 2-face.
-    pub flow_direction: FlowDirection,
     /// Rotation number ρ ∈ (0, 0.5).
     pub rotation: f64,
 
@@ -213,30 +212,10 @@ pub struct TwoFaceData {
     pub centroid_4d: Vector4<f64>,
     /// Basis vectors for exit trivialization: {b₁, b₂} ∈ TF.
     pub basis_exit: [Vector4<f64>; 2],
-    /// Entry facet normal (facet we came from).
+    /// Entry facet normal.
     pub entry_normal: Vector4<f64>,
-    /// Exit facet normal (facet we flow into).
+    /// Exit facet normal.
     pub exit_normal: Vector4<f64>,
-}
-
-impl TwoFaceData {
-    /// Get the exit facet (the facet we flow into).
-    #[inline]
-    pub fn exit_facet(&self) -> usize {
-        match self.flow_direction {
-            FlowDirection::ItoJ => self.facet_j,
-            FlowDirection::JtoI => self.facet_i,
-        }
-    }
-
-    /// Get the entry facet (the facet we came from).
-    #[inline]
-    pub fn entry_facet(&self) -> usize {
-        match self.flow_direction {
-            FlowDirection::ItoJ => self.facet_i,
-            FlowDirection::JtoI => self.facet_j,
-        }
-    }
 }
 
 /// Data for a 3-facet transition (i, j, k).
