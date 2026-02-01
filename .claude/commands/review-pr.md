@@ -45,6 +45,7 @@ Run the code if needed to verify behavior.
 - Follows existing patterns?
 - Appropriate error handling?
 - No unnecessary changes outside scope?
+- **New tests**: Do they add significant CI time? Diagnostic/investigative tests should be `#[ignore]`d with a comment explaining why and how to run.
 
 ### 4. Fix minor issues
 

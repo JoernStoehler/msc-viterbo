@@ -42,6 +42,8 @@ Fix any failures. Common fixes:
 - Formatting: `cargo fmt --all` or `ruff format src`
 - Type stubs: update `.pyi` files when adding FFI functions
 
+**Tests that shouldn't run in CI** (diagnostic, benchmarks, slow investigations): mark with `#[ignore]` in Rust or `@pytest.mark.skip` in Python, with a comment explaining why and how to run manually.
+
 ### 4. Create PR
 
 ```bash
