@@ -275,4 +275,64 @@ mod tests {
         // |R| = 2/h * |Jn| = 2/h * |n| = 2/h (since n is unit)
         assert_relative_eq!(reeb.norm(), 2.0 / height, epsilon = EPS);
     }
+
+    // Q1: apply_i(apply_j(v)) = (ij)v
+    #[test]
+    fn test_composition_ij_matches_matrix() {
+        let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
+        // Apply j then i via functions
+        let composed = apply_quat_i(&apply_quat_j(&v));
+        // Apply ij = k via matrix
+        let matrix_result = quat_k() * v;
+        assert_relative_eq!(composed, matrix_result, epsilon = EPS);
+    }
+
+    // Q2: apply_i(apply_j(apply_k(v))) = -v
+    #[test]
+    fn test_triple_ijk_negative_identity() {
+        let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
+        let result = apply_quat_i(&apply_quat_j(&apply_quat_k(&v)));
+        assert_relative_eq!(result, -v, epsilon = EPS);
+    }
+
+    // Q3: R · n = 0 for any n (not just unit)
+    #[test]
+    fn test_reeb_tangent_non_unit_normal() {
+        // Use a non-unit normal
+        let normal = Vector4::new(3.0, 4.0, 5.0, 6.0); // Not normalized
+        let height = 1.5;
+        let reeb = reeb_vector(&normal, height);
+        // Reeb vector should be perpendicular to normal
+        assert_relative_eq!(reeb.dot(&normal), 0.0, epsilon = EPS);
+    }
+
+    // Q5: symplectic_j(symplectic_j(v)) = -v
+    #[test]
+    fn test_j_squared_via_function() {
+        let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
+        let j_squared = symplectic_j(&symplectic_j(&v));
+        assert_relative_eq!(j_squared, -v, epsilon = EPS);
+    }
+
+    // Q6: |Jv| = |v|
+    #[test]
+    fn test_j_preserves_norm() {
+        let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
+        let jv = symplectic_j(&v);
+        assert_relative_eq!(jv.norm(), v.norm(), epsilon = EPS);
+    }
+
+    // Q7: (qv) · v = 0 for q ∈ {i, j, k}
+    #[test]
+    fn test_all_quats_orthogonal_to_original() {
+        let v = Vector4::new(1.0, 2.0, 3.0, 4.0);
+
+        let iv = apply_quat_i(&v);
+        let jv = apply_quat_j(&v);
+        let kv = apply_quat_k(&v);
+
+        assert_relative_eq!(iv.dot(&v), 0.0, epsilon = EPS);
+        assert_relative_eq!(jv.dot(&v), 0.0, epsilon = EPS);
+        assert_relative_eq!(kv.dot(&v), 0.0, epsilon = EPS);
+    }
 }

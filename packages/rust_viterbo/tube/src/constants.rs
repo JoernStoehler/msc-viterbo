@@ -8,7 +8,9 @@ pub const EPS: f64 = 1e-10;
 
 /// Tolerance for Lagrangian 2-face detection (ω(n_i, n_j) ≈ 0).
 /// A 2-face is Lagrangian if |ω(n_i, n_j)| < EPS_LAGRANGIAN.
-pub const EPS_LAGRANGIAN: f64 = 1e-9;
+///
+/// Re-exported from geom for consistency across all algorithms.
+pub use geom::EPS_LAGRANGIAN;
 
 /// Tolerance for unit vector checks (||n|| = 1).
 pub const EPS_UNIT: f64 = 1e-9;

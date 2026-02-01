@@ -36,6 +36,17 @@ pub const EPS: f64 = 1e-10;
 /// **Usage**: `(n.norm() - 1.0).abs() < EPS_UNIT`
 pub const EPS_UNIT: f64 = 1e-9;
 
+/// Tolerance for Lagrangian detection.
+///
+/// A 2-face F_ij is Lagrangian if `|ω(n_i, n_j)| < EPS_LAGRANGIAN`.
+/// For Lagrangian 2-faces, the Reeb flow slides along the face rather than crossing it.
+///
+/// This is the canonical threshold used by all algorithms (hk2017, tube).
+/// Algorithms must not define their own Lagrangian thresholds.
+///
+/// **Thesis reference**: Section 5 (Reeb dynamics), Lemma 3.7 (flow direction).
+pub const EPS_LAGRANGIAN: f64 = 1e-9;
+
 // Compile-time checks for tolerance invariants
 const _: () = {
     assert!(EPS < EPS_UNIT); // EPS should be stricter than EPS_UNIT

@@ -522,4 +522,360 @@ mod tests {
             assert_relative_eq!(det, 1.0, epsilon = 0.01);
         }
     }
+
+    /// T1: Each vertex lies on at least 4 facets (4D polytope property).
+    ///
+    /// In 4D, a vertex is the intersection of at least 4 half-spaces.
+    /// Simple polytopes have exactly 4, but non-simple polytopes (like the
+    /// cross-polytope) can have more.
+    ///
+    /// Cross-polytope vertices lie on 8 facets (vertex at e_1 is on all
+    /// facets with positive x_1 component in their normal).
+    /// Tesseract vertices lie on exactly 4 facets (simple polytope).
+    #[test]
+    fn test_vertex_facet_incidence() {
+        // Tesseract: simple polytope, exactly 4 facets per vertex
+        let tesseract = crate::fixtures::unit_tesseract();
+        let vertices = enumerate_vertices_4d(&tesseract).unwrap();
+
+        for (v_idx, v) in vertices.iter().enumerate() {
+            let mut incident_facets = 0;
+            for (n, &h) in tesseract.normals.iter().zip(&tesseract.heights) {
+                if (n.dot(v) - h).abs() < EPS {
+                    incident_facets += 1;
+                }
+            }
+            assert_eq!(
+                incident_facets, 4,
+                "tesseract: vertex {} lies on {} facets (expected 4 for simple polytope)",
+                v_idx, incident_facets
+            );
+        }
+
+        // Cross-polytope: non-simple, 8 facets per vertex
+        let cross = unit_cross_polytope();
+        let vertices = enumerate_vertices_4d(&cross).unwrap();
+
+        for (v_idx, v) in vertices.iter().enumerate() {
+            let mut incident_facets = 0;
+            for (n, &h) in cross.normals.iter().zip(&cross.heights) {
+                if (n.dot(v) - h).abs() < EPS {
+                    incident_facets += 1;
+                }
+            }
+            assert!(
+                incident_facets >= 4,
+                "cross_polytope: vertex {} lies on {} facets (need >= 4)",
+                v_idx, incident_facets
+            );
+            // Cross-polytope specifically has 8 facets per vertex
+            assert_eq!(
+                incident_facets, 8,
+                "cross_polytope: vertex {} lies on {} facets (expected 8)",
+                v_idx, incident_facets
+            );
+        }
+    }
+
+    /// T2: Polygon vertices count matches the adjacent facet geometry.
+    ///
+    /// Each 2-face polygon should have >= 3 vertices (a proper 2D polygon).
+    /// The cross-polytope 2-faces are triangles (3 vertices each).
+    #[test]
+    fn test_two_face_vertex_count() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let n_verts = tf.polygon.vertices.len();
+            assert!(
+                n_verts >= 3,
+                "2-face {} has {} vertices (need >= 3 for polygon)",
+                k,
+                n_verts
+            );
+
+            // For cross-polytope, 2-faces are triangles
+            assert_eq!(
+                n_verts, 3,
+                "Cross-polytope 2-face {} should be a triangle, got {} vertices",
+                k, n_verts
+            );
+        }
+    }
+
+    /// T3: Transition graph is connected (all non-Lagrangian 2-faces reachable).
+    ///
+    /// The transition graph should be strongly connected: from any 2-face,
+    /// we can reach any other 2-face by following transitions.
+    #[test]
+    fn test_transition_graph_connected() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        if data.two_face_data.is_empty() {
+            return; // Vacuously true
+        }
+
+        // BFS from first 2-face
+        let n_two_faces = data.two_face_data.len();
+        let mut visited = vec![false; n_two_faces];
+        let mut queue = std::collections::VecDeque::new();
+        queue.push_back(0);
+        visited[0] = true;
+
+        while let Some(k) = queue.pop_front() {
+            for &trans_idx in data.lookup.transitions_from(k) {
+                let exit_k = data.transitions[trans_idx].two_face_exit;
+                if !visited[exit_k] {
+                    visited[exit_k] = true;
+                    queue.push_back(exit_k);
+                }
+            }
+        }
+
+        let reachable_count = visited.iter().filter(|&&v| v).count();
+        assert_eq!(
+            reachable_count, n_two_faces,
+            "Only {} of {} 2-faces reachable from 2-face 0 (graph not connected)",
+            reachable_count, n_two_faces
+        );
+    }
+
+    /// T4: Transition composition along closed facet path has det = 1.
+    ///
+    /// For any closed path of transitions, the composed flow matrix should
+    /// have determinant 1 (symplectic composition preserves symplecticity).
+    #[test]
+    fn test_transition_composition_det_1() {
+        use nalgebra::Matrix2;
+
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        // Find a closed path starting from some 2-face
+        // We'll do a simple depth-limited search for cycles
+        for start_k in 0..data.two_face_data.len().min(5) {
+            // Try to find a cycle starting from start_k
+            let mut composed = Matrix2::identity();
+            let mut current_k = start_k;
+            let mut path_len = 0;
+            let max_path_len = 20;
+
+            while path_len < max_path_len {
+                let trans_indices = data.lookup.transitions_from(current_k);
+                if trans_indices.is_empty() {
+                    break;
+                }
+
+                // Take first available transition
+                let trans = &data.transitions[trans_indices[0]];
+                composed = trans.flow_matrix * composed;
+                current_k = trans.two_face_exit;
+                path_len += 1;
+
+                if current_k == start_k && path_len > 0 {
+                    // Found a cycle
+                    let det = composed.determinant();
+                    assert!(
+                        (det - 1.0).abs() < 0.01,
+                        "Cycle from 2-face {} (len {}) has det = {} (expected 1.0)",
+                        start_k,
+                        path_len,
+                        det
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+    /// T5: Flow map preserves containment (centroid maps inside exit polygon).
+    ///
+    /// For each transition, the entry polygon centroid should map to a point
+    /// inside the exit polygon (or at least close to it).
+    #[test]
+    fn test_flow_map_preserves_containment() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for trans in &data.transitions {
+            let entry_tf = &data.two_face_data[trans.two_face_entry];
+            let exit_tf = &data.two_face_data[trans.two_face_exit];
+
+            // Get entry polygon centroid
+            let entry_centroid = entry_tf.polygon.centroid();
+
+            // Apply flow map
+            let mapped = trans.flow_matrix * entry_centroid + trans.flow_offset;
+
+            // Check distance to exit polygon centroid (soft containment check)
+            let exit_centroid = exit_tf.polygon.centroid();
+            let dist = (mapped - exit_centroid).norm();
+
+            // The mapped point should be reasonably close to the exit polygon
+            // (within a few polygon diameters)
+            let exit_diameter: f64 = exit_tf
+                .polygon
+                .vertices
+                .iter()
+                .map(|v| (v - exit_centroid).norm())
+                .fold(0.0, f64::max)
+                * 2.0;
+
+            assert!(
+                dist < exit_diameter * 5.0,
+                "Transition {} -> {}: mapped centroid too far from exit polygon \
+                 (dist = {:.4}, diameter = {:.4})",
+                trans.two_face_entry,
+                trans.two_face_exit,
+                dist,
+                exit_diameter
+            );
+        }
+    }
+
+    /// T6: Basis vectors are perpendicular to both entry and exit normals.
+    ///
+    /// The basis_exit vectors should lie in the 2-face tangent space,
+    /// which means they're perpendicular to both facet normals.
+    #[test]
+    fn test_basis_in_tangent_space() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let b1 = &tf.basis_exit[0];
+            let b2 = &tf.basis_exit[1];
+            let n_entry = &tf.entry_normal;
+            let n_exit = &tf.exit_normal;
+
+            // b1 perpendicular to both normals
+            assert!(
+                b1.dot(n_entry).abs() < EPS,
+                "2-face {}: basis[0] not perpendicular to entry normal (dot = {:.2e})",
+                k,
+                b1.dot(n_entry)
+            );
+            assert!(
+                b1.dot(n_exit).abs() < EPS,
+                "2-face {}: basis[0] not perpendicular to exit normal (dot = {:.2e})",
+                k,
+                b1.dot(n_exit)
+            );
+
+            // b2 perpendicular to both normals
+            assert!(
+                b2.dot(n_entry).abs() < EPS,
+                "2-face {}: basis[1] not perpendicular to entry normal (dot = {:.2e})",
+                k,
+                b2.dot(n_entry)
+            );
+            assert!(
+                b2.dot(n_exit).abs() < EPS,
+                "2-face {}: basis[1] not perpendicular to exit normal (dot = {:.2e})",
+                k,
+                b2.dot(n_exit)
+            );
+        }
+    }
+
+    /// T7: Polygon vertices can be reconstructed to 4D and lie on the 2-face.
+    ///
+    /// Reconstruct 4D coordinates from 2D polygon vertices and verify they
+    /// satisfy both facet constraints (i.e., lie on the 2-face).
+    #[test]
+    fn test_polygon_vertices_on_2face() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            for (v_idx, v_2d) in tf.polygon.vertices.iter().enumerate() {
+                // Reconstruct 4D: p_4d = centroid + v_2d[0] * b1 + v_2d[1] * b2
+                let p_4d =
+                    tf.centroid_4d + v_2d[0] * tf.basis_exit[0] + v_2d[1] * tf.basis_exit[1];
+
+                // Check entry facet constraint: n_entry · p = h_entry
+                let entry_val = tf.entry_normal.dot(&p_4d);
+                let h_entry = hrep.heights[tf.entry_facet];
+                assert!(
+                    (entry_val - h_entry).abs() < 1e-6,
+                    "2-face {} vertex {}: not on entry facet (val = {:.6}, h = {:.6})",
+                    k,
+                    v_idx,
+                    entry_val,
+                    h_entry
+                );
+
+                // Check exit facet constraint: n_exit · p = h_exit
+                let exit_val = tf.exit_normal.dot(&p_4d);
+                let h_exit = hrep.heights[tf.exit_facet];
+                assert!(
+                    (exit_val - h_exit).abs() < 1e-6,
+                    "2-face {} vertex {}: not on exit facet (val = {:.6}, h = {:.6})",
+                    k,
+                    v_idx,
+                    exit_val,
+                    h_exit
+                );
+            }
+        }
+    }
+
+    /// T8: Time function is positive at all entry polygon vertices.
+    ///
+    /// The time function t(p) = t_const + ⟨t_grad, p⟩ gives the time to
+    /// reach the exit 2-face. It must be positive for all valid starting points.
+    #[test]
+    fn test_time_function_positive() {
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for trans in &data.transitions {
+            let entry_tf = &data.two_face_data[trans.two_face_entry];
+
+            for (v_idx, v) in entry_tf.polygon.vertices.iter().enumerate() {
+                let t = trans.time_constant + trans.time_gradient.dot(v);
+                assert!(
+                    t > -EPS,
+                    "Transition {} -> {}: time at vertex {} is negative (t = {:.6})",
+                    trans.two_face_entry,
+                    trans.two_face_exit,
+                    v_idx,
+                    t
+                );
+            }
+        }
+    }
+
+    /// T9: Symplectic form sign matches flow direction.
+    ///
+    /// For flow from entry to exit facet, ω(n_entry, n_exit) > 0.
+    /// This is the convention used in the tube algorithm.
+    #[test]
+    fn test_omega_sign_matches_flow_direction() {
+        use crate::quaternion::symplectic_form;
+
+        let hrep = unit_cross_polytope();
+        let data = preprocess(&hrep).unwrap();
+
+        for (k, tf) in data.two_face_data.iter().enumerate() {
+            let omega = symplectic_form(&tf.entry_normal, &tf.exit_normal);
+            assert!(
+                omega > 0.0,
+                "2-face {}: ω(n_entry, n_exit) = {:.6} should be positive for entry->exit flow",
+                k,
+                omega
+            );
+
+            // Also verify tf.omega matches
+            assert!(
+                (tf.omega - omega.abs()).abs() < EPS,
+                "2-face {}: stored omega {:.6} doesn't match computed {:.6}",
+                k,
+                tf.omega,
+                omega.abs()
+            );
+        }
+    }
 }

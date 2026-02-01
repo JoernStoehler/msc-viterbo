@@ -20,7 +20,10 @@ pub const CONSTRAINT_TOL: f64 = 1e-10;
 pub const POSITIVE_TOL: f64 = 1e-10;
 
 /// Tolerance for Lagrangian face detection (omega near 0).
-pub const LAGRANGIAN_TOL: f64 = 1e-8;
+///
+/// Re-exported from geom for consistency across all algorithms.
+/// The canonical definition is in `geom::tolerances::EPS_LAGRANGIAN`.
+pub use geom::EPS_LAGRANGIAN as LAGRANGIAN_TOL;
 
 /// Validate polytope for HK2017 algorithm.
 ///

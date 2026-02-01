@@ -275,4 +275,58 @@ mod tests {
         // Area should be 4x original (0.5 -> 2.0)
         assert!((scaled.area() - 2.0).abs() < EPS);
     }
+
+    // G1: sort_ccw(sort_ccw(P)) = sort_ccw(P)
+    #[test]
+    fn test_sort_ccw_idempotent() {
+        let points = vec![
+            Vector2::new(1.0, 0.0),
+            Vector2::new(0.0, 1.0),
+            Vector2::new(-1.0, 0.0),
+            Vector2::new(0.0, -1.0),
+        ];
+        let sorted_once = sort_ccw(points.clone());
+        let sorted_twice = sort_ccw(sorted_once.clone());
+        assert_eq!(sorted_once.len(), sorted_twice.len());
+        for (a, b) in sorted_once.iter().zip(sorted_twice.iter()) {
+            assert!((a - b).norm() < EPS);
+        }
+    }
+
+    // G3: area(P ∩ Q) = area(Q ∩ P)
+    #[test]
+    fn test_intersection_commutativity() {
+        let p = Polygon2D::new(vec![
+            Vector2::new(0.0, 0.0),
+            Vector2::new(2.0, 0.0),
+            Vector2::new(2.0, 2.0),
+            Vector2::new(0.0, 2.0),
+        ]);
+        let q = Polygon2D::new(vec![
+            Vector2::new(1.0, 1.0),
+            Vector2::new(3.0, 1.0),
+            Vector2::new(3.0, 3.0),
+            Vector2::new(1.0, 3.0),
+        ]);
+
+        let pq = intersect_polygons(&p, &q);
+        let qp = intersect_polygons(&q, &p);
+
+        assert!((pq.area() - qp.area()).abs() < EPS);
+    }
+
+    // G4: P ∩ P area = P area
+    #[test]
+    fn test_self_intersection_preserves_area() {
+        let p = Polygon2D::new(vec![
+            Vector2::new(0.0, 0.0),
+            Vector2::new(2.0, 0.0),
+            Vector2::new(2.0, 2.0),
+            Vector2::new(0.0, 2.0),
+        ]);
+
+        let pp = intersect_polygons(&p, &p);
+
+        assert!((pp.area() - p.area()).abs() < EPS);
+    }
 }
