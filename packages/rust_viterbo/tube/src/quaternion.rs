@@ -123,7 +123,7 @@ pub fn symplectic_form(x: &Vector4<f64>, y: &Vector4<f64>) -> f64 {
 /// and has magnitude 2/h_i.
 #[inline]
 pub fn reeb_vector(normal: &Vector4<f64>, height: f64) -> Vector4<f64> {
-    debug_assert!(height > 0.0, "Height must be positive");
+    assert!(height > 0.0, "Height must be positive");
     symplectic_j(normal) * (2.0 / height)
 }
 

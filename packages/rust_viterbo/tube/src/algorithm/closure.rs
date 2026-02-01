@@ -54,7 +54,7 @@ pub(super) fn find_closed_orbit(tube: &Tube) -> Option<(f64, Vector2<f64>)> {
             .fold(f64::INFINITY, f64::min);
         if min_dist_to_boundary > 0.1 {
             // Point is clearly outside, not just numerical error
-            debug_assert!(
+            assert!(
                 false,
                 "Fixed point in p_end but far from p_start (dist={:.4}) - tracking may be broken",
                 min_dist_to_boundary
