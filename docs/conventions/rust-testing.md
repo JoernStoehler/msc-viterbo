@@ -21,6 +21,17 @@ Write tests that verify mathematical propositions, not just "does it run without
 
 **Release mode** (`cargo test --release`): Expensive tests that timeout in debug mode.
 
+## Rust vs Python Tests
+
+| Aspect | Rust | Python |
+|--------|------|--------|
+| Speed | Faster | Slower (but calls Rust via FFI) |
+| Setup | More boilerplate | More concise |
+| Libraries | nalgebra, proptest | numpy, hypothesis, pytest |
+| Best for | Fast tests, internal invariants | Expensive tests, visualization, exploration |
+
+Use Python for tests that benefit from hypothesis, visualization, or quick iteration. Use Rust for tests that need internal access or must run quickly.
+
 ```rust
 #[cfg_attr(debug_assertions, ignore)]      // Release only
 #[cfg_attr(not(debug_assertions), ignore)] // Debug only
