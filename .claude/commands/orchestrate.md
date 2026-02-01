@@ -61,6 +61,25 @@ Format as a single-line command Jörn can paste:
 /investigate Work in /workspaces/worktrees/<task>. Issue #<N>. <brief task description>
 ```
 
+### Check PR status before merge
+
+Always read the **full PR body** (not just review comments):
+
+```bash
+gh pr view <number> --json body --jq '.body'
+```
+
+PR bodies may be updated during development. Look for:
+- "Follow-ups for PM Agent" or similar sections
+- "Out of scope" items needing issues
+- Identified issues awaiting Jörn's review
+
+Only after reading the PR body, check review status:
+
+```bash
+gh pr view <number> --comments
+```
+
 ### Merge PR (after review approval)
 
 ```bash
