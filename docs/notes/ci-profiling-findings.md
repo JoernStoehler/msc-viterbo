@@ -1,173 +1,140 @@
 # CI Performance Profiling Findings
 
-Investigation for issue #98: Profile CI performance after PR#90 (QHull integration).
+**Timestamp**: 2026-02-01T12:50 UTC
+**Commit**: `955a527` (branch: `ci-profiling`)
+**CI Run**: [21563151278](https://github.com/JoernStoehler/msc-viterbo/actions/runs/21563151278)
 
-## Summary
+## Test Timing Tables
 
-Current CI runtime is ~2 minutes, driven by two parallel jobs:
-- **Rust job**: 1m29s
-- **FFI job**: 1m53s (critical path)
+### Python Tests (pytest)
 
-**Key finding**: QHull compilation is NOT the bottleneck. The HK2017 capacity algorithm (O(n!)) running in both Rust and Python tests is the primary contributor.
+| Test | Local (s) | CI (s) | Notes |
+|------|-----------|--------|-------|
+| **test_ffi_capacity_hrep** | | | |
+| test_hk2017_tesseract_capacity | 11.12 | 7.93 | HK2017 on 8-facet tesseract |
+| test_hk2017_simplex_runs | 0.02 | 0.02 | Quick sanity check |
+| test_hk2017_graph_pruning | 11.87 | 8.41 | Runs HK2017 twice (naive + pruned) |
+| test_hk2017_result_repr | 11.43 | 7.92 | Runs HK2017 again |
+| test_symplectic_form_* (3 tests) | <0.01 | <0.01 | Fast |
+| test_hk2017_invalid_mismatched_lengths | <0.01 | <0.01 | Fast |
+| **test_polytope_database** | | | |
+| TestHRepGenerators (9 tests) | <0.01 | <0.01 | Fast |
+| TestLagrangianDetection (7 tests) | <0.01 | <0.01 | Fast |
+| TestOrbitGeneration (5 tests) | <0.01 | <0.01 | Fast |
+| TestStagePolytopes (7 tests) | <0.01 | <0.01 | Fast |
+| TestStageVolume::test_adds_volume_to_all | 0.14 | 0.10 | Calls FFI volume |
+| TestStageVolume::test_preserves_existing_keys | 0.14 | 0.10 | Calls FFI volume |
+| TestStageVolume::test_tesseract_volume | <0.01 | <0.01 | Fast |
+| TestStageCapacity::test_adds_capacity_fields | 3.51 | 8.18 | **Full pipeline** |
+| TestStageCapacity::test_systolic_ratio_formula | 3.27 | 8.22 | **Full pipeline** |
+| TestStageCapacity::test_tesseract_capacity | 3.27 | 8.20 | **Full pipeline** |
+| TestFullPipeline::test_pipeline_produces_complete_data | 3.32 | 8.19 | **Full pipeline** |
+| TestFullPipeline::test_json_serializable | 3.37 | 8.21 | **Full pipeline** |
+| TestFullPipeline::test_orbit_invariants | 3.37 | 8.24 | **Full pipeline** |
+| **test_counterexample_hko** | | | |
+| TestIntegration::test_plot_runs_without_error | 0.47 | 0.36 | Matplotlib plot |
+| Other tests (27) | <0.01 | <0.01 | Fast |
+| **test_polytope_visualization_4d** | | | |
+| TestHrepToVertices::test_simplex | 0.06 | 0.03 | Uses scipy.spatial |
+| Other tests (14) | <0.01 | <0.01 | Fast |
+| **Other test files** | <0.01 | <0.01 | Fast |
+| **TOTAL** | **56.33s** | **79.86s** | |
 
-## Detailed Timing Analysis
+### Rust Tests (cargo test)
 
-### CI Run 21562389530 Step-by-Step
+| Test Suite | Tests | Local Debug (s) | CI Debug (s) | CI Release (s) |
+|------------|-------|-----------------|--------------|----------------|
+| billiard | 0 | 0.00 | 0.00 | 0.00 |
+| geom | 28 | 0.03 | 0.02 | 0.00 |
+| hk2017 | 44+9ign | 11.04 | 7.83 | 0.75 |
+| tube | 69 | 25.98 | 20.81 | 0.32 |
+| tube/flow_map_tests | 10 | 6.48 | 4.58 | 0.09 |
+| tube/hk2017_comparison | 1+2ign | **115.33** | 4.18 | 0.07 |
+| tube/integration | 0+11ign | 0.00 | 0.00 | 1.01 |
+| tube/orbit_invariants | 10 | 3.95 | 3.88 | 0.08 |
+| geom doc-tests | 3 | 0.14 | 0.12 | 0.10 |
+| hk2017 doc-tests | 3 | 11.28 | 11.90 | 0.27 |
+| tube doc-tests | 1 | 1.28 | 0.81 | 0.09 |
+| **TOTAL** | | **~175s** | **~54s** | **~3s** |
 
-**Rust Job (1m29s total)**
-| Step | Duration | Notes |
-|------|----------|-------|
-| Cache cargo | 5s | Cache hit |
-| Clippy | 9s | Linting |
-| Test (debug) | 60s | Main bottleneck |
-| Test (release) | 8s | Fast with optimizations |
+### CI Job Summary
 
-**FFI Job (1m53s total)**
-| Step | Duration | Notes |
-|------|----------|-------|
-| Install dependencies | 10s | uv sync, etc. |
-| Pyright | 6s | Type checking |
-| maturin develop | 10s | Includes QHull compilation |
-| pytest | 77s | Main bottleneck |
+| Job | Duration |
+|-----|----------|
+| Rust | 1m24s |
+| Rust + Python (FFI) | 1m45s |
+| **Total CI** | **1m45s** (parallel) |
 
-### Debug Test Breakdown (Rust)
+## Key Observations
 
-| Test Suite | Duration | Description |
-|------------|----------|-------------|
-| tube (69 tests) | 21s | Tube algorithm unit tests |
-| hk2017 doc-tests | 12s | HK2017 doctests run algorithm |
-| hk2017 (44+9 tests) | 8s | Unit tests |
-| flow_map_tests | 4s | Flow map integration |
-| hk2017_comparison | 4s | Cross-algorithm comparison |
-| orbit_invariants | 4s | Invariant checks |
+### 1. Local vs CI Discrepancy for hk2017_comparison
 
-### Python Test Breakdown
+The `test_hk2017_vs_tube_random_8_facet` test shows dramatic difference:
+- **Local**: 115.33s
+- **CI**: 4.18s
 
-| Test Category | Duration | Description |
-|---------------|----------|-------------|
-| test_hk2017_* (3 tests) | 34s | Each runs HK2017 via FFI |
-| test_polytope_database capacity (6 tests) | 48s | Each runs full capacity pipeline |
-| Other tests | 3s | Fast unit tests |
+Root cause: The test iterates through random seeds trying to find valid polytopes. Local run found 0 valid polytopes in 1000 attempts (all rejected), while CI found enough quickly. This is deterministic per-seed but the rejection rate varies with floating-point behavior across platforms.
 
-## Root Cause Analysis
+### 2. Redundant Capacity Computations (Test Design Issue)
 
-### 1. HK2017 Algorithm Complexity
+Six tests in `test_polytope_database` each run the full pipeline independently:
 
-The HK2017 algorithm has O(n!) complexity where n = number of facets:
-- 8 facets → 40,320 permutations
-- Each Python `test_hk2017_*` test runs this algorithm once
-- The `test_polytope_database::TestStageCapacity` tests run it multiple times
-
-### 2. Redundant Capacity Computations
-
-The polytope_database tests share fixture data but recompute capacities:
+```python
+# Each of these tests does this:
+polytopes = generate_polytopes()      # 12 polytopes
+polytopes = add_volumes(polytopes)    # FFI calls
+polytopes = add_capacities(polytopes) # HK2017 × 12 polytopes
 ```
-test_adds_capacity_fields     → runs add_capacities(polytopes)
-test_systolic_ratio_formula   → runs add_capacities(polytopes) again
-test_tesseract_capacity       → runs add_capacities(polytopes) again
-test_pipeline_produces_complete_data → runs add_capacities(polytopes) again
-test_json_serializable        → runs add_capacities(polytopes) again
-test_orbit_invariants         → runs add_capacities(polytopes) again
-```
 
-Each call to `add_capacities()` computes capacity for 12 polytopes.
+Each takes ~8s in CI, totaling ~48s for identical computations.
+
+**This is a test design issue.** The tests should:
+1. Run the pipeline once (via a shared fixture)
+2. Make multiple assertions on the result
+
+This is different from "caching" - it's proper test structure where expensive setup happens once per test module.
 
 ### 3. QHull is NOT the Bottleneck
 
-- QHull compilation: 10s (one-time, during maturin develop)
-- Volume tests: <0.2s total
-- Already cached between runs
+- QHull compilation: 10s (one-time during maturin develop, cached)
+- Volume computation via QHull: <0.2s per test
+- Confirmed not a performance concern
 
-### 4. Platform-Dependent Performance Variance
+## Recommendation
 
-The `test_hk2017_vs_tube_random_8_facet` test shows significant variance:
-- CI: 4s
-- Local (dev container): 116s
+### Restructure polytope_database tests
 
-This appears related to random polytope generation success rates, not the algorithm itself.
-
-## Recommendations
-
-### Quick Wins (Low effort, immediate impact)
-
-#### 1. Cache capacity results in Python tests
-**Impact**: ~40s reduction in pytest (48s → 8s)
+Use a module-scoped fixture to compute the pipeline once:
 
 ```python
-# In conftest.py or test_polytope_database.py
 @pytest.fixture(scope="module")
-def polytopes_with_capacity():
+def complete_polytopes():
+    """Compute once per module, share across all tests."""
     polytopes = generate_polytopes()
     polytopes = add_volumes(polytopes)
     polytopes = add_capacities(polytopes)
     return polytopes
+
+class TestStageCapacity:
+    def test_adds_capacity_fields(self, complete_polytopes):
+        for p in complete_polytopes:
+            assert "capacity" in p
+            assert "systolic_ratio" in p
+            # ... more assertions
+
+    def test_systolic_ratio_formula(self, complete_polytopes):
+        for p in complete_polytopes:
+            expected_ratio = p["capacity"] ** 2 / (2 * p["volume"])
+            assert abs(p["systolic_ratio"] - expected_ratio) < 1e-10
 ```
 
-#### 2. Run pytest in parallel
-**Impact**: ~30s reduction (77s → ~45s)
+**Expected savings**: ~40s (6 pipeline runs → 1 pipeline run)
 
-```yaml
-# In ci.yml
-- name: Run tests
-  run: uv run pytest -v -n auto  # Requires pytest-xdist
-```
+**Note**: This still runs the full computation on every `pytest` invocation. It just avoids redundant computation within a single test run. Each test still exercises the assertion logic independently.
 
-Add to pyproject.toml:
-```toml
-[project.optional-dependencies]
-dev = ["pytest-xdist", ...]
-```
+## Conclusion
 
-### Medium Effort
-
-#### 3. Mark expensive Rust comparison tests as ignored in debug mode
-**Impact**: Reduces debug test variance
-
-The `test_hk2017_vs_tube_random_8_facet` test has high variance. Consider:
-```rust
-#[test]
-#[cfg_attr(debug_assertions, ignore)]
-fn test_hk2017_vs_tube_random_8_facet() { ... }
-```
-
-#### 4. Reduce HK2017 FFI test iterations
-**Impact**: ~20s reduction
-
-The `test_hk2017_graph_pruning` test runs HK2017 twice. Could combine with `test_hk2017_tesseract_capacity`.
-
-### Architectural Changes (Higher effort)
-
-#### 5. Shared artifact caching between jobs
-
-Currently, both `rust` and `ffi` jobs compile the Rust workspace independently. Could use GitHub Actions artifacts to share compiled FFI:
-
-```yaml
-ffi:
-  needs: rust  # Wait for rust job
-  steps:
-    - uses: actions/download-artifact@v4
-      with:
-        name: rust-target
-```
-
-This would eliminate the 10s maturin develop in the FFI job but adds complexity.
-
-## Acceptance Criteria Met
-
-- [x] Identified bottlenecks: HK2017 algorithm in tests (not QHull)
-- [x] Measured baseline timing: ~2min CI, breakdown per step
-- [x] Recommendations provided with impact estimates
-
-## Not Recommended
-
-- **Test parallelism with --test-threads=N for Rust**: Already parallel by default
-- **Skipping release tests**: These catch real bugs (debug_assertions-gated tests)
-- **Reducing test coverage**: Tests are valuable for correctness
-
-## Expected Impact
-
-If recommendations 1+2 are implemented:
-- Current FFI job: 1m53s
-- Expected: ~1m10s (40s from caching + 30s from parallelism, with overlap)
-
-This would bring total CI time to ~1m30s (Rust job becomes critical path).
+- **QHull**: Not the bottleneck. No action needed.
+- **CI time (~2min)**: Reasonable for the test coverage.
+- **Actionable improvement**: Restructure polytope_database tests to share computed data via fixtures (~40s savings).
+- **pytest-xdist**: Possible but adds complexity; defer unless needed.
