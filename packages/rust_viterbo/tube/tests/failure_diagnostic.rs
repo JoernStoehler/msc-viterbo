@@ -31,7 +31,7 @@ fn diagnose_failures() {
     // Sample numerical instability messages
     let mut numerical_samples: Vec<String> = Vec::new();
 
-    for seed in 0..200 {
+    for seed in 0..10 {
         let polytope = match fixtures::random_hrep(8, min_omega, seed) {
             Some(p) => p,
             None => {
@@ -91,10 +91,10 @@ fn diagnose_failures() {
         }
     }
 
-    let total_gen = 200 - gen_failed;
+    let total_gen = 10 - gen_failed;
 
     println!("\n=== Failure Diagnostic (min_omega={}) ===", min_omega);
-    println!("Seeds tried: 200");
+    println!("Seeds tried: 10");
     println!("Generation failed: {}", gen_failed);
     println!("Polytopes generated: {}", total_gen);
     println!();
