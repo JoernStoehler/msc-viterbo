@@ -2,26 +2,27 @@
 
 > **Audience:** Claude Code agents implementing the algorithms
 > **Prerequisite:** Read thesis chapter ([algorithms.tex](../../latex_viterbo/chapters/algorithms.tex)) for mathematical background
-> **Status:** Comprehensive reference document with detailed derivations
+> **Status:** Reference document — algorithm specs moved to per-crate SPEC.md files
 
-## Per-Crate Specifications
+## Per-Crate Specifications (Primary References)
 
-Each crate has a focused SPEC.md for quick reference:
+**For implementation, use the per-crate SPECs:**
 
 | Crate | SPEC.md | Purpose |
 |-------|---------|---------|
-| **geom** | [geom/SPEC.md](../geom/SPEC.md) | Polytope primitives, volume, systolic ratio |
+| **geom** | [geom/SPEC.md](../geom/SPEC.md) | Polytope primitives, volume, systolic ratio, test fixtures |
 | **hk2017** | [hk2017/SPEC.md](../hk2017/SPEC.md) | HK2017 QP algorithm |
 | **tube** | [tube/SPEC.md](../tube/SPEC.md) | Tube algorithm for non-Lagrangian polytopes |
-| **billiard** | [billiard/SPEC.md](../billiard/SPEC.md) | Billiard algorithm for Lagrangian products |
+| **billiard** | [billiard/SPEC.md](../billiard/SPEC.md) | Billiard algorithm for Lagrangian products (pending) |
 
-**This document** provides:
-- Comprehensive mathematical derivations
-- Cross-referenced definitions shared between algorithms
-- Detailed assertions and validation code
-- Historical context and design rationale
-
-For quick implementation reference, start with the crate SPEC.md files.
+**This document** (developer-spec-v2.md) retains:
+- §0-2: Foundational mathematical definitions shared across all algorithms
+- §3.1: Algorithm applicability summary (cross-algorithm comparison)
+- §3.2: Billiard algorithm overview (only spec until billiard/SPEC.md exists)
+- §4.2: Detailed proptest examples for capacity axioms
+- §4.5.5: Regression test history (trivialization bug)
+- §4.8: Continuity testing strategy (perturbed Lagrangian products)
+- §4.9: Falsification test strategy tables
 
 ---
 
@@ -68,19 +69,21 @@ For quick implementation reference, start with the crate SPEC.md files.
 
 3. [Algorithms](#3-algorithms)
    - 3.1 Algorithm Applicability Summary
-   - 3.2 Billiard Algorithm
-   - 3.3 HK2017 Quadratic Programming
-   - 3.4 Tube Algorithm
+   - 3.2 Billiard Algorithm (only coverage here; no per-crate SPEC yet)
+   - 3.3 HK2017 → see [hk2017/SPEC.md](../hk2017/SPEC.md)
+   - 3.4 Tube → see [tube/SPEC.md](../tube/SPEC.md)
+   - 3.5 Known Limitations (cross-crate summary)
 
 4. [Test Cases and Verification Properties](#4-test-cases-and-verification-properties)
-   - 4.1 Ground Truth Values
-   - 4.2 Capacity Axioms
-   - 4.3 Orbit Validity Tests
-   - 4.4 Algorithm Agreement
-   - 4.5 Geometric Foundation Tests
-   - 4.6 Tube Algorithm Tests
-   - 4.7 Polytope Data Consistency
-   - 4.8 Test Fixtures
+   - 4.0 Testing Philosophy
+   - 4.1 Ground Truth → see per-crate SPECs
+   - 4.2 Capacity Axioms (detailed proptest examples)
+   - 4.3-4.4 → see per-crate SPECs
+   - 4.5 Regression test history (§4.5.5)
+   - 4.6-4.7 → see per-crate SPECs
+   - 4.8 Continuity Tests (unique cross-crate strategy)
+   - 4.9 Falsification Test Strategy (methodology)
+   - 4.10 Test Fixtures → see [geom/SPEC.md](../geom/SPEC.md)
 
 ---
 
@@ -2264,113 +2267,24 @@ fn billiard_capacity(K: LagrangianProductPolytope) -> f64 {
 
 ---
 
-### 3.3 Haim-Kislev 2017 Quadratic Programming
+### 3.3 HK2017 Algorithm
 
-**Source:** Haim-Kislev 2017, "On the Symplectic Size of Convex Polytopes"
-
-**Input:** Any polytope \(K\) with \(F\) facets.
-
-**Output:** \(c_{\text{EHZ}}(K) = \frac{1}{2} \cdot [\max_{\sigma, \beta} Q(\sigma, \beta)]^{-1}\)
-
-**Q-function:**
-\[
-Q(\sigma, \beta) = \sum_{j < i} \beta_{\sigma(i)} \beta_{\sigma(j)} \omega(n_{\sigma(i)}, n_{\sigma(j)})
-\]
-
-**Constraints on \(\beta\):**
-- \(\beta_i \geq 0\) (non-negative)
-- \(\sum_i \beta_i h_i = 1\) (height normalization)
-- \(\sum_i \beta_i n_i = 0\) (closure: 4 equations in \(\mathbb{R}^4\))
-
-**Algorithm:**
-```rust
-fn hk2017_capacity(K: &PolytopeHRep) -> f64 {
-    let mut best_q = 0.0;
-
-    for sigma in permutations(0..K.num_facets) {
-        // For each permutation, solve the QP
-        let q_max = solve_q_maximization(&K, &sigma);
-        if q_max > best_q {
-            best_q = q_max;
-        }
-    }
-
-    0.5 / best_q
-}
-```
-
-**CRITICAL WARNING:** Q is indefinite (neither convex nor concave). The maximum may occur at:
-- Vertices (0D faces) of the feasible polytope
-- Edges (1D faces)
-- Higher-dimensional faces
-
-A complete implementation requires a global QCQP solver. Checking only vertices is **incomplete**.
+> **Moved to per-crate SPEC:** See [hk2017/SPEC.md](../hk2017/SPEC.md) for complete specification including:
+> - Q-function and constraints
+> - KKT solver
+> - Enumeration strategies (naive vs graph-pruned)
+> - Known limitations (indefinite QP solver incompleteness)
 
 ---
 
-### 3.4 Tube Algorithm (Branch and Bound)
+### 3.4 Tube Algorithm
 
-> **TODO:** This section provides only a high-level overview. It needs expansion to include:
-> - Correctness proof: argument that the search tree covers all minimum-action orbits
-> - Tube invariants: `p_start` refinement via pullback, rotation accumulation formula
-> - Shear case handling in fixed-point detection (det(A-I) ≈ 0)
-> - Reference mapping to thesis theorems and code locations
-
-**Source:** This thesis (Stöhler 2026), Section \ref{sec:algo-ours}. The algorithm extends CH2021's mathematical framework (Reeb dynamics on polytopes, linear flows, symplectic flow graphs) with a branch-and-bound search over "tubes" — sets of trajectories sharing a combinatorial class. The "tube" terminology and the specific algorithmic structure are original to this thesis.
-
-**Input:** Polytope with **no Lagrangian 2-faces** (i.e., \(\omega(n_i, n_j) \neq 0\) for all adjacent facet pairs).
-
-**Output:** Minimum-action closed Reeb orbit.
-
-**Algorithm:**
-```rust
-fn tube_capacity(K: &PolytopeHRep) -> Result<f64, Error> {
-    let data = preprocess_polytope(K)?;  // Compute 2-faces, rotations, trivializations
-
-    if data.has_lagrangian_two_faces() {
-        return Err(Error::LagrangianTwoFaces);
-    }
-
-    let mut best_action = f64::INFINITY;
-    let mut worklist = PriorityQueue::new();  // By action lower bound
-
-    // Initialize: one root tube per 2-face
-    for two_face in &data.two_faces {
-        worklist.push(create_root_tube(two_face));
-    }
-
-    // Branch and bound
-    while let Some(tube) = worklist.pop() {
-        if tube.action_lower_bound() >= best_action {
-            continue;  // Prune
-        }
-
-        for extension in tube.get_extensions(&data) {
-            match extension {
-                Extension::Closed(orbit) => {
-                    if orbit.action < best_action {
-                        best_action = orbit.action;
-                    }
-                }
-                Extension::Open(new_tube) => {
-                    if new_tube.rotation <= 2.0 + EPS_ROTATION {
-                        worklist.push(new_tube);
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(best_action)
-}
-```
-
-**Pruning rules:**
-1. **Empty tube:** No valid starting points remain
-2. **Action bound:** Minimum action in tube exceeds best found
-3. **Rotation bound:** Total rotation > 2 turns (CH2021 Prop 1.10)
-
-**Closure condition:** Facet sequence returns to starting 2-face, and flow map has a fixed point in the valid region.
+> **Moved to per-crate SPEC:** See [tube/SPEC.md](../tube/SPEC.md) for complete specification including:
+> - Quaternion trivialization and transition matrices
+> - Tube data structures
+> - Branch-and-bound algorithm
+> - Pruning rules and closure detection
+> - Flow map derivation
 
 ---
 
@@ -2382,26 +2296,17 @@ fn tube_capacity(K: &PolytopeHRep) -> Result<f64, Error> {
 |---------------|------------------|--------|
 | Lagrangian products | ALL Lagrangian | ✓ Billiard (pending reimplementation), HK2017 |
 | Non-Lagrangian | NO Lagrangian | ✓ Tube, HK2017 |
-| Mixed | SOME Lagrangian | ✓ HK2017 |
+| Mixed | SOME Lagrangian | ✓ HK2017 only |
 
-**HK2017 QP solver incompleteness:**
+**Per-crate limitations:** See individual SPEC files for algorithm-specific limitations:
+- HK2017 QP solver incompleteness: [hk2017/SPEC.md](../hk2017/SPEC.md#known-limitations)
+- Tube Lagrangian rejection: [tube/SPEC.md](../tube/SPEC.md#known-limitations)
 
-The quadratic form Q(σ, β) is **indefinite** (the symplectic form has mixed signs). The maximum may occur at:
-- Vertices (0D faces) of the feasible polytope
-- Edges (1D faces)
-- Higher-dimensional face interiors
+**Cross-crate issues:**
 
-A complete implementation requires a global QCQP solver or exhaustive face enumeration. The current approach (KKT solver for interior critical points) assumes the maximum is in the interior of the feasible region. If the true maximum is on the boundary, this method will miss it. For most "typical" polytopes (tesseract, Lagrangian products), the interior assumption holds.
-
-**Pentagon × RotatedPentagon:** HK2017 returns ≈ 3.441 (matching HK-O 2024 Prop 1). The billiard algorithm was deleted pending reimplementation from thesis spec.
-
-**Missing tube algorithm test case:**
-
-No polytope with verified capacity and NO Lagrangian 2-faces is currently in the test suite. The cross-polytope `conv{±eᵢ}` is a candidate (verify no Lagrangian 2-faces first), but its capacity is not independently known.
-
-**Tolerance philosophy (deferred):**
-
-The relationship between tolerances (EPS, EPS_LAGRANGIAN, EPS_ROTATION, etc.) is not rigorously analyzed. Current approach: detect when numerics go wrong and error out, rather than theorize tolerance choices in advance.
+1. **Billiard algorithm deleted:** Pending reimplementation from thesis spec (#92).
+2. **No independent ground truth for tube:** Cross-polytope capacity verified via HK2017 comparison only.
+3. **Tolerance relationships:** Not rigorously analyzed; current approach is to error out when numerics go wrong.
 
 ---
 
@@ -2443,28 +2348,10 @@ This section lists mathematical properties that tests should verify. If any test
 
 ### 4.1 Ground Truth Capacity Values
 
-| Polytope | \(c_{\text{EHZ}}\) | Source | Algorithms | Notes |
-|----------|-----------|--------|------------|-------|
-| Tesseract \([-1,1]^4\) | 4.0 | HK2017 Ex 4.6 | Billiard, HK2017 | Primary test case (Lagrangian product) |
-| Rectangle \(2 \times 1\) product | 1.0 | Scaling | Billiard, HK2017 | Lagrangian product |
-| Triangle × Triangle (r=1) | 1.5 | Computational | Billiard, HK2017 | Lagrangian product, circumradius 1, [NEEDS CITATION] |
-| Pentagon × RotatedPentagon | 3.441 | HK-O 2024 Prop 1 | Billiard, HK2017 | Lagrangian product, counterexample to Viterbo |
-| 4-Simplex (standard) | 0.25 | [UNVERIFIED] | HK2017 only | **WARNING:** conv{0, e₁, e₂, e₃, e₄} has 0 on boundary (invalid). Has Lagrangian 2-faces → Tube inapplicable. Citation "Y. Nir 2013" needs verification. |
-
-**Algorithm applicability key:**
-- **Billiard:** Only for Lagrangian products (K₁ × K₂ with q/p separation)
-- **HK2017:** All polytopes (but QP solver is incomplete for indefinite case)
-- **Tube:** Only for polytopes with NO Lagrangian 2-faces
-
-**Test pattern:**
-```rust
-#[test]
-fn test_tesseract_capacity() {
-    let K = tesseract();
-    let result = compute_capacity(&K);
-    assert!((result.capacity - 4.0).abs() < EPS);
-}
-```
+> **Moved to per-crate SPECs:** See the Testing Strategy sections of:
+> - [geom/SPEC.md](../geom/SPEC.md#test-fixtures) — Standard polytope fixtures and expected values
+> - [hk2017/SPEC.md](../hk2017/SPEC.md#testing-strategy) — HK2017 ground truth tests
+> - [tube/SPEC.md](../tube/SPEC.md#testing-strategy) — Tube algorithm ground truth tests
 
 ---
 
@@ -2577,161 +2464,28 @@ fn arb_sp4_product() -> impl Strategy<Value = Matrix4<f64>> {
 
 ### 4.3 Orbit Validity Tests
 
-**4.3.1 Breakpoints on boundary:**
-```rust
-fn test_breakpoints_on_boundary(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
-    for p in &orbit.breakpoints {
-        assert!(is_on_boundary(p, K), "Breakpoint not on boundary");
-    }
-}
-```
-
-**4.3.2 Segments on facets:**
-```rust
-fn test_segments_on_facets(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
-    for k in 0..orbit.segment_facets.len() {
-        let i = orbit.segment_facets[k];
-        let p0 = &orbit.breakpoints[k];
-        let p1 = &orbit.breakpoints[k + 1];
-
-        // Both endpoints on the claimed facet
-        assert!((K.normals[i].dot(p0) - K.heights[i]).abs() < EPS);
-        assert!((K.normals[i].dot(p1) - K.heights[i]).abs() < EPS);
-    }
-}
-```
-
-**4.3.3 Velocities match Reeb vectors (differential inclusion):**
-```rust
-fn test_reeb_velocity(orbit: &ClosedReebOrbit, K: &PolytopeHRep) {
-    for k in 0..orbit.segment_facets.len() {
-        let i = orbit.segment_facets[k];
-        let displacement = &orbit.breakpoints[k + 1] - &orbit.breakpoints[k];
-        let velocity = displacement / orbit.segment_times[k];
-        let reeb = (J_MATRIX * K.normals[i]) * (2.0 / K.heights[i]);
-
-        assert!((velocity - reeb).norm() < EPS * reeb.norm(),
-            "Velocity on segment {} doesn't match Reeb vector", k);
-    }
-}
-```
-
-**4.3.4 Orbit closure:**
-```rust
-fn test_orbit_closure(orbit: &ClosedReebOrbit) {
-    let first = &orbit.breakpoints[0];
-    let last = &orbit.breakpoints[orbit.breakpoints.len() - 1];
-    assert!((first - last).norm() < EPS, "Orbit not closed");
-}
-```
-
-**4.3.5 Action = period = sum of times:**
-```rust
-fn test_action_consistency(orbit: &ClosedReebOrbit) {
-    let time_sum: f64 = orbit.segment_times.iter().sum();
-    let action = action_of_closed_polygon(&orbit.breakpoints);
-
-    assert!((orbit.period - time_sum).abs() < EPS);
-    assert!((orbit.period - action).abs() < EPS * orbit.period);
-}
-```
+> **Moved to per-crate SPEC:** See [geom/SPEC.md](../geom/SPEC.md#closed-reeb-orbits) for orbit validity checks:
+> - Breakpoints on boundary
+> - Segments on facets
+> - Velocities match Reeb vectors
+> - Orbit closure
+> - Action = period consistency
 
 ---
 
 ### 4.4 Algorithm Agreement
 
-On their common domain (Lagrangian products), different algorithms should agree:
-
-```rust
-#[test]
-fn test_billiard_hk2017_agreement() {
-    for K in sample_lagrangian_products() {
-        let c_billiard = billiard_capacity(&K);
-        let c_hk2017 = hk2017_capacity(&K.to_hrep());
-
-        let rel_error = (c_billiard - c_hk2017).abs() / c_billiard;
-        assert!(rel_error < 0.01, "Algorithms disagree: billiard={}, hk2017={}",
-            c_billiard, c_hk2017);
-    }
-}
-```
+> **Moved to per-crate SPEC:** See [hk2017/SPEC.md](../hk2017/SPEC.md#correctness-tests) for algorithm agreement tests.
 
 ---
 
 ### 4.5 Geometric Foundation Tests
 
-**4.5.1 Symplectic form properties:**
-```rust
-#[test]
-fn test_symplectic_form_properties() {
-    let u = Vector4::new(1.0, 2.0, 3.0, 4.0);
-    let v = Vector4::new(5.0, 6.0, 7.0, 8.0);
-    let w = Vector4::new(9.0, 10.0, 11.0, 12.0);
-
-    // Antisymmetry
-    assert!((symplectic_form(&u, &v) + symplectic_form(&v, &u)).abs() < EPS);
-
-    // Bilinearity
-    assert!((symplectic_form(&(u + v), &w) - symplectic_form(&u, &w) - symplectic_form(&v, &w)).abs() < EPS);
-
-    // Standard basis values
-    let e1 = Vector4::new(1.0, 0.0, 0.0, 0.0);
-    let e2 = Vector4::new(0.0, 1.0, 0.0, 0.0);
-    let e3 = Vector4::new(0.0, 0.0, 1.0, 0.0);
-    let e4 = Vector4::new(0.0, 0.0, 0.0, 1.0);
-    assert!((symplectic_form(&e1, &e3) - 1.0).abs() < EPS);  // ω(e1, e3) = 1
-    assert!((symplectic_form(&e2, &e4) - 1.0).abs() < EPS);  // ω(e2, e4) = 1
-    assert!(symplectic_form(&e1, &e2).abs() < EPS);          // ω(e1, e2) = 0
-}
-```
-
-**4.5.2 Quaternion relations:**
-```rust
-#[test]
-fn test_quaternion_relations() {
-    let v = random_unit_vector();
-
-    // i² = j² = k² = -I (quaternion relations)
-    assert!((QUAT_I * QUAT_I * v + v).norm() < EPS);
-    assert!((QUAT_J * QUAT_J * v + v).norm() < EPS);
-    assert!((QUAT_K * QUAT_K * v + v).norm() < EPS);
-
-    // ij = k, jk = i, ki = j
-    assert!(((QUAT_I * QUAT_J - QUAT_K) * v).norm() < EPS);
-    assert!(((QUAT_J * QUAT_K - QUAT_I) * v).norm() < EPS);
-    assert!(((QUAT_K * QUAT_I - QUAT_J) * v).norm() < EPS);
-}
-```
-
-**4.5.3 Transition matrix is symplectic:**
-```rust
-#[test]
-fn test_transition_matrix_symplectic() {
-    for two_face in &polytope_data.two_faces {
-        let psi = &two_face.transition_matrix;
-
-        // det(ψ) = 1
-        assert!((psi.determinant() - 1.0).abs() < EPS);
-
-        // ψᵀ J₂ ψ = J₂
-        // (This is equivalent to det = 1 for 2×2 matrices)
-    }
-}
-```
-
-**4.5.4 Rotation number in valid range:**
-```rust
-#[test]
-fn test_rotation_number_range() {
-    for two_face in &polytope_data.two_faces {
-        if !two_face.is_lagrangian() {
-            let rho = two_face.rotation_number();
-            assert!(rho > 0.0 && rho < 0.5,
-                "Rotation {} not in (0, 0.5)", rho);
-        }
-    }
-}
-```
+> **Standard tests moved to per-crate SPECs:** See [tube/SPEC.md](../tube/SPEC.md#invariant-tests) for:
+> - Symplectic form properties
+> - Quaternion relations
+> - Transition matrix symplecticity
+> - Rotation number range
 
 **4.5.5 Cross-polytope trivialization test (regression for bug found 2026-01-26):**
 
@@ -2783,179 +2537,20 @@ fn test_cross_polytope_trivialization() {
 
 ### 4.6 Tube Algorithm Specific Tests
 
-**4.6.1 Flow map consistency:**
-```rust
-fn test_tube_flow_map(tube: &Tube, start_point: &Vector2<f64>) {
-    // Trace the trajectory step by step
-    let traced_end = trace_trajectory_stepwise(tube, start_point);
-
-    // Compare with flow map
-    let mapped_end = tube.flow_map.matrix * start_point + tube.flow_map.offset;
-
-    assert!((traced_end - mapped_end).norm() < EPS);
-}
-```
-
-**4.6.2 Action function consistency:**
-```rust
-fn test_tube_action_func(tube: &Tube, start_point: &Vector2<f64>) {
-    // Trace trajectory and sum segment times
-    let traced_action = trace_and_sum_action(tube, start_point);
-
-    // Compare with action function
-    let computed_action = tube.action_func.gradient.dot(start_point) + tube.action_func.constant;
-
-    assert!((traced_action - computed_action).abs() < EPS);
-}
-```
-
-**4.6.3 Closed orbit is actually closed:**
-```rust
-fn test_closed_orbit_is_fixed_point(orbit_2d: &Vector2<f64>, tube: &Tube) {
-    let mapped = tube.flow_map.matrix * orbit_2d + tube.flow_map.offset;
-    assert!((orbit_2d - mapped).norm() < EPS,
-        "Claimed closed orbit is not a fixed point of flow map");
-}
-```
-
-**4.6.4 Flow map is symplectic (area-preserving):**
-```rust
-fn test_flow_map_symplectic(tube: &Tube) {
-    // For 2D symplectic maps, det(A) = 1
-    let det = tube.flow_map.matrix.determinant();
-    assert!((det - 1.0).abs() < EPS,
-        "Flow map not symplectic: det = {}", det);
-}
-```
-
-**4.6.5 Root tube initialization:**
-```rust
-fn test_root_tube_valid(two_face: &TwoFaceEnriched) {
-    let root = create_root_tube(two_face);
-
-    // p_start has positive area (non-empty)
-    assert!(polygon_area(&root.p_start) > EPS,
-        "Root tube p_start is empty or degenerate");
-
-    // Flow map is identity
-    assert!((root.flow_map.matrix - Matrix2::identity()).norm() < EPS);
-    assert!(root.flow_map.offset.norm() < EPS);
-
-    // Action function is zero
-    assert!(root.action_func.gradient.norm() < EPS);
-    assert!(root.action_func.constant.abs() < EPS);
-
-    // Rotation is zero
-    assert!(root.rotation.abs() < EPS);
-}
-```
-
-**4.6.6 Tube extension preserves symplecticity:**
-```rust
-fn test_tube_extension_symplectic(tube: &Tube, extended: &Tube) {
-    // Both should have det(A) = 1
-    assert!((tube.flow_map.matrix.determinant() - 1.0).abs() < EPS);
-    assert!((extended.flow_map.matrix.determinant() - 1.0).abs() < EPS);
-
-    // Rotation should increase by a positive amount in (0, 0.5)
-    let delta_rotation = extended.rotation - tube.rotation;
-    assert!(delta_rotation > 0.0 && delta_rotation < 0.5,
-        "Invalid rotation increment: {}", delta_rotation);
-}
-```
-
-**4.6.7 Independent Reeb flow verification:**
-```rust
-fn test_trajectory_no_intermediate_crossings(
-    orbit: &ClosedReebOrbit,
-    polytope_data: &PolytopeData,
-) {
-    // For each segment, verify the trajectory doesn't cross any other facet
-    for k in 0..orbit.segment_facets.len() {
-        let facet = orbit.segment_facets[k];
-        let start = &orbit.breakpoints[k];
-        let end = &orbit.breakpoints[k + 1];
-        let reeb = polytope_data.reeb_vector(facet);
-
-        // Check midpoint is still on the claimed facet
-        let mid = (start + end) / 2.0;
-        let h = polytope_data.heights[facet];
-        let n = &polytope_data.normals[facet];
-        assert!((n.dot(&mid) - h).abs() < EPS,
-            "Segment {} midpoint not on facet", k);
-
-        // Check midpoint doesn't violate any other facet constraint
-        for (j, (nj, &hj)) in polytope_data.normals.iter()
-            .zip(&polytope_data.heights).enumerate()
-        {
-            if j != facet {
-                assert!(nj.dot(&mid) <= hj + EPS,
-                    "Segment {} crosses facet {}", k, j);
-            }
-        }
-    }
-}
-```
-
-**4.6.8 Near-singular detection:**
-```rust
-#[test]
-fn test_near_singular_raises_error() {
-    // Construct a tube with nearly-singular flow map (det(A-I) ≈ 0)
-    // This should panic rather than silently return wrong results
-    let tube = Tube {
-        flow_map: AffineMap2D {
-            matrix: Matrix2::identity() + Matrix2::new(1e-12, 0.0, 0.0, 1e-12),
-            offset: Vector2::new(0.1, 0.1),
-        },
-        // ... other fields
-    };
-
-    let result = std::panic::catch_unwind(|| find_closed_orbits(&tube));
-    assert!(result.is_err(), "Should panic on near-singular flow map");
-}
-```
+> **Moved to per-crate SPEC:** See [tube/SPEC.md](../tube/SPEC.md#testing-strategy) for tube-specific tests:
+> - Flow map consistency
+> - Action function consistency
+> - Fixed point verification
+> - Symplecticity checks
+> - Near-singular detection
 
 ---
 
 ### 4.7 Polytope Data Consistency
 
-**4.7.1 H-rep ↔ V-rep consistency:**
-```rust
-fn test_hrep_vrep_consistency(K: &PolytopeRepEnriched) {
-    // Every vertex satisfies all inequalities
-    for v in &K.vertices {
-        for (n, &h) in K.normals.iter().zip(&K.heights) {
-            assert!(n.dot(v) <= h + EPS);
-        }
-    }
-
-    // Every vertex is tight on exactly dim=4 facets (for simple polytopes)
-    for v in &K.vertices {
-        let tight_count = K.normals.iter().zip(&K.heights)
-            .filter(|(n, &h)| (n.dot(v) - h).abs() < EPS)
-            .count();
-        assert!(tight_count >= 4, "Vertex on fewer than 4 facets");
-    }
-}
-```
-
-**4.7.2 2-face enumeration correctness:**
-```rust
-fn test_two_face_enumeration(data: &PolytopeData) {
-    for two_face in &data.two_faces {
-        // 2-face vertices are on both facets
-        for v in &two_face.vertices_4d {
-            assert!((data.normals[two_face.i].dot(v) - data.heights[two_face.i]).abs() < EPS);
-            assert!((data.normals[two_face.j].dot(v) - data.heights[two_face.j]).abs() < EPS);
-        }
-
-        // Lagrangian classification is correct
-        let omega = symplectic_form(&data.normals[two_face.i], &data.normals[two_face.j]);
-        assert_eq!(omega.abs() < EPS_LAGRANGIAN, two_face.is_lagrangian);
-    }
-}
-```
+> **Moved to per-crate SPEC:** See [geom/SPEC.md](../geom/SPEC.md#validation) for polytope validation:
+> - H-rep ↔ V-rep consistency
+> - 2-face enumeration correctness
 
 ---
 
@@ -3147,132 +2742,10 @@ If this test passes, the cross-polytope provides a non-Lagrangian-product test c
 
 ### 4.10 Test Fixture Definitions
 
-#### Naming Conventions
-
-**2D Polygons:**
-- `regular_ngon(n, r)` — Regular n-gon with circumradius r, first vertex at angle 0 (pointing right)
-- `rotated(polygon, θ)` — Rotate polygon CCW by θ radians
-
-**4D Polytopes:**
-- `lagrangian_product(Kq, Kp)` — Product K_q × K_p where K_q ⊂ ℝ²_q and K_p ⊂ ℝ²_p
-- `unit_tesseract()` — The cube [-1,1]⁴ (special case: square × square)
-- `unit_cross_polytope()` — conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
-
-**Parameterization choices:**
-- **Circumradius** (not inradius or edge length) — vertices lie on a circle, most natural for regular polygons
-- **Unit circumradius** as default — scale explicitly when needed
-
-```rust
-/// Regular n-gon with circumradius r, vertices at angles 2πk/n for k=0,...,n-1
-fn regular_ngon(n: usize, circumradius: f64) -> Polygon2D {
-    use std::f64::consts::TAU;  // TAU = 2π
-    assert!(n >= 3, "Polygon needs at least 3 vertices");
-
-    let vertices: Vec<Vector2<f64>> = (0..n)
-        .map(|k| {
-            let angle = TAU * k as f64 / n as f64;
-            Vector2::new(circumradius * angle.cos(), circumradius * angle.sin())
-        })
-        .collect();
-
-    polygon_from_vertices_ccw(vertices)
-}
-
-/// Rotate polygon CCW by angle (radians)
-fn rotated(polygon: &Polygon2D, angle: f64) -> Polygon2D {
-    let c = angle.cos();
-    let s = angle.sin();
-    let rot = Matrix2::new(c, -s, s, c);
-
-    Polygon2D {
-        vertices: polygon.vertices.iter().map(|v| rot * v).collect(),
-        normals: polygon.normals.iter().map(|n| rot * n).collect(),
-        heights: polygon.heights.clone(),
-    }
-}
-
-/// Lagrangian product K_q × K_p ⊂ ℝ⁴
-fn lagrangian_product(Kq: &Polygon2D, Kp: &Polygon2D) -> PolytopeHRep {
-    let mut normals = Vec::new();
-    let mut heights = Vec::new();
-
-    // q-facets: normal (n_q, 0, 0)
-    for (n2, &h) in Kq.normals.iter().zip(&Kq.heights) {
-        normals.push(Vector4::new(n2[0], n2[1], 0.0, 0.0));
-        heights.push(h);
-    }
-    // p-facets: normal (0, 0, n_p)
-    for (n2, &h) in Kp.normals.iter().zip(&Kp.heights) {
-        normals.push(Vector4::new(0.0, 0.0, n2[0], n2[1]));
-        heights.push(h);
-    }
-
-    PolytopeHRep { normals, heights }
-}
-```
-
-#### Specific Fixtures
-
-**Unit tesseract** (c = 4.0):
-```rust
-fn unit_tesseract() -> PolytopeHRep {
-    // [-1,1]⁴ = square(1) ×_L square(1) where square has circumradius √2
-    // But for axis-aligned tesseract, define directly:
-    PolytopeHRep {
-        normals: vec![
-            Vector4::new( 1.0,  0.0,  0.0,  0.0),
-            Vector4::new(-1.0,  0.0,  0.0,  0.0),
-            Vector4::new( 0.0,  1.0,  0.0,  0.0),
-            Vector4::new( 0.0, -1.0,  0.0,  0.0),
-            Vector4::new( 0.0,  0.0,  1.0,  0.0),
-            Vector4::new( 0.0,  0.0, -1.0,  0.0),
-            Vector4::new( 0.0,  0.0,  0.0,  1.0),
-            Vector4::new( 0.0,  0.0,  0.0, -1.0),
-        ],
-        heights: vec![1.0; 8],
-    }
-}
-```
-
-**Unit cross-polytope** (for tube algorithm, c = unknown):
-```rust
-fn unit_cross_polytope() -> PolytopeHRep {
-    // conv{±e₁, ±e₂, ±e₃, ±e₄}, dual of tesseract
-    // 16 facets with normals (±1,±1,±1,±1)/2
-    let mut normals = Vec::new();
-    for s1 in [-1.0, 1.0] {
-        for s2 in [-1.0, 1.0] {
-            for s3 in [-1.0, 1.0] {
-                for s4 in [-1.0, 1.0] {
-                    normals.push(Vector4::new(s1, s2, s3, s4) / 2.0);
-                }
-            }
-        }
-    }
-    PolytopeHRep { normals, heights: vec![1.0; 16] }
-}
-```
-
-**Equilateral triangle product** (c = 1.5 for circumradius 1):
-```rust
-fn equilateral_triangle_product() -> PolytopeHRep {
-    let triangle = regular_ngon(3, 1.0);  // circumradius 1
-    lagrangian_product(&triangle, &triangle)
-}
-// Expected: c_EHZ = 1.5, systolic ratio < 1
-```
-
-**HK-O 2024 counterexample** (c ≈ 3.441):
-```rust
-fn hko2024_counterexample() -> PolytopeHRep {
-    use std::f64::consts::FRAC_PI_2;
-    let pentagon = regular_ngon(5, 1.0);
-    let pentagon_rotated = rotated(&pentagon, FRAC_PI_2);  // 90° = π/2
-    lagrangian_product(&pentagon, &pentagon_rotated)
-}
-// Expected: c_EHZ = 2·cos(π/10)·(1 + cos(π/5)) ≈ 3.4409548
-// Systolic ratio ≈ 1.047 > 1 (counterexample to Viterbo)
-```
+> **Moved to per-crate SPEC:** See [geom/SPEC.md](../geom/SPEC.md#test-fixtures) for:
+> - Naming conventions (regular_ngon, rotated, lagrangian_product)
+> - Standard polytopes (tesseract, cross-polytope, triangle product)
+> - HK-O 2024 counterexample definition
 
 ---
 
