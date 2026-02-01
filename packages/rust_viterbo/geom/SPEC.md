@@ -305,7 +305,7 @@ fn is_lagrangian_product(hrep: &PolytopeHRep) -> bool {
 }
 ```
 
-**Significance:** Lagrangian products have ALL 2-faces Lagrangian, enabling the specialized Billiard algorithm.
+**Significance:** The product structure K_q × K_p enables the specialized Billiard algorithm, which exploits that Reeb orbits decompose into independent q and p components.
 
 ---
 
@@ -623,7 +623,7 @@ fn lagrangian_product(Kq: &Polygon2D, Kp: &Polygon2D) -> PolytopeHRep;
 | Fixture | Description | EHZ Capacity | Systolic Ratio |
 |---------|-------------|--------------|----------------|
 | `unit_tesseract()` | [-1,1]⁴ | 4.0 | < 1 |
-| `unit_cross_polytope()` | 16 facets, (±1,±1,±1,±1)/2 | (tube computes) | < 1 |
+| `unit_cross_polytope()` | 16 facets, vertices ±eᵢ | (tube computes) | < 1 |
 | `equilateral_triangle_product()` | triangle × triangle | 1.5 | < 1 |
 | `hko2024_counterexample()` | pentagon × rotated_pentagon | ≈ 3.441 | ≈ 1.047 |
 

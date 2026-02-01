@@ -20,6 +20,8 @@ This algorithm organizes Reeb trajectories into "tubes" (sets of trajectories sh
 > This spec extends those foundations with tube-specific concepts:
 > - Quaternion trivialization (§1.9-1.12 of developer-spec)
 > - Tube data structure and branch-and-bound algorithm
+>
+> **Detailed derivations:** [SPEC-proofs.md](SPEC-proofs.md) contains step-by-step proofs for key claims.
 
 ## Applicability
 
