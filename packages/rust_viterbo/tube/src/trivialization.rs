@@ -16,7 +16,9 @@
 use nalgebra::{Matrix2, Matrix4, Vector2, Vector4};
 
 use crate::constants::EPS;
-use crate::quaternion::{apply_quat_i, apply_quat_j, apply_quat_k};
+use crate::quaternion::{apply_quat_j, apply_quat_k};
+#[cfg(test)]
+use crate::quaternion::apply_quat_i;
 
 /// Trivialize a 4D vector using normal n.
 ///
@@ -120,6 +122,7 @@ pub fn compute_transition_matrix_basis(
 ///
 ///   ψ = (1/a₂) * | a₁a₂ - a₃a₄    -(a₂² + a₄²) |
 ///                | a₂² + a₃²       a₁a₂ + a₃a₄  |
+#[cfg(test)]
 pub fn compute_transition_matrix_ch2021(
     n_entry: &Vector4<f64>,
     n_exit: &Vector4<f64>,
@@ -157,13 +160,14 @@ pub fn rotation_number_from_trace(trace: f64) -> f64 {
 /// Compute rotation number directly from normals.
 ///
 /// ρ = (1/2π) * arccos(⟨n_entry, n_exit⟩)
+#[cfg(test)]
 pub fn rotation_number_direct(n_entry: &Vector4<f64>, n_exit: &Vector4<f64>) -> f64 {
     let cos_angle = n_entry.dot(n_exit).clamp(-1.0 + EPS, 1.0 - EPS);
     cos_angle.acos() / (2.0 * std::f64::consts::PI)
 }
 
 /// Validate basis vectors lie in the 2-face tangent space.
-#[allow(dead_code)] // Debug helper, used in tests
+#[cfg(test)]
 fn validate_basis_in_tf(
     basis: &[Vector4<f64>; 2],
     n_entry: &Vector4<f64>,

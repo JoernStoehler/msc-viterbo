@@ -5,7 +5,7 @@
 //! - 2-face enumeration and adjacency
 //! - Trivialization data for each non-Lagrangian 2-face
 
-use nalgebra::{DMatrix, Vector4};
+use nalgebra::Vector4;
 
 use crate::constants::{EPS, EPS_LAGRANGIAN};
 use crate::geometry::sort_ccw;
@@ -35,8 +35,6 @@ pub struct PolytopeData {
     pub two_faces: Vec<TwoFace>,
     /// Enriched 2-faces (non-Lagrangian only, with trivialization data).
     pub two_faces_enriched: Vec<TwoFaceEnriched>,
-    /// Precomputed symplectic form matrix: omega[i][j] = ω(n_i, n_j).
-    pub omega_matrix: DMatrix<f64>,
 }
 
 impl PolytopeData {
@@ -63,12 +61,6 @@ impl PolytopeData {
         self.two_faces
             .iter()
             .any(|f| f.is_lagrangian(EPS_LAGRANGIAN))
-    }
-
-    /// Get the basic TwoFace for facets i and j (order-independent).
-    pub fn get_two_face(&self, i: usize, j: usize) -> Option<&TwoFace> {
-        let (a, b) = if i < j { (i, j) } else { (j, i) };
-        self.two_faces.iter().find(|f| f.i == a && f.j == b)
     }
 
     /// Get the enriched TwoFaceEnriched for facets i and j.
@@ -122,14 +114,6 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
         .map(|(n, &h)| reeb_vector(n, h))
         .collect();
 
-    // Compute omega matrix
-    let mut omega_matrix = DMatrix::zeros(num_facets, num_facets);
-    for i in 0..num_facets {
-        for j in 0..num_facets {
-            omega_matrix[(i, j)] = symplectic_form(&normals[i], &normals[j]);
-        }
-    }
-
     // Vertex enumeration (simplified: find vertices as intersections of 4 facets)
     let vertices = enumerate_vertices_4d(hrep)?;
 
@@ -147,7 +131,6 @@ pub fn preprocess(hrep: &PolytopeHRep) -> Result<PolytopeData, TubeError> {
         vertices,
         two_faces,
         two_faces_enriched,
-        omega_matrix,
     })
 }
 
@@ -385,22 +368,6 @@ mod tests {
 
             // Polygon should be non-empty
             assert!(!tfe.polygon_2d.is_empty());
-        }
-    }
-
-    #[test]
-    fn test_omega_matrix_antisymmetric() {
-        let hrep = unit_cross_polytope();
-        let data = preprocess(&hrep).unwrap();
-
-        for i in 0..data.num_facets {
-            for j in 0..data.num_facets {
-                assert_relative_eq!(
-                    data.omega_matrix[(i, j)],
-                    -data.omega_matrix[(j, i)],
-                    epsilon = EPS
-                );
-            }
         }
     }
 }

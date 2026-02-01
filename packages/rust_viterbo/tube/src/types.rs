@@ -13,6 +13,7 @@
 
 use nalgebra::{Matrix2, Vector2, Vector4};
 
+#[cfg(test)]
 use crate::constants::EPS;
 
 // Re-export the shared polytope type from geom crate.
@@ -121,9 +122,15 @@ impl AffineMap2D {
         }
     }
 
-    /// Check if the map is symplectic (area-preserving): det(A) = 1.
-    pub fn is_symplectic(&self) -> bool {
-        (self.matrix.determinant() - 1.0).abs() < EPS
+    /// Compute the inverse affine map, if it exists.
+    ///
+    /// For f(x) = Ax + b, the inverse is f⁻¹(y) = A⁻¹(y - b) = A⁻¹y - A⁻¹b.
+    pub fn try_inverse(&self) -> Option<AffineMap2D> {
+        let inv_matrix = self.matrix.try_inverse()?;
+        Some(AffineMap2D {
+            matrix: inv_matrix,
+            offset: -(inv_matrix * self.offset),
+        })
     }
 }
 

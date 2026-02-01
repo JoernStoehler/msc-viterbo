@@ -10,7 +10,9 @@
 //! - QUAT_I is the standard almost complex structure (symplectic J)
 //! - QUAT_J and QUAT_K complete the quaternion structure
 
-use nalgebra::{Matrix4, Vector4};
+use nalgebra::Vector4;
+#[cfg(test)]
+use nalgebra::Matrix4;
 
 /// QUAT_I = standard almost complex structure (symplectic J).
 ///
@@ -19,6 +21,7 @@ use nalgebra::{Matrix4, Vector4};
 /// Properties:
 /// - i² = -I
 /// - ω(x, y) = ⟨ix, y⟩ (defines symplectic form)
+#[cfg(test)]
 #[rustfmt::skip]
 pub fn quat_i() -> Matrix4<f64> {
     Matrix4::new(
@@ -36,6 +39,7 @@ pub fn quat_i() -> Matrix4<f64> {
 /// Properties:
 /// - j² = -I
 /// - ij = k
+#[cfg(test)]
 #[rustfmt::skip]
 pub fn quat_j() -> Matrix4<f64> {
     Matrix4::new(
@@ -53,6 +57,7 @@ pub fn quat_j() -> Matrix4<f64> {
 /// Properties:
 /// - k² = -I
 /// - ij = k, jk = i, ki = j
+#[cfg(test)]
 #[rustfmt::skip]
 pub fn quat_k() -> Matrix4<f64> {
     Matrix4::new(
@@ -81,24 +86,33 @@ pub fn apply_quat_k(v: &Vector4<f64>) -> Vector4<f64> {
     Vector4::new(-v[3], v[2], -v[1], v[0])
 }
 
+/// Apply the symplectic structure J to a vector.
+///
+/// In the standard symplectic coordinates (q₁, q₂, p₁, p₂), the matrix J is:
+/// J = [[0, 0, -1, 0],
+///      [0, 0, 0, -1],
+///      [1, 0, 0, 0],
+///      [0, 1, 0, 0]]
+///
+/// This maps (q₁, q₂, p₁, p₂) → (-p₁, -p₂, q₁, q₂).
+///
+/// Note: This is mathematically identical to quaternion multiplication by i,
+/// but named separately for clarity in symplectic geometry contexts.
+#[inline]
+pub fn symplectic_j(v: &Vector4<f64>) -> Vector4<f64> {
+    Vector4::new(-v[2], -v[3], v[0], v[1])
+}
+
 /// The standard symplectic form on ℝ⁴.
 ///
-/// ω(x, y) = ⟨ix, y⟩ = q₁p₁' + q₂p₂' - p₁q₁' - p₂q₂'
+/// ω(x, y) = ⟨Jx, y⟩ = q₁p₁' + q₂p₂' - p₁q₁' - p₂q₂'
 ///
 /// Properties:
 /// - Antisymmetric: ω(x, y) = -ω(y, x)
 /// - Non-degenerate: ω(x, y) = 0 for all y implies x = 0
 #[inline]
 pub fn symplectic_form(x: &Vector4<f64>, y: &Vector4<f64>) -> f64 {
-    apply_quat_i(x).dot(y)
-}
-
-/// Standard 2D symplectic form (area form).
-///
-/// ω_std(x, y) = x₁y₂ - x₂y₁
-#[inline]
-pub fn symplectic_form_2d(x: &nalgebra::Vector2<f64>, y: &nalgebra::Vector2<f64>) -> f64 {
-    x[0] * y[1] - x[1] * y[0]
+    symplectic_j(x).dot(y)
 }
 
 /// Compute the Reeb vector for a facet.
@@ -110,7 +124,7 @@ pub fn symplectic_form_2d(x: &nalgebra::Vector2<f64>, y: &nalgebra::Vector2<f64>
 #[inline]
 pub fn reeb_vector(normal: &Vector4<f64>, height: f64) -> Vector4<f64> {
     debug_assert!(height > 0.0, "Height must be positive");
-    apply_quat_i(normal) * (2.0 / height)
+    symplectic_j(normal) * (2.0 / height)
 }
 
 #[cfg(test)]

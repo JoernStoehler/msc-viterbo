@@ -139,34 +139,6 @@ pub fn apply_affine_to_polygon(map: &AffineMap2D, polygon: &Polygon2D) -> Polygo
     Polygon2D::new(polygon.vertices.iter().map(|v| map.apply(v)).collect())
 }
 
-/// Deduplicate nearby vertices in a polygon.
-pub fn deduplicate_vertices(mut vertices: Vec<Vector2<f64>>, eps: f64) -> Vec<Vector2<f64>> {
-    if vertices.len() < 2 {
-        return vertices;
-    }
-
-    let mut i = 0;
-    while i < vertices.len() {
-        let j = (i + 1) % vertices.len();
-        if j == 0 && vertices.len() <= 2 {
-            break; // Don't reduce below 2 vertices
-        }
-        if (vertices[i] - vertices[j]).norm() < eps {
-            vertices.remove(j);
-            if j < i {
-                i -= 1;
-            }
-        } else {
-            i += 1;
-        }
-        if i >= vertices.len() {
-            break;
-        }
-    }
-
-    vertices
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
