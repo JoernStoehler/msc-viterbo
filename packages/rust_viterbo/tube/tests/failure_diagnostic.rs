@@ -2,7 +2,9 @@
 //!
 //! Run with: cargo test --package tube --test failure_diagnostic -- --nocapture
 
-use hk2017::{hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep as Hk2017Hrep, RejectionHistogram};
+use hk2017::{
+    hk2017_capacity, Hk2017Config, Hk2017Error, PolytopeHRep as Hk2017Hrep, RejectionHistogram,
+};
 use tube::{fixtures, tube_capacity, PolytopeHRep as TubeHrep, TubeError};
 
 fn tube_to_hk2017(hrep: &TubeHrep) -> Hk2017Hrep {
@@ -67,7 +69,9 @@ fn diagnose_failures() {
         let hk_polytope = tube_to_hk2017(&polytope);
         match hk2017_capacity(&hk_polytope, &Hk2017Config::naive()) {
             Ok(_) => hk_ok += 1,
-            Err(Hk2017Error::NoFeasibleInteriorPoint { rejection_reasons, .. }) => {
+            Err(Hk2017Error::NoFeasibleInteriorPoint {
+                rejection_reasons, ..
+            }) => {
                 hk_no_interior += 1;
                 // Accumulate rejection reasons
                 hk_rejection_totals.negative_beta += rejection_reasons.negative_beta;
@@ -95,7 +99,11 @@ fn diagnose_failures() {
     println!("Polytopes generated: {}", total_gen);
     println!();
     println!("TUBE RESULTS:");
-    println!("  OK:                 {} ({:.1}%)", tube_ok, 100.0 * tube_ok as f64 / total_gen as f64);
+    println!(
+        "  OK:                 {} ({:.1}%)",
+        tube_ok,
+        100.0 * tube_ok as f64 / total_gen as f64
+    );
     println!("  HasLagrangianTwoFaces: {}", tube_lagrangian);
     println!("  NumericalInstability:  {}", tube_numerical);
     println!("  NearSingularFlowMap:   {}", tube_singular);
@@ -103,16 +111,32 @@ fn diagnose_failures() {
     println!("  InvalidPolytope:       {}", tube_invalid);
     println!();
     println!("HK2017 RESULTS:");
-    println!("  OK:                 {} ({:.1}%)", hk_ok, 100.0 * hk_ok as f64 / total_gen as f64);
+    println!(
+        "  OK:                 {} ({:.1}%)",
+        hk_ok,
+        100.0 * hk_ok as f64 / total_gen as f64
+    );
     println!("  NoFeasibleInterior: {}", hk_no_interior);
     println!("  InvalidPolytope:    {}", hk_invalid);
     println!("  Other:              {}", hk_other);
     println!();
     println!("HK2017 REJECTION REASONS (summed across all NoFeasibleInterior failures):");
-    println!("  negative_beta:        {}", hk_rejection_totals.negative_beta);
-    println!("  singular_kkt:         {}", hk_rejection_totals.singular_kkt);
-    println!("  non_positive_q:       {}", hk_rejection_totals.non_positive_q);
-    println!("  constraint_violation: {}", hk_rejection_totals.constraint_violation);
+    println!(
+        "  negative_beta:        {}",
+        hk_rejection_totals.negative_beta
+    );
+    println!(
+        "  singular_kkt:         {}",
+        hk_rejection_totals.singular_kkt
+    );
+    println!(
+        "  non_positive_q:       {}",
+        hk_rejection_totals.non_positive_q
+    );
+    println!(
+        "  constraint_violation: {}",
+        hk_rejection_totals.constraint_violation
+    );
     println!("  other:                {}", hk_rejection_totals.other);
     println!();
     println!("Sample error messages:");
