@@ -21,6 +21,11 @@ pub const EPS_FEASIBILITY: f64 = 1e-10;
 /// Tolerance for vertex deduplication.
 pub const EPS_DEDUP: f64 = 1e-8;
 
+/// Tolerance for polygon reconstruction checks.
+/// More lenient than EPS because projection to 2D and reconstruction to 4D
+/// accumulates numerical error through multiple operations.
+pub const EPS_RECONSTRUCTION: f64 = 1e-8;
+
 /// Rotation bound margin for pruning (in turns).
 /// Tubes with rotation > 2.0 + EPS_ROTATION are pruned.
 pub const EPS_ROTATION: f64 = 0.01;

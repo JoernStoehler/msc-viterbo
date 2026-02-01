@@ -7,7 +7,7 @@
 
 use nalgebra::Vector4;
 
-use crate::constants::{EPS, EPS_LAGRANGIAN, MIN_POLYGON_AREA};
+use crate::constants::{EPS, EPS_LAGRANGIAN, EPS_RECONSTRUCTION, MIN_POLYGON_AREA};
 use crate::geometry::sort_ccw;
 use crate::quaternion::{reeb_vector, symplectic_form};
 use crate::trivialization::{
@@ -330,13 +330,15 @@ fn build_two_face_data_direct(
             k,
             two_face_data.polygon.vertices.len()
         );
-        debug_assert!(
-            two_face_data.polygon.area() >= MIN_POLYGON_AREA,
-            "2-face {}: polygon area {:.2e} < MIN_POLYGON_AREA ({:.2e})",
-            k,
-            two_face_data.polygon.area(),
-            MIN_POLYGON_AREA
-        );
+        // Check for degenerate (near-zero area) 2-faces
+        let polygon_area = two_face_data.polygon.area();
+        if polygon_area < MIN_POLYGON_AREA {
+            return Err(TubeError::DegenerateTwoFace {
+                two_face_idx: k,
+                area: polygon_area,
+                threshold: MIN_POLYGON_AREA,
+            });
+        }
         // Validate that each 2D polygon vertex reconstructs to a 4D point on both facets
         #[cfg(debug_assertions)]
         for (v_idx, v_2d) in two_face_data.polygon.vertices.iter().enumerate() {
@@ -348,14 +350,14 @@ fn build_two_face_data_direct(
             let exit_residual =
                 (two_face_data.exit_normal.dot(&p_4d) - vertices[tf.vertex_indices[0]].dot(&exit_normal)).abs();
             debug_assert!(
-                entry_residual < EPS,
+                entry_residual < EPS_RECONSTRUCTION,
                 "2-face {} vertex {}: reconstructed point not on entry facet (residual = {:.2e})",
                 k,
                 v_idx,
                 entry_residual
             );
             debug_assert!(
-                exit_residual < EPS,
+                exit_residual < EPS_RECONSTRUCTION,
                 "2-face {} vertex {}: reconstructed point not on exit facet (residual = {:.2e})",
                 k,
                 v_idx,
@@ -556,6 +558,117 @@ mod tests {
                 tf.polygon.vertices.len()
             );
         }
+    }
+
+    // =========================================================================
+    // Diagnostic test for failing seed
+    // =========================================================================
+
+    #[test]
+    fn test_seed_2661_transition_graph() {
+        let hrep = random_hrep(8, 0.01, 2661).expect("seed 2661 should produce valid polytope");
+        let data = preprocess(&hrep).unwrap();
+
+        println!("\n=== Seed 2661 Diagnostic ===");
+        println!("Facets: {}", data.num_facets);
+        println!("Vertices: {}", data.vertices.len());
+        println!("2-faces: {}", data.two_face_data.len());
+        println!("Transitions: {}", data.transitions.len());
+
+        println!("\n=== 2-faces ===");
+        for (i, tf) in data.two_face_data.iter().enumerate() {
+            println!(
+                "2-face {:2}: entry={}, exit={}, omega={:.4}, verts={}",
+                i, tf.entry_facet, tf.exit_facet, tf.omega, tf.polygon.vertices.len()
+            );
+        }
+
+        println!("\n=== Transitions (facet-level) ===");
+        for (i, trans) in data.transitions.iter().enumerate() {
+            let tf_entry = &data.two_face_data[trans.two_face_entry];
+            let tf_exit = &data.two_face_data[trans.two_face_exit];
+            println!(
+                "Trans {:2}: 2-face {} -> 2-face {} (facets: {} -> {} -> {})",
+                i,
+                trans.two_face_entry,
+                trans.two_face_exit,
+                tf_entry.entry_facet,
+                tf_entry.exit_facet,  // = middle facet
+                tf_exit.exit_facet
+            );
+        }
+
+        println!("\n=== Transition graph (2-face level) ===");
+        for (from_tf, targets) in data.lookup.transitions_from.iter().enumerate() {
+            let outgoing: Vec<_> = targets
+                .iter()
+                .map(|&t| data.transitions[t].two_face_exit)
+                .collect();
+            println!("2-face {:2} -> {:?}", from_tf, outgoing);
+        }
+
+        // BFS reachability
+        println!("\n=== Reachability from 2-face 0 ===");
+        let n = data.two_face_data.len();
+        let mut visited = vec![false; n];
+        let mut queue = std::collections::VecDeque::new();
+        queue.push_back(0);
+        visited[0] = true;
+
+        while let Some(k) = queue.pop_front() {
+            for &trans_idx in data.lookup.transitions_from(k) {
+                let exit_k = data.transitions[trans_idx].two_face_exit;
+                if !visited[exit_k] {
+                    visited[exit_k] = true;
+                    queue.push_back(exit_k);
+                }
+            }
+        }
+
+        for (i, &v) in visited.iter().enumerate() {
+            let tf = &data.two_face_data[i];
+            let status = if v { "REACHABLE" } else { "UNREACHABLE" };
+            println!(
+                "2-face {:2} (facets {} -> {}): {}",
+                i, tf.entry_facet, tf.exit_facet, status
+            );
+        }
+
+        let reachable_count = visited.iter().filter(|&&v| v).count();
+        println!(
+            "\nReachable: {}/{}",
+            reachable_count,
+            data.two_face_data.len()
+        );
+
+        // Check for facets that only appear as exit (sinks)
+        println!("\n=== Facet entry/exit analysis ===");
+        let mut facet_as_entry = vec![0usize; data.num_facets];
+        let mut facet_as_exit = vec![0usize; data.num_facets];
+        for tf in &data.two_face_data {
+            facet_as_entry[tf.entry_facet] += 1;
+            facet_as_exit[tf.exit_facet] += 1;
+        }
+        for i in 0..data.num_facets {
+            let status = if facet_as_entry[i] == 0 && facet_as_exit[i] > 0 {
+                "SINK"
+            } else if facet_as_entry[i] > 0 && facet_as_exit[i] == 0 {
+                "SOURCE"
+            } else {
+                ""
+            };
+            println!(
+                "Facet {}: entry={}, exit={} {}",
+                i, facet_as_entry[i], facet_as_exit[i], status
+            );
+        }
+
+        // The test should fail if graph is not connected
+        assert_eq!(
+            reachable_count,
+            data.two_face_data.len(),
+            "Graph should be connected"
+        );
     }
 
     // =========================================================================
