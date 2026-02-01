@@ -101,13 +101,20 @@ gh pr view <number> --comments
 # 3. Check inline review comments (unresolved discussions)
 gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {path, body, line}'
 
-# 4. Check if PR auto-closed any issues
+# 4. Check commits for context (referenced issues, TODOs)
+gh pr view <number> --json commits --jq '.commits[].messageHeadline'
+
+# 5. Check referenced issues/PRs mentioned in body or commits
+# If PR mentions "from #X" or "fixes #Y", verify those are in expected state
+gh issue view <referenced-number> --json state,title
+
+# 6. Check if PR auto-closed any issues
 gh pr view <number> --json closingIssuesReferences --jq '.closingIssuesReferences[]'
 
-# 5. Verify remote branch was deleted
+# 7. Verify remote branch was deleted
 git branch -r | grep <branch-name> && git push origin --delete <branch-name>
 
-# 6. Remove worktree if one existed
+# 8. Remove worktree if one existed
 git worktree list  # Check for task worktree
 .devcontainer/local/worktree-remove.sh /workspaces/worktrees/<task>
 ```
