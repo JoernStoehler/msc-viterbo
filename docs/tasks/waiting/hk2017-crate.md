@@ -1,6 +1,5 @@
 # hk2017 Crate Implementation
 
-**Status:** blocked
 **Priority:** P1
 **Milestone:** M1 (Code Correctness)
 **Blocked by:** geom4d symplectic_form, reeb_vector, Characteristic

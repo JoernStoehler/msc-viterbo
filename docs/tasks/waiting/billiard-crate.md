@@ -1,6 +1,5 @@
 # billiard Crate Implementation
 
-**Status:** blocked
 **Priority:** P2
 **Milestone:** M1 (Code Correctness)
 **Blocked by:** geom2d polygon_intersection, reflect_point, billiard_trajectory

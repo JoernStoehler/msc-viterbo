@@ -1,6 +1,5 @@
 # tube Crate Implementation
 
-**Status:** blocked
 **Priority:** P1
 **Milestone:** M1 (Code Correctness)
 **Blocked by:** geom4d TwoFace, is_lagrangian, flow_direction, adjacency; geom2d polygon_intersection

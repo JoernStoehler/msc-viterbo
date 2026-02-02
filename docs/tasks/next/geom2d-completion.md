@@ -1,6 +1,5 @@
 # geom2d Crate Completion
 
-**Status:** active
 **Priority:** P1
 **Milestone:** M1 (Code Correctness)
 
