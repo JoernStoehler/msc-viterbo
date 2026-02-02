@@ -3,21 +3,57 @@
 ## Milestones
 
 ### M1: Code Correctness (Target: Feb 2026)
-- [ ] geom2d foundation complete (Polygon, area, intersection)
-- [ ] geom4d foundation complete (HRep, is_bounded, symplectic_form, reeb_vector)
-- [ ] geom4d 2-faces complete (TwoFace, is_lagrangian, flow_direction)
-- [ ] Cross-algorithm agreement verified
+
+**Active:**
+- [geom2d-completion](active/geom2d-completion.md) — Polygon, area, intersection
+- [geom4d-completion](active/geom4d-completion.md) — HRep, is_bounded, symplectic, reeb, 2-faces
+
+**Blocked:**
+- [hk2017-crate](blocked/hk2017-crate.md) — Blocked by geom4d Characteristic
+- [tube-crate](blocked/tube-crate.md) — Blocked by geom4d 2-faces, geom2d intersection
+- [billiard-crate](blocked/billiard-crate.md) — Blocked by geom2d billiard trajectory
+
+**Verification:**
+- [ ] Cross-algorithm agreement on test polytopes
+- [ ] Comparison with literature values
 
 ### M2: Thesis Draft (Target: Feb 2026)
 - [ ] Algorithm chapter complete
 - [ ] Experiment chapter complete
+- [ ] Counterexample analysis ([counterexample-hko](blocked/counterexample-hko.md))
 
 ### M3: Final Submission (Target: Mar 2026)
 - [ ] Advisor review addressed
 - [ ] Final formatting
 
 ## Current Focus
-See docs/tasks/active/
+
+Priority order:
+1. **geom4d symplectic/reeb** — Unlocks HK2017
+2. **geom4d 2-faces** — Unlocks tube
+3. **geom2d intersection** — Unlocks tube capacity computation
+
+## Dependency Graph
+
+```
+geom2d                    geom4d
+  │                         │
+  ├─ Polygon ✓              ├─ HRep ✓
+  ├─ area ✓                 ├─ is_bounded ✓
+  ├─ intersection ○         ├─ symplectic_form ○
+  └─ billiard ○             ├─ reeb_vector ○
+       │                    ├─ TwoFace ○
+       │                    └─ Characteristic ○
+       │                         │
+       ▼                         ▼
+   billiard              hk2017    tube
+      ○                    ○        ○
+
+✓ = done, ○ = todo
+```
 
 ## Parking Lot
-Ideas captured but not prioritized.
+
+Ideas captured but not prioritized:
+- [algorithm-comparison](blocked/algorithm-comparison.md) — Compare HK2017 vs tube vs billiard
+- [polytope-database](blocked/polytope-database.md) — Systematic polytope enumeration
