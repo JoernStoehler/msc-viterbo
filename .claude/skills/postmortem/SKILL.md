@@ -26,4 +26,6 @@ Reflect on this session to help improve future agent prompts and workflows.
 
 7. **LSP plugins**: Did the code intelligence plugins (rust-analyzer-lsp, pyright-lsp) help or distract? Did they catch real errors? Did they produce noise/false positives?
 
+8. **Lint and config settings**: Did any lint errors cause unnecessary churn (fixing things that didn't matter)? Were there warnings you wish had been enabled that would have caught real issues earlier? Suggest specific ruff/pyright/clippy rules to enable or disable.
+
 Be concrete. "The prompt was unclear" is not useful. "The prompt said 'run tests' but didn't specify which command" is useful.
