@@ -1,79 +1,40 @@
 # Roadmap
 
-## Task Flow (GTD-style)
-
-```
-inbox → next → waiting → review → done
-```
-
-| Directory | Meaning |
-|-----------|---------|
-| `inbox/` | New/uncategorized tasks |
-| `next/` | Actively working on |
-| `waiting/` | Blocked on dependency |
-| `review/` | Agent done, awaiting Jörn review |
-| `done/` | Jörn approved, truly complete |
-
-Directory is source of truth for status. Move files to change status.
-
----
+MSc Thesis: Probing Viterbo's Conjecture
 
 ## Milestones
 
-### M1: Code Correctness (Target: Feb 2026)
+### M1: Code Correctness (Feb 2026)
+**Goal:** All algorithms pass correctness tests with mathematical proofs verified.
 
-**Next:**
-- [geom2d-completion](next/geom2d-completion.md) — Polygon, area, intersection
-- [geom4d-completion](next/geom4d-completion.md) — HRep, is_bounded, symplectic, reeb, 2-faces
+- [ ] geom2d: polygon primitives complete
+- [ ] geom4d: polytope primitives complete
+- [ ] tube: algorithm reimplemented with proofs
+- [ ] hk2017: algorithm reimplemented with proofs
+- [ ] FFI: all algorithms exposed to Python
 
-**Waiting:**
-- [hk2017-crate](waiting/hk2017-crate.md) — Blocked by geom4d Characteristic
-- [tube-crate](waiting/tube-crate.md) — Blocked by geom4d 2-faces, geom2d intersection
-- [billiard-crate](waiting/billiard-crate.md) — Blocked by geom2d billiard trajectory
+### M2: Thesis Draft (Feb 2026)
+**Goal:** Complete thesis draft ready for advisor review.
 
-**Verification:**
-- [ ] Cross-algorithm agreement on test polytopes
-- [ ] Comparison with literature values
+- [ ] Math chapters written
+- [ ] Experiment chapters written
+- [ ] All figures generated
+- [ ] Bibliography complete
 
-### M2: Thesis Draft (Target: Feb 2026)
-- [ ] Algorithm chapter complete
-- [ ] Experiment chapter complete
-- [ ] Counterexample analysis ([counterexample-hko](waiting/counterexample-hko.md))
+### M3: Final Submission (Mar 2026)
+**Goal:** Defended thesis submitted.
 
-### M3: Final Submission (Target: Mar 2026)
-- [ ] Advisor review addressed
-- [ ] Final formatting
-
----
+- [ ] Advisor feedback addressed
+- [ ] Final PDF generated
+- [ ] Submission complete
 
 ## Current Focus
 
-Priority order:
-1. **geom4d symplectic/reeb** — Unlocks HK2017
-2. **geom4d 2-faces** — Unlocks tube
-3. **geom2d intersection** — Unlocks tube capacity computation
-
-## Dependency Graph
-
-```
-geom2d                    geom4d
-  │                         │
-  ├─ Polygon ✓              ├─ HRep ✓
-  ├─ area ✓                 ├─ is_bounded ✓
-  ├─ intersection ○         ├─ symplectic_form ○
-  └─ billiard ○             ├─ reeb_vector ○
-       │                    ├─ TwoFace ○
-       │                    └─ Characteristic ○
-       │                         │
-       ▼                         ▼
-   billiard              hk2017    tube
-      ○                    ○        ○
-
-✓ = done, ○ = todo
-```
+Restructuring repository and extracting learnings from previous experiment attempts.
 
 ## Parking Lot
 
-Ideas captured but not prioritized:
-- [algorithm-comparison](waiting/algorithm-comparison.md) — Compare HK2017 vs tube vs billiard
-- [polytope-database](waiting/polytope-database.md) — Systematic polytope enumeration
+Items deferred for later consideration:
+- Billiard algorithm implementation
+- 4D convex hull (V-rep to H-rep)
+- Parallel computation for large polytopes
