@@ -36,6 +36,7 @@ pub mod types;
 
 // Re-export main API
 pub use algorithm::tube_capacity;
+pub use geom::is_bounded;
 pub use preprocess::{preprocess, PolytopeData};
 pub use types::{
     validate_for_tube, AffineFunc, AffineMap2D, ClosedReebOrbit, Polygon2D, PolytopeHRep,

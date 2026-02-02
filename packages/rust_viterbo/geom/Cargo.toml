@@ -10,6 +10,7 @@ authors.workspace = true
 nalgebra = "0.33"
 thiserror = "2"
 qhull = "0.4"
+minilp = "0.2"
 
 [dev-dependencies]
 approx = "0.5"

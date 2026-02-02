@@ -26,13 +26,19 @@
 //!
 //! - [`volume`]: Volume computation using QHull
 //! - [`systolic`]: Systolic ratio from capacity and volume
+//!
+//! # Boundedness
+//!
+//! - [`is_bounded`]: Check if H-rep defines a bounded polytope
 
+pub mod boundedness;
 pub mod polygon2d;
 pub mod polytope;
 pub mod systolic;
 pub mod tolerances;
 pub mod volume;
 
+pub use boundedness::is_bounded;
 pub use polygon2d::{support_function, t_dual_length, Polygon2D, Polygon2DError};
 pub use polytope::PolytopeHRep;
 pub use tolerances::{EPS, EPS_UNIT};
