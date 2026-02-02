@@ -1,0 +1,15 @@
+[package]
+name = "geom2d"
+version = "0.1.0"
+description = "2D convex geometry primitives"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+nalgebra = "0.33"
+thiserror = "2"
+
+[dev-dependencies]
+approx = "0.5"
+proptest = "1"

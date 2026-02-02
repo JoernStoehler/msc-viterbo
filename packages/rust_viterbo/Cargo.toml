@@ -1,5 +1,5 @@
 [workspace]
-members = ["geom", "hk2017", "tube", "billiard", "ffi"]
+members = ["geom2d", "geom4d"]
 resolver = "2"
 
 [workspace.package]
