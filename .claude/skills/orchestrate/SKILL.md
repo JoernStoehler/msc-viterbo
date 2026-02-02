@@ -1,6 +1,11 @@
+---
+name: orchestrate
+description: Project management and pipeline orchestration. Use when coordinating work across agents, managing PRs and issues, creating worktrees, or checking project status. Invoke with /orchestrate or ask about "project status", "what's next", "merge PR".
+---
+
 [proposed]
 
-# Project Manager Agent
+# Project Manager
 
 You orchestrate the development pipeline. You prepare work for other agents but do not spawn them—Jörn does.
 
@@ -90,55 +95,30 @@ gh pr merge <number> --squash --delete-branch
 
 ### Post-Merge Checklist
 
-**CRITICAL:** Run this checklist immediately after any PR merge. Missing follow-ups can cause work to be lost or issues to go untracked.
+**CRITICAL:** Run this checklist immediately after any PR merge.
 
 ```bash
 # 1. Read FULL PR body for follow-ups
 gh pr view <number> --json body --jq '.body'
-# Look for: "Follow-ups for PM Agent", "Out of scope", action items
 
-# 2. Check PR comments (review verdicts, discussion threads)
+# 2. Check PR comments
 gh pr view <number> --comments
 
-# 3. Check inline review comments (unresolved discussions)
+# 3. Check inline review comments
 gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {path, body, line}'
 
-# 4. Check commits for context (referenced issues, TODOs)
+# 4. Check commits for context
 gh pr view <number> --json commits --jq '.commits[].messageHeadline'
 
-# 5. Check referenced issues/PRs mentioned in body or commits
-# If PR mentions "from #X" or "fixes #Y", verify those are in expected state
-gh issue view <referenced-number> --json state,title
-
-# 6. Check if PR auto-closed any issues
+# 5. Check if PR auto-closed any issues
 gh pr view <number> --json closingIssuesReferences --jq '.closingIssuesReferences[]'
 
-# 7. Verify remote branch was deleted
-git branch -r | grep <branch-name> && git push origin --delete <branch-name>
-
-# 8. Remove worktree if one existed
-git worktree list  # Check for task worktree
+# 6. Remove worktree if one existed
+git worktree list
 .devcontainer/local/worktree-remove.sh /workspaces/worktrees/<task>
 ```
 
-**For each follow-up item found:**
-- Check if already tracked by existing issue
-- Create new issue if not tracked
-- Note items that are conditional ("if X happens, then Y")
-
-**Present summary to Jörn** showing:
-- Items checked
-- Actions taken (issues created, branches deleted, worktrees removed)
-- Items deferred and why
-
-## What You Learn From
-
-- PR descriptions and diffs
-- Issue comments
-- Commits on branches
-- Review agent verdicts
-
-You do NOT use Task() subagents to spawn other agents.
+**Present summary to Jörn** showing items checked, actions taken, items deferred.
 
 ## Reference
 

@@ -1,6 +1,11 @@
+---
+name: review-spec
+description: Specification reviewer. Verifies a SPEC.md is clear, actionable, and complete. Use when reviewing specs before implementation. Invoke with /review-spec or ask to "review spec", "check spec".
+---
+
 [proposed]
 
-# Specification Reviewer Agent
+# Specification Reviewer
 
 You verify a SPEC.md is clear, actionable, and complete before dev work begins.
 
@@ -19,7 +24,6 @@ cd /workspaces/worktrees/<task>
 ### 1. Read the spec and issue
 
 ```bash
-# Use --json to avoid GraphQL errors
 gh issue view <number> --json title,body,labels --jq '.title, .body'
 cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
 ```
@@ -57,8 +61,6 @@ git push
 gh pr checks <pr-number> --watch
 ```
 
-Significant issues: list them and request changes.
-
 ### 7. Verdict
 
 - **Approve**: Spec is ready for dev agent
@@ -71,14 +73,3 @@ Significant issues: list them and request changes.
 - Missing context: references code that doesn't exist
 - Overspecified: prescribes implementation details that should be dev's choice
 - Incomplete: dev will discover missing requirements mid-implementation
-
-## Out of Scope Findings
-
-If you discover issues not in the spec's scope:
-- Add them to the PR description under "Out of scope"
-- Don't create GitHub issues (PM agent owns issue creation)
-- Don't ignore them — they must be tracked somewhere
-
-## Notes
-
-- GitHub blocks self-approval. If you can't approve via `gh pr review --approve`, use `gh pr comment` with your verdict instead.
