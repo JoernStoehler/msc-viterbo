@@ -383,4 +383,61 @@ mod tests {
         let result = polytope_volume_hrep(&normals, &heights);
         assert!(matches!(result, Err(VolumeError::EmptyInput)));
     }
+
+    /// V1: Volume scales as λ⁴ for a 4D polytope: vol(λK) = λ⁴ vol(K)
+    #[test]
+    fn test_tesseract_scaling() {
+        let (normals, heights) = make_tesseract();
+        let vol_1 = polytope_volume_hrep(&normals, &heights).unwrap();
+
+        // Scale by λ: heights become λ·heights (normals stay unit)
+        for &lambda in &[0.5, 2.0, 3.0, 0.1] {
+            let scaled_heights: Vec<f64> = heights.iter().map(|h| h * lambda).collect();
+            let vol_scaled = polytope_volume_hrep(&normals, &scaled_heights).unwrap();
+
+            let expected = lambda.powi(4) * vol_1;
+            assert!(
+                (vol_scaled - expected).abs() < TOL * expected.max(1.0),
+                "Scaling by λ={}: expected vol={}, got {}",
+                lambda,
+                expected,
+                vol_scaled
+            );
+        }
+    }
+
+    /// V3: Volume computation works when origin is not at center
+    #[test]
+    fn test_shifted_polytope() {
+        // Create a tesseract shifted so origin is near a corner but still interior
+        // Original tesseract: [-1, 1]⁴
+        // Shifted: [-0.5, 1.5]⁴ (shift by +0.5 in all directions)
+        // Origin is still interior since -0.5 < 0 < 1.5
+
+        let normals = vec![
+            Vector4::new(1.0, 0.0, 0.0, 0.0),
+            Vector4::new(-1.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, -1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            Vector4::new(0.0, 0.0, -1.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+            Vector4::new(0.0, 0.0, 0.0, -1.0),
+        ];
+
+        // For ⟨n_i, x⟩ ≤ h_i, with the shifted box:
+        // x₁ ≤ 1.5 → h₁ = 1.5
+        // -x₁ ≤ 0.5 → h₂ = 0.5
+        // (similarly for other dimensions)
+        let heights = vec![1.5, 0.5, 1.5, 0.5, 1.5, 0.5, 1.5, 0.5];
+
+        let volume = polytope_volume_hrep(&normals, &heights).unwrap();
+
+        // Volume should still be 2⁴ = 16 (side length 2 in each dimension)
+        assert!(
+            (volume - 16.0).abs() < TOL,
+            "shifted tesseract volume: expected 16.0, got {}",
+            volume
+        );
+    }
 }

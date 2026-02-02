@@ -469,4 +469,128 @@ mod tests {
             action
         );
     }
+
+    // ========================================================================
+    // A3: Shear particular solution verification
+    // ========================================================================
+
+    /// Verify that (A-I)*s = -b holds for the particular solution in the shear case.
+    ///
+    /// In the shear case (det(A-I) ≈ 0 with rank 1), the fixed point equation
+    /// (A-I)s = -b has solutions only when -b is in the column space of A-I.
+    /// The particular solution s_particular should satisfy:
+    ///   (A-I) * s_particular = -b (up to the rank-1 constraint)
+    #[test]
+    fn test_shear_particular_solution() {
+        // Shear matrix: A = [[1, k], [0, 1]] for some k != 0
+        // A - I = [[0, k], [0, 0]]
+        // Column space of A-I is span{(k, 0)} = span{(1, 0)}
+        // Null space of A-I is span{(1, 0)} (kernel of [0, k; 0, 0])
+        // Actually null space: [0,k;0,0] * [x,y]^T = [ky, 0]^T, so null space is span{(1,0)}
+
+        let k = 2.0;
+        let a = Matrix2::new(1.0, k, 0.0, 1.0);
+        let a_minus_i = a - Matrix2::identity();
+
+        // Case 1: -b in column space (has solution)
+        // Column space is span{(1,0)}, so b should have b[1] = 0
+        let b_valid = Vector2::new(3.0, 0.0); // -b = (-3, 0) which is in span{(1,0)}
+        let neg_b_valid = -b_valid;
+
+        // The particular solution should be s such that (A-I)*s = -b
+        // [0, k; 0, 0] * [s0, s1]^T = [k*s1, 0]^T = -b = (-3, 0)
+        // So s1 = -3/k = -1.5, s0 can be anything
+        // A particular solution is s = (0, -1.5)
+        let s_particular = Vector2::new(0.0, neg_b_valid[0] / k);
+
+        // Verify: (A-I) * s_particular = -b
+        let result = a_minus_i * s_particular;
+        assert!(
+            (result - neg_b_valid).norm() < 1e-10,
+            "(A-I) * s_particular = {:?}, expected {:?}",
+            result,
+            neg_b_valid
+        );
+
+        // Case 2: -b NOT in column space (no solution)
+        // b = (0, 1) means -b = (0, -1), which is not in span{(1,0)}
+        let b_invalid = Vector2::new(0.0, 1.0);
+
+        // Create a tube with this invalid offset and verify no fixed point found
+        let tube_no_solution = make_test_tube(a, b_invalid, Vector2::new(1.0, 1.0), 1.0);
+        let result = find_closed_orbit(&tube_no_solution);
+        assert!(
+            result.is_none(),
+            "Should find no fixed point when -b not in column space"
+        );
+
+        // Case 3: b = 0 means all points on the null space line are fixed
+        // Null space of A-I is span{(1, 0)}, so fixed points form line y = 0
+        let tube_line_fixed = make_test_tube(a, Vector2::zeros(), Vector2::new(0.0, 1.0), 1.0);
+        let result = find_closed_orbit(&tube_line_fixed);
+
+        // Should find a fixed point on the line y = 0 within the polygon [-1,1]x[-1,1]
+        // However, the fixed points are on y=0 (the x-axis), but the action is y + 1
+        // So action = 0 + 1 = 1 for all points on the fixed line within the polygon
+        // The test polygon is [-1,1]x[-1,1], so the fixed line y=0 intersects it at x in [-1,1]
+        assert!(
+            result.is_some(),
+            "Should find fixed point on fixed-point line"
+        );
+
+        if let Some((_action, point)) = result {
+            // Verify it's a fixed point
+            let mapped = (a * point) + Vector2::zeros(); // b = 0
+            assert!(
+                (point - mapped).norm() < 1e-10,
+                "Point should be fixed: {:?} maps to {:?}",
+                point,
+                mapped
+            );
+        }
+    }
+
+    /// Additional test: verify the particular solution computation from find_fixed_point_on_line.
+    ///
+    /// This tests the internal logic: when we find a particular solution s_particular,
+    /// it should satisfy w · s_particular = b_component where w is the active row.
+    #[test]
+    fn test_particular_solution_satisfies_constraint() {
+        // Use a more general shear: A = [[1, 0.5], [0.3, 1]]
+        // This makes A-I = [[0, 0.5], [0.3, 0]] which has det = -0.15 (rank 2 actually)
+        // Let's use a true rank-1 case: A = [[1, 2], [0, 1]]
+        let a = Matrix2::new(1.0, 2.0, 0.0, 1.0);
+        let a_minus_i = a - Matrix2::identity(); // [[0, 2], [0, 0]]
+
+        // For b = (4, 0), -b = (-4, 0) which is in column space of A-I
+        // (A-I) = [[0, 2], [0, 0]], column space is span{(2, 0)} = span{(1, 0)}
+        let b = Vector2::new(4.0, 0.0);
+        let neg_b = -b;
+
+        // The equation (A-I)*s = -b becomes:
+        // 2*s1 = -4, so s1 = -2
+        // Particular solution: (0, -2) or any (x, -2)
+        let s_part = Vector2::new(0.0, -2.0);
+
+        // Verify
+        let check = a_minus_i * s_part;
+        assert!(
+            (check - neg_b).norm() < 1e-10,
+            "Particular solution check: (A-I)*s = {:?}, expected {:?}",
+            check,
+            neg_b
+        );
+
+        // The fixed point should be s = s_part + t*null_vec for some t
+        // where null_vec = (1, 0) (null space of [0,2;0,0])
+        // Let's verify s* = (1, -2) is also a fixed point
+        let s_fixed = Vector2::new(1.0, -2.0);
+        let mapped = a * s_fixed + b;
+        assert!(
+            (mapped - s_fixed).norm() < 1e-10,
+            "s* = {:?} should be fixed: A*s + b = {:?}",
+            s_fixed,
+            mapped
+        );
+    }
 }

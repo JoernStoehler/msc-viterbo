@@ -164,4 +164,31 @@ mod tests {
     fn test_systolic_ratio_zero_volume() {
         systolic_ratio(4.0, 0.0);
     }
+
+    /// S2: Scale invariance holds at extreme scale factors (λ = 1e-8, 1e8)
+    #[test]
+    fn test_scale_invariance_extreme() {
+        let c_base = 4.0;
+        let v_base = 16.0;
+        let sys_base = systolic_ratio(c_base, v_base);
+
+        // Test with extreme scaling factors
+        for &lambda in &[1e-8, 1e8] {
+            // Scaling K by λ: capacity scales as λ², volume scales as λ⁴
+            let c_scaled = lambda * lambda * c_base;
+            let v_scaled = lambda.powi(4) * v_base;
+            let sys_scaled = systolic_ratio(c_scaled, v_scaled);
+
+            // Relative error should be small even at extreme scales
+            let rel_error = (sys_scaled - sys_base).abs() / sys_base;
+            assert!(
+                rel_error < 1e-10,
+                "Scale invariance failed at λ={}: sys_base={}, sys_scaled={}, rel_error={}",
+                lambda,
+                sys_base,
+                sys_scaled,
+                rel_error
+            );
+        }
+    }
 }

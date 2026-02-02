@@ -382,4 +382,89 @@ mod tests {
         let len = t_dual_length(&Vector2::new(2.0, 0.0), &square);
         assert_relative_eq!(len, 2.0, epsilon = EPS);
     }
+
+    /// G1: Support function is positively homogeneous: h(λv) = λh(v) for λ > 0
+    #[test]
+    fn test_support_homogeneity() {
+        let square = Polygon2D::square(2.0).unwrap();
+        let pentagon = make_regular_pentagon();
+
+        let test_directions = [
+            Vector2::new(1.0, 0.0),
+            Vector2::new(0.0, 1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 0.5),
+            Vector2::new(0.3, -0.7),
+        ];
+
+        let lambdas = [0.5, 1.0, 2.0, 10.0, 0.001];
+
+        for polygon in &[square.clone(), pentagon] {
+            for v in &test_directions {
+                let h_v = support_function(v, polygon);
+                for &lambda in &lambdas {
+                    let scaled_v = v * lambda;
+                    let h_scaled = support_function(&scaled_v, polygon);
+                    assert_relative_eq!(
+                        h_scaled,
+                        lambda * h_v,
+                        epsilon = 1e-10,
+                        max_relative = 1e-10
+                    );
+                }
+            }
+        }
+    }
+
+    /// G2: Support function is subadditive: h(u+v) ≤ h(u) + h(v)
+    #[test]
+    fn test_support_subadditivity() {
+        let square = Polygon2D::square(2.0).unwrap();
+        let pentagon = make_regular_pentagon();
+
+        let test_vectors = [
+            Vector2::new(1.0, 0.0),
+            Vector2::new(0.0, 1.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(-1.0, 0.5),
+            Vector2::new(0.3, -0.7),
+            Vector2::new(-0.5, -0.5),
+        ];
+
+        for polygon in &[square.clone(), pentagon] {
+            for u in &test_vectors {
+                for v in &test_vectors {
+                    let h_u = support_function(u, polygon);
+                    let h_v = support_function(v, polygon);
+                    let h_sum = support_function(&(u + v), polygon);
+
+                    // h(u+v) ≤ h(u) + h(v)
+                    assert!(
+                        h_sum <= h_u + h_v + 1e-10,
+                        "Subadditivity violated: h({:?}+{:?}) = {} > {} + {} = {}",
+                        u,
+                        v,
+                        h_sum,
+                        h_u,
+                        h_v,
+                        h_u + h_v
+                    );
+                }
+            }
+        }
+    }
+
+    /// G3: Support function at facet normal equals the height: h(n_i) = heights[i]
+    #[test]
+    fn test_support_normal_equals_height() {
+        let square = Polygon2D::square(2.0).unwrap();
+        let pentagon = make_regular_pentagon();
+
+        for polygon in &[square, pentagon] {
+            for (i, normal) in polygon.normals.iter().enumerate() {
+                let h = support_function(normal, polygon);
+                assert_relative_eq!(h, polygon.heights[i], epsilon = 1e-10, max_relative = 1e-10);
+            }
+        }
+    }
 }

@@ -376,6 +376,14 @@ pub enum TubeError {
     /// No closed orbits found.
     #[error("No closed orbits found")]
     NoClosedOrbits,
+
+    /// A 2-face has degenerate (near-zero) area.
+    #[error("2-face {two_face_idx} has degenerate polygon area: {area:.2e} < {threshold:.2e}")]
+    DegenerateTwoFace {
+        two_face_idx: usize,
+        area: f64,
+        threshold: f64,
+    },
 }
 
 /// Result of the tube capacity computation.

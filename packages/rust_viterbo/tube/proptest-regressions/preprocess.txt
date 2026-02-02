@@ -1,0 +1,9 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+#
+# Seed 2661 was fixed in issue #155 - polytopes with incomplete facet
+# adjacency are now rejected by random_hrep.

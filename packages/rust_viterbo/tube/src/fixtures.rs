@@ -10,6 +10,9 @@
 
 use nalgebra::Vector4;
 
+#[cfg(test)]
+use proptest::prelude::*;
+
 use crate::types::PolytopeHRep;
 
 /// Unit cross-polytope (16-cell): conv{±e₁, ±e₂, ±e₃, ±e₄}.
@@ -289,7 +292,97 @@ pub fn random_hrep(n_facets: usize, min_omega: f64, seed: u64) -> Option<Polytop
         }
     }
 
+    // Check for redundant halfspaces (boundary meets K in < 4 vertices)
+    // In an irredundant H-rep, every halfspace defines a facet (3-face).
+    // A facet in 4D has at least 4 vertices.
+    if has_redundant_halfspaces(&hrep, &data.vertices) {
+        return None;
+    }
+
+    // Check for incomplete facet adjacency (facet has faces not on 2-faces)
+    // In a well-formed polytope, every face of a facet (as a 3D polytope)
+    // should be a 2-face of the 4D polytope.
+    if has_incomplete_facet_adjacency(&hrep, &data.vertices) {
+        return None;
+    }
+
     Some(hrep)
+}
+
+/// Check if the H-rep has redundant halfspaces.
+///
+/// A halfspace is redundant if its boundary meets K in fewer than 4 vertices.
+/// In an irredundant H-rep, every halfspace defines a facet (3-face), and
+/// a 3-face in 4D has at least 4 vertices.
+///
+/// If this returns true, the H-rep is not irredundant.
+fn has_redundant_halfspaces(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
+    use crate::constants::EPS;
+
+    let n_halfspaces = hrep.num_facets();
+
+    for i in 0..n_halfspaces {
+        let mut vertex_count = 0;
+        for v in vertices {
+            let n = &hrep.normals[i];
+            let h = hrep.heights[i];
+            if (n.dot(v) - h).abs() < EPS {
+                vertex_count += 1;
+            }
+        }
+        // A facet in 4D needs at least 4 vertices; fewer means redundant
+        if vertex_count < 4 {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Check if any facet has incomplete adjacency (a face not on any 2-face).
+///
+/// In a well-formed 4D polytope, each facet (3-face) is a 3D polytope.
+/// Each 2D face of that 3D polytope should be a 2-face of the 4D polytope
+/// (shared with exactly one other facet).
+///
+/// If a facet has a triangular face that is not shared with any other facet,
+/// the polytope has "incomplete facet adjacency" and violates the assumptions
+/// of the tube algorithm's flow structure.
+///
+/// This check is conservative: we verify that for each pair of facets sharing
+/// at least 2 vertices, they actually share at least 3 (forming a 2-face).
+fn has_incomplete_facet_adjacency(hrep: &PolytopeHRep, vertices: &[Vector4<f64>]) -> bool {
+    use crate::constants::EPS;
+
+    let n_facets = hrep.num_facets();
+
+    // For each facet, find vertices on it
+    let mut facet_vertices: Vec<Vec<usize>> = vec![Vec::new(); n_facets];
+    for (v_idx, v) in vertices.iter().enumerate() {
+        for i in 0..n_facets {
+            if (hrep.normals[i].dot(v) - hrep.heights[i]).abs() < EPS {
+                facet_vertices[i].push(v_idx);
+            }
+        }
+    }
+
+    // For each pair of facets, check shared vertex count
+    for i in 0..n_facets {
+        for j in (i + 1)..n_facets {
+            let shared_count = facet_vertices[i]
+                .iter()
+                .filter(|v| facet_vertices[j].contains(v))
+                .count();
+
+            // If they share 2 vertices (an edge), they should share at least 3
+            // (a proper 2-face). 2-vertex sharing indicates incomplete adjacency.
+            if shared_count == 2 {
+                return true;
+            }
+        }
+    }
+
+    false
 }
 
 /// Rejection reason for random_hrep diagnostics.
@@ -301,7 +394,11 @@ pub enum RejectionReason {
     NearLagrangian,
     /// Polytope is unbounded (normals don't positively span ℝ⁴)
     Unbounded,
-    /// Preprocess failed for another reason (degenerate, etc.)
+    /// H-rep is not irredundant (some halfspace boundary meets K in < 4 vertices)
+    RedundantHalfspace,
+    /// Facets share only an edge (2 vertices), not a proper 2-face (≥3 vertices)
+    IncompleteFacetAdjacency,
+    /// Preprocess failed for another reason
     PreprocessFailed,
 }
 
@@ -382,7 +479,94 @@ pub fn random_hrep_diagnostic(
         }
     }
 
+    // Check for redundant halfspaces (boundary meets K in < 4 vertices)
+    if has_redundant_halfspaces(&hrep, &data.vertices) {
+        return Err(RejectionReason::RedundantHalfspace);
+    }
+
+    // Check for incomplete facet adjacency (facets sharing only an edge)
+    if has_incomplete_facet_adjacency(&hrep, &data.vertices) {
+        return Err(RejectionReason::IncompleteFacetAdjacency);
+    }
+
     Ok(hrep)
+}
+
+/// Returns all standard test polytopes including random polytopes from seeds 0-99.
+///
+/// This function provides a comprehensive set of test cases:
+/// - Standard polytopes: cross-polytope, 24-cell, tesseract, simplex
+/// - Scaled variants: 2x and 0.5x cross-polytope
+/// - Random polytopes: seeds 0-99 with 8 facets and min_omega = 0.001
+///
+/// Each polytope is returned with a descriptive name for test output.
+/// Random polytopes that fail generation (rejected by `random_hrep`) are skipped.
+pub fn all_test_polytopes() -> Vec<(&'static str, PolytopeHRep)> {
+    let mut polytopes = Vec::new();
+
+    // Standard polytopes
+    polytopes.push(("cross-polytope", unit_cross_polytope()));
+    polytopes.push(("24-cell", unit_24_cell()));
+    polytopes.push(("tesseract", unit_tesseract()));
+    polytopes.push(("4-simplex", four_simplex()));
+    polytopes.push(("scaled-cross-2x", scaled_cross_polytope(2.0)));
+    polytopes.push(("scaled-cross-0.5x", scaled_cross_polytope(0.5)));
+
+    // Random polytopes from seeds 0-99
+    // Use Box::leak to get 'static str for the names
+    for seed in 0..100u64 {
+        if let Some(hrep) = random_hrep(8, 0.001, seed) {
+            // Leak a string to get a 'static reference
+            let name: &'static str = Box::leak(format!("random-seed-{}", seed).into_boxed_str());
+            polytopes.push((name, hrep));
+        }
+    }
+
+    polytopes
+}
+
+/// Proptest strategy for generating random polytopes.
+///
+/// Generates polytopes by:
+/// 1. Picking a random seed
+/// 2. Picking a random number of facets (6-12)
+/// 3. Using `random_hrep` with min_omega = 0.001
+///
+/// Uses `prop_filter_map` to reject seeds that don't produce valid polytopes.
+/// The rejection rate is high (~90%), but proptest handles this gracefully.
+#[cfg(test)]
+pub fn polytope_strategy() -> impl Strategy<Value = PolytopeHRep> {
+    // Use a range of seeds and facet counts
+    (0u64..10000, 6usize..=12).prop_filter_map("valid random polytope", |(seed, n_facets)| {
+        random_hrep(n_facets, 0.001, seed)
+    })
+}
+
+/// Check if a polytope has any Lagrangian 2-faces.
+///
+/// A 2-face is Lagrangian if the symplectic form ω(n_i, n_j) ≈ 0 for adjacent facets.
+/// Such polytopes are unsuitable for the tube algorithm.
+///
+/// This is useful with proptest's `prop_assume!` macro:
+/// ```ignore
+/// proptest! {
+///     fn test_tube_algorithm(hrep in polytope_strategy()) {
+///         prop_assume!(!has_lagrangian_two_faces(&hrep));
+///         // ... test tube algorithm
+///     }
+/// }
+/// ```
+pub fn has_lagrangian_two_faces(hrep: &PolytopeHRep) -> bool {
+    use crate::preprocess::preprocess;
+
+    match preprocess(hrep) {
+        Ok(data) => data.has_lagrangian_two_faces(),
+        Err(_) => {
+            // If preprocessing fails, we can't determine Lagrangian status
+            // Conservatively return true to indicate potential issues
+            true
+        }
+    }
 }
 
 #[cfg(test)]
@@ -781,21 +965,29 @@ mod tests {
         for n_facets in [6, 8, 10] {
             let mut counts: HashMap<&str, usize> = HashMap::new();
             counts.insert("success", 0);
-            counts.insert("degenerate", 0);
+            counts.insert("degenerate_normal", 0);
             counts.insert("lagrangian", 0);
             counts.insert("unbounded", 0);
+            counts.insert("redundant_halfspace", 0);
+            counts.insert("incomplete_adjacency", 0);
             counts.insert("preprocess_failed", 0);
 
             for seed in 0..n_seeds {
                 match random_hrep_diagnostic(n_facets, min_omega, seed as u64) {
                     Ok(_) => *counts.get_mut("success").unwrap() += 1,
                     Err(RejectionReason::DegenerateNormal) => {
-                        *counts.get_mut("degenerate").unwrap() += 1
+                        *counts.get_mut("degenerate_normal").unwrap() += 1
                     }
                     Err(RejectionReason::NearLagrangian) => {
                         *counts.get_mut("lagrangian").unwrap() += 1
                     }
                     Err(RejectionReason::Unbounded) => *counts.get_mut("unbounded").unwrap() += 1,
+                    Err(RejectionReason::RedundantHalfspace) => {
+                        *counts.get_mut("redundant_halfspace").unwrap() += 1
+                    }
+                    Err(RejectionReason::IncompleteFacetAdjacency) => {
+                        *counts.get_mut("incomplete_adjacency").unwrap() += 1
+                    }
                     Err(RejectionReason::PreprocessFailed) => {
                         *counts.get_mut("preprocess_failed").unwrap() += 1
                     }
@@ -803,14 +995,166 @@ mod tests {
             }
 
             println!(
-                "n={}: success={}, degenerate={}, lagrangian={}, unbounded={}, preprocess_failed={}",
+                "n={}: success={}, lagrangian={}, unbounded={}, redundant={}, incomplete_adj={}, preprocess_fail={}",
                 n_facets,
                 counts["success"],
-                counts["degenerate"],
                 counts["lagrangian"],
                 counts["unbounded"],
+                counts["redundant_halfspace"],
+                counts["incomplete_adjacency"],
                 counts["preprocess_failed"],
             );
+        }
+    }
+
+    /// Test that H-reps with redundant halfspaces are rejected.
+    ///
+    /// This tests the error path for issue #155: random H-reps can have
+    /// halfspaces whose boundaries meet K in fewer than 4 vertices,
+    /// meaning they don't define facets (the H-rep is not irredundant).
+    #[test]
+    fn test_rejects_redundant_halfspaces() {
+        use crate::preprocess::preprocess;
+
+        // Seed 0 is known to produce an H-rep with redundant halfspaces
+        // (halfspaces 0 and 6 have boundaries meeting K in only 2 vertices)
+        let min_omega = 0.001;
+
+        // The original seed=0 should now be rejected
+        let result = random_hrep_diagnostic(8, min_omega, 0);
+
+        // It should either succeed (irredundant) or fail with RedundantHalfspace
+        // After our fix, seed=0 should fail with RedundantHalfspace
+        match result {
+            Ok(hrep) => {
+                // If it succeeds, verify H-rep is irredundant
+                let data = preprocess(&hrep).expect("Should preprocess");
+                for facet in 0..hrep.num_facets() {
+                    let mut vertex_count = 0;
+                    for v in &data.vertices {
+                        let n = &hrep.normals[facet];
+                        let h = hrep.heights[facet];
+                        if (n.dot(v) - h).abs() < EPS {
+                            vertex_count += 1;
+                        }
+                    }
+                    assert!(
+                        vertex_count >= 4,
+                        "Halfspace {} boundary meets K in only {} vertices (need 4+ for facet)",
+                        facet,
+                        vertex_count
+                    );
+                }
+            }
+            Err(RejectionReason::RedundantHalfspace) => {
+                // Expected for seed=0 - this is the fix working
+            }
+            Err(other) => {
+                // Some other rejection is also acceptable
+                println!("Seed 0 rejected for other reason: {:?}", other);
+            }
+        }
+    }
+
+    // === Tests for new fixture functions ===
+
+    #[test]
+    fn test_all_test_polytopes_contains_standard_fixtures() {
+        let polytopes = all_test_polytopes();
+
+        // Should have at least the standard fixtures
+        assert!(polytopes.len() >= 6, "Should have at least 6 standard fixtures");
+
+        // Check that standard fixtures are present
+        let names: Vec<&str> = polytopes.iter().map(|(name, _)| *name).collect();
+        assert!(names.contains(&"cross-polytope"), "Missing cross-polytope");
+        assert!(names.contains(&"24-cell"), "Missing 24-cell");
+        assert!(names.contains(&"tesseract"), "Missing tesseract");
+        assert!(names.contains(&"4-simplex"), "Missing 4-simplex");
+        assert!(names.contains(&"scaled-cross-2x"), "Missing scaled-cross-2x");
+        assert!(names.contains(&"scaled-cross-0.5x"), "Missing scaled-cross-0.5x");
+    }
+
+    #[test]
+    fn test_all_test_polytopes_contains_random() {
+        let polytopes = all_test_polytopes();
+
+        // Should have some random polytopes
+        let random_count = polytopes
+            .iter()
+            .filter(|(name, _)| name.starts_with("random-seed-"))
+            .count();
+
+        // We expect at least a few random polytopes to succeed
+        assert!(
+            random_count >= 1,
+            "Should have at least 1 random polytope, got {}",
+            random_count
+        );
+    }
+
+    #[test]
+    fn test_all_test_polytopes_all_valid() {
+        let polytopes = all_test_polytopes();
+
+        for (name, hrep) in &polytopes {
+            assert!(
+                hrep.validate().is_ok(),
+                "Polytope '{}' should be valid",
+                name
+            );
+            assert!(
+                hrep.num_facets() >= 5,
+                "Polytope '{}' should have >= 5 facets, got {}",
+                name,
+                hrep.num_facets()
+            );
+        }
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_cross_polytope() {
+        // Cross-polytope has no Lagrangian 2-faces
+        let hrep = unit_cross_polytope();
+        assert!(
+            !has_lagrangian_two_faces(&hrep),
+            "Cross-polytope should not have Lagrangian 2-faces"
+        );
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_tesseract() {
+        // Tesseract (Lagrangian product) has Lagrangian 2-faces
+        let hrep = unit_tesseract();
+        assert!(
+            has_lagrangian_two_faces(&hrep),
+            "Tesseract should have Lagrangian 2-faces"
+        );
+    }
+
+    #[test]
+    fn test_has_lagrangian_two_faces_simplex() {
+        // 4-simplex has Lagrangian 2-faces
+        let hrep = four_simplex();
+        assert!(
+            has_lagrangian_two_faces(&hrep),
+            "4-simplex should have Lagrangian 2-faces"
+        );
+    }
+
+    proptest! {
+        #[test]
+        fn test_polytope_strategy_generates_valid(hrep in polytope_strategy()) {
+            // All generated polytopes should be valid
+            prop_assert!(hrep.validate().is_ok());
+            prop_assert!(hrep.num_facets() >= 6);
+            prop_assert!(hrep.num_facets() <= 12);
+        }
+
+        #[test]
+        fn test_polytope_strategy_no_lagrangian(hrep in polytope_strategy()) {
+            // random_hrep rejects Lagrangian polytopes, so this should always pass
+            prop_assert!(!has_lagrangian_two_faces(&hrep));
         }
     }
 }

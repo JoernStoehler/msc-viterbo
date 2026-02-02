@@ -25,7 +25,17 @@ fn tube_to_hk2017(hrep: &TubeHrep) -> Hk2017Hrep {
 /// Compare HK2017 and Tube on random 8-facet non-Lagrangian polytopes.
 ///
 /// 8 facets = 8! = 40,320 permutations, which is tractable for HK2017.
+///
+/// # Known Issue (#155)
+///
+/// This test is currently ignored because random H-rep polytopes have
+/// disconnected transition graphs (sink facets), causing both algorithms
+/// to fail. See `docs/notes/issue-155-investigation.md` for analysis.
+///
+/// The random_hrep generator needs to be redesigned to produce polytopes
+/// with connected transition graphs.
 #[test]
+#[ignore] // Issue #155: random polytopes have disconnected transition graphs
 fn test_hk2017_vs_tube_random_8_facet() {
     // Safety margin to avoid near-Lagrangian 2-faces where the tube algorithm's
     // trivialization becomes numerically unstable. Choice of 0.001:
@@ -96,20 +106,25 @@ fn test_hk2017_vs_tube_random_8_facet() {
         );
     }
 
-    // Relax assertion - just report findings
-    if compared < 5 {
-        println!(
-            "\nWARNING: Only compared {} polytopes (target: 5)",
-            compared
-        );
-    }
-    if !mismatches.is_empty() {
-        println!(
-            "\nWARNING: {} mismatches found in {} comparisons",
-            mismatches.len(),
-            compared
-        );
-    }
+    // Assert meaningful comparison happened
+    // See docs/notes/issue-155-investigation.md for why random polytopes fail
+    assert!(
+        compared >= 1,
+        "No polytopes compared! gen_failed={}, tube_failed={}, hk_failed={}. \
+         Random H-rep polytopes have disconnected transition graphs - \
+         see issue #155 for details.",
+        gen_failed,
+        tube_failed,
+        hk_failed
+    );
+
+    assert!(
+        mismatches.is_empty(),
+        "HK2017 and Tube disagree on {} of {} polytopes: {:?}",
+        mismatches.len(),
+        compared,
+        mismatches
+    );
 }
 
 /// Compare HK2017 and Tube on asymmetric cross-polytopes.

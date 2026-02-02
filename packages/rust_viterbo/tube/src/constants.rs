@@ -8,7 +8,9 @@ pub const EPS: f64 = 1e-10;
 
 /// Tolerance for Lagrangian 2-face detection (ω(n_i, n_j) ≈ 0).
 /// A 2-face is Lagrangian if |ω(n_i, n_j)| < EPS_LAGRANGIAN.
-pub const EPS_LAGRANGIAN: f64 = 1e-9;
+///
+/// Re-exported from geom for consistency across all algorithms.
+pub use geom::EPS_LAGRANGIAN;
 
 /// Tolerance for unit vector checks (||n|| = 1).
 pub const EPS_UNIT: f64 = 1e-9;
@@ -18,6 +20,11 @@ pub const EPS_FEASIBILITY: f64 = 1e-10;
 
 /// Tolerance for vertex deduplication.
 pub const EPS_DEDUP: f64 = 1e-8;
+
+/// Tolerance for polygon reconstruction checks.
+/// More lenient than EPS because projection to 2D and reconstruction to 4D
+/// accumulates numerical error through multiple operations.
+pub const EPS_RECONSTRUCTION: f64 = 1e-8;
 
 /// Rotation bound margin for pruning (in turns).
 /// Tubes with rotation > 2.0 + EPS_ROTATION are pruned.

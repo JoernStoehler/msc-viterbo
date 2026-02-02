@@ -40,5 +40,7 @@ pub mod volume;
 
 pub use boundedness::is_bounded;
 pub use polygon2d::{support_function, t_dual_length, Polygon2D, Polygon2DError};
-pub use polytope::PolytopeHRep;
-pub use tolerances::{EPS, EPS_UNIT};
+pub use polytope::{
+    flow_direction, is_lagrangian_pair, symplectic_form, PolytopeError, PolytopeHRep,
+};
+pub use tolerances::{EPS, EPS_LAGRANGIAN, EPS_UNIT};

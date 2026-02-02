@@ -64,6 +64,15 @@ fn diagnose_failures() {
                     numerical_samples.push(format!("seed {}: Invalid: {}", seed, msg));
                 }
             }
+            Err(TubeError::DegenerateTwoFace { two_face_idx, area, threshold }) => {
+                tube_numerical += 1;
+                if numerical_samples.len() < 5 {
+                    numerical_samples.push(format!(
+                        "seed {}: Degenerate 2-face {}: area={:.2e} < {:.2e}",
+                        seed, two_face_idx, area, threshold
+                    ));
+                }
+            }
         }
 
         // HK2017
