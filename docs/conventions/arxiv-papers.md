@@ -30,7 +30,7 @@ Script auto-detects format (tar.gz or gzip'd single file) and extracts.
 
 1. **Update `docs/papers/README.md`** - add row to table with paper details
 
-2. **Add BibTeX to `packages/latex_viterbo/references.bib`**:
+2. **Add BibTeX to `thesis/references.bib`**:
    ```bibtex
    @article{Rudolf2022,
      title        = {Viterbo's conjecture as a worm problem},

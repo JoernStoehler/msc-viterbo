@@ -24,9 +24,14 @@ cd /workspaces/worktrees/<task>
 ### 1. Find and read the spec
 
 ```bash
-cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
-# Or via issue:
-gh issue view <number> --json title,body,labels --jq '.title, .body'
+# Task file has spec location
+cat tasks/next/<slug>.md
+
+# Experiment spec
+cat experiments/<label>/SPEC.md
+
+# Or crate SPEC in doc comments
+cat crates/<crate>/src/<module>.rs
 ```
 
 ### 2. Implement
@@ -47,7 +52,7 @@ Fix any failures. Common fixes:
 ### 4. Create PR
 
 ```bash
-gh pr create --title "<type>: <description>" --body "fixes #<issue>
+gh pr create --title "<type>: <description>" --body "Task: tasks/next/<slug>.md
 
 ## Summary
 <what you did>
@@ -60,6 +65,10 @@ gh pr create --title "<type>: <description>" --body "fixes #<issue>
 ### 5. Wait for GitHub CI
 
 ```bash
+# Local (preferred)
+scripts/ci.sh
+
+# GitHub CI (if needed; use gh api in CC Web)
 gh pr checks <pr-number> --watch
 ```
 

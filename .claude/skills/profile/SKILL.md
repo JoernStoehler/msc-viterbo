@@ -33,7 +33,7 @@ gh run view --job=<job-id>
 ### Python Test Timing
 
 ```bash
-cd packages/python_viterbo
+cd experiments
 uv run pytest --durations=0 -v
 uv run pytest --durations=20 -v
 ```
@@ -41,7 +41,7 @@ uv run pytest --durations=20 -v
 ### Rust Test Timing
 
 ```bash
-cd packages/rust_viterbo
+cd crates
 cargo test --workspace
 cargo test --workspace -- --test-threads=1
 cargo test --package geom2d

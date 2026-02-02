@@ -90,30 +90,32 @@ CONFIG = SimpleNamespace(
 
         # === Specific paths (cautious: generic names could have false positives) ===
         # Pattern ends with /* to show folder existence but hide contents
-        "packages/python_viterbo/.venv/*",
-        "packages/rust_viterbo/target/*",
+        "experiments/.venv/*",
+        "crates/target/*",
         # LaTeX caches (existence not valuable)
-        "packages/latex_viterbo/.latexmk",
-        "packages/latex_talk_clarke_duality/.latexmk",
-        "packages/latex_viterbo/_minted-*",
-        "packages/latex_talk_clarke_duality/_minted-*",
+        "thesis/.latexmk",
+        "thesis/talk-clarke-duality/.latexmk",
+        "thesis/_minted-*",
+        "thesis/talk-clarke-duality/_minted-*",
         # LaTeX build intermediates (generic extensions in specific paths)
-        "packages/latex_viterbo/build/*.log",
-        "packages/latex_viterbo/build/*.out",
-        "packages/latex_viterbo/build/lint/*.log",
-        "packages/latex_viterbo/build/lint/*.out",
+        "thesis/build/*.log",
+        "thesis/build/*.out",
+        "thesis/build/lint/*.log",
+        "thesis/build/lint/*.out",
         # Build assets are copies of source assets (predictable)
-        "packages/latex_viterbo/build/html/*.css",
-        "packages/latex_viterbo/build/html/assets/*",
-        "packages/latex_viterbo/build/lint/html/*.css",
-        "packages/latex_viterbo/build/lint/html/assets/*",
+        "thesis/build/html/*.css",
+        "thesis/build/html/assets/*",
+        "thesis/build/lint/html/*.css",
+        "thesis/build/lint/html/assets/*",
         # Paper figures
         "docs/papers/*/images",
         # LaTeXML bindings (dir existence valuable, individual files predictable from packages used)
-        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/bindings/*",
-        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/originals/*",
-        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/supported_originals/*",
-        "packages/latex_viterbo/assets/latexml/ar5iv-bindings/deprecated/*",
+        "thesis/assets/latexml/ar5iv-bindings/bindings/*",
+        "thesis/assets/latexml/ar5iv-bindings/originals/*",
+        "thesis/assets/latexml/ar5iv-bindings/supported_originals/*",
+        "thesis/assets/latexml/ar5iv-bindings/deprecated/*",
+        # Data outputs (generated, gitignored)
+        "data/outputs/*",
     ],
 
     # Safety fallback for pathological repos with extreme nesting.
@@ -138,11 +140,9 @@ CONFIG = SimpleNamespace(
     # These are hardcoded because they rarely change.
     tree_prefixes=[
         # Nested prefixes work because we use "longest match" logic
-        "packages/python_viterbo/",
-        "packages/python_viterbo/src/viterbo/experiments/",  # deeply nested, many children
-        "packages/rust_viterbo/",
-        "packages/latex_viterbo/",
-        "packages/latex_talk_clarke_duality/",
+        "experiments/",
+        "crates/",
+        "thesis/",
         "docs/papers/",
     ],
 )

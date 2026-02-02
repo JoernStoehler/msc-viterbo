@@ -1,0 +1,8 @@
+[workspace]
+members = ["geom2d", "geom4d", "ffi"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+authors = ["Jörn (thesis author)"]

@@ -1,11 +1,11 @@
 # LaTeX Development
 
-Commands and conventions for thesis development in `packages/latex_viterbo/`.
+Commands and conventions for thesis development in `thesis/`.
 
 ## Commands
 
 ```bash
-cd /workspaces/worktrees/<task>/packages/latex_viterbo
+cd /workspaces/worktrees/<task>/thesis
 
 scripts/lint.sh           # chktex + draft compile + latexml sanity
 scripts/build.sh          # Full build (PDF + HTML)

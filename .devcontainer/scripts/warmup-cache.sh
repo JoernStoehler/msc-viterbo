@@ -36,9 +36,9 @@ log() {
 log "Starting cache warmup..."
 
 # Python dependencies
-if [[ -d packages/python_viterbo ]]; then
+if [[ -d experiments ]]; then
   log "Warming Python cache (uv sync)..."
-  if (cd packages/python_viterbo && uv sync --locked --extra dev); then
+  if (cd experiments && uv sync --locked --extra dev); then
     log "Python cache warmed."
   else
     log "WARNING: Python cache warmup failed (non-fatal)."
@@ -46,16 +46,16 @@ if [[ -d packages/python_viterbo ]]; then
 fi
 
 # Rust dependencies
-if [[ -d packages/rust_viterbo ]]; then
+if [[ -d crates ]]; then
   log "Warming Rust cache (cargo fetch + build)..."
-  if cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml; then
+  if cargo fetch --manifest-path crates/Cargo.toml; then
     log "Rust fetch complete."
   else
     log "WARNING: Rust fetch failed (non-fatal)."
   fi
 
-  # Debug build to populate target cache
-  if cargo build --manifest-path packages/rust_viterbo/Cargo.toml; then
+  # Debug build to populate target cache (exclude FFI which needs Python)
+  if cargo build --manifest-path crates/Cargo.toml --exclude viterbo_ffi; then
     log "Rust build complete."
   else
     log "WARNING: Rust build failed (non-fatal)."

@@ -24,7 +24,8 @@ cd /workspaces/worktrees/<task>
 ### 1. Understand the task
 
 ```bash
-gh issue view <number> --json title,body,labels --jq '.title, .body'
+# Read task file
+cat tasks/next/<slug>.md
 ```
 
 What problem needs solving? What's the expected outcome?
@@ -35,11 +36,11 @@ Before writing the spec, understand what exists:
 
 ```bash
 # Search for relevant code
-grep -r "pattern" packages/
+grep -r "pattern" crates/ experiments/
 
 # Check existing crates
-ls packages/rust_viterbo/geom2d/src/
-ls packages/rust_viterbo/geom4d/src/
+ls crates/geom2d/src/
+ls crates/geom4d/src/
 
 # Legacy crates (deleted) available at commit 0b5511a
 # git show 0b5511a:packages/rust_viterbo/tube/
@@ -72,8 +73,10 @@ How to solve it.
 ### 4. Create PR
 
 ```bash
-gh pr create --title "spec: <task>" --body "Adds SPEC.md for #<issue>"
-gh pr checks <pr-number> --watch
+gh pr create --title "spec: <task>" --body "Adds SPEC.md for tasks/next/<slug>.md"
+
+# Local CI (preferred)
+scripts/ci.sh
 ```
 
 ### 5. Report to Jörn

@@ -208,7 +208,6 @@ When a test fails:
 3. If both yes -> code bug
 4. If no -> escalate
 
-## Source Documents
+## Source
 
-- `CLAUDE.md` (correctness chain definition)
-- `docs/conventions/rust-algorithms.md`
+Based on root `CLAUDE.md` correctness chain and `crates/CLAUDE.md`.

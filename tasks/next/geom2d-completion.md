@@ -24,18 +24,20 @@ Complete the geom2d crate with all primitives needed for billiard algorithm.
 
 ## Proof-First Workflow
 
-Each feature follows stages 1-7:
-1. Terminology
-2. Computable definitions
-3. Lemmas with proofs [proposed] → [verified]
-4. Signatures
-5. Test brainstorming
-6. Test implementation
-7. Implementation
+Each feature follows stages 1-7. See proof-first-workflow skill for details.
+
+Markers:
+- `[proposed]` = agent-written, awaiting Jörn review
+- `[verified]` = Jörn has confirmed correctness
 
 ## Dependencies
 
 None — geom2d is foundational.
+
+## Labor Estimate
+
+- **AI labor:** Moderate (4 features, standard algorithms)
+- **Human help:** Low (verify proofs in doc comments)
 
 ## Notes
 

@@ -20,7 +20,7 @@ is_web_env=false
 [ -n "${CODESPACES:-}" ] && is_web_env=true
 
 if [ "$is_web_env" = "true" ]; then
-    echo "Environment: CC Web (limited) — see docs/conventions/cc-web.md"
+    echo "Environment: CC Web (limited) — see cc-web-workarounds skill"
 else
     echo "Environment: Local CLI"
 fi

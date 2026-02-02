@@ -34,7 +34,7 @@ Multiple agents work in parallel on different branches. Each worktree is at `/wo
 **CRITICAL**: VSCode IDE extension uses `/workspaces/msc-viterbo` as working directory. Always `cd` in commands:
 
 ```bash
-cd /workspaces/worktrees/<task> && cd packages/rust_viterbo && cargo build
+cd /workspaces/worktrees/<task> && cd crates && cargo build
 ```
 
 ### PR Merge Strategy
@@ -58,7 +58,7 @@ This repo uses **rebase+merge** (not squash, not merge commits):
 2. Run `uv sync --extra dev`
 
 **Rust** (all environments):
-1. Add to `packages/rust_viterbo/*/Cargo.toml`
+1. Add to `crates/*/Cargo.toml`
 2. Run `cargo build`
 
 **System** (local/codespace only):

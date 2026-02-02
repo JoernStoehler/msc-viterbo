@@ -4,7 +4,7 @@ Testing philosophy for `packages/rust_viterbo/`.
 
 ## Why We Test
 
-Tests substantiate thesis correctness claims. See `docs/conventions/math-code-correspondence.md` for how tests bridge Rust's type system and mathematical proofs.
+Tests verify mathematical properties. Math proofs use dependent types (values in types); Rust doesn't. Tests and asserts bridge this gap—they encode properties the type system can't express.
 
 Not for API design (TDD) or regression prevention (research code, not production).
 
@@ -48,7 +48,7 @@ Test mathematical axioms, not just "it runs":
 - **Cross-algorithm agreement**: HK2017 and Tube agree on shared domain
 - **Orbit validity**: Witness is closed, piecewise-affine, on ∂K
 
-See `tube/tests/` for examples: `orbit_invariants.rs`, `hk2017_comparison.rs`.
+See `geom4d/tests/` for examples.
 
 ## Test Polytope Sets
 

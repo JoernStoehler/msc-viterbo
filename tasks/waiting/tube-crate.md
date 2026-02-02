@@ -27,7 +27,7 @@ For non-Lagrangian polytopes, the tube algorithm:
 
 ## Performance Characteristics
 
-From `docs/learnings/profiling-hotspots.md`:
+From capacity-algorithms skill:
 - Runtime: ~1.6µs per tube
 - Scales well to F = 16+ facets
 - Hotspots: tube_capacity (24-33%), intersect_polygons (12-16%)

@@ -23,7 +23,7 @@ HK2017 computes capacity by:
 
 ## Performance Characteristics
 
-From `docs/learnings/hk2017-performance.md`:
+From capacity-algorithms skill:
 - Runtime: `time_ms ≈ 5.51e-04 × perms^1.059`
 - Practical limit: F ≤ 8 facets (naive), F ≤ 10 (graph-pruned)
 - O(F!) complexity without pruning

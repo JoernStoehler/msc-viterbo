@@ -24,11 +24,7 @@ $ARGUMENTS
 
 ### Phase 1: Symptoms
 
-```bash
-gh issue view <number> --json title,body,labels --jq '.title, .body'
-```
-
-Document: What fails? What succeeds? When did it start? What changed?
+Read task file or bug description. Document: What fails? What succeeds? When did it start? What changed?
 
 **Do not hypothesize yet.** Just collect symptoms.
 

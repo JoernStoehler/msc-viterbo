@@ -7,27 +7,26 @@ description: How to create, run, and document Python experiments. SPEC.md, stage
 
 # Experiment Workflow
 
-This skill covers the complete lifecycle of Python experiments in `packages/python_viterbo/`. Experiments are the primary way this thesis generates empirical evidence.
+This skill covers the complete lifecycle of Python experiments in `experiments/`. Experiments are the primary way this thesis generates empirical evidence.
 
 ## File Layout
 
 | Artifact | Location |
 |----------|----------|
-| Tracking | GitHub Issue (label: `experiment`) |
-| Code | `src/viterbo/experiments/<label>/` |
-| SPEC.md | `src/viterbo/experiments/<label>/SPEC.md` |
-| FINDINGS.md | `src/viterbo/experiments/<label>/FINDINGS.md` |
-| Configs | `config/<label>/` |
-| Data | `data/<label>/` |
-| Thesis assets | `packages/latex_viterbo/assets/<label>/` |
+| Tracking | Task file in `tasks/` |
+| Code | `experiments/<label>/` |
+| SPEC.md | `experiments/<label>/SPEC.md` |
+| Tests | `experiments/<label>/test_*.py` (colocated) |
+| Data | `data/outputs/<label>/` |
+| Thesis assets | `thesis/assets/<label>/` |
 
 ## Standard Code Structure
 
 ```
-src/viterbo/experiments/<label>/
+experiments/<label>/
 ├── SPEC.md              # Research question, method, success criteria
-├── FINDINGS.md          # Interpretation of results + escalation procedures
 ├── stage_build.py       # Generate data
+├── test_stage_build.py  # Colocated test
 ├── stage_analyze.py     # Compute results
 └── stage_plot.py        # Create figures
 ```
@@ -36,7 +35,7 @@ src/viterbo/experiments/<label>/
 
 ## Teaching Example
 
-`src/viterbo/experiments/example_pipeline/` demonstrates all conventions. Study it first when creating a new experiment.
+`experiments/_example/` demonstrates all conventions. Study it first when creating a new experiment.
 
 ## Experiment Lifecycle
 
@@ -64,10 +63,10 @@ After initial development, experiments may be rerun when the codebase changes.
 ## Running Stages
 
 ```bash
-cd /workspaces/worktrees/<task>/packages/python_viterbo
-uv run python -m viterbo.experiments.<label>.stage_build
-uv run python -m viterbo.experiments.<label>.stage_analyze
-uv run python -m viterbo.experiments.<label>.stage_plot
+cd experiments
+uv run python <label>/stage_build.py
+uv run python <label>/stage_analyze.py
+uv run python <label>/stage_plot.py
 ```
 
 ## SPEC.md Template
@@ -128,33 +127,18 @@ FINDINGS.md is a living document updated on each rerun:
 
 from pathlib import Path
 
-DATA_DIR = Path(__file__).parents[4] / "data" / "<label>"
+# All config hardcoded for reproducibility
+CONFIG = {
+    "experiment_name": "<label>",
+    "variant": "full",  # Change to "smoke" for quick runs
+}
+
+DATA_DIR = Path(__file__).parent.parent.parent / "data" / "outputs" / CONFIG["experiment_name"]
 
 def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     # Generate data
     # Save to DATA_DIR / "results.json" or similar
-
-if __name__ == "__main__":
-    main()
-```
-
-### stage_analyze.py
-
-```python
-"""Analyze data from <label> experiment."""
-
-from pathlib import Path
-import json
-
-DATA_DIR = Path(__file__).parents[4] / "data" / "<label>"
-
-def main():
-    # Load data
-    with open(DATA_DIR / "results.json") as f:
-        data = json.load(f)
-    # Compute statistics
-    # Print summary
 
 if __name__ == "__main__":
     main()
@@ -168,8 +152,10 @@ if __name__ == "__main__":
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-DATA_DIR = Path(__file__).parents[4] / "data" / "<label>"
-ASSETS_DIR = Path(__file__).parents[5] / "latex_viterbo" / "assets" / "<label>"
+CONFIG = {"experiment_name": "<label>"}
+
+DATA_DIR = Path(__file__).parent.parent.parent / "data" / "outputs" / CONFIG["experiment_name"]
+ASSETS_DIR = Path(__file__).parent.parent.parent / "thesis" / "assets" / CONFIG["experiment_name"]
 
 def main():
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
@@ -191,7 +177,7 @@ Escalate (open an issue referencing the experiment) when:
 
 ## Philosophy
 
-- **GitHub Issue tracks progress** - coordination, blockers, status updates
+- **Task files track progress** - coordination, blockers, status updates
 - **Files contain research content** - SPEC.md, FINDINGS.md, stages, data
 - **Don't compress ideas** - preserve intellectual labor in SPEC/FINDINGS
 - **Reproduction must be obvious** - pattern self-evident from repo structure
@@ -203,6 +189,6 @@ Escalate (open an issue referencing the experiment) when:
 - Pure functions (closeness to math)
 - Fast dev cycle (no external users)
 
-## Source Documents
+## Source
 
-- `docs/conventions/python-experiments.md`
+Extracted from deleted `docs/conventions/python-experiments.md`.

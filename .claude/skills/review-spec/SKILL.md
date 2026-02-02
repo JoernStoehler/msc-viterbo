@@ -21,11 +21,13 @@ cd /workspaces/worktrees/<task>
 
 ## Workflow
 
-### 1. Read the spec and issue
+### 1. Read the spec and task
 
 ```bash
-gh issue view <number> --json title,body,labels --jq '.title, .body'
-cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
+# Read task file (linked in PR body)
+cat tasks/next/<slug>.md
+# Read spec
+cat experiments/<label>/SPEC.md
 ```
 
 ### 2. Check clarity
@@ -42,7 +44,7 @@ cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
 
 ### 4. Check completeness
 
-- All requirements from the issue addressed?
+- All requirements from the task addressed?
 - Edge cases considered?
 - No obvious gaps?
 
@@ -58,7 +60,6 @@ Minor wording issues: fix with a commit, then run CI:
 ```bash
 scripts/ci.sh
 git push
-gh pr checks <pr-number> --watch
 ```
 
 ### 7. Verdict

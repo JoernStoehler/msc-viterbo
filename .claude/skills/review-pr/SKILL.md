@@ -26,8 +26,10 @@ cd /workspaces/worktrees/<task>
 ```bash
 gh pr view <pr-number>
 gh pr diff <pr-number>
-gh issue view <number> --json title,body,labels --jq '.title, .body'
-cat packages/python_viterbo/src/viterbo/experiments/<label>/SPEC.md
+# Read task file (linked in PR body)
+cat tasks/next/<slug>.md
+# Read spec
+cat experiments/<label>/SPEC.md
 ```
 
 ### 2. Verify correctness
@@ -52,9 +54,13 @@ scripts/ci.sh
 git push
 ```
 
-### 5. Wait for GitHub CI
+### 5. Verify CI green
 
 ```bash
+# Local CI (preferred)
+scripts/ci.sh
+
+# GitHub CI (use gh api in CC Web if gh pr checks fails)
 gh pr checks <pr-number> --watch
 ```
 

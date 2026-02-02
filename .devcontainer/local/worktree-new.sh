@@ -81,20 +81,20 @@ prep_git_lfs() {
 }
 
 prep_python() {
-  run_in_dir packages/python_viterbo uv sync --locked --extra dev
+  run_in_dir experiments uv sync --locked --extra dev
 }
 
 prep_rust() {
-  run cargo fetch --manifest-path packages/rust_viterbo/Cargo.toml
-  run cargo build --manifest-path packages/rust_viterbo/Cargo.toml
+  run cargo fetch --manifest-path crates/Cargo.toml
+  run cargo build --manifest-path crates/Cargo.toml --exclude viterbo_ffi
 }
 
 prep_ffi() {
-  run_in_dir packages/python_viterbo uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
+  run_in_dir experiments uv run maturin develop --manifest-path ../crates/ffi/Cargo.toml
 }
 
 prep_latex() {
-  : # nothing to hydrate; use packages/latex_viterbo/scripts as needed
+  : # nothing to hydrate; use thesis/scripts as needed
 }
 
 main() {
@@ -135,8 +135,8 @@ main() {
   require_cmd uv
   require_cmd python3
   require_cmd cargo
-  require_dir packages/python_viterbo
-  require_dir packages/rust_viterbo
+  require_dir experiments
+  require_dir crates
 
   require_origin_remote
 

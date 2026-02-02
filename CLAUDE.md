@@ -26,35 +26,44 @@ When tests fail:
 ## Repository Map
 
 ```
-packages/
-  rust_viterbo/           # Rust workspace
-    geom2d/               #   2D geometry primitives
-    geom4d/               #   4D polytope operations
-    docs/legacy-reference.md  # Deleted crates (git history)
-  python_viterbo/         # Python experiments
-  latex_viterbo/          # Thesis LaTeX
+crates/                   # Rust workspace
+  geom2d/                 #   2D geometry primitives
+  geom4d/                 #   4D polytope operations
+  ffi/                    #   PyO3 bindings (viterbo_ffi)
+experiments/              # Python experiments (flat, self-contained)
+  _example/               #   Reference implementation
+  polytope_database/      #   Blocked on FFI
+  ...
+thesis/                   # LaTeX thesis
+tasks/                    # Local task tracking (ROADMAP.md, GTD-style)
+data/
+  fixtures/               # Small test data (git-tracked)
+  outputs/                # Generated data (gitignored)
 docs/
-  learnings/              # Extracted experiment learnings
-  tasks/                  # Local task tracking (ROADMAP.md)
   conventions/            # Development workflows
   papers/                 # Literature with key theorem locations
 .claude/
-  commands/               # Agent role prompts
+  skills/                 # Knowledge bundles (slash-invocable)
+  agents/                 # Task() subagent prompts
   hooks/                  # Session automation
 ```
 
 ## Quick Commands
 
 ```bash
-# Rust (from packages/rust_viterbo/)
+# Rust (from crates/)
 scripts/test.sh              # All tests (debug + release)
 scripts/test.sh --debug      # Debug only (with debug_assert!)
 cargo clippy --workspace     # Lint
 cargo fmt --all              # Format
 
-# Python (from packages/python_viterbo/)
+# Python (from experiments/)
+uv sync --extra dev          # Install deps
 uv run pytest                # Run tests
-uv run ruff check src tests  # Lint
+uv run ruff check .          # Lint
+
+# FFI (from crates/ffi/)
+maturin develop              # Build and install Python bindings
 
 # CI (from repo root)
 scripts/ci.sh                # All CI checks locally

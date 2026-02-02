@@ -1,0 +1,15 @@
+[package]
+name = "viterbo_ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "viterbo_ffi"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+
+# Uncomment as crates become available:
+# geom2d = { path = "../geom2d" }
+# geom4d = { path = "../geom4d" }

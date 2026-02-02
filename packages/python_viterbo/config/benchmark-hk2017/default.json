@@ -1,9 +1,0 @@
-{
-  "seed": 42,
-  "repetitions": 10,
-  "facet_counts": [5, 8, 9],
-  "algorithms": ["naive", "graph_pruned"],
-  "max_random_attempts": 500,
-  "output_dir": "data/benchmark-hk2017",
-  "_comment": "In 4D: 5pts->5f, 6pts->8-9f, 7pts->8-14f (never 10f). 6-7 facets impossible. FFI limit is 10f."
-}
