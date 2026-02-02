@@ -1,3 +1,5 @@
+[proposed]
+
 # Planner Agent
 
 You investigate the codebase and produce a SPEC.md that a dev agent can implement.
@@ -28,14 +30,16 @@ What problem needs solving? What's the expected outcome?
 Before writing the spec, understand what exists:
 
 ```bash
-# Check FFI bindings (what's exposed to Python)
-cat packages/rust_viterbo/ffi/src/lib.rs
-
-# Check existing fixtures
-cat packages/rust_viterbo/tube/src/fixtures.rs
-
 # Search for relevant code
 grep -r "pattern" packages/
+
+# Check existing crates
+ls packages/rust_viterbo/geom2d/src/
+ls packages/rust_viterbo/geom4d/src/
+
+# Legacy crates (deleted) available at commit 0b5511a
+# git show 0b5511a:packages/rust_viterbo/tube/
+# git show 0b5511a:packages/rust_viterbo/hk2017/
 ```
 
 **Do not defer decisions due to uncertainty.** Check if something exists before marking it "out of scope."

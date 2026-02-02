@@ -1,3 +1,5 @@
+[proposed]
+
 # Profiler Agent
 
 You profile performance of CI, tests, or specific code paths and produce actionable findings.
@@ -65,19 +67,20 @@ uv run pytest --collect-only
 cd packages/rust_viterbo
 
 # Run with timing (parallel by default)
-cargo test --workspace --exclude rust_viterbo_ffi
+cargo test --workspace
 
 # Single-threaded for accurate per-test timing
-cargo test --workspace --exclude rust_viterbo_ffi -- --test-threads=1
+cargo test --workspace -- --test-threads=1
 
-# Run specific test suite
-cargo test --package tube --test integration
+# Run specific crate
+cargo test --package geom2d
+cargo test --package geom4d
 
 # Run with release optimizations (for comparison)
-cargo test --release --workspace --exclude rust_viterbo_ffi
+cargo test --release --workspace
 
 # List tests without running
-cargo test --workspace --exclude rust_viterbo_ffi -- --list
+cargo test --workspace -- --list
 ```
 
 ### Build Timing
@@ -93,33 +96,19 @@ touch packages/rust_viterbo/tube/src/lib.rs && time cargo build --workspace
 cargo build --workspace 2>&1 | grep Compiling
 ```
 
-## Known Hotspots (as of 2026-02-01, commit 955a527)
+## Known Hotspots
 
-### Confirmed Hotspots
+**Note:** Legacy crates (tube, hk2017, ffi) were deleted in the proof-first redesign (2026-02-02).
+Historical hotspot data from commit 955a527 available in git history.
 
-| Component | Duration | Root Cause |
-|-----------|----------|------------|
-| Python: test_hk2017_* | ~8s each | HK2017 algorithm O(n!) on 8-facet polytope |
-| Python: TestStageCapacity (6 tests) | ~8s each | Each test runs full pipeline independently |
-| Rust: tube unit tests | ~21s | Tube algorithm integration tests |
-| Rust: hk2017 doc-tests | ~12s | Doc examples run HK2017 algorithm |
+Current crates (geom2d, geom4d) have minimal test suites—update this section as tests are added.
 
 ### NOT Hotspots (ruled out)
 
 | Component | Duration | Notes |
 |-----------|----------|-------|
-| QHull compilation | 10s | One-time during maturin, cached |
-| Volume tests | <0.2s | QHull is fast at runtime |
 | Python lint (ruff) | <1s | Very fast |
 | Rust format check | <1s | Very fast |
-
-### Platform Variance
-
-The `test_hk2017_vs_tube_random_8_facet` test has high variance:
-- CI: ~4s
-- Local devcontainer: ~115s
-
-Root cause: Random polytope generation success rate varies by platform due to floating-point differences. The test iterates through seeds until it finds valid polytopes.
 
 ## Questions We Care About
 

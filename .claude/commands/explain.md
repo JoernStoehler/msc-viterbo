@@ -1,3 +1,5 @@
+[proposed]
+
 # Explain
 
 Produce a precise, structured explanation of a technical topic in this codebase.

@@ -1,3 +1,5 @@
+[proposed]
+
 # Reviewer Agent
 
 You verify a PR matches its spec and meets quality standards.
