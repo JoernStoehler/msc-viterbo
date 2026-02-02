@@ -14,9 +14,9 @@ Jörn Stöhler, University of Augsburg
 
 **Topic:** Computational investigation of Viterbo's Conjecture boundary cases after HK-O 2024 counterexample.
 
-**Timeline:** On track for March 2026 submission, with ~8 weeks remaining.
+**Timeline:** Target March 2026 submission (~8 weeks remaining). Schedule at risk due to unresolved correctness blockers (#155/#144).
 
-**Current Phase:** Algorithm toolbox complete, entering systematic experimentation phase.
+**Current Phase:** Algorithm implementation complete, correctness validation in progress.
 
 ---
 
@@ -43,25 +43,27 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 | Algorithm | Status | Complexity | Applicability |
 |-----------|--------|------------|---------------|
-| **HK2017** | Complete, tested | $O(F!)$ | Any polytope, $F \leq 10$ facets |
-| **Tube** | Complete, tested | $O(\text{tubes})$ | Polytopes without Lagrangian 2-faces |
+| **HK2017** | Implemented, known bugs (#155) | $O(F!)$ | Any polytope, $F \leq 10$ facets |
+| **Tube** | Implemented, known bugs (#155) | Branch-and-bound | Polytopes without Lagrangian 2-faces |
 | **Billiard** | Design complete, impl pending | $O(E^6)$ | Lagrangian products only |
 
-**Test coverage:** 191 Rust tests, all passing.
+**Test status:** Fixture tests pass (known polytopes); random polytope tests fail (#155).
 
-**Validation:** Cross-algorithm agreement verified on applicable polytopes:
-- Unit tesseract: $c = 4.0$ (HK2017)
-- Unit cross-polytope: $c = 1.0$ (Tube)
-- Unit 24-cell: $c = 2.0$ (Tube, self-dual)
-- 4-simplex: $c \approx 0.417$ (HK2017)
+**Validation status:** No cross-algorithm validation. Fixture tests pass individually:
+- HK2017 on tesseract: c = 4.0 (verified)
+- Tube on cross-polytope: c = 1.0 (verified)
 
-### 2.2 Completed Experiments
+But no overlapping polytope tested by both algorithms.
 
-| Experiment | Key Finding |
-|------------|-------------|
+### 2.2 Experiments Run (findings not yet validated)
+
+| Experiment | Preliminary Finding |
+|------------|---------------------|
 | **benchmark_hk2017** | Runtime $\approx 1 \mu s$/permutation, linear scaling ($R^2 > 0.99$) |
 | **algorithm_inventory** | Mahler bound exactly saturated by tesseract/cross-polytope dual pair |
 | **runtime_performance_analysis** | Tube algorithm hotspots identified (40-45% in core loop) |
+
+**Note:** These findings depend on algorithm correctness, which is not yet established.
 
 ### 2.3 Thesis Writing
 
@@ -84,10 +86,10 @@ Viterbo's Conjecture (systolic ratio $\leq 1$ for convex bodies) was disproved b
 
 **Correctness validation (highest priority):**
 ```
-#155 Random polytope test failures (Tube 97%, HK2017 100%)
-#144 Tube lacks effective cross-validation with HK2017
+#155 Random polytope test failures (both HK2017 and Tube)
+#144 No cross-validation between HK2017 and Tube
   ↓ blocks confidence in
-All experiments using Tube algorithm
+All experiments
 ```
 
 **Billiard algorithm path:**
@@ -99,9 +101,9 @@ All experiments using Tube algorithm
 #112 Algorithm performance comparison
 ```
 
-**Status:** Active troubleshooting on #155+#144 (found low-level bugs, e.g., degenerate facets not filtered). Fix may land Feb 1.
+**Status:** Active troubleshooting on #155+#144. Root cause under investigation.
 
-### 3.2 Unblocked Experiments (ready to run)
+### 3.2 Planned Experiments (blocked by #155/#144)
 
 | Issue | Experiment | Description |
 |-------|------------|-------------|
@@ -112,6 +114,8 @@ All experiments using Tube algorithm
 | #105 | dataset-dimension-reduction | PCA/UMAP on polytope features |
 | #106 | sys-ratio-optimization | Gradient flow toward maximum sys |
 
+**All experiments blocked until algorithm correctness is established.**
+
 ---
 
 ## 4. Roadmap
@@ -120,13 +124,11 @@ All experiments using Tube algorithm
 
 | Milestone | Target | Status |
 |-----------|--------|--------|
-| **M4: Algorithm Toolbox** | — | 5/12 issues closed |
+| **M4: Algorithm Toolbox** | — | 6/12 issues closed |
 | **M6: Dataset Characterized** | — | 1/5 issues closed |
 | **M8: Thesis Submission** | End of March | 3/5 issues closed |
 
-### 4.2 Remaining Work (Effort Estimates)
-
-<!-- [JÖRN: Please review/adjust estimates] -->
+### 4.2 Remaining Work (Rough Effort Estimates)
 
 **Legend:**
 - **Agent hrs** — parallelizable, results in wait time (can run multiple agents)
@@ -148,19 +150,17 @@ All experiments using Tube algorithm
 
 ### 4.3 Velocity
 
-**Project timeline:** Thesis started ~Oct 14, 2025. Repo created Nov 17, 2025.
+**Project timeline:** Thesis started ~Oct 14, 2025. Repo created Nov 15, 2025.
 
-*Commit-hours estimated via interval model: each commit claims time since previous, capped at 2h. Underestimates offline work (reading, thinking, paper notes).*
+| Phase | Dates | Commits |
+|-------|-------|---------|
+| Setup | Nov 10 - Dec 1 | 83 |
+| Algorithm dev | Dec 1 - Dec 28 | 58 |
+| Steady progress | Jan 5 - Jan 25 | 120 |
+| **Agent sprint** | **Jan 26 - Jan 31** | **253** |
+| **Total** | | **509** |
 
-| Phase | Dates | Commits | Est. Hours | Hrs/Commit |
-|-------|-------|---------|------------|------------|
-| Setup | Nov 10 - Dec 1 | 63 | ~54 | 0.86 |
-| Algorithm dev | Dec 1 - Dec 28 | 73 | ~69 | 0.94 |
-| Steady progress | Jan 5 - Jan 25 | 60 | ~41 | 0.69 |
-| **Agent sprint** | **Jan 26 - Jan 31** | **264** | **~82** | **0.31** |
-| **Total** | | **460** | **~246** | |
-
-**Key observation:** Agent parallelism changed hrs/commit from ~0.8h to ~0.3h (agents produce many small commits). The sprint had 3× more commits but only 2× more commit-hours.
+**Key observation:** Agent sprint produced many commits in few days (253 in 6 days vs 261 in prior ~2.5 months).
 
 **Context:**
 - Agents available since late 2025, but **parallelization** enabled ~Jan 26 → commit explosion
@@ -183,22 +183,25 @@ All experiments using Tube algorithm
 
 ## 6. Confidence in Correctness
 
-### 6.1 Sources of Trust
+### 6.1 What We Have Verified
 
-1. **Known values:** Tesseract, cross-polytope, 24-cell match literature (mathematically derived, not empirical)
-2. **Mathematical properties verified:**
-   - Scaling: $c(\lambda K) = \lambda^2 c(K)$ ✓
-   - Mahler bound: $c(K) \cdot c(K^\circ) \leq 4$ ✓ (exactly saturated by tesseract/cross-polytope pair)
-   - Constraint satisfaction: $\sum \beta_i h_i = 1$, $\sum \beta_i n_i = 0$ ✓
+1. **Known values:** Individual fixture tests pass and match literature:
+   - HK2017 on tesseract: $c = 4.0$ (test passes, matches literature)
+   - Tube on cross-polytope: $c = 1.0$ (test passes, matches literature)
+   - No cross-algorithm comparison exists (no polytope tested by both)
+2. **Mathematical properties checked:**
+   - Scaling: $c(\lambda K) = \lambda^2 c(K)$
+   - Mahler bound: $c(K) \cdot c(K^\circ) \leq 4$
+   - Constraint satisfaction: $\sum \beta_i h_i = 1$, $\sum \beta_i n_i = 0$
 
-3. **Test coverage:** 191 unit tests, including regression tests for fixed bugs
+3. **Test status:** Fixture tests pass; random polytope tests fail (#155).
 
 ### 6.2 Known Gaps (Critical)
 
-**⚠️ Tube lacks effective cross-validation (#144):**
+**[!] Tube lacks effective cross-validation (#144):**
 - The HK2017 vs Tube comparison test can pass with **0 successful comparisons**
 - Capacity axioms alone don't prove we compute $c_{EHZ}$ vs some other capacity-like function
-- **Status:** Active troubleshooting (#155+#144) found low-level bugs (degenerate facet filtering). Fix in progress — may resolve by end of day.
+- **Status:** Under investigation (#155+#144).
 
 **Other gaps:**
 - Billiard algorithm: design only, not yet implemented/tested
@@ -243,7 +246,7 @@ All experiments using Tube algorithm
 | #105 | dataset-dimension-reduction | Low | Low | PCA/UMAP exploration |
 | #106 | sys-ratio-optimization | Low | Mid | Gradient flow to max sys |
 | #110 | lagrangian-product-random-polygons | Mid | Low | Same as #102 but random polygons (code reuse) |
-| #111 | fixed-facet-vertex-count | High | Mid | Verify HK's simplex claim (sys ≤ 3/4 for 5-facet) |
+| #111 | fixed-facet-vertex-count | High | Mid | Verify CH2021 simplex observation (sys <= 3/4 for 5-facet) |
 | #112 | algorithm-performance-comparison | High | Mid | Blocked on billiard impl |
 | #113 | algorithm-optimization-ablation | Low | High | Performance tuning |
 | #114/#115 | ML capacity prediction | Low | High | Similar experiments (merge?); blocked on dataset |
