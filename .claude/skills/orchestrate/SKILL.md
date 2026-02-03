@@ -12,8 +12,8 @@ You orchestrate the development pipeline. You prepare work for other agents but 
 When invoked, always begin by gathering project context:
 
 ```bash
-# Task status (GTD-style: inbox → next → waiting → review → done)
-ls tasks/inbox/ tasks/next/ tasks/waiting/ tasks/review/ 2>/dev/null || true
+# Task status (GTD-style)
+ls tasks/inbox/ tasks/next/ tasks/active/ tasks/waiting/ 2>/dev/null || true
 cat tasks/ROADMAP.md
 
 # Open PRs
@@ -35,30 +35,30 @@ $ARGUMENTS
 ## Pipeline
 
 ```
-1.  Jörn + PM discuss idea
-2.  PM creates task file in tasks/inbox/
-3.  PM creates worktree, writes planner prompt
-4.  Jörn spawns planner → planner creates SPEC.md PR
-5.  Jörn spawns spec-reviewer → reviewer approves
-6.  PM merges spec PR, moves task to tasks/next/, writes dev prompt
-7.  Jörn spawns dev → dev creates implementation PR
-8.  Jörn spawns reviewer → reviewer approves
-9.  PM merges PR, moves task to tasks/review/ for Jörn approval
-10. Jörn approves → PM moves to tasks/done/, cleans up worktree
+1. Jörn + PM discuss idea → PM creates task in inbox/
+2. Jörn + PM triage → move task to next/ (actionable and prioritized)
+3. PM creates worktree, writes prompt, moves task to active/
+4. Jörn spawns task agent → agent works, creates PR
+5. Jörn spawns review agent → reviewer approves PR
+6. PM merges PR, moves task to done/, removes worktree
 ```
 
-**Key rule:** PM merges only after review completes. Never merge autonomously.
+**Key rules:**
+- PM merges only after review completes
+- `active/` means worktree exists and agent session owns the task
+- Task file may be moved to `done/` by agent on branch (merged with PR)
 
-### Task File Workflow
+### Task States (GTD-style)
 
-Tasks use GTD-style directories:
-- `tasks/inbox/` - New/uncategorized
-- `tasks/next/` - Actively working on
-- `tasks/waiting/` - Blocked on dependency
-- `tasks/review/` - Agent done, awaiting Jörn review
-- `tasks/done/` - Jörn approved
+| Directory | Meaning |
+|-----------|---------|
+| `inbox/` | New ideas, not yet actionable |
+| `next/` | Actionable and prioritized, ready to pick up |
+| `active/` | Owned by agent session, worktree exists |
+| `waiting/` | Blocked on external dependency |
+| `done/` | Completed |
 
-Move files between directories to change status. See `tasks/ROADMAP.md` for milestones.
+See `tasks/CLAUDE.md` for details.
 
 ## Common Tasks
 
@@ -78,7 +78,7 @@ Move files between directories to change status. See `tasks/ROADMAP.md` for mile
 Format as a single-line command Jörn can paste:
 
 ```
-/investigate Work in /workspaces/worktrees/<task>. Task: tasks/next/<slug>.md. <brief task description>
+/investigate Work in /workspaces/worktrees/<task>. Task: tasks/active/<slug>.md. <brief task description>
 ```
 
 ### Check PR status before merge
@@ -123,9 +123,9 @@ gh api repos/{owner}/{repo}/pulls/<number>/comments --jq '.[] | {path, body, lin
 # 4. Check commits for context
 gh pr view <number> --json commits --jq '.commits[].messageHeadline'
 
-# 5. Update task file status (move to review/ or done/)
+# 5. Move task file to done/ if not already there
 
-# 6. Remove worktree if one existed
+# 6. Remove worktree
 git worktree list
 .devcontainer/local/worktree-remove.sh /workspaces/worktrees/<task>
 ```
