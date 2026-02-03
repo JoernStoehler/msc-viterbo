@@ -1,0 +1,13 @@
+data/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+data/**/*.pdf filter=lfs diff=lfs merge=lfs -text
+data/**/*.pkl filter=lfs diff=lfs merge=lfs -text
+data/**/*.pickle filter=lfs diff=lfs merge=lfs -text
+data/**/*.npy filter=lfs diff=lfs merge=lfs -text
+data/**/*.npz filter=lfs diff=lfs merge=lfs -text
+data/**/*.png filter=lfs diff=lfs merge=lfs -text
+data/**/*.json filter=lfs diff=lfs merge=lfs -text
+data/**/*.parquet filter=lfs diff=lfs merge=lfs -text
+data/**/*.csv filter=lfs diff=lfs merge=lfs -text
+data/**/*.h5 filter=lfs diff=lfs merge=lfs -text
+data/**/*.hdf5 filter=lfs diff=lfs merge=lfs -text
+data/**/*.jpg filter=lfs diff=lfs merge=lfs -text

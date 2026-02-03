@@ -53,19 +53,19 @@ run_step() {
 # ─────────────────────────────────────────────────────────────────────────────
 if [[ "$RUN_RUST" == "true" ]]; then
     section "RUST"
-    cd "$REPO_ROOT/packages/rust_viterbo"
+    cd "$REPO_ROOT/crates"
 
     run_step "cargo fmt --check" \
         cargo fmt --all --check
 
     run_step "cargo clippy" \
-        cargo clippy --workspace --exclude rust_viterbo_ffi -- -D warnings
+        cargo clippy --workspace --exclude viterbo_ffi -- -D warnings
 
     run_step "cargo test (debug)" \
-        cargo test --workspace --exclude rust_viterbo_ffi
+        cargo test --workspace --exclude viterbo_ffi
 
     run_step "cargo test (release)" \
-        cargo test --release --workspace --exclude rust_viterbo_ffi
+        cargo test --release --workspace --exclude viterbo_ffi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -73,19 +73,19 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 if [[ "$RUN_PYTHON" == "true" ]]; then
     section "PYTHON + FFI"
-    cd "$REPO_ROOT/packages/python_viterbo"
+    cd "$REPO_ROOT/experiments"
 
     run_step "uv sync" \
         uv sync --extra dev
 
     run_step "ruff check" \
-        uv run ruff check src tests
+        uv run ruff check .
 
     run_step "pyright" \
-        uv run pyright src tests
+        uv run pyright .
 
     run_step "maturin develop (FFI)" \
-        uv run maturin develop --manifest-path ../rust_viterbo/ffi/Cargo.toml
+        uv run maturin develop --manifest-path ../crates/ffi/Cargo.toml
 
     run_step "pytest" \
         uv run pytest -v

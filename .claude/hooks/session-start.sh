@@ -1,7 +1,10 @@
 #!/bin/bash
 # SessionStart hook:
-# 1. Print compressed file index (all environments, startup only)
+# 1. Detect environment and print info
 # 2. Install gh CLI in Claude Code web environments (silent)
+#
+# Note: File index removed - use static repo map in CLAUDE.md instead.
+# Manual index: python3 .claude/hooks/file-index.py
 
 # Read hook input from stdin
 hook_input=$(cat)
@@ -17,7 +20,7 @@ is_web_env=false
 [ -n "${CODESPACES:-}" ] && is_web_env=true
 
 if [ "$is_web_env" = "true" ]; then
-    echo "Environment: CC Web (limited) — see docs/conventions/cc-web.md"
+    echo "Environment: CC Web (limited) — see cc-web-workarounds skill"
 else
     echo "Environment: Local CLI"
 fi
@@ -32,17 +35,6 @@ if command -v git &>/dev/null && [ -d .git ]; then
         echo ""
     fi
 fi
-
-# --- File Index (all environments) ---
-# Print compressed repo structure so agent has file awareness in context
-CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-echo "=== Repository File Index ==="
-echo "(Auto-generated to help navigate the codebase)"
-echo ""
-python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/file-index.py" 2>/dev/null || echo "(file-index.py not available)"
-echo ""
-echo "=== End File Index ==="
-echo ""
 
 # --- gh CLI installation (web environment only) ---
 [ "$is_web_env" = "false" ] && exit 0

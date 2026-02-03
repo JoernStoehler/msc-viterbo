@@ -10,7 +10,7 @@
 #
 # After running, remember to:
 #   1. Update docs/papers/README.md with the new entry
-#   2. Add BibTeX entry to packages/latex_viterbo/references.bib
+#   2. Add BibTeX entry to thesis/references.bib
 
 set -euo pipefail
 
@@ -56,5 +56,5 @@ ls -la
 echo ""
 echo "Next steps:"
 echo "  1. Update docs/papers/README.md"
-echo "  2. Add BibTeX to packages/latex_viterbo/references.bib"
+echo "  2. Add BibTeX to thesis/references.bib"
 echo "  3. Websearch 'arXiv ${ARXIV_ID}' for title/authors if needed"
