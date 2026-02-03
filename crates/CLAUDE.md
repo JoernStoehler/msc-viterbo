@@ -1,4 +1,4 @@
-# rust_viterbo
+# crates/
 
 [proposed]
 
@@ -10,9 +10,12 @@ Rust workspace for EHZ capacity algorithms.
 |-------|---------|
 | `geom2d` | 2D convex geometry (Polygon, area) |
 | `geom4d` | 4D polytope primitives (HRep, is_bounded) |
+| `hk2017` | HK2017 capacity algorithm (stub) |
+| `billiard` | Billiard capacity algorithm (stub) |
+| `tube` | Tube capacity algorithm (stub) |
 | `ffi` | PyO3 bindings (viterbo_ffi) |
 
-Future crates: tube, hk2017, billiard (see git history at 0b5511a for old versions).
+Old implementations at git commit 0b5511a.
 
 ## Proof-First Workflow
 
@@ -63,4 +66,8 @@ Required test categories:
 - **Property tests**: Mathematical invariants (scaling, monotonicity)
 - **Cross-checks**: Agreement with known values or other algorithms
 
-See crate-level CLAUDE.md files for module-specific conventions.
+## See Also
+
+- Skill `proof-first-workflow` for the full 7-stage workflow
+- Skill `capacity-algorithms` for algorithm selection guidance
+- Skill `debugging-numerical` for tolerance handling

@@ -15,7 +15,7 @@ Jörn Stöhler's MSc Thesis on Viterbo's Conjecture (University of Augsburg).
 ### Library for Symplectic Geometry
 - `crates/`: Rust workspace.
   - `geom2d/`, `geom4d/`: General-purpose libraries for symplectic geometry on polytopes
-  - `hk2017/`, `billiard/`, `tube/`: Three different algorithms that compute the EHZ capacity of 4D polytopes
+  - `hk2017/`, `billiard/`, `tube/`: EHZ capacity algorithms (stubs)
   - `ffi/`: PyO3 bindings
 
 ### Experiments for Rapid Scientific Iteration

@@ -1,7 +1,6 @@
 ---
 name: postmortem
 description: Session reflection and feedback. Reflects on what worked, what didn't, and suggests improvements. Use at end of session or when asked for feedback. Invoke with /postmortem.
-disable-model-invocation: true
 ---
 
 [proposed]
