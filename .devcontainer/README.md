@@ -64,6 +64,20 @@ Claude Code Web at claude.ai/code. No devcontainer needed.
 
 See `ccweb/README.md` for details and limitations.
 
+## Adding Dependencies
+
+**Python** (all environments):
+1. Add to `experiments/pyproject.toml`
+2. Run `uv sync --extra dev`
+
+**Rust** (all environments):
+1. Add to `crates/*/Cargo.toml`
+2. Run `cargo build`
+
+**System** (local/codespace only):
+1. Add to `.devcontainer/{local,codespace}/Dockerfile`
+2. Update build scripts to fail gracefully in CC Web
+
 ## No Default Configuration
 
 There is intentionally no root `devcontainer.json`. Users must explicitly

@@ -70,6 +70,11 @@ Move files between directories to change status. See `tasks/ROADMAP.md` for mile
 .devcontainer/local/worktree-new.sh /workspaces/worktrees/<task> <branch-name>
 ```
 
+**Worktree limitations:**
+- Skills and CLAUDE.md read from main repo at session start, not worktree
+- VSCode IDE working directory is always main repo (use `cd` in commands)
+- No shared build cache (each worktree builds independently)
+
 ### Write prompt for Jörn
 
 Format as a single-line command Jörn can paste:
@@ -131,4 +136,4 @@ git worktree list
 
 ## Reference
 
-See `docs/references/agent-workflow-design.md` for pipeline rationale.
+See `tasks/ROADMAP.md` for milestones and priorities.

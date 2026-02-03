@@ -193,4 +193,3 @@ No `.lsp.json`, no `plugin.json`. The `lspServers` config from marketplace.json 
 **Result:** Plugin loads (appears in init plugins list), but NO LSP tool exposed in tools list.
 
 **Note:** This test used headless mode (`-p`). We now know LSP tool only appears in interactive mode.
-

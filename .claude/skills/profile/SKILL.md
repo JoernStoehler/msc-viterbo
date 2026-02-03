@@ -63,7 +63,7 @@ Questions we DON'T care about:
 
 ## Output Format
 
-Write findings to `docs/notes/<topic>-profiling-findings.md`:
+Report findings directly to Jörn:
 
 1. Timestamp and commit hash
 2. Timing tables (local vs CI)

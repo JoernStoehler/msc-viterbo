@@ -1,4 +1,4 @@
-# latex_viterbo
+# thesis/
 
 [proposed]
 
@@ -27,17 +27,16 @@ references.bib      # Bibliography
 ## Commands
 
 ```bash
-scripts/build.sh    # Build PDF + HTML
-scripts/lint.sh     # Lint (chktex)
-scripts/serve.sh    # Watch mode for live preview
+cd thesis/
+
+scripts/build.sh              # Full build (PDF + HTML)
+scripts/build.sh --pdf-only   # PDF only
+scripts/build.sh --html-only  # HTML only
+scripts/lint.sh               # chktex + draft compile + latexml sanity
+scripts/serve.sh              # Watch mode for live preview
 ```
 
-## Conventions
-
-See `docs/conventions/latex.md` and `docs/conventions/thesis-writing.md` for:
-- Math notation standards
-- Figure labeling conventions
-- Citation style
+**Draft speedup:** Use `includeonly.tex` (copy from `includeonly.tex.example`)
 
 ## Math Chapters
 
@@ -46,3 +45,40 @@ Key math definitions live in `chapters/math/`:
 - `02-convex-polytopes.tex` - Polytope representations
 - `05-reeb-dynamics.tex` - Reeb flow and closed orbits
 - `08-clarke-dual-action.tex` - Clarke dual action functional
+
+## LaTeX Style
+
+- **Inline math**: `\(...\)` not `$...$`
+- **Display math**: `\[...\]` not `$$...$$`
+- **Proofs**: Use `proof` environment
+- **Labels**: Theorems, lemmas, equations - label consistently
+- **Cross-references**: Use `\ref{}` not hardcoded numbers; use `\eqref{}` for equations
+- **Custom macros**: Define in preamble, not inline (e.g., `\newcommand{\Sp}{\operatorname{Sp}}`)
+- **arXiv-friendly packages only**
+
+## Assets
+
+| Type | Location |
+|------|----------|
+| Python-generated figures | `assets/<experiment>/` |
+| LaTeXML extras | `assets/{html/,latexml/}` |
+| Hand-crafted | `assets/manual/` |
+
+## Work-in-Progress Markers
+
+- Use `\edit{...}` or `% TODO: ...` for incomplete sections
+- Remove all WIP markers before final submission
+
+## Writing Style
+
+**Audience:**
+- Thesis readers: MSc math students who took a symplectic geometry lecture
+- Code developers: Claude agents with broad knowledge of symplectic geometry, optimization, algorithms
+- Project owner: Jörn, up to speed with thesis references
+
+**Goals:** Self-contained, skimmable, spoilers up front.
+
+**Conventions:**
+- State main results before proofs
+- Define notation when first used; note deviations from literature
+- Roadmap long proofs with "Proof strategy" paragraph
