@@ -49,8 +49,8 @@ Transform mathematical definitions into algorithm-checkable predicates.
 State lemmas with complete proofs. Reference literature where applicable.
 
 **Markers:**
-- `[proposed]` - Agent-written, awaiting Jorn's review
-- `[verified]` - Jorn has confirmed correctness
+- `[proposed]` - Agent-written, awaiting Jörn's review
+- `[verified]` - Jörn has confirmed correctness
 
 **Output:** Lemmas with:
 - Statement
@@ -148,7 +148,7 @@ Implement functions 1:1 from proofs. The code should read like the proof.
 
 ## Escalation Points
 
-### Escalate to Jorn When:
+### Escalate to Jörn When:
 
 1. **Proof can't be implemented 1:1**
    - Algorithm requires different approach than proof
@@ -172,7 +172,7 @@ Implement functions 1:1 from proofs. The code should read like the proof.
 ## The [proposed] Marker System
 
 - Agent writes `[proposed]` next to new mathematical content
-- Only Jorn removes `[proposed]` to mark as approved
+- Only Jörn removes `[proposed]` to mark as approved
 - Ambiguous responses don't count as approval
 - Never implement against `[proposed]` content without explicit approval
 

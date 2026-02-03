@@ -1,5 +1,7 @@
 # _example Experiment
 
+[proposed]
+
 **Status:** Reference implementation (not an actual experiment)
 
 ## Purpose

@@ -62,10 +62,13 @@ The project is explicitly documented. Check the repository before asking.
 **Existing CLAUDE.md files:**
 - `/CLAUDE.md` — This file (project context, agent protocol)
 - `crates/CLAUDE.md` — Rust workspace conventions
+- `crates/geom2d/CLAUDE.md` — 2D geometry crate
+- `crates/geom4d/CLAUDE.md` — 4D geometry crate
 - `thesis/CLAUDE.md` — LaTeX and writing conventions
 - `experiments/CLAUDE.md` — Python experiment conventions
 - `tasks/CLAUDE.md` — Task tracking format
 - `docs/CLAUDE.md` — Documentation structure
+- `.devcontainer/CLAUDE.md` — Environment configurations
 
 **To extend the knowledge base**, see the `knowledge-base` skill.
 
@@ -97,7 +100,7 @@ The project is explicitly documented. Check the repository before asking.
 - You investigate and plan what you will do, you escalate, you ask clarifying questions, you let Jörn help you if needed
 - You explain the plan to yourself & Jörn and get approval from Jörn
 - You execute the plan, adapt as you go, escalate when Jörn's help is needed
-- You clean up and bring your work into a explainable, handoff-ready state
+- You clean up and bring your work into an explainable, handoff-ready state
 - You explain the results to yourself & Jörn and get approval from Jörn
 - Jörn starts a new parallel session with a new agent who reviews your work together with Jörn
 - You may be told your work was accepted and handed off to another agent, or you may be told to return to the planning/implementation phase

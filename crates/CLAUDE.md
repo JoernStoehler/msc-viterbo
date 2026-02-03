@@ -74,7 +74,7 @@ Type::new_unchecked(data) -> Type            // debug_assert! only; tests with k
 ## Testing Conventions
 
 Brainstorm tests using the following categories (plus other ad-hoc categories as possible):
-- **Cover all scenarios**: Consider what inputs behave differently from a mathematical perspective: lemma applies / does not apply, different cases, different qualtiative properties that may relate to the lemma's proof steps somehow. Consider similarly the implemented code paths, including rejection and error paths.
+- **Cover all scenarios**: Consider what inputs behave differently from a mathematical perspective: lemma applies / does not apply, different cases, different qualitative properties that may relate to the lemma's proof steps somehow. Consider similarly the implemented code paths, including rejection and error paths.
 - **Alternate Lemmas**: Consider variants of the central lemma, e.g. a restricted domain lemma that is easier to prove, the contrapositive, implication chains, try out equivalent definitions, only state some implications, combinations of restricted domain + chain with other lemma + state weaker implication, ...
 - **Intermediate Lemmas**: Extract lemmas/propositions about intermediate variables/definitions in the proof, and test those too.
 - **Concretizations**: Consider concretized versions with specific computable values and perhaps ad-hoc arguments with an unrolled proof that is now more easily checkable.

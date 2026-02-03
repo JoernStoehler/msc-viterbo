@@ -43,7 +43,7 @@ experiments/<label>/
 
 | Phase | Owner | Output |
 |-------|-------|--------|
-| Ideation | Jorn / PM agent / any agent -> PM agent | Idea discussed with PM |
+| Ideation | Jörn / PM agent / any agent -> PM agent | Idea discussed with PM |
 | Issue creation | PM agent | GitHub issue with research question |
 | Planning | Planner agent | SPEC.md with method and success criteria |
 | Spec review | Spec-review agent | Approved SPEC.md (or back to planner) |
@@ -69,7 +69,7 @@ uv run python <label>/stage_analyze.py
 uv run python <label>/stage_plot.py
 ```
 
-## SPEC.md Template
+## SPEC.md Template [proposed]
 
 ```markdown
 # <label> Experiment
@@ -87,7 +87,7 @@ What outcome means "we are satisfied"?
 
 ## Expected Outputs
 - data/<label>/...
-- assets/<label>/...
+- thesis/assets/<label>/...
 ```
 
 ## FINDINGS.md Template
@@ -133,12 +133,13 @@ CONFIG = {
     "variant": "full",  # Change to "smoke" for quick runs
 }
 
-DATA_DIR = Path(__file__).parent.parent.parent / "data" / "outputs" / CONFIG["experiment_name"]
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
+OUTPUT_DIR = DATA_DIR / CONFIG["experiment_name"]
 
 def main():
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     # Generate data
-    # Save to DATA_DIR / "results.json" or similar
+    # Save to OUTPUT_DIR / "results.json" or similar
 
 if __name__ == "__main__":
     main()
@@ -154,7 +155,8 @@ import matplotlib.pyplot as plt
 
 CONFIG = {"experiment_name": "<label>"}
 
-DATA_DIR = Path(__file__).parent.parent.parent / "data" / "outputs" / CONFIG["experiment_name"]
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
+INPUT_DIR = DATA_DIR / CONFIG["experiment_name"]
 ASSETS_DIR = Path(__file__).parent.parent.parent / "thesis" / "assets" / CONFIG["experiment_name"]
 
 def main():
