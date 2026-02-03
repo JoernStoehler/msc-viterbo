@@ -115,7 +115,7 @@ CONFIG = SimpleNamespace(
         "thesis/assets/latexml/ar5iv-bindings/supported_originals/*",
         "thesis/assets/latexml/ar5iv-bindings/deprecated/*",
         # Data outputs (generated, gitignored)
-        "data/outputs/*",
+        "data/*",
     ],
 
     # Safety fallback for pathological repos with extreme nesting.

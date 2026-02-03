@@ -17,7 +17,7 @@ This skill covers the complete lifecycle of Python experiments in `experiments/`
 | Code | `experiments/<label>/` |
 | SPEC.md | `experiments/<label>/SPEC.md` |
 | Tests | `experiments/<label>/test_*.py` (colocated) |
-| Data | `data/outputs/<label>/` |
+| Data | `data/<label>/` |
 | Thesis assets | `thesis/assets/<label>/` |
 
 ## Standard Code Structure

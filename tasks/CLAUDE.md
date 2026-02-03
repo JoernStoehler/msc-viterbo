@@ -1,23 +1,26 @@
-# tasks/
-
-[proposed]
+# tasks/CLAUDE.md
 
 Local task tracking (GTD-style). Use instead of GitHub issues.
 
-## Directories
+## Structure
 
-| Directory | Meaning |
-|-----------|---------|
-| `inbox/` | New, uncategorized |
-| `next/` | Actively working on |
-| `waiting/` | Blocked on dependency |
-| `review/` | Agent done, awaiting Jörn review |
-| `done/` | Jörn approved |
-| `blocked/` | Known blockers, parked |
+```
+tasks/
+  ROADMAP.md       # Milestones, priorities, cross-cutting notes
+  inbox/           # New, uncategorized tasks, idea drafts
+  next/            # Actively worked on, usually there's a worktree & claude code session active in the background
+  waiting/         # Blocked on scheduled dependency (e.g. another task in `next/`)
+  blocked/         # Blocked on known but unscheduled dependency (e.g. another task in `inbox/`, some goal not even tracked as tasks yet)
+  review/          # Intermediate done state, awaiting review from Jörn, usually there's a PR open
+  done/            # Jörn gave approval, task merged or otherwise completed and archived
+```
 
-Move files between directories to change status.
+Move files between directories to change task status.
+Typical sequence: `inbox` → `next` → `review` → `done`
 
 ## Task File Format
+
+No strict format. Simple example:
 
 ```markdown
 # <Task Title>
@@ -30,10 +33,9 @@ Move files between directories to change status.
 What needs to be done.
 
 ## Notes
-Per-task context, plans, discoveries.
+Per-task context, plans, discoveries, clarifications.
 ```
 
 ## See Also
 
-- `ROADMAP.md` for milestones and priorities
-- Skill `orchestrate` for the full PM workflow
+- Skill `orchestrate` for a full project management workflow

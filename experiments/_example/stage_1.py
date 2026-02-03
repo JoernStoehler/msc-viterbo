@@ -25,7 +25,7 @@ if CONFIG["variant"] == "smoke":
 # =============================================================================
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
-OUTPUT_DIR = DATA_DIR / "outputs" / CONFIG["experiment_name"]
+OUTPUT_DIR = DATA_DIR / CONFIG["experiment_name"]
 
 
 # =============================================================================
