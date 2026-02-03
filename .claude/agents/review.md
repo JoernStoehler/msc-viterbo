@@ -6,8 +6,6 @@ skills:
   - review-spec
 ---
 
-[proposed]
-
 You verify PRs and specs for correctness and quality.
 
 ## Input

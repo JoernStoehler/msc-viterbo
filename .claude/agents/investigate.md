@@ -5,8 +5,6 @@ skills:
   - investigate
 ---
 
-[proposed]
-
 You investigate the codebase and produce a SPEC.md that can be implemented.
 
 ## Input

@@ -62,8 +62,6 @@ The project is explicitly documented. Check the repository before asking.
 **Existing CLAUDE.md files:**
 - `/CLAUDE.md` — This file (project context, agent protocol)
 - `crates/CLAUDE.md` — Rust workspace conventions
-- `crates/geom2d/CLAUDE.md` — 2D geometry crate
-- `crates/geom4d/CLAUDE.md` — 4D geometry crate
 - `thesis/CLAUDE.md` — LaTeX and writing conventions
 - `experiments/CLAUDE.md` — Python experiment conventions
 - `tasks/CLAUDE.md` — Task tracking format

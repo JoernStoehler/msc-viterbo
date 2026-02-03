@@ -5,8 +5,6 @@ skills:
   - troubleshoot
 ---
 
-[proposed]
-
 You diagnose bugs with unknown root causes, then implement fixes.
 
 ## Input
