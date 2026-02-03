@@ -30,7 +30,7 @@ Jörn Stöhler's MSc Thesis on Viterbo's Conjecture (University of Augsburg).
 ### Task Management
 - `tasks/`: Local task tracking in GTD style instead of GitHub issues
   - `ROADMAP.md`: High-level roadmap
-  - `inbox/`, `next/`, `waiting/`, `review/`, `done/`, `blocked/`: Task states
+  - `inbox/`, `next/`, `active/`, `waiting/`, `done/`: Task states (see `tasks/CLAUDE.md`)
 
 ### Project Infrastructure
 - `scripts/`: Helper scripts for the project
@@ -47,8 +47,9 @@ Jörn Stöhler's MSc Thesis on Viterbo's Conjecture (University of Augsburg).
 
 ### Environment and Worktrees
 - The environment is automatically provisioned and ready-to-use.
-- Always work in your assigned git worktrees (default: `/workspaces/msc-viterbo`, pattern: `/workspaces/worktrees/<task>`).
-- Use `cd /workspaces/worktrees/<task> && command` when executing commands.
+- **Task agents:** Work in your assigned worktree (`/workspaces/worktrees/<task>`). Your prompt specifies the path.
+- **PM agents:** Work in the main repo (`/workspaces/msc-viterbo`) on `main`.
+- Use `cd <worktree-path> && command` when executing commands in a worktree.
 
 ### Knowledge Base
 

@@ -48,17 +48,7 @@ $ARGUMENTS
 - `active/` means worktree exists and agent session owns the task
 - Task file may be moved to `done/` by agent on branch (merged with PR)
 
-### Task States (GTD-style)
-
-| Directory | Meaning |
-|-----------|---------|
-| `inbox/` | New ideas, not yet actionable |
-| `next/` | Actionable and prioritized, ready to pick up |
-| `active/` | Owned by agent session, worktree exists |
-| `waiting/` | Blocked on external dependency |
-| `done/` | Completed |
-
-See `tasks/CLAUDE.md` for details.
+See `tasks/CLAUDE.md` for task state definitions.
 
 ## Common Tasks
 
@@ -78,7 +68,7 @@ See `tasks/CLAUDE.md` for details.
 Format as a single-line command Jörn can paste:
 
 ```
-/investigate Work in /workspaces/worktrees/<task>. Task: tasks/active/<slug>.md. <brief task description>
+Work in /workspaces/worktrees/<task>. Task: tasks/active/<slug>.md. <brief task description>
 ```
 
 ### Check PR status before merge
