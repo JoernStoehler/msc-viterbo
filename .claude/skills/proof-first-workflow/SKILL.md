@@ -13,12 +13,11 @@ This workflow ensures correctness in rust_viterbo by establishing mathematical f
 
 ### Stage 1: Terminology [proposed]
 
-Define mathematical objects precisely. Use LaTeX notation where helpful.
+Define mathematical objects precisely in thesis LaTeX. Then document the relevant definitions in SPEC.md's glossary section, referencing the thesis.
 
-**Output:** Glossary section in SPEC.md with:
-- Object names and symbols
-- Formal definitions
-- Relationships between objects
+**Output:**
+- Thesis: Formal definitions in appropriate chapter
+- SPEC.md: Glossary section referencing thesis definitions
 
 **Example:**
 ```markdown
