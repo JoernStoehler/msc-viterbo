@@ -66,6 +66,10 @@ Required test categories:
 - **Property tests**: Mathematical invariants (scaling, monotonicity)
 - **Cross-checks**: Agreement with known values or other algorithms
 
+## Dependencies
+
+Add to crate's `Cargo.toml`, run `cargo build`.
+
 ## See Also
 
 - Skill `proof-first-workflow` for the full 7-stage workflow

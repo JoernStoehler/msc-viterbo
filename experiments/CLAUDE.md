@@ -27,6 +27,10 @@ uv run ruff check . && uv run ruff format .  # Lint
 - Outputs → `data/outputs/<label>/`
 - Thesis figures → `thesis/assets/<label>/`
 
+## Dependencies
+
+Add to `pyproject.toml`, run `uv sync --extra dev`.
+
 ## See Also
 
 - Skill `experiment-workflow` for creating new experiments or understanding the full lifecycle

@@ -14,9 +14,12 @@ This project uses explicit documentation so agents can work autonomously. This s
 | `CLAUDE.md` (root) | Always | Project context, agent protocol |
 | `<dir>/CLAUDE.md` | On first read in dir | Rules/conventions for that directory |
 | `.claude/skills/<label>/SKILL.md` | Description at startup | Procedures, workflows, how-to |
+| File comments | When file is read | Context for that specific file |
 | `docs/investigations/<date>-<desc>.md` | Never | One-off research reports |
 | `docs/papers/` | Never | Downloaded academic papers |
 | `tasks/` | Never | Tracked tasks, and per-task-only domain knowledge, plans, goals |
+
+**Forbidden locations for CLAUDE.md:** `.claude/` (handled by root CLAUDE.md and system prompt)
 
 ## Decision Tree: Where Does It Go?
 
@@ -25,6 +28,7 @@ This project uses explicit documentation so agents can work autonomously. This s
 - Relevant for future agents following up on this task: `tasks/` notes, PR description+comments, `docs/investigations/` report, etc.
 - Relevant to all (most) agents working on the project at all: root `CLAUDE.md`
 - Relevant to all (most) agents who read files in some directory: folder `<dir>/CLAUDE.md` (triggered on read)
+- Relevant to agents who read a specific file: comments in that file (or reference to external doc)
 - Relevant to some topic: `.claude/skills/<label>/SKILL.md`
 - Relevant to some topic, related to some folder: reference the `<label>` skill in `<dir>/CLAUDE.md`
 

@@ -75,38 +75,7 @@ If hooks crash, use this `.claude/settings.json`:
 }
 ```
 
-## Feature Matrix
+## See Also
 
-| Feature | Local | Codespace | CC Web |
-|---------|-------|-----------|--------|
-| Full git history | ✅ | ✅ | ❌ shallow |
-| `gh pr`/`gh issue` | ✅ | ✅ | Use `gh api` |
-| Git worktrees | ✅ | ✅ | ❌ |
-| apt-get | ✅ | ✅ | ❌ |
-| TexLive | ✅ | ✅ | ❌ |
-| Skills auto-load | ✅ | ✅ | ⚠️ manual |
-
-## Claude Code Configuration
-
-**Config file locations:**
-- `$CLAUDE_CONFIG_DIR/.claude.json` — User-level settings (install method, theme, account info)
-- `.claude/settings.json` — Project-level settings (permissions, hooks, plugins)
-- `.claude/settings.local.json` — Personal project settings (gitignored)
-
-**CLAUDE_CONFIG_DIR:**
-- Default: `$HOME` (so `.claude.json` lands at `~/.claude.json`)
-- This project sets it to `/home/vscode/.claude` in devcontainer.json
-- Why: Bind mount only covers `~/.claude/` directory; without this, `.claude.json` is lost on rebuild
-
-**Permission modes:** `"default"`, `"acceptEdits"`, `"bypassPermissions"`, `"plan"`
-
-This project uses `bypassPermissions` since we run in a sandboxed container.
-
-**Known /doctor false positive:**
-`/doctor` may warn "Leftover npm global installation" when npm prefix is `~/.local`. Safe to ignore if `~/.claude.json` shows `"installMethod": "native"`.
-
-## References
-
-- `.devcontainer/README.md` — Environment comparison
+- `.devcontainer/CLAUDE.md` — Environment overview
 - `.claude/hooks/session-start.sh` — Environment detection
-- `docs/investigations/2026-01-31-lsp-broken.md` — Why LSP is broken
