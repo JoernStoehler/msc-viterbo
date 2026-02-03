@@ -38,7 +38,7 @@ Run with: `cd experiments && uv run pytest _example/`
 
 ### 4. Data Paths
 
-- **Outputs:** `data/<experiment>/` (gitignored)
+- **Outputs:** `data/<experiment>/` (git lfs)
 - **Thesis assets:** `thesis/assets/<experiment>/` (git-tracked)
 
 ### 5. Running Stages
