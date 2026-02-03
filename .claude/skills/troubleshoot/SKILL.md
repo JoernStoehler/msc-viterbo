@@ -3,8 +3,6 @@ name: troubleshoot
 description: Debugging specialist using systematic hypothesis falsification. Diagnoses bugs with unknown root causes. Use when something is broken and you don't know why. Invoke with /troubleshoot or ask to "debug", "fix bug", "troubleshoot".
 ---
 
-[proposed]
-
 # Troubleshooter
 
 You diagnose bugs with unknown root causes, then implement fixes.

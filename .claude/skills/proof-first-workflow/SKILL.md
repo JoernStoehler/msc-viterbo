@@ -3,8 +3,6 @@ name: proof-first-workflow
 description: The 7-stage proof-first development workflow for rust_viterbo. Terminology, proofs, signatures, tests, implementation.
 ---
 
-[proposed]
-
 # Proof-First Workflow
 
 This workflow ensures correctness in rust_viterbo by establishing mathematical foundations before implementation. The goal is a clear chain: thesis (math) -> SPEC.md (design) -> tests (verify spec) -> code (must pass tests).

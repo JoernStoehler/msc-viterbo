@@ -1,13 +1,13 @@
 ---
 name: experiment-workflow
-description: How to create, run, and document Python experiments. SPEC.md, stage_*.py, FINDINGS.md lifecycle.
+description: How to create, maintain and extend Python experiments. Experiment lifecycle workflows and best practices.
 ---
-
-[proposed]
 
 # Experiment Workflow
 
 This skill covers the complete lifecycle of Python experiments in `experiments/`. Experiments are the primary way this thesis generates empirical evidence.
+
+**Source of truth:** filesystem → `experiments/CLAUDE.md` → this skill
 
 ## File Layout
 
@@ -62,14 +62,9 @@ After initial development, experiments may be rerun when the codebase changes.
 
 ## Running Stages
 
-```bash
-cd experiments
-uv run python <label>/stage_build.py
-uv run python <label>/stage_analyze.py
-uv run python <label>/stage_plot.py
-```
+See `experiments/CLAUDE.md` for commands.
 
-## SPEC.md Template [proposed]
+## SPEC.md Template
 
 ```markdown
 # <label> Experiment

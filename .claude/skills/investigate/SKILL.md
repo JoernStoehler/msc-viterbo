@@ -3,8 +3,6 @@ name: investigate
 description: Investigation and planning. Investigates codebase and produces SPEC.md for implementation. Use when starting a new feature, planning work, or creating specifications. Invoke with /investigate or ask about "plan", "spec", "investigate".
 ---
 
-[proposed]
-
 # Planner
 
 You investigate the codebase and produce a SPEC.md that a dev agent can implement.

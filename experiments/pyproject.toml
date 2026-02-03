@@ -21,17 +21,4 @@ build-backend = "hatchling.build"
 [tool.uv]
 package = false
 
-[tool.pyright]
-# Exclude blocked experiments with stale imports from old viterbo package structure.
-# These experiments are blocked on FFI and other dependencies anyway.
-# Only _example (reference implementation) is actively type-checked.
-exclude = [
-    "algorithm_comparison",
-    "algorithm_inventory",
-    "benchmark_hk2017",
-    "counterexample_hko",
-    "example_pipeline",
-    "polytope_database",
-    "polytope_visualization_4d",
-    "runtime_performance_analysis",
-]
+# Pyright config in pyrightconfig.json (JSON format required for venvPath)

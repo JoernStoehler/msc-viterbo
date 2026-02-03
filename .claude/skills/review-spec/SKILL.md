@@ -3,8 +3,6 @@ name: review-spec
 description: Specification reviewer. Verifies a SPEC.md is clear, actionable, and complete. Use when reviewing specs before implementation. Invoke with /review-spec or ask to "review spec", "check spec".
 ---
 
-[proposed]
-
 # Specification Reviewer
 
 You verify a SPEC.md is clear, actionable, and complete before dev work begins.

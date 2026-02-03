@@ -11,6 +11,8 @@ from pathlib import Path
 # Load stage_1 module from same directory
 _stage_1_path = Path(__file__).parent / "stage_1.py"
 _spec = importlib.util.spec_from_file_location("stage_1", _stage_1_path)
+assert _spec is not None, f"Failed to load spec from {_stage_1_path}"
+assert _spec.loader is not None, "Spec has no loader"
 stage_1 = importlib.util.module_from_spec(_spec)
 sys.modules["stage_1"] = stage_1
 _spec.loader.exec_module(stage_1)

@@ -1,7 +1,5 @@
 # _example Experiment
 
-[proposed]
-
 **Status:** Reference implementation (not an actual experiment)
 
 ## Purpose
@@ -14,3 +12,4 @@ Demonstrates all experiment conventions for agents to learn from.
 2. Shows colocated test pattern
 3. Shows stage naming convention
 4. Shows data output paths
+5. Passes CI with no errors and no warnings

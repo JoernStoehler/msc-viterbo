@@ -3,35 +3,22 @@ name: capacity-algorithms
 description: EHZ capacity algorithms (HK2017, Tube, Billiard). When to use each, runtime characteristics, applicability domains.
 ---
 
-[proposed]
-
 # Capacity Algorithms
 
 This skill covers the three EHZ capacity algorithms available in rust_viterbo: HK2017, Tube, and Billiard. Use this to decide which algorithm to apply and understand performance characteristics.
 
 ## Quick Reference
 
-| Algorithm | Domain | Complexity | Practical Limit |
-|-----------|--------|------------|-----------------|
-| HK2017 (naive) | Any polytope | O(F!) | F <= 8 |
-| HK2017 (graph-pruned) | Any polytope | O(cycles) | F <= 10 |
-| Tube | Non-Lagrangian only | O(tubes) | F = 16+ |
-| Billiard | Lagrangian products | O(E^6) | No limit |
+| Algorithm | Domain | Complexity | Practical Limit | Status |
+|-----------|--------|------------|-----------------|--------|
+| HK2017 (naive) | Any polytope | O(F!) | F <= 8 | Unimplemented |
+| HK2017 (graph-pruned) | Any polytope | unknown | F <= 10 | Unimplemented |
+| Tube | No Lagrangian 2-face | unknown | unknown | Unimplemented |
+| Billiard | Lagrangian product | O(E^6) | unknown | Unimplemented |
 
-## Decision Tree
+Where F = number of facets, E = number of edges.
 
-```
-Is the polytope non-Lagrangian (no Lagrangian 2-faces)?
-  YES -> Use Tube algorithm (fast, handles large F)
-  NO  -> Is it a Lagrangian product?
-           YES -> Use Billiard algorithm
-           NO  -> Use HK2017:
-                    F <= 8  -> Either variant works
-                    F <= 10 -> GraphPruned recommended
-                    F > 10  -> Infeasible (memory exhaustion)
-```
-
-## HK2017 Performance
+## HK2017 Performance (LEGACY VERSION)
 
 ### Runtime Formula
 
@@ -69,7 +56,7 @@ GraphPruned enumerates only cycles in the facet adjacency graph instead of all o
 
 Best speedup on axis-aligned polytopes (tesseract) where adjacency graph is sparse.
 
-## Tube Algorithm Performance
+## Tube Algorithm Performance (LEGACY VERSION)
 
 ### Runtime Formula
 
@@ -88,7 +75,7 @@ Tube algorithm requires the polytope to be **non-Lagrangian** (no Lagrangian 2-f
 | Cross-polytope (16f) | 1.2s | Infeasible |
 | 24-cell (24f) | 249ms | Infeasible |
 
-## Reference Capacity Values
+## Reference Capacity Values (LEGACY VERSION)
 
 | Polytope | Facets | Capacity | Algorithm |
 |----------|--------|----------|-----------|
@@ -97,7 +84,7 @@ Tube algorithm requires the polytope to be **non-Lagrangian** (no Lagrangian 2-f
 | Cross-polytope | 16 | 1.0 | Tube |
 | 24-cell | 24 | 2.0 | Tube |
 
-## Mahler Bound
+## Mahler Bound (MISSING SOURCE)
 
 The Mahler inequality states: `c(K) * c(K^polar) >= 4`.
 
@@ -112,7 +99,7 @@ The Mahler inequality states: `c(K) * c(K^polar) >= 4`.
 
 These polytopes are extremal for Mahler in 4D.
 
-## Profiling Hotspots
+## Profiling Hotspots (LEGACY VERSION)
 
 ### Cross-Polytope (16 facets, 15840 tubes/iter)
 
@@ -134,7 +121,7 @@ Profile: Memory-bound (many small tubes).
 
 Profile: Compute-bound (fewer, larger computations).
 
-## Closure Constraint Feasibility
+## Closure Constraint Feasibility (LEGACY VERSION)
 
 For a k-facet permutation, closure requires: `sum_i beta_i * n_i = 0, beta_i >= 0`
 
@@ -147,12 +134,12 @@ For a k-facet permutation, closure requires: `sum_i beta_i * n_i = 0, beta_i >= 
 
 Tesseract normals come in opposite pairs (+e_j, -e_j). For any facet sequence, there's likely a "balancing" normal available.
 
-## Escalation Triggers
+## Escalation Triggers (LEGACY VERSION)
 
 1. **Need HK2017 on F > 8**: Consider parallel computation or accept Tube-only
 2. **Capacity values change**: Rerun algorithm_inventory and compare
 3. **New polytope fails validation**: Check Lagrangian 2-face detection
 
-## Source
+## Source (EXPERIMENTS ARE UNIMPLEMENTED)
 
 Performance data extracted from experiments: `benchmark_hk2017`, `algorithm_inventory`, `runtime_performance_analysis`.

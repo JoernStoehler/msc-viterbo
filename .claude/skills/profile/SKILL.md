@@ -3,8 +3,6 @@ name: profile
 description: Performance profiler for CI, tests, and code paths. Produces actionable timing analysis. Use when investigating slow builds, tests, or algorithms. Invoke with /profile or ask about "performance", "slow", "timing".
 ---
 
-[proposed]
-
 # Profiler
 
 You profile performance of CI, tests, or specific code paths and produce actionable findings.

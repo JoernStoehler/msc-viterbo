@@ -3,23 +3,27 @@ name: knowledge-base
 description: How to extend the project knowledge base. Where knowledge lives, what goes where, and how to add new information. Use when documenting learnings, creating skills, or improving existing docs.
 ---
 
-# Knowledge Base
+# Procedural Knowledge Base
 
-This project uses explicit documentation so agents can work autonomously. This skill explains where knowledge lives and how to extend it.
+This project uses explicit documentation so agents can work autonomously. 
+This skill explains where knowledge that is about working on the project (procedural knowledge) lives and how to extend it.
+
+Object-level domain knowledge (code, code docs, configs, material, literature) goes in the usual places in the repository, and we do not deviate from common conventions.
 
 ## Knowledge Locations
 
-| Location | Auto-loaded? | Content Type |
-|----------|-------------|--------------|
-| `CLAUDE.md` (root) | Always | Project context, agent protocol |
-| `<dir>/CLAUDE.md` | On first read in dir | Rules/conventions for that directory |
-| `.claude/skills/<label>/SKILL.md` | Description at startup | Procedures, workflows, how-to |
-| File comments | When file is read | Context for that specific file |
-| `docs/investigations/<date>-<desc>.md` | Never | One-off research reports |
-| `docs/papers/` | Never | Downloaded academic papers |
-| `tasks/` | Never | Tracked tasks, and per-task-only domain knowledge, plans, goals |
+| Location | Side-Loaded? |
+|----------|-------------|
+| `CLAUDE.md` (root) | Always |
+| `<dir>/CLAUDE.md` | On Read() below the folder |
+| File comments | Never |
+| `.claude/skills/<label>/SKILL.md` | Description field at startup |
+| `docs/investigations/<date>-<desc>.md` | Never |
+| `docs/papers/` | Never |
+| `tasks/` | Never |
+| `/tmp/` | Never |
 
-**Forbidden locations for CLAUDE.md:** `.claude/` (handled by root CLAUDE.md and system prompt)
+**Note:** Do not create `.claude/CLAUDE.md`, it just overrides root `CLAUDE.md`.
 
 ## Decision Tree: Where Does It Go?
 
@@ -123,3 +127,9 @@ Put conclusion first. Agents often read the whole file at once, but Jörn reads 
 - **Friction from Indirection** - Don't move small, simple pieces of knowledge behind references; duplicate if needed.
 - **Orphan knowledge** - If it's not discoverable, it doesn't exist.
 - **Over-nesting** - Aim for zero, one, or two hops to obtain knowledge.
+- **Speculative workflows** - Don't write workflows and procedural knowledge that hasn't been used and evaluated yet.
+- **Broadcasting Too Wide** - Don't put knowledge in root CLAUDE.md, or folder CLAUDE.md, if only some and not most agents who operate in the repo/folder need it. References and common+short conventions are okay to broadcast, since they do not distract agents who don't need them much.
+- **Complexity** - Don't invent new custom workflows and conventions, stick to combining or building upon standard ones.
+- **Reexplaining Trained Knowledge** - Don't reexplain knowledge that agents already have been trained on, i.e. don't reexplain conventions and workflows that are common among public github repositories, educational literature, or that are traced in logs on public servers. Reminders to get agents to recall their trained knowledge and to activate it into working memory are entirely different and not discouraged.
+- **Repeating Already Loaded Knowledge** - Don't repeat knowledge that is already loaded automatically, e.g. skill descriptions, the agent system prompt, or CLAUDE.md content in parent folders. That's just creating duplication in the agent's context window at the cost of having multiple copies to maintain. Reminders or commentary about already loaded knowledge are entirely different and not discouraged.
+- **Overloading Agents** - Don't provide too much knowledge targeted at one agent. If too much custom procedural knowledge (!= domain knowledge) is needed for an agent to carry out its task, the task is likely too complex and will fail even with the extra knowledge. Split such tasks into smaller tasks, and write the knowledge base material to target agents with handleable scopes. Agents can compact their context window and "unload" skills, so even if the subtasks are handled in sequence, the agent still only has to focus on the currently relevant skills.

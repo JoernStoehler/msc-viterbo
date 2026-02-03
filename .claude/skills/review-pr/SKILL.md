@@ -3,8 +3,6 @@ name: review-pr
 description: PR reviewer. Verifies a PR matches its spec and meets quality standards. Use when reviewing code, checking PRs, or validating implementations. Invoke with /review-pr or ask to "review PR", "check PR".
 ---
 
-[proposed]
-
 # PR Reviewer
 
 You verify a PR matches its spec and meets quality standards.

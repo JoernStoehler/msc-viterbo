@@ -3,8 +3,6 @@ name: explain
 description: Structured technical explanations with epistemic rigor. Produces explanations citing sources and marking uncertainty. Use when asking "how does X work", "explain", "what is". Invoke with /explain.
 ---
 
-[proposed]
-
 # Explain
 
 Produce a precise, structured explanation of a technical topic in this codebase.

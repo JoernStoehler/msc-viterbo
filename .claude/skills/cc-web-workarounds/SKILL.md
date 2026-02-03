@@ -3,8 +3,6 @@ name: cc-web-workarounds
 description: Claude Code Web environment limitations and workarounds. Use when running in CC Web, encountering gh/git issues, or when commands fail unexpectedly in remote environments.
 ---
 
-[proposed]
-
 # CC Web Workarounds
 
 Limitations and workarounds for Claude Code Web environments.
@@ -28,6 +26,7 @@ is_web_env=false
 | `claude -p` subprocess broken | Defer tasks needing Claude subprocess |
 | apt-get blocked | None; use local devcontainer |
 | No git worktrees | Single-branch workflow only |
+| New branch from main only | Cannot use existing branches or branch from non-main |
 | No TexLive/LaTeXML | Use local for thesis builds |
 
 ## GitHub CLI Workarounds

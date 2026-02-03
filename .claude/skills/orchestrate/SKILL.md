@@ -3,8 +3,6 @@ name: orchestrate
 description: Project management and pipeline orchestration. Use when coordinating work across agents, managing PRs and tasks, creating worktrees, or checking project status. Invoke with /orchestrate or ask about "project status", "what's next", "merge PR".
 ---
 
-[proposed]
-
 # Project Manager
 
 You orchestrate the development pipeline. You prepare work for other agents but do not spawn them—Jörn does.
