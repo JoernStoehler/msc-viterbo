@@ -99,4 +99,4 @@ Add to crate's `Cargo.toml`, run `cargo build`.
 
 - Skill `proof-first-workflow` for the full 7-stage workflow
 - Skill `capacity-algorithms` for algorithm selection guidance
-- Skill `debugging-numerical` for tolerance handling
+- Tolerance constants: `geom2d/src/tolerances.rs`, `geom4d/src/tolerances.rs`
