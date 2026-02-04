@@ -9,7 +9,9 @@ This skill covers the complete lifecycle of Python experiments in `experiments/`
 
 **Source of truth:** filesystem → `experiments/CLAUDE.md` → this skill
 
-## File Layout
+## Project Context
+
+### File Layout
 
 | Artifact | Location |
 |----------|----------|
@@ -20,7 +22,7 @@ This skill covers the complete lifecycle of Python experiments in `experiments/`
 | Data | `data/<label>/` |
 | Thesis assets | `thesis/assets/<label>/` |
 
-## Standard Code Structure
+### Standard Code Structure
 
 ```
 experiments/<label>/
@@ -33,13 +35,13 @@ experiments/<label>/
 
 **Why stages?** Separate expensive computation (build) from cheap iteration (analyze/plot). Re-run analysis without regenerating data.
 
-## Teaching Example
+### Teaching Example
 
 `experiments/_example/` demonstrates all conventions. Study it first when creating a new experiment.
 
-## Experiment Lifecycle
+### Experiment Lifecycle
 
-### Initial Development
+#### Initial Development
 
 | Phase | Owner | Output |
 |-------|-------|--------|
@@ -49,7 +51,7 @@ experiments/<label>/
 | Code review | Review agent | Approved PR (or escalate back) |
 | Merge | PM agent | Merged PR, task moved to `done/` |
 
-### Ongoing Maintenance
+#### Ongoing Maintenance
 
 After initial development, experiments may be rerun when the codebase changes.
 
@@ -58,7 +60,9 @@ After initial development, experiments may be rerun when the codebase changes.
 | Rerun | Any agent | Updated data and asset artifacts |
 | Maintenance | Any agent | Updated FINDINGS.md; escalate if needed |
 
-## SPEC.md Template
+## Invariants
+
+### SPEC.md Template
 
 ```markdown
 # <label> Experiment
@@ -79,7 +83,7 @@ What outcome means "we are satisfied"?
 - thesis/assets/<label>/...
 ```
 
-## FINDINGS.md Template
+### FINDINGS.md Template
 
 ```markdown
 # <label> Findings
@@ -98,7 +102,7 @@ When and how to flag issues.
 - YYYY-MM-DD: Updated after <change>
 ```
 
-## FINDINGS.md Content Guidelines
+### FINDINGS.md Content Guidelines
 
 FINDINGS.md is a living document updated on each rerun:
 
@@ -107,9 +111,9 @@ FINDINGS.md is a living document updated on each rerun:
 - **Escalation procedures**: When and how to flag issues (e.g., "if validation fails, open issue before updating thesis")
 - **Changelog**: Dated entries when findings change significantly
 
-## Stage Patterns
+### Stage Patterns
 
-### stage_build.py
+#### stage_build.py
 
 ```python
 """Generate data for <label> experiment."""
@@ -134,7 +138,7 @@ if __name__ == "__main__":
     main()
 ```
 
-### stage_plot.py
+#### stage_plot.py
 
 ```python
 """Generate plots for <label> experiment."""
@@ -158,7 +162,7 @@ if __name__ == "__main__":
     main()
 ```
 
-## Escalation Triggers
+### Escalation Triggers
 
 Escalate (update task file and notify Jörn) when:
 
@@ -166,7 +170,7 @@ Escalate (update task file and notify Jörn) when:
 - Data artifacts contradict FINDINGS.md conclusions
 - Upstream code changes invalidate assumptions in SPEC.md
 
-## Philosophy
+### Philosophy
 
 - **Task files track progress** - coordination, blockers, status updates
 - **Files contain research content** - SPEC.md, FINDINGS.md, stages, data
@@ -174,7 +178,7 @@ Escalate (update task file and notify Jörn) when:
 - **Reproduction must be obvious** - pattern self-evident from repo structure
 - **Escalate don't hide** - if results change qualitatively, flag it rather than silently updating
 
-## Code Style
+### Code Style
 
 - KISS (Keep It Simple)
 - Pure functions (closeness to math)
