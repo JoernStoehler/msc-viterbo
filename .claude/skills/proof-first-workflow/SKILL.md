@@ -143,9 +143,9 @@ Implement functions 1:1 from proofs. The code should read like the proof.
 - If implementation diverges from proof, escalate
 - Run tests after each function (green phase)
 
-## Escalation Points
+## Escalation Rules
 
-### Escalate to Jörn When:
+Escalate to Jörn when:
 
 1. **Proof can't be implemented 1:1**
    - Algorithm requires different approach than proof
@@ -204,7 +204,3 @@ When a test fails:
 2. Does spec encode math correctly?
 3. If both yes -> code bug
 4. If no -> escalate
-
-## Source
-
-Based on root `CLAUDE.md` correctness chain and `crates/CLAUDE.md`.

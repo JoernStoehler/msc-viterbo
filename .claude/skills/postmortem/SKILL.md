@@ -7,7 +7,7 @@ description: Session reflection and feedback. Reflects on what worked, what didn
 
 Reflect on this session to help improve future agent prompts and workflows.
 
-## Questions
+## Answer These Questions
 
 1. **Friction**: What slowed you down or required extra effort?
 

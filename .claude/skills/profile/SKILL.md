@@ -18,7 +18,7 @@ $ARGUMENTS
 - **Algorithm performance**: Specific code path timing
 - **Build performance**: Compilation time, cache effectiveness
 
-## Information Gathering
+## Gather Information
 
 ### CI Timing
 
@@ -69,7 +69,7 @@ Report findings directly to Jörn:
 4. Recommendations
 5. What's NOT the problem
 
-## Escalation
+## Escalation Rules
 
 Ask Jörn when:
 - Need benchmarking infrastructure

@@ -66,7 +66,7 @@ gh pr create --title "fix: <description>" --body "..."
 
 Include: hypotheses tested, evidence, root cause, fix description.
 
-## Escalation
+## Escalation Rules
 
 Stop and ask Jörn when:
 - All hypotheses falsified

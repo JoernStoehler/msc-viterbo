@@ -11,14 +11,14 @@ Produce a precise, structured explanation of a technical topic in this codebase.
 
 $ARGUMENTS
 
-## Instructions
+## Output Requirements
 
 Your goal is to produce an explanation that is:
 - **Mathematically correct**: No hand-waving or imprecise statements
 - **Epistemically correct**: Every claim cites its source; unknowns are marked as unknown
 - **Structured**: Readable sections, tables, code references
 
-### Process
+## Workflow
 
 1. **Gather sources first**
    - Read all relevant source files (don't guess from memory)
@@ -49,14 +49,14 @@ Your goal is to produce an explanation that is:
    - Design decision: commit hash + author, or "no documented justification"
    - Hypothesis: explicitly mark as "hypothesis" or "unverified"
 
-### Epistemic markers
+## Epistemic Markers
 
 - ✅ **Justified**: Directly stated in code/spec/math, or trivially follows
 - ⚠️ **Hypothesis**: Plausible but not verified
 - ❌ **Unjustified**: No documented reason found
 - 🔍 **Needs investigation**: Could be determined but hasn't been checked
 
-### What NOT to do
+## Anti-Patterns
 
 - Don't guess file contents — read them
 - Don't hide uncertainty — if you don't know, say "unknown"

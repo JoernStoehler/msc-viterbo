@@ -7,7 +7,35 @@ description: Project management and pipeline orchestration. Use when coordinatin
 
 You orchestrate the development pipeline. You prepare work for other agents but do not spawn them—Jörn does.
 
-## Startup
+## Assignment
+
+$ARGUMENTS
+
+## Pipeline States
+
+```
+1. Jörn + PM discuss idea → PM creates task in inbox/
+2. Jörn + PM triage → move task to next/ (actionable and prioritized)
+3. PM creates worktree, writes prompt, moves task to active/
+4. Jörn spawns task agent → agent works, creates PR
+5. Jörn spawns review agent → reviewer approves PR
+6. PM merges PR, moves task to done/, removes worktree
+```
+
+**Key rules:**
+- PM merges only after review completes
+- `active/` means worktree exists and agent session owns the task
+- Task file may be moved to `done/` by agent on branch (merged with PR)
+
+See `tasks/CLAUDE.md` for task state definitions.
+
+## Worktree Limitations
+
+- Skills and CLAUDE.md read from main repo at session start, not worktree
+- VSCode IDE working directory is always main repo (use `cd` in commands)
+- No shared build cache (each worktree builds independently)
+
+## Gather Context
 
 When invoked, always begin by gathering project context:
 
@@ -28,42 +56,13 @@ git worktree list
 
 Present a concise status summary, then ask what Jörn wants to work on—or proceed with the assignment if one was given.
 
-## Assignment
-
-$ARGUMENTS
-
-## Pipeline
-
-```
-1. Jörn + PM discuss idea → PM creates task in inbox/
-2. Jörn + PM triage → move task to next/ (actionable and prioritized)
-3. PM creates worktree, writes prompt, moves task to active/
-4. Jörn spawns task agent → agent works, creates PR
-5. Jörn spawns review agent → reviewer approves PR
-6. PM merges PR, moves task to done/, removes worktree
-```
-
-**Key rules:**
-- PM merges only after review completes
-- `active/` means worktree exists and agent session owns the task
-- Task file may be moved to `done/` by agent on branch (merged with PR)
-
-See `tasks/CLAUDE.md` for task state definitions.
-
-## Common Tasks
-
-### Create worktree
+## Create Worktree
 
 ```bash
 .devcontainer/local/worktree-new.sh /workspaces/worktrees/<task> <branch-name>
 ```
 
-**Worktree limitations:**
-- Skills and CLAUDE.md read from main repo at session start, not worktree
-- VSCode IDE working directory is always main repo (use `cd` in commands)
-- No shared build cache (each worktree builds independently)
-
-### Write prompt for Jörn
+## Write Prompt for Jörn
 
 Format as a single-line command Jörn can paste:
 
@@ -71,7 +70,7 @@ Format as a single-line command Jörn can paste:
 Work in /workspaces/worktrees/<task>. Task: tasks/active/<slug>.md. <brief task description>
 ```
 
-### Check PR status before merge
+## Check PR Status
 
 Always read the **full PR body** (not just review comments):
 
@@ -90,15 +89,17 @@ Only after reading the PR body, check review status:
 gh pr view <number> --comments
 ```
 
-### Merge PR (after review approval)
+## Merge PR
+
+After review approval:
 
 ```bash
 gh pr merge <number> --squash --delete-branch
 ```
 
-### Post-Merge Checklist
+## Run Post-Merge Checklist
 
-**CRITICAL:** Run this checklist immediately after any PR merge.
+**CRITICAL:** Run this immediately after any PR merge.
 
 ```bash
 # 1. Read FULL PR body for follow-ups

@@ -7,6 +7,8 @@ description: EHZ capacity algorithms (HK2017, Tube, Billiard). When to use each,
 
 This skill covers the three EHZ capacity algorithms available in rust_viterbo: HK2017, Tube, and Billiard. Use this to decide which algorithm to apply and understand performance characteristics.
 
+**Note:** Algorithm crates (hk2017, tube, billiard) are currently stubs awaiting reimplementation. Sections marked "(LEGACY VERSION)" contain performance data from legacy experiments that may not match reimplemented code.
+
 ## Quick Reference
 
 | Algorithm | Domain | Complexity | Practical Limit | Status |
@@ -134,14 +136,8 @@ For a k-facet permutation, closure requires: `sum_i beta_i * n_i = 0, beta_i >= 
 
 Tesseract normals come in opposite pairs (+e_j, -e_j). For any facet sequence, there's likely a "balancing" normal available.
 
-## Escalation Triggers (LEGACY VERSION)
+## Escalation Rules
 
 1. **Need HK2017 on F > 8**: Consider parallel computation or accept Tube-only
 2. **Capacity values change**: Rerun algorithm_inventory and compare
 3. **New polytope fails validation**: Check Lagrangian 2-face detection
-
-## Source
-
-Performance data extracted from legacy experiments: `benchmark_hk2017`, `algorithm_inventory`, `runtime_performance_analysis`.
-
-Note: Algorithm crates (hk2017, tube, billiard) are currently stubs awaiting reimplementation. Experiment code exists but cannot run until algorithms are complete.

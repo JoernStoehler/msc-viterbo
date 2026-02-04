@@ -58,10 +58,6 @@ After initial development, experiments may be rerun when the codebase changes.
 | Rerun | Any agent | Updated data and asset artifacts |
 | Maintenance | Any agent | Updated FINDINGS.md; escalate if needed |
 
-## Running Stages
-
-See `experiments/CLAUDE.md` for commands.
-
 ## SPEC.md Template
 
 ```markdown
@@ -183,7 +179,3 @@ Escalate (update task file and notify Jörn) when:
 - KISS (Keep It Simple)
 - Pure functions (closeness to math)
 - Fast dev cycle (no external users)
-
-## Source
-
-Extracted from deleted `docs/conventions/python-experiments.md`.

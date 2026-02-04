@@ -74,7 +74,7 @@ gh pr checks <pr-number> --watch
 
 Only after CI is green: PR link, what was done, any out-of-scope notes.
 
-## Escalation
+## Escalation Rules
 
 Stop and ask Jörn when:
 - Spec has a mistake or contradiction

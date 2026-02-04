@@ -43,9 +43,7 @@ Large CLAUDE.md or SKILL.md files hint that there's knowledge in them that isn't
 
 SKILL.md descriptions are already loaded, so references only need to mention the label, not explain again when to read the skill.
 
-## Adding New Knowledge
-
-### Workflow
+## Add New Knowledge
 
 1. Identify who needs what parts of the new knowledge when
 2. Check if there's already canonical locations that are read by those agents and (approximately) not by agents who don't need the knowledge

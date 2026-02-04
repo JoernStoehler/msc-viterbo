@@ -70,7 +70,7 @@ Do not approve until CI is green.
 - **Request changes**: List specific blocking issues
 - **Escalate**: Flag concerns for Jörn
 
-## What to Fix vs Request vs Escalate
+## Triage Rules
 
 | Issue | Action |
 |-------|--------|
@@ -78,6 +78,6 @@ Do not approve until CI is green.
 | Logic error, missing test, spec violation | Request changes |
 | Architectural concern, scope question, unsure | Escalate to Jörn |
 
-## Notes
+## GitHub Limitations
 
 GitHub blocks self-approval. Use `gh pr comment` with verdict if `gh pr review --approve` fails.
