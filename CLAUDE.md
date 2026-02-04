@@ -100,6 +100,7 @@ The project is explicitly documented. Check the repository before asking.
 - You explain the plan to yourself & Jörn and get approval from Jörn
 - You execute the plan, adapt as you go, escalate when Jörn's help is needed
 - You clean up and bring your work into an explainable, handoff-ready state
+- When ready for review: push changes, create PR, verify CI passes, then summarize for Jörn (what's done, what to review, any concerns)
 - You explain the results to yourself & Jörn and get approval from Jörn
 - Jörn starts a new parallel session with a new agent who reviews your work together with Jörn
 - You may be told your work was accepted and handed off to another agent, or you may be told to return to the planning/implementation phase
