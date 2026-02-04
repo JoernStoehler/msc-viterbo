@@ -11,11 +11,23 @@ You verify a PR matches its spec and meets quality standards.
 
 $ARGUMENTS
 
-## Working Directory
+## Project Context
 
-```bash
-cd /workspaces/worktrees/<task>
-```
+Working directory: `/workspaces/worktrees/<task>`
+
+## Invariants
+
+### Triage Rules
+
+| Issue | Action |
+|-------|--------|
+| Typo, formatting, obvious one-liner | Fix yourself |
+| Logic error, missing test, spec violation | Request changes |
+| Architectural concern, scope question, unsure | Escalate to Jörn |
+
+### GitHub Limitations
+
+GitHub blocks self-approval. Use `gh pr comment` with verdict if `gh pr review --approve` fails.
 
 ## Workflow
 
@@ -69,15 +81,3 @@ Do not approve until CI is green.
 - **Approve**: Implementation correct, CI green, ready to merge
 - **Request changes**: List specific blocking issues
 - **Escalate**: Flag concerns for Jörn
-
-## Triage Rules
-
-| Issue | Action |
-|-------|--------|
-| Typo, formatting, obvious one-liner | Fix yourself |
-| Logic error, missing test, spec violation | Request changes |
-| Architectural concern, scope question, unsure | Escalate to Jörn |
-
-## GitHub Limitations
-
-GitHub blocks self-approval. Use `gh pr comment` with verdict if `gh pr review --approve` fails.
