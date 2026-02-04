@@ -7,7 +7,7 @@ description: The 7-stage proof-first development workflow for rust_viterbo. Term
 
 This workflow ensures correctness in rust_viterbo by establishing mathematical foundations before implementation. The goal is a clear chain: thesis (math) -> SPEC.md (design) -> tests (verify spec) -> code (must pass tests).
 
-## The 7 Stages
+## Workflow
 
 ### Stage 1: Terminology [proposed]
 
@@ -143,7 +143,9 @@ Implement functions 1:1 from proofs. The code should read like the proof.
 - If implementation diverges from proof, escalate
 - Run tests after each function (green phase)
 
-## Escalation Rules
+## Invariants
+
+### Escalation Rules
 
 Escalate to Jörn when:
 
@@ -166,7 +168,7 @@ Escalate to Jörn when:
    - If both yes -> code is wrong
    - If spec/test wrong -> escalate
 
-## The [proposed] Marker System
+### The [proposed] Marker System
 
 - Agent writes `[proposed]` next to new mathematical content
 - Only Jörn removes `[proposed]` to mark as approved
@@ -184,7 +186,7 @@ Escalate to Jörn when:
 - Test cases (reviewed via PR process)
 - FINDINGS.md (empirical, not mathematical)
 
-## Correctness Chain
+### Correctness Chain
 
 ```
 thesis (math)
