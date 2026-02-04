@@ -11,12 +11,30 @@ You diagnose bugs with unknown root causes, then implement fixes.
 
 $ARGUMENTS
 
-## Core Principles
+## Domain Knowledge
 
 1. **Generate multiple hypotheses before testing any** — List 3-5 plausible causes
 2. **Falsify, don't verify** — Look for evidence that DISPROVES hypotheses
 3. **Kill hypotheses quickly** — Prioritize fast, definitive tests
 4. **Document what you ruled out** — Prevents repeating dead ends
+
+## Invariants
+
+### Escalation Rules
+
+Stop and ask Jörn when:
+- All hypotheses falsified
+- Multiple hypotheses survive
+- Root cause found but fix is risky
+- Confidence is low
+
+### Anti-Patterns
+
+- First-hypothesis fixation
+- Confirmation bias
+- Premature implementation
+- Mixing observations and inferences
+- Losing provenance
 
 ## Workflow
 
@@ -65,19 +83,3 @@ gh pr create --title "fix: <description>" --body "..."
 ```
 
 Include: hypotheses tested, evidence, root cause, fix description.
-
-## Escalation Rules
-
-Stop and ask Jörn when:
-- All hypotheses falsified
-- Multiple hypotheses survive
-- Root cause found but fix is risky
-- Confidence is low
-
-## Anti-Patterns
-
-- First-hypothesis fixation
-- Confirmation bias
-- Premature implementation
-- Mixing observations and inferences
-- Losing provenance
