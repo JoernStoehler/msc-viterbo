@@ -25,7 +25,7 @@ cd /workspaces/worktrees/<task>
 gh pr view <pr-number>
 gh pr diff <pr-number>
 # Read task file (linked in PR body)
-cat tasks/next/<slug>.md
+cat tasks/active/<slug>.md
 # Read spec
 cat experiments/<label>/SPEC.md
 ```

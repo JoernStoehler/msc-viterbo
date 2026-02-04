@@ -10,11 +10,12 @@ crates/
   Cargo.lock
   geom2d/     # general-purpose 2d geometry (polygons, Sp(2) matrix group, ...)
     src/
-    tests/    # all the tests we could brainstorm
+    tests/
     Cargo.toml
-    CLAUDE.md # crate-specific knowledge
   geom4d/     # general-purpose 4d geometry (polytopes, piecewise affine paths, Reeb flows, ...)
-    ...
+    src/
+    tests/
+    Cargo.toml
   hk2017/     # HK2017 capacity algorithm
     ...
   billiard/   # Billiard capacity algorithm

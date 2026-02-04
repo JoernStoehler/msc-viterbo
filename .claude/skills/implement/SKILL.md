@@ -23,7 +23,7 @@ cd /workspaces/worktrees/<task>
 
 ```bash
 # Task file has spec location
-cat tasks/next/<slug>.md
+cat tasks/active/<slug>.md
 
 # Experiment spec
 cat experiments/<label>/SPEC.md
@@ -50,7 +50,7 @@ Fix any failures. Common fixes:
 ### 4. Create PR
 
 ```bash
-gh pr create --title "<type>: <description>" --body "Task: tasks/next/<slug>.md
+gh pr create --title "<type>: <description>" --body "Task: tasks/active/<slug>.md
 
 ## Summary
 <what you did>

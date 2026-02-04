@@ -140,6 +140,8 @@ Tesseract normals come in opposite pairs (+e_j, -e_j). For any facet sequence, t
 2. **Capacity values change**: Rerun algorithm_inventory and compare
 3. **New polytope fails validation**: Check Lagrangian 2-face detection
 
-## Source (EXPERIMENTS ARE UNIMPLEMENTED)
+## Source
 
-Performance data extracted from experiments: `benchmark_hk2017`, `algorithm_inventory`, `runtime_performance_analysis`.
+Performance data extracted from legacy experiments: `benchmark_hk2017`, `algorithm_inventory`, `runtime_performance_analysis`.
+
+Note: Algorithm crates (hk2017, tube, billiard) are currently stubs awaiting reimplementation. Experiment code exists but cannot run until algorithms are complete.

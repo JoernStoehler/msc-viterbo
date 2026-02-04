@@ -43,13 +43,11 @@ experiments/<label>/
 
 | Phase | Owner | Output |
 |-------|-------|--------|
-| Ideation | Jörn / PM agent / any agent -> PM agent | Idea discussed with PM |
-| Issue creation | PM agent | GitHub issue with research question |
-| Planning | Planner agent | SPEC.md with method and success criteria |
-| Spec review | Spec-review agent | Approved SPEC.md (or back to planner) |
-| Development | Developer agent | stage_* code, FINDINGS.md, artifacts, PR |
+| Ideation | Jörn + PM agent | Task file in `tasks/inbox/` |
+| Planning | Task agent (plan mode) | SPEC.md with method and success criteria |
+| Development | Task agent | stage_* code, FINDINGS.md, artifacts, PR |
 | Code review | Review agent | Approved PR (or escalate back) |
-| Merge | PM agent | Merged PR, updated issues/milestones |
+| Merge | PM agent | Merged PR, task moved to `done/` |
 
 ### Ongoing Maintenance
 
@@ -166,7 +164,7 @@ if __name__ == "__main__":
 
 ## Escalation Triggers
 
-Escalate (open an issue referencing the experiment) when:
+Escalate (update task file and notify Jörn) when:
 
 - Validation tests that previously passed now fail
 - Data artifacts contradict FINDINGS.md conclusions

@@ -38,7 +38,9 @@
     "CARGO_BUILD_JOBS": "4",
     // Claude Code stores .claude.json at $CLAUDE_CONFIG_DIR (default: $HOME).
     // Must point inside ~/.claude/ so it's included in the bind mount.
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    // Store VS Code tunnel auth in ~/.vscode-cli instead of system keychain
+    "VSCODE_CLI_USE_FILE_KEYCHAIN": "1"
   },
   // Bind mounts: Jörn's specific host paths for cache persistence.
   "mounts": [
@@ -49,6 +51,7 @@
     "source=/srv/devhome/.texmf-var,target=/home/vscode/.texmf-var,type=bind,consistency=cached",
     "source=/srv/devhome/.texmf-config,target=/home/vscode/.texmf-config,type=bind,consistency=cached",
     "source=/srv/devhome/.bash_history_dir,target=/home/vscode/.bash_history_dir,type=bind,consistency=cached",
-    "source=/srv/devworktrees/msc-viterbo/worktrees,target=/workspaces/worktrees,type=bind,consistency=cached"
+    "source=/srv/devworktrees/msc-viterbo/worktrees,target=/workspaces/worktrees,type=bind,consistency=cached",
+    "source=/srv/devhome/.vscode-cli,target=/home/vscode/.vscode-cli,type=bind,consistency=cached"
   ]
 }
