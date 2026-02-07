@@ -1,2 +1,0 @@
-# Ignore vendored LaTeXML bindings copied verbatim; we never edit or search them.
-packages/latex_viterbo/assets/latexml/ar5iv-bindings/
