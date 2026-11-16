@@ -1,0 +1,973 @@
+{
+  "source_public_branch": "origin/archaeology",
+  "tip": "7cc6534a7daafc2bb0c8aa8eb571f586b5a2e589",
+  "original_parent": "95b72cffcbf014eaa7e05951023986455f614646",
+  "disposition": "Historical public source. Exact recovered source and deletions retained without activating obsolete tooling or guidance.",
+  "changes": [
+    {
+      "source_path": ".claude/agents/implement.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/agents/review.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/agents/troubleshoot.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/hooks/file-index.py",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/hooks/session-start.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/settings.json",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/capacity-algorithms/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/cc-web-workarounds/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/experiment-workflow/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/explain/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/implement/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/knowledge-base/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/orchestrate/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/postmortem/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/profile/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/proof-first-workflow/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/review-pr/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-conventions/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-creator/LICENSE.txt",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-creator/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-creator/scripts/init_skill.py",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-creator/scripts/package_skill.py",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/skill-creator/scripts/quick_validate.py",
+      "deleted": true
+    },
+    {
+      "source_path": ".claude/skills/troubleshoot/SKILL.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/CLAUDE.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/ccweb/README.md",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/codespace/Dockerfile",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/codespace/devcontainer.json",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/codespace/post-create.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/Dockerfile",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/devcontainer.json",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/host-devcontainer-rebuild.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/host-vscode-tunnel.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/post-create.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/worktree-new.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/local/worktree-remove.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/scripts/setup-common.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".devcontainer/scripts/warmup-cache.sh",
+      "deleted": true
+    },
+    {
+      "source_path": ".gitattributes",
+      "deleted": true
+    },
+    {
+      "source_path": ".ignore",
+      "deleted": true
+    },
+    {
+      "source_path": "ARCHAEOLOGY.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "9778c14e5def91e499ffceb95dcc2d0d5e166cf7",
+      "retained_path": "historical/archaeology-2026-02-07/source/ARCHAEOLOGY.md"
+    },
+    {
+      "source_path": "data/_example/stage_1_output.txt",
+      "deleted": true
+    },
+    {
+      "source_path": "docs/investigations/2026-01-31-lsp-broken.md",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/README.md",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/SPEC.md",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/stage_1.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/stage_2.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/test_stage_1.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/_example/test_stage_2.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/algorithm_comparison/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/algorithm_inventory/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/benchmark_hk2017/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/conftest.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/counterexample_hko/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/example_pipeline/SPEC.md",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/example_pipeline/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/example_pipeline/stage_analyze.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/example_pipeline/stage_build.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/example_pipeline/stage_plot.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/polytope_database/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/polytope_visualization_4d/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/pyproject.toml",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/pyrightconfig.json",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/pytest.ini",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/ruff.toml",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/runtime_performance_analysis/__init__.py",
+      "deleted": true
+    },
+    {
+      "source_path": "experiments/uv.lock",
+      "deleted": true
+    },
+    {
+      "source_path": "msc-viterbo.code-workspace",
+      "deleted": true
+    },
+    {
+      "source_path": "recovered-code/algorithm-archive/billiard.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "bad3d670dd24f92656d2cc988a11fd28f7196f7d",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/algorithm-archive/billiard.rs"
+    },
+    {
+      "source_path": "recovered-code/algorithm-archive/billiard_lp.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "cb6a01735b3af0f376083dc9bf4c51e5f16201a4",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/algorithm-archive/billiard_lp.rs"
+    },
+    {
+      "source_path": "recovered-code/algorithm-archive/hk2019.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "25422c42ccecd9a1c4ca033ca152e755d0444d66",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/algorithm-archive/hk2019.rs"
+    },
+    {
+      "source_path": "recovered-code/algorithm-archive/tube.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "865d3bc6a96da7d05837e5f0e86f5974d32f8122",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/algorithm-archive/tube.rs"
+    },
+    {
+      "source_path": "recovered-code/billiard-deleted/action.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "d86ec605fd4f5e3f105ad4f6ba046f3144c50699",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/billiard-deleted/action.rs"
+    },
+    {
+      "source_path": "recovered-code/billiard-deleted/algorithm.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "b94bb42804d944ba69e99794720ec796df5e1aeb",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/billiard-deleted/algorithm.rs"
+    },
+    {
+      "source_path": "recovered-code/billiard-deleted/solve.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "3320caa68eab833079904222fda69808cff2cda6",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/billiard-deleted/solve.rs"
+    },
+    {
+      "source_path": "recovered-code/billiard-deleted/types.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "c16d3a820a841026ce947f2a4d5c38aded1963eb",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/billiard-deleted/types.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/algorithm_agreement.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "1259c4f0e760de172c777dc059327f48d97ff063",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/algorithm_agreement.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/algorithm_metadata.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "a96060f4ce18117ac33d02693874745644ef6ddc",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/algorithm_metadata.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/billiard_comprehensive_comparison.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "035ea792abb22b1eef2ce16d647d028669f26e0f",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/billiard_comprehensive_comparison.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/billiard_orbit_invariants.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "8eeb3f6616b4bdf2ecdc92c8a729a1db2ee2aee8",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/billiard_orbit_invariants.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/billiard_witness.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "2d49fadbb00c3051836004d9b5b4f83c2fbbb90c",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/billiard_witness.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/capacity_known_values.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "7a9ba7e0e23f05c9b7197da5473951ac41074127",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/capacity_known_values.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/capacity_monotonicity.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "68888a2f1dc55f5f037b0e1468c8fbdc312d3bdd",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/capacity_monotonicity.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/capacity_scaling_axiom.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "0c507ef7628913d7f43ab99b8230d3adfedd711e",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/capacity_scaling_axiom.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/capacity_symplectomorphism.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "1c6e3b3e1e42b0aa2705ed47671ac90c40e8c565",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/capacity_symplectomorphism.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/fixtures.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "f1dae08c1b440e086de5d12e27b13c01a87c03e7",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/fixtures.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/generators.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e9035dfad85fc77625cf382c063d78b2fdfb0271",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/generators.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/lagrangian_product.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "fa151763f455a2bdae2434be7fd77bf6ea02a8f1",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/lagrangian_product.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/mod.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "145870be48782c75f61489e6d78729dca8d0ef2d",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/mod.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/polygon_2d.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "40db292e4f538a1831a0609f12cc0497c8837fbc",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/polygon_2d.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/polytope_preprocessing.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "29b726086bb172006dde6c3ad50e0eafff10bbba",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/polytope_preprocessing.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_algorithm.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "77ad39113945e9bbb0f6a09c177a4c5356de6df8",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_algorithm.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_failure_diagnostic.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "5a0c66823e218068554e605c4970e69d9b4d53c1",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_failure_diagnostic.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_fixtures.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "912e2f464af24cbdfa438dc3768e33b6f75b9937",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_fixtures.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_flow_map_tests.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "64a169a405d72749c9ac2bc52d43a77021b262e9",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_flow_map_tests.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_hk2017_comparison.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "3060aee72d4b7e71bac5ecdf3151a44227016874",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_hk2017_comparison.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_integration.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "6d1b3b6c5862b2074384a1a02eba96acea4bbc1e",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_integration.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_orbit_invariants.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "9ec3198e1a066eb526ca52de86e051d6246257c2",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_orbit_invariants.rs"
+    },
+    {
+      "source_path": "recovered-code/tests/tube_rotation_debug.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "9df7db85a84d9cd9af2d07471d48fed0b4b955e9",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tests/tube_rotation_debug.rs"
+    },
+    {
+      "source_path": "recovered-code/tube-reverted/geom.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "a8a25bcec40941f331d5d21d18ceec9997f4449b",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tube-reverted/geom.rs"
+    },
+    {
+      "source_path": "recovered-code/tube-reverted/polytope.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e09aa0d8154efd8e75aa5c66e704670a532fed5d",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tube-reverted/polytope.rs"
+    },
+    {
+      "source_path": "recovered-code/tube-reverted/trivialization.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "9296d919c53fe7953beabe56fafe6a7038a93a5a",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tube-reverted/trivialization.rs"
+    },
+    {
+      "source_path": "recovered-code/tube-reverted/tube.rs",
+      "mode": "100644",
+      "type": "blob",
+      "object": "686d54b0658614d409c046c525fc5b441d0e7979",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-code/tube-reverted/tube.rs"
+    },
+    {
+      "source_path": "recovered-docs/algorithm-billiard-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "f65503cc771aad645c069bb2f81da5b55472c558",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/algorithm-billiard-spec.md"
+    },
+    {
+      "source_path": "recovered-docs/algorithm-hk2019-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e3ac0a6b4cb34686f65b4f61b4e63fa38bfdc995",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/algorithm-hk2019-spec.md"
+    },
+    {
+      "source_path": "recovered-docs/algorithm-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "c06fbf3b4af3ed96b136548c745859b380546468",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/algorithm-spec.md"
+    },
+    {
+      "source_path": "recovered-docs/appendix-experiments-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "c4903b311523fb7beb605166e2d3ba2dde204ac4",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/appendix-experiments-spec.md"
+    },
+    {
+      "source_path": "recovered-docs/billiard-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "a3ce2c8f573637aa4a83d3b53d8eeef984e9ceaa",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/billiard-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/billiard-TEST_SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "17b584b60449fc2116448530b57c7b9f4e3ac490",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/billiard-TEST_SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/billiard-correctness-proof.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "0df09261f633161b6115a6bec015969542618022",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/billiard-correctness-proof.md"
+    },
+    {
+      "source_path": "recovered-docs/claims-audit-notes.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "a2fbf744d71ceed2140a93a263961b8b1bcfc348",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/claims-audit-notes.md"
+    },
+    {
+      "source_path": "recovered-docs/complexity-audit.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e7c616d278ad81e0e78fe0ce788652dc5e678924",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/complexity-audit.md"
+    },
+    {
+      "source_path": "recovered-docs/conv-math-code-correspondence.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "01b47d13b5ae76b68809d5eeb07e9a78d7276745",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/conv-math-code-correspondence.md"
+    },
+    {
+      "source_path": "recovered-docs/conv-rust-algorithms.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "74bfad11150ce0c997228b6e60271acba624c6ee",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/conv-rust-algorithms.md"
+    },
+    {
+      "source_path": "recovered-docs/developer-spec-v2.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "ec12ee133774c770f505c7de914f18d20815d570",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/developer-spec-v2.md"
+    },
+    {
+      "source_path": "recovered-docs/developer-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "c3b7d52860f3a9fc4d6a33349fed9946f58a7ff3",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/developer-spec.md"
+    },
+    {
+      "source_path": "recovered-docs/ffi-contract.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "1d485a74d9a8ef8e748be08822a63c1132cd1bb7",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/ffi-contract.md"
+    },
+    {
+      "source_path": "recovered-docs/findings-orbit-validation.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "2c0c39226693ad8ba4bf2a880b2bbc92fc49d2fc",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/findings-orbit-validation.md"
+    },
+    {
+      "source_path": "recovered-docs/findings-trivialization-bug.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "68161f566e6b123f323b5fc8c532ee7ed471cb92",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/findings-trivialization-bug.md"
+    },
+    {
+      "source_path": "recovered-docs/geom-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "f3b7348ec28447a852739f63cfb27f0c0123f52a",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/geom-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/hk2017-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "f1826916fea363e2f04080ca5e945f66f30a9df3",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/hk2017-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/impl-plan-hk2017.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "fe8cb9226afb0662ba370f0a4ea682cc9da66911",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/impl-plan-hk2017.md"
+    },
+    {
+      "source_path": "recovered-docs/implementation-notes.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "adedf4e4abe84ddb780a8c1d24285ff6d4ee78d2",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/implementation-notes.md"
+    },
+    {
+      "source_path": "recovered-docs/lit-haim-kislev-2019.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "29cc9802a46f66a7095ef0fec6b7e39cd4b68d8a",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/lit-haim-kislev-2019.md"
+    },
+    {
+      "source_path": "recovered-docs/lit-haim-kislev-ostrover-2024.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "3356baf082840bce66474bd25a97c518deac3e9b",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/lit-haim-kislev-ostrover-2024.md"
+    },
+    {
+      "source_path": "recovered-docs/lit-rudolf-2022-billiard.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "953dc61c0d3802ecfa23c4d857bb82d77f27a4c9",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/lit-rudolf-2022-billiard.md"
+    },
+    {
+      "source_path": "recovered-docs/literature-capacities.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "5a9de16a0b9ae5b106614caee812a1510e75da2a",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/literature-capacities.md"
+    },
+    {
+      "source_path": "recovered-docs/math-introduction-draft.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "6904e411932a0a290217128f07138119f4fb1474",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/math-introduction-draft.md"
+    },
+    {
+      "source_path": "recovered-docs/mathematical-claims.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "a0bd45d90fb23cd852da781c57c71637a634a9ab",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/mathematical-claims.md"
+    },
+    {
+      "source_path": "recovered-docs/open-questions.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "370f0485b0b3d09c534f4b2a6bc49512f22b9003",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/open-questions.md"
+    },
+    {
+      "source_path": "recovered-docs/optim-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "6a4f7920ad0419ea2b8dfd37701215b7f2123c48",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/optim-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-capacity-ehz.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "b329e85254bff572d1607dbfb5bcc0a7baa94cc1",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-capacity-ehz.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-constructions.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "98476eb0754b484be620f97a7656f94559631cbd",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-constructions.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-polar.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "192246216b929f57eef3c320de8d315bfc44d298",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-polar.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-polytope.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e46f2330188d458e2d49a0769c386239007b9a9b",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-polytope.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-symplectic.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "766957fab6c2ee1b85c013df2d818eb2365bc9e2",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-symplectic.md"
+    },
+    {
+      "source_path": "recovered-docs/proto-math-volume.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "1eeebb6e8d658ad4ef14cf603eead8e20b1ae5b4",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/proto-math-volume.md"
+    },
+    {
+      "source_path": "recovered-docs/root-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "389dd16328fc148d34857b4da5e9aaa7f3f68daa",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/root-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/spec-billiard.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "d5f69b1b571e915b2c085eea7b1f68f06816afb1",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/spec-billiard.md"
+    },
+    {
+      "source_path": "recovered-docs/spec-hk2017.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "0363cfcadfed165399ec6a1ffdef8b625b49bdda",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/spec-hk2017.md"
+    },
+    {
+      "source_path": "recovered-docs/test-cases.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "4eeef6f8aea49404539ee7674420a6660a558c30",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/test-cases.md"
+    },
+    {
+      "source_path": "recovered-docs/test-interpretation.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "e38b29c9b717e39243e53119fbe8a6bbcfb211a3",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/test-interpretation.md"
+    },
+    {
+      "source_path": "recovered-docs/test-propositions.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "441e41fa94f9930c3a7a90d6b6fa604ae80365a2",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/test-propositions.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-02-math.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "293ed3f7c0e7baaca0e2b41d04d3ad6c6231419b",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-02-math.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-02.1-standard-counterexample.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "19f8f1b097535ab6712b36496e029ed96eb23089",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-02.1-standard-counterexample.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-algo-minkowski-billiard.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "b6fba0a2d27b47d87858b3d3cfcec884d73349dd",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-algo-minkowski-billiard.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-algo-oriented-edge-graph.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "34e915b7c9466635f01033b24e88cc1d2427121f",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-algo-oriented-edge-graph.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-ehz-capacity.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "b76de091b0c12dfe710fabf0955deec8a3ad2a5d",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-ehz-capacity.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-simplex-conjecture.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "2707e7e078e1329e909e6432791e7c33ba98de1f",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-simplex-conjecture.md"
+    },
+    {
+      "source_path": "recovered-docs/thesis-viterbo-counterexample.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "75291ee6631069e7f6b351931249f2da8925dd7b",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/thesis-viterbo-counterexample.md"
+    },
+    {
+      "source_path": "recovered-docs/trivialization-derivation.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "8c868b3455ee8325003c6239765b37e5cccd1296",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/trivialization-derivation.md"
+    },
+    {
+      "source_path": "recovered-docs/tube-SPEC-proofs.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "58bb62c0e1b7a11dabfca0697531b7175eea8832",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/tube-SPEC-proofs.md"
+    },
+    {
+      "source_path": "recovered-docs/tube-SPEC.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "94a452a9c0082d95c8b418595979ff245a6397cd",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/tube-SPEC.md"
+    },
+    {
+      "source_path": "recovered-docs/tube-geometry-spec.md",
+      "mode": "100644",
+      "type": "blob",
+      "object": "239bbacdf14b5dc5610dd796d2effd71cd8d938f",
+      "retained_path": "historical/archaeology-2026-02-07/source/recovered-docs/tube-geometry-spec.md"
+    },
+    {
+      "source_path": "scripts/ci.sh",
+      "deleted": true
+    },
+    {
+      "source_path": "scripts/download-arxiv.sh",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/CLAUDE.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/ROADMAP.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/active/.gitkeep",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/done/.gitkeep",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/inbox/.gitkeep",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/inbox/knowledge-base-audit.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/next/.gitkeep",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/next/geom2d-completion.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/next/geom4d-completion.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/.gitkeep",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/algorithm-comparison.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/appendix-experiments.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/billiard-crate.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/counterexample-hko.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/hk2017-crate.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/polytope-database.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/tube-crate-improvements.md",
+      "deleted": true
+    },
+    {
+      "source_path": "tasks/waiting/tube-crate.md",
+      "deleted": true
+    }
+  ]
+}

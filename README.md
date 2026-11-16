@@ -13,3 +13,5 @@ This repository contains the full code, experiments, proofs, tooling, and write-
 ## Reproducibility
 
 The project is designed to be reproducible in the provided devcontainer with scripted pipelines. For the exact steps, see `CLAUDE.md`.
+
+Historical source recovery, including algorithm specifications and known bug findings, is indexed in [the archaeology archive](historical/archaeology-2026-02-07/README.md).
